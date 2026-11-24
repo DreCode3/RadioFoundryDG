@@ -1,0 +1,370 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 The RadioFoundry Authors -->
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RadioFoundry UI Simulator</title>
+<style>
+  :root {
+    color-scheme: dark;
+    font: 16px/1.5 system-ui, sans-serif;
+    color: #e5edf3;
+    background: #10171e;
+    --panel: #18232d;
+    --edge: #334351;
+    --soft: #a8b9c7;
+    --accent: #8cdbef;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: clamp(16px, 4vw, 48px); }
+  main { max-width: 1024px; margin: 0 auto; }
+  h1 { font-size: clamp(1.35rem, 4vw, 2.1rem); line-height: 1.2; margin: 0; }
+  h2 { font-size: 1rem; margin: 0 0 .75rem; }
+  header p { color: var(--soft); margin: .35rem 0 1.25rem; }
+  .device { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .46fr); gap: 1rem; }
+  .display, .controls, .events { border: 1px solid var(--edge); border-radius: 14px; background: var(--panel); }
+  .display { align-self: start; margin: 0; padding: clamp(8px, 2vw, 16px); background: #0a1016; }
+  .display img { display: block; width: 100%; height: auto; aspect-ratio: 31 / 24; image-rendering: pixelated; background: #080c11; }
+  .gui-picker { margin-bottom: .75rem; }
+  .controls, .events { padding: 1rem; }
+  .navigation, .side, .digits { display: grid; gap: .45rem; }
+  .navigation, .side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .digits { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: .65rem 0; }
+  button {
+    min-height: 44px;
+    padding: .38rem .6rem;
+    border: 1px solid #475970;
+    border-radius: 7px;
+    background: #233446;
+    color: inherit;
+    font: inherit;
+    font-weight: 550;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  button:hover { background: #30465b; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:active, button.held { background: #466781; }
+  button[data-press="ok"], button[data-press="quick"] { color: var(--accent); }
+  button[data-press="back"], button[data-down="pttdown"] { color: #ffb0a2; }
+  .digits button { font: 600 1.15rem/1 system-ui, sans-serif; }
+  .hint, kbd { color: var(--soft); font-size: .83rem; }
+  .hint { margin: .75rem 0 0; }
+  kbd { white-space: nowrap; }
+  .events { margin-top: 1rem; }
+  .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 1rem; }
+  fieldset { min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+  legend { padding: 0; color: var(--soft); font-size: .85rem; margin-bottom: .4rem; }
+  .events button { font-size: .9rem; }
+  .choices { display: flex; flex-wrap: wrap; gap: .45rem; }
+  details { margin-top: 1rem; }
+  summary { cursor: pointer; color: var(--soft); }
+  details .events-grid { margin-top: .65rem; }
+  #status { color: #ffccab; margin: .75rem 0 0; }
+  #status:empty { display: none; }
+  @media (max-width: 720px) {
+    .device { grid-template-columns: 1fr; }
+  }
+</style>
+<main>
+  <header>
+    <h1>RadioFoundry UI Simulator</h1>
+    <p>GD-88 · Local simulation</p>
+  </header>
+  <div class="device">
+    <figure class="display" aria-label="Simulated radio display">
+      <fieldset class="gui-picker">
+        <legend>Radio GUI</legend>
+        <div class="choices">
+          <button type="button" data-press="gui:original">Original RadioFoundry</button>
+          <button type="button" data-press="gui:prototype">GD-88 Prototype</button>
+        </div>
+      </fieldset>
+      <img id="frame" src="/frame.png" width="620" height="480" alt="Current RadioFoundry screen">
+    </figure>
+    <section class="controls" aria-labelledby="controls-title">
+      <h2 id="controls-title">Radio controls</h2>
+      <div class="navigation">
+        <button type="button" data-press="ok" data-long="long:ok" data-key="Enter">Menu / OK</button>
+        <button type="button" data-press="back" data-long="long:back" data-key="Escape" title="Hold to return Home">Back</button>
+        <button type="button" data-press="up" data-key="ArrowUp">▲ Up</button>
+        <button type="button" data-press="down" data-key="ArrowDown">▼ Down</button>
+      </div>
+      <div class="digits" aria-label="Numeric keypad" role="group">
+        <button type="button" data-press="1" data-key="1">1</button>
+        <button type="button" data-press="2" data-key="2">2</button>
+        <button type="button" data-press="3" data-key="3">3</button>
+        <button type="button" data-press="4" data-key="4">4</button>
+        <button type="button" data-press="5" data-key="5">5</button>
+        <button type="button" data-press="6" data-key="6">6</button>
+        <button type="button" data-press="7" data-key="7">7</button>
+        <button type="button" data-press="8" data-key="8">8</button>
+        <button type="button" data-press="9" data-key="9">9</button>
+        <button type="button" data-press="quick" data-long="long:quick" data-key="*" aria-label="Star, Quick settings" title="Hold for key lock on Home">*</button>
+        <button type="button" data-press="0" data-key="0">0</button>
+        <button type="button" data-press="ctx" data-long="long:ctx" data-key="#" aria-label="Hash, Context" title="Hold for Talk Target">#</button>
+      </div>
+      <div class="side">
+        <button type="button" data-press="abkey" data-long="long:dualkey" data-key="a" title="Hold for Dual Watch">A / B</button>
+        <button type="button" data-press="vfokey" data-long="long:copykey" data-key="v" title="Hold to copy to VFO">VFO / Channel</button>
+        <button type="button" data-press="scankey" data-key="s">Scan</button>
+        <button type="button" data-down="pttdown" data-up="pttup" data-key="Space" title="Hold to simulate transmitting">PTT</button>
+        <button type="button" data-down="mondown" data-up="monup" data-key="m" title="Press to toggle DMR Monitor. Hold to open FM squelch.">Monitor</button>
+      </div>
+      <p class="hint"><kbd>Enter</kbd> Menu · <kbd>Esc</kbd> Back · <kbd>↑</kbd><kbd>↓</kbd> Navigate · <kbd>Space</kbd> PTT<br>
+        <kbd>A</kbd> A/B · <kbd>V</kbd> VFO · <kbd>S</kbd> Scan · <kbd>M</kbd> Monitor · <kbd>0–9</kbd> <kbd>*</kbd> <kbd>#</kbd><br>
+        Hold <kbd>Esc</kbd> for Home or <kbd>A</kbd> for Dual Watch.</p>
+    </section>
+  </div>
+  <p role="status" id="status"></p>
+  <noscript><p>Enable JavaScript to use the radio controls.</p></noscript>
+  <section class="events" aria-labelledby="events-title">
+    <h2 id="events-title">Simulated events</h2>
+    <div class="events-grid">
+      <fieldset>
+        <legend>DMR reception</legend>
+        <div class="choices">
+          <button type="button" data-press="rx:9991234,3100,g">Group call</button>
+          <button type="button" data-press="rx:9991234,3100,g,Morgan_Reed">Group call with alias</button>
+          <button type="button" data-press="rx:9995678,0,p">Private call</button>
+          <button type="button" data-press="rxend">End call</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>FM reception</legend>
+        <div class="choices">
+          <button type="button" data-press="fmrx">Start signal</button>
+          <button type="button" data-press="fmrxend">End signal</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Incoming data</legend>
+        <div class="choices">
+          <button type="button" data-press="msg:9991234,Meet_at_the_north_lot_in_15_minutes.">Text message</button>
+          <button type="button" data-press="alert:9995678">Call alert</button>
+          <button type="button" data-press="zoneoffer:9991234">Zone offer</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>APRS transmission</legend>
+        <div class="choices">
+          <button type="button" data-press="aprstx">Start</button>
+          <button type="button" data-press="aprsend">End</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>GPS</legend>
+        <div class="choices">
+          <button type="button" data-press="gps:fix">Fix</button>
+          <button type="button" data-press="gps:searching">Searching</button>
+          <button type="button" data-press="gps:off">Off</button>
+        </div>
+      </fieldset>
+    </div>
+    <details>
+      <summary>Simulated channel mode</summary>
+      <div class="choices">
+        <button type="button" data-press="dlmode:fm">FM</button>
+        <button type="button" data-press="dlmode:dmr">DMR</button>
+        <button type="button" data-press="dlmode:p25">P25</button>
+        <button type="button" data-press="dlmode:nxdn">NXDN</button>
+      </div>
+    </details>
+    <details>
+      <summary>Simulated radio state</summary>
+      <div class="events-grid">
+        <fieldset>
+          <legend>VOX</legend>
+          <div class="choices">
+            <button type="button" data-press="vox:on">On</button>
+            <button type="button" data-press="vox:off">Off</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Receive only</legend>
+          <div class="choices">
+            <button type="button" data-press="rxonly:on">On</button>
+            <button type="button" data-press="rxonly:off">Off</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Roaming</legend>
+          <div class="choices">
+            <button type="button" data-press="roam:ready">Ready</button>
+            <button type="button" data-press="roam:searching">Searching</button>
+            <button type="button" data-press="roam:weak">Weak signal</button>
+            <button type="button" data-press="roam:locked">Locked</button>
+            <button type="button" data-press="roam:off">Off</button>
+          </div>
+        </fieldset>
+      </div>
+    </details>
+    <details>
+      <summary>Prototype states</summary>
+      <div class="events-grid">
+        <fieldset>
+          <legend>Bluetooth</legend>
+          <div class="choices">
+            <button type="button" data-press="prototype:bt_off">Off</button>
+            <button type="button" data-press="prototype:bt_on">On</button>
+            <button type="button" data-press="prototype:bt_connected">Connected</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Recording</legend>
+          <div class="choices">
+            <button type="button" data-press="prototype:record_on">On</button>
+            <button type="button" data-press="prototype:record_off">Off</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>D-STAR</legend>
+          <div class="choices">
+            <button type="button" data-press="prototype:dstar_on">On</button>
+            <button type="button" data-press="prototype:dstar_off">Off</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Talkaround</legend>
+          <div class="choices">
+            <button type="button" data-press="prototype:talkaround_on">On</button>
+            <button type="button" data-press="prototype:talkaround_off">Off</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Privacy indicator</legend>
+          <div class="choices">
+            <button type="button" data-press="prototype:crypt_actual">Channel setting</button>
+            <button type="button" data-press="prototype:crypt_arc4">ARC4</button>
+            <button type="button" data-press="prototype:crypt_aes">AES</button>
+          </div>
+        </fieldset>
+      </div>
+    </details>
+    <details>
+      <summary>Power</summary>
+      <div class="choices">
+        <button type="button" data-press="reboot">Restart simulated radio</button>
+      </div>
+    </details>
+  </section>
+</main>
+<script>
+  const frame = document.querySelector('#frame');
+  const status = document.querySelector('#status');
+  const pressed = new Map();
+  const shortcuts = new Map();
+  const holdMs = 650;
+  let pending = 0;
+  let requests = Promise.resolve();
+  let frameUrl;
+
+  function send(action) {
+    pending++;
+    // Keep the browser's request order the same as the radio's key order.
+    requests = requests.then(async () => {
+      try {
+        const response = await fetch('/action', {
+          method: 'POST',
+          headers: {'Content-Type': 'text/plain; charset=utf-8'},
+          body: action,
+          signal: AbortSignal.timeout(12000),
+        });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        const next = URL.createObjectURL(await response.blob());
+        try {
+          frame.src = next;
+          await frame.decode();
+        } finally {
+          if (frameUrl) URL.revokeObjectURL(frameUrl);
+          frameUrl = next;
+        }
+        if (action) status.textContent = '';
+      } catch (error) {
+        if (action || !status.textContent) {
+          status.textContent = error.message || 'Unable to reach the simulator.';
+        }
+      } finally {
+        pending--;
+      }
+    });
+  }
+
+  function start(id, button) {
+    if (pressed.has(id)) return;
+    pressed.set(id, {button, time: performance.now()});
+    button.classList.add('held');
+    if (button.dataset.down) send(button.dataset.down);
+  }
+
+  function finish(id, cancelled = false) {
+    const press = pressed.get(id);
+    if (!press) return;
+    pressed.delete(id);
+    const {button, time} = press;
+    button.classList.remove('held');
+    if (button.dataset.up) {
+      send(button.dataset.up);
+    } else if (!cancelled) {
+      const long = button.dataset.long && performance.now() - time >= holdMs;
+      send(long ? button.dataset.long : button.dataset.press);
+    }
+  }
+
+  for (const button of document.querySelectorAll('button')) {
+    if (button.dataset.key) shortcuts.set(button.dataset.key, button);
+    if (button.dataset.long || button.dataset.down) {
+      button.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        button.setPointerCapture(event.pointerId);
+        start(event.pointerId, button);
+      });
+      button.addEventListener('pointerup', event => finish(event.pointerId));
+      button.addEventListener('pointercancel', event => finish(event.pointerId, true));
+      button.addEventListener('lostpointercapture', event => finish(event.pointerId, true));
+      button.addEventListener('contextmenu', event => event.preventDefault());
+    }
+    button.addEventListener('click', event => {
+      const hasPointerHandling = button.dataset.long || button.dataset.down;
+      // A regular click on these keys is produced only by keyboard or assistive activation.
+      if (event.detail && hasPointerHandling) return;
+      if (button.dataset.down) {
+        send(button.dataset.down);
+        send(button.dataset.up);
+      } else {
+        send(button.dataset.press);
+      }
+    });
+  }
+
+  function shortcut(event) {
+    if (event.key === ' ') return 'Space';
+    return event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  }
+
+  window.addEventListener('keydown', event => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.target.matches('button:focus-visible') &&
+        (event.key === 'Enter' || event.key === ' ')) return;
+    const button = shortcuts.get(shortcut(event));
+    if (!button) return;
+    event.preventDefault();
+    if (button.dataset.long || button.dataset.down) {
+      if (!event.repeat) start(event.code, button);
+    } else if (!event.repeat || event.key.startsWith('Arrow')) {
+      send(button.dataset.press);
+    }
+  });
+  window.addEventListener('keyup', event => finish(event.code));
+  window.addEventListener('blur', () => {
+    for (const id of pressed.keys()) finish(id, true);
+  });
+  setInterval(() => {
+    if (!document.hidden && !pending) send('');
+  }, 100);
+</script>
+</html>

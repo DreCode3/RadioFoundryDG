@@ -11,5 +11,6 @@
 !/data/
 !/*.sh
 !/*.py
+!/uiLive.html
 !/*.awk
 !/watchdog_stub/

@@ -87,6 +87,9 @@ the GPS driver's task, readers are the radio, UI and debug link tasks. Each read
 sentence came for 60 s, else the last fix (60 s old at most), satellites used and HDOP (GGA), speed, course and time
 (RMC).
 
+With `CONFIG_UI_PROFILES`, the GPS clock uses a date and time from the same valid RMC fix received within the last
+60 seconds. Losing the fix or turning GPS off clears the clock. A GGA fix has no date and cannot set the clock.
+
 With `CONFIG_GPS_SKY`, `nmea_sky.c` also reads the board GPS's satellite sentences:
 
 | Sentence | What it gives |

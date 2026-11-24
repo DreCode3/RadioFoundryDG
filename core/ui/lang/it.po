@@ -117,7 +117,7 @@ msgctxt "CPLUG_TOAST_NOT_SAVED"
 msgid "Not saved"
 msgstr "Non salvato"
 
-#: core/ui/ui_app.c core/ui/ui_menus.c core/ui/ui_screens.c
+#: core/ui/ui_app.c core/ui/ui_dual.c core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "VALUE_ALL_CALL"
 msgid "All call"
 msgstr "Chiamata a tutti"
@@ -641,6 +641,16 @@ msgstr "Niente da salvare qui"
 msgctxt "LIST_TOAST_NOTHING_TO_OPEN"
 msgid "Nothing to open"
 msgstr "Niente da aprire"
+
+#: core/ui/ui_app.c core/ui/ui_find.c
+msgctxt "FIND_CHIP_MENU"
+msgid "Menu"
+msgstr "Menu"
+
+#: core/ui/ui_app.c core/ui/ui_menus.c
+msgctxt "HINT_OK_OPEN_BACK"
+msgid "OK Open  Back"
+msgstr "OK Apri  Indietro"
 
 #: core/ui/ui_app.c
 msgctxt "LIST_TITLE_FIND"
@@ -1398,11 +1408,6 @@ msgid "Phone call "
 msgstr "Telefonata "
 
 #: core/ui/ui_find.c
-msgctxt "FIND_CHIP_MENU"
-msgid "Menu"
-msgstr "Menu"
-
-#: core/ui/ui_find.c
 msgctxt "FIND_TOAST_NO_ACTIONS"
 msgid "No actions for this result"
 msgstr "Nessuna azione per questo risultato"
@@ -1786,6 +1791,11 @@ msgstr "Nuovo messaggio APRS"
 msgctxt "MSG_HINT_LIST"
 msgid "OK open  # reply  Back"
 msgstr "OK apri  # rispondi  Indietro"
+
+#: core/ui/ui_menus.c
+msgctxt "MSG_HINT_NEW"
+msgid "OK Compose  Back"
+msgstr "OK Scrivi  Indietro"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_EMPTY"
@@ -3673,6 +3683,26 @@ msgid "Pink"
 msgstr "Rosa"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_VALUE_PROFILE_COMMERCIAL"
+msgid "Commercial"
+msgstr "Commerciale"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_PROFILE_AMATEUR"
+msgid "Amateur"
+msgstr "Radioamatore"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_DISPLAY_DAY"
+msgid "Day"
+msgstr "Giorno"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_DISPLAY_NIGHT"
+msgid "Night"
+msgstr "Notte"
+
+#: core/ui/ui_menus.c
 msgctxt "VALUE_3_MIN"
 msgid "3 min"
 msgstr "3 min"
@@ -3931,6 +3961,21 @@ msgstr "Passi fine"
 msgctxt "SIG_ROW_IDLE_STEPS"
 msgid "Idle steps"
 msgstr "Passi libero"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GUI_PROFILE"
+msgid "Display Profile"
+msgstr "Profilo display"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_DAY_NIGHT"
+msgid "Day/Night"
+msgstr "Giorno/notte"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GPS_CLOCK"
+msgid "GPS clock"
+msgstr "Orologio GPS"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_BRIGHTNESS"
@@ -4249,13 +4294,13 @@ msgstr "Connessioni"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_POWER_SAVING"
-msgid "Power saving"
-msgstr "Risparmio energia"
+msgid "Power"
+msgstr "Alimentazione"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_TITLE_POWER_SAVING"
-msgid "Power Saving"
-msgstr "Risparmio energia"
+msgid "Power"
+msgstr "Alimentazione"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_KEYS"
@@ -4748,14 +4793,74 @@ msgid "Tracking stopped"
 msgstr "Tracciamento fermato"
 
 #: core/ui/ui_screens.c
-msgctxt "TOP_STATE_IDLE"
-msgid "IDLE"
-msgstr "IDLE"
+msgctxt "CLOCK_MONTH_JAN"
+msgid "Jan"
+msgstr "gen"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_FEB"
+msgid "Feb"
+msgstr "feb"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_MAR"
+msgid "Mar"
+msgstr "mar"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_APR"
+msgid "Apr"
+msgstr "apr"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_MAY"
+msgid "May"
+msgstr "mag"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_JUN"
+msgid "Jun"
+msgstr "giu"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_JUL"
+msgid "Jul"
+msgstr "lug"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_AUG"
+msgid "Aug"
+msgstr "ago"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_SEP"
+msgid "Sep"
+msgstr "set"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_OCT"
+msgid "Oct"
+msgstr "ott"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_NOV"
+msgid "Nov"
+msgstr "nov"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_DEC"
+msgid "Dec"
+msgstr "dic"
 
 #: core/ui/ui_screens.c
 msgctxt "TOP_STATE_NO_TX"
 msgid "NO TX"
 msgstr "NO TX"
+
+#: core/ui/ui_screens.c
+msgctxt "TOP_STATE_IDLE"
+msgid "IDLE"
+msgstr "IDLE"
 
 #: core/ui/ui_screens.c
 msgctxt "TOP_CHIP_DUAL"
@@ -5406,6 +5511,11 @@ msgstr "{Indietro: gruppo canale|Indietro predef.}"
 msgctxt "HOME_HINT_VFO"
 msgid "0-9 freq  * Quick  Up/Dn"
 msgstr "0-9 freq  * Rapido  Su/Giù"
+
+#: core/ui/ui_screens.c
+msgctxt "HOME_STATE_NO_TARGET"
+msgid "No talk target"
+msgstr "Nessun destinatario"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_BODY_HEARD"

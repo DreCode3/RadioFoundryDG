@@ -27,6 +27,43 @@ static uint8_t ui_theme;
 static uint8_t ui_accent;	// UI_ACCENT_*
 static bool ui_strip_fill;
 
+#if CONFIG_UI_PROFILES
+#define PROFILE_BAND_H 29
+#define PROFILE_COMMERCIAL_STATUS_H 36
+static color_t profile_bar_fg;
+static color_t profile_row_bg, profile_row_focus;
+static void layout_regions(void);
+
+static bool profile_theme(void)
+{
+	return ui_theme == UI_THEME_PROFILE_DAY || ui_theme == UI_THEME_PROFILE_NIGHT;
+}
+
+static void profile_palette(bool night)
+{
+	ui_col.bg = night ? RGB565(17, 26, 36) : RGB565(220, 234, 244);
+	ui_col.fg = night ? RGB565(237, 242, 247) : RGB565(23, 40, 53);
+	ui_col.dim = night ? RGB565(180, 194, 209) : RGB565(53, 78, 101);
+	ui_col.line = night ? RGB565(74, 97, 121) : RGB565(171, 195, 216);
+	ui_col.tx = night ? RGB565(255, 119, 119) : RGB565(189, 41, 41);
+	ui_col.rx = night ? RGB565(116, 216, 153) : RGB565(20, 101, 59);
+	ui_col.warn = night ? RGB565(245, 198, 104) : RGB565(135, 96, 0);
+	ui_col.priv = night ? RGB565(130, 188, 255) : RGB565(29, 97, 165);
+	ui_col.focus = night ? RGB565(38, 61, 85) : RGB565(194, 217, 237);
+	ui_col.hint_bg = night ? RGB565(29, 54, 86) : RGB565(36, 79, 136);
+	ui_col.strip_bg = night ? RGB565(25, 38, 52) : RGB565(244, 248, 252);
+	profile_row_bg = night ? RGB565(30, 46, 63) : RGB565(205, 223, 237);
+	profile_row_focus = night ? RGB565(48, 76, 102) : RGB565(174, 204, 231);
+	profile_bar_fg = night ? ui_col.fg : RGB565(255, 255, 255);
+	ui_col.idle = ui_col.dim;
+	ui_col.focus_fg = ui_col.fg;
+	ui_col.chnum = ui_col.dim;
+	ui_col.strip_warn = ui_col.warn;
+	ui_col.pill_dark_fg = ui_col.pill_fg = night ? RGB565(0, 0, 0) : RGB565(255, 255, 255);
+	ui_col.idle_fg = ui_col.pill_fg;
+}
+#endif
+
 // The highlight color over the theme's own (Settings > Display), one shade per color for both the filled status strip
 // (reverse video: the color as background, text and icons black) and the focus highlight (black text), so the two
 // match; also Home's channel number. All are light shades: black on each is at least 7.5:1 after RGB565 rounding.
@@ -90,11 +127,28 @@ static void accent_apply(void)
 
 void ui_theme_set(uint8_t theme)
 {
-	if (!CONFIG_UI_COLOR || theme >= UI_THEME_COUNT)
+	if (!CONFIG_UI_COLOR || (theme >= UI_THEME_COUNT
+#if CONFIG_UI_PROFILES
+	    && theme != UI_THEME_PROFILE_DAY && theme != UI_THEME_PROFILE_NIGHT
+#endif
+	   ))
 		theme = UI_THEME_DARK;	// without color settings: the dark theme only
+#if CONFIG_UI_PROFILES
+	bool was_profile = profile_theme();
+#endif
 	ui_theme = theme;
 	if (gfx_bpp() == 1)
 		return;		// ink on paper whatever the theme
+#if CONFIG_UI_PROFILES
+	if (profile_theme()) {
+		profile_palette(theme == UI_THEME_PROFILE_NIGHT);
+		if (!was_profile && ui_layout.small != NULL)
+			layout_regions();
+		return;
+	}
+	if (was_profile && ui_layout.small != NULL)
+		layout_regions();
+#endif
 	ui_col.pill_fg = RGB565(255, 255, 255);
 	ui_col.pill_dark_fg = RGB565(0, 0, 0);
 	if (theme == UI_THEME_NIGHT) {
@@ -170,6 +224,45 @@ void ui_strip_set(bool filled)
 	ui_theme_set(ui_theme);
 }
 
+static void layout_regions(void)
+{
+	int w = gfx_width(), h = gfx_height();
+	ui_layout_t *L = &ui_layout;
+	// A pixel between the status strip and what is below it, and a pixel between list rows on displays 100 px and
+	// higher (3 on tall ones, 6 in the 240 px class): easy to read comes before one more row
+	bool tall = h >= UI_TALL_PX;
+	L->strip_h = L->small->h + 1;
+	L->hint_y = h - L->small->h;
+#if CONFIG_UI_PROFILES
+	if (profile_theme()) {
+		L->strip_h = PROFILE_BAND_H;
+		L->hint_y = h - PROFILE_BAND_H;
+	}
+#endif
+	int y = L->strip_h;
+	// Rows that are dropped when the display is short: the zone line, then the separator
+	int need = L->small->h + L->large->h + L->medium->h + L->small->h + 2 + L->small->h;
+	bool zone = L->strip_h + need + L->small->h <= h;
+	L->zone_y = zone ? y : -1;
+	if (zone)
+		y += L->small->h;
+	L->channel_y = y;
+	y += L->large->h;
+	L->talk_y = y;
+	y += L->medium->h;
+	L->chips_y = y;
+	y += L->small->h;
+	if (L->hint_y - y >= L->small->h + 2) {
+		L->sep_y = y;
+		y += 2;
+	} else {
+		L->sep_y = -1;
+	}
+	L->activity_y = y;
+	L->activity_h = L->hint_y - y;
+	L->row_h = L->small->h + (w >= 220 && tall ? 6 : tall ? 3 : h >= 100 ? 1 : 0);
+}
+
 void ui_layout_init(void)
 {
 	int w = gfx_width(), h = gfx_height();
@@ -235,33 +328,7 @@ void ui_layout_init(void)
 	}
 #endif
 
-	// A pixel between the status strip and what is below it, and a pixel between list rows on displays 100 px and
-	// higher (3 on tall ones, 6 in the 240 px class): easy to read comes before one more row
-	bool tall = h >= UI_TALL_PX;
-	L->strip_h = L->small->h + 1;
-	L->hint_y = h - L->small->h;
-	int y = L->strip_h;
-	// Rows that are dropped when the display is short: the zone line, then the separator
-	int need = L->small->h + L->large->h + L->medium->h + L->small->h + 2 + L->small->h;
-	bool zone = L->strip_h + need + L->small->h <= h;
-	L->zone_y = zone ? y : -1;
-	if (zone)
-		y += L->small->h;
-	L->channel_y = y;
-	y += L->large->h;
-	L->talk_y = y;
-	y += L->medium->h;
-	L->chips_y = y;
-	y += L->small->h;
-	if (L->hint_y - y >= L->small->h + 2) {
-		L->sep_y = y;
-		y += 2;
-	} else {
-		L->sep_y = -1;
-	}
-	L->activity_y = y;
-	L->activity_h = L->hint_y - y;
-	L->row_h = L->small->h + (wide ? 6 : tall ? 3 : h >= 100 ? 1 : 0);
+	layout_regions();
 }
 
 // --- shared pieces ---
@@ -400,10 +467,599 @@ static bool strip_fits(const font_t *f, int lx, int rx, const char *word)
 	return lx + gfx_text_width(f, word) + 2 * f->w <= rx;
 }
 
+#if CONFIG_UI_PROFILES
+typedef struct { int x, y, scale; } profile_mark_pos_t;
+
+static int profile_px(int n, int scale) { return n * scale / 4; }
+
+static void profile_block(profile_mark_pos_t at, int x, int y, int w, int h, color_t ink)
+{
+	int dx = profile_px(x, at.scale), dy = profile_px(y, at.scale);
+	gfx_fill(at.x + dx, at.y + dy, profile_px(x + w, at.scale) - dx, profile_px(y + h, at.scale) - dy, ink);
+}
+
+static void profile_round_fill(int x, int y, int w, int h, color_t ink)
+{
+	gfx_round_fill(x, y, w, h, ink);
+	if (w >= 3 && h >= 3) {
+		gfx_coverage_pixel(x, y, ink, 1);
+		gfx_coverage_pixel(x + w - 1, y, ink, 1);
+		gfx_coverage_pixel(x, y + h - 1, ink, 1);
+		gfx_coverage_pixel(x + w - 1, y + h - 1, ink, 1);
+	}
+}
+
+static void profile_round_block(profile_mark_pos_t at, int x, int y, int w, int h, color_t ink)
+{
+	int dx = profile_px(x, at.scale), dy = profile_px(y, at.scale);
+	profile_round_fill(at.x + dx, at.y + dy, profile_px(x + w, at.scale) - dx, profile_px(y + h, at.scale) - dy, ink);
+}
+
+typedef struct { uint32_t left, right; } profile_subrow_t;
+
+// Round the four subpixels of a mask corner only when the edge turns in both directions.
+// Straight stems, isolated points, and the gaps between parallel strokes keep their coverage.
+static profile_subrow_t profile_subrow(const uint32_t *rows, int h, int sample)
+{
+	int y = sample / 2;
+	uint32_t above = y > 0 ? rows[y - 1] : 0;
+	uint32_t below = y + 1 < h ? rows[y + 1] : 0;
+	uint32_t center = rows[y];
+	uint32_t left = center >> 1, right = center << 1;
+	uint32_t adjacent = (sample & 1) ? below : above;
+	uint32_t corners = (above ^ below) & (left ^ right) & (center ^ adjacent);
+	return (profile_subrow_t){ center ^ (corners & ~(left ^ adjacent)),
+		center ^ (corners & ~(right ^ adjacent)) };
+}
+
+static unsigned profile_coverage(profile_subrow_t upper, profile_subrow_t lower, int a, int b, int w)
+{
+	uint32_t bit_a = 1u << (w - 1 - a / 2), bit_b = 1u << (w - 1 - b / 2);
+	unsigned hits = ((a & 1 ? upper.right : upper.left) & bit_a) != 0;
+	hits += ((a & 1 ? lower.right : lower.left) & bit_a) != 0;
+	hits += ((b & 1 ? upper.right : upper.left) & bit_b) != 0;
+	hits += ((b & 1 ? lower.right : lower.left) & bit_b) != 0;
+	return (hits * 3 + 2) / 4;
+}
+
+static void profile_bitmap(int x, int y, const uint32_t *rows, int w, int h, int width, int height, color_t ink)
+{
+	for (int dy = 0; dy < height; dy++) {
+		profile_subrow_t upper = profile_subrow(rows, h, (4 * dy + 1) * h / (2 * height));
+		profile_subrow_t lower = profile_subrow(rows, h, (4 * dy + 3) * h / (2 * height));
+		for (int dx = 0; dx < width; dx++) {
+			int a = width == w ? 2 * dx : (4 * dx + 1) * w / (2 * width);
+			int b = width == w ? 2 * dx + 1 : (4 * dx + 3) * w / (2 * width);
+			unsigned coverage = profile_coverage(upper, lower, a, b, w);
+			if (coverage)
+				gfx_coverage_pixel(x + dx, y + dy, ink, coverage);
+		}
+	}
+}
+
+#define PROFILE_HEIGHT(mark) (sizeof(mark) / sizeof((mark)[0]))
+#define PROFILE_SCALED_PIXELS(x, y, mark, w, width, height, ink) \
+	profile_bitmap(x, y, mark, w, PROFILE_HEIGHT(mark), width, height, ink)
+#define PROFILE_PIXELS(x, y, mark, w, ink) \
+	PROFILE_SCALED_PIXELS(x, y, mark, w, w, PROFILE_HEIGHT(mark), ink)
+#define PROFILE_MARK_AT(at, mark, width, ink) \
+	PROFILE_SCALED_PIXELS((at).x, (at).y, mark, width, profile_px(width, (at).scale), \
+		profile_px(PROFILE_HEIGHT(mark), (at).scale), ink)
+#define PROFILE_MARK(x, y, mark, width, ink) PROFILE_PIXELS(x, y, mark, width, ink)
+#define PROFILE_STATUS_MARK(x, y, mark, width, ink) \
+	PROFILE_MARK_AT(((profile_mark_pos_t){ x, y, scale }), mark, width, ink)
+
+static color_t profile_ink(const ui_state_t *s)
+{
+	return s->gui_night ? ui_col.fg : RGB565(0, 0, 0);
+}
+
+static const uint32_t profile_lock[] = { 0x078, 0x0CC, 0x084, 0x084, 0x1FE, 0x303, 0x333, 0x333, 0x313, 0x303, 0x1FE };
+static const uint32_t profile_pin[] = { 0x0F8, 0x18C, 0x306, 0x272, 0x252, 0x272, 0x306, 0x18C, 0x0D8, 0x070, 0x020 };
+static const uint32_t profile_key[] = { 0x0780, 0x0CC0, 0x18C0, 0x18FF, 0x18FF, 0x0CD2, 0x0780 };
+
+enum {
+	PROFILE_VOX_W = 22, PROFILE_DUAL_W = 25, PROFILE_MAIL_W = 23, PROFILE_SPEAKER_W = 19,
+	PROFILE_DIRECT_W = 19, PROFILE_SCAN_W = 22, PROFILE_ORBIT_W = 27, PROFILE_BT_W = 24,
+};
+
+static const uint32_t profile_vox_art[] = {
+	0x330C33, 0x330C33, 0x333333, 0x333333, 0x33330C, 0x33330C, 0x333333, 0x333333,
+	0x0C0C33, 0x0C0C33,
+};
+static const uint32_t profile_mail_art[] = {
+	0x3FFFFE, 0x7FFFFF, 0x700007, 0x78000F, 0x7E003F, 0x670073, 0x63C1E3, 0x60E383,
+	0x607F03, 0x601C03, 0x600803, 0x600003, 0x600003, 0x7FFFFF, 0x3FFFFE,
+};
+static const uint32_t profile_speaker_art[] = {
+	0x00080, 0x00180, 0x00380, 0x00F88, 0x01F9C, 0x7FF8E, 0x7FF86, 0x7FF83,
+	0x7FF83, 0x7FF83, 0x7FF86, 0x01F8E, 0x00F9C, 0x00388, 0x00180, 0x00080,
+};
+static const uint32_t profile_rx_art[] = {
+	0xFF0C3, 0xFF842, 0xC1C66, 0xC1C24, 0xFF83C, 0xFF018, 0xCE018, 0xC6018,
+	0xC703C, 0xC3824, 0xC1C66, 0xC0C42, 0xC0EC3, 0x00400,
+};
+
+#if CONFIG_DUAL_WATCH
+static const uint32_t profile_dual_art[] = {
+	0x0FF83FE, 0x1FFC7FF, 0x180C603, 0x180C603, 0x180C603, 0x188C663, 0x194C653, 0x19CC663,
+	0x194C653, 0x194C663, 0x180C603, 0x180C603, 0x180C603, 0x1FFC7FF, 0x0FF83FE,
+};
+#endif
+
+#ifdef GFX_FIT_TRACE
+static const uint32_t profile_direct_art[] = {
+	0x3F0C0, 0x3F0C0, 0x0C330, 0x0C330, 0x0C3F0, 0x0C3F0, 0x0C330, 0x0C330,
+	0x0C330, 0x0C330, 0x00000, 0x00000, 0x00010, 0x00018, 0x0001E, 0x7FFFF,
+	0x7FFFE, 0x00018, 0x00010,
+};
+static const uint32_t profile_bt_art[] = {
+	0x0380, 0x03C0, 0x03F0, 0x03B8, 0x439E, 0xE387, 0x7B9E, 0x1FB8,
+	0x0FF0, 0x07E0, 0x03C0, 0x07E0, 0x0FF0, 0x1FB8, 0x7B9E, 0xE387,
+	0x439E, 0x03B8, 0x03F0, 0x03C0, 0x0380,
+};
+static const uint32_t profile_record_ring[] = {
+	0x007C0, 0x01FF0, 0x03838, 0x0600C, 0x0C006, 0x0C006, 0x18003, 0x18003,
+	0x18003, 0x18003, 0x18003, 0x0C006, 0x0C006, 0x0600C, 0x03838, 0x01FF0,
+	0x007C0,
+};
+static const uint32_t profile_record_center[] = {
+	0x038, 0x0FE, 0x0FE, 0x1FF, 0x1FF, 0x1FF, 0x0FE, 0x0FE,
+	0x038,
+};
+
+static void profile_recording(int x, int cy, int size, const ui_state_t *s)
+{
+	int y = cy - size / 2;
+	PROFILE_SCALED_PIXELS(x, y, profile_record_ring, 17, size, size, ui_col.tx);
+	if (!(s->now_ms / 400u % 2u)) {
+		int inset = 4 * size / 17;
+		int dot_size = 13 * size / 17 - inset;
+		PROFILE_SCALED_PIXELS(x + inset, y + inset, profile_record_center, 9, dot_size, dot_size, ui_col.tx);
+	}
+}
+
+static void profile_bluetooth(int x, int cy, int height, const ui_state_t *s)
+{
+	color_t ink = s->gui_sim_bt == 2 ? ui_col.priv : ui_col.rx;
+	PROFILE_SCALED_PIXELS(x + 4, cy - height / 2, profile_bt_art, 16, 16, height, ink);
+	if (s->gui_sim_bt == 2) {
+		profile_round_fill(x + 1, cy - 1, 3, 3, ink);
+		profile_round_fill(x + 21, cy - 1, 3, 3, ink);
+	}
+}
+#endif
+
+static const uint32_t profile_scan_art[] = {
+	0x3FFF80, 0x3FFF80, 0x3FFFC0, 0x000F80, 0x001F00, 0x003E00, 0x00FC00, 0x01F800,
+	0x03E020, 0x07C030, 0x0F8038, 0x1FFFFE, 0x0FFFFF, 0x0FFFFE, 0x000038, 0x000030,
+	0x000020,
+};
+static const uint32_t profile_scan_head[] = {
+	0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
+	0x000020, 0x000030, 0x000038, 0x00003E, 0x00003F, 0x00003E, 0x000038, 0x000030,
+	0x000020,
+};
+
+static void profile_scan(int x, int cy, uint32_t frame, color_t ink, color_t step)
+{
+	// The silhouette stays fixed while the highlight walks the three legs, then fills the arrowhead.
+	int h = PROFILE_HEIGHT(profile_scan_art);
+	for (int dy = 0; dy < h; dy++) {
+		profile_subrow_t upper = profile_subrow(profile_scan_art, h, 2 * dy);
+		profile_subrow_t lower = profile_subrow(profile_scan_art, h, 2 * dy + 1);
+		uint32_t head = profile_scan_head[dy];
+		uint32_t fringe = (head << 1) | (head >> 1) |
+			(dy > 0 ? profile_scan_head[dy - 1] : 0) | (dy + 1 < h ? profile_scan_head[dy + 1] : 0);
+		for (int dx = 0; dx < PROFILE_SCAN_W; dx++) {
+			unsigned coverage = profile_coverage(upper, lower, 2 * dx, 2 * dx + 1, PROFILE_SCAN_W);
+			if (!coverage)
+				continue;
+			uint32_t bit = 1u << (PROFILE_SCAN_W - dx - 1);
+			unsigned segment;
+			if ((head | (fringe & ~profile_scan_art[dy])) & bit)
+				segment = 12;
+			else if (dy < 3)
+				segment = (unsigned)dx / 4u;
+			else if (dy < 11)
+				segment = 4u + (unsigned)(dy - 3) / 2u;
+			else
+				segment = 8u + (unsigned)dx / 4u;
+			gfx_coverage_pixel(x + dx, cy - 8 + dy, frame == segment ? step : ink, coverage);
+		}
+	}
+}
+
+#if CONFIG_DMR_ROAMING
+static const uint32_t profile_orbit[8][25] = {
+	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600024, 0x0C001FC,
+	  0x0C000FC, 0x180007C, 0x180001C, 0x180000C, 0x1800004, 0x1800000, 0x1800000, 0x1800000,
+	  0x0C00000, 0x0C00000, 0x0600020, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
+	  0x0000000 },
+	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0C00018,
+	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180004C, 0x180006C, 0x1800070, 0x180007C,
+	  0x0C0003E, 0x0C0003C, 0x0600038, 0x0300030, 0x0380020, 0x00E0000, 0x007F800, 0x001F800,
+	  0x0000000 },
+	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0C00018,
+	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C,
+	  0x0C00018, 0x0C00118, 0x0600330, 0x0300760, 0x03807E0, 0x0000F80, 0x0001F80, 0x0003F80,
+	  0x0000000 },
+	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0C00018,
+	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x000000C, 0x000000C,
+	  0x0000018, 0x0000018, 0x0000030, 0x0002060, 0x03FC0E0, 0x01F8380, 0x00FFF00, 0x007FC00,
+	  0x0020000 },
+	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0000018,
+	  0x0000018, 0x000000C, 0x000000C, 0x000000C, 0x100000C, 0x180000C, 0x1C0000C, 0x1F0000C,
+	  0x1F80018, 0x1FC0018, 0x1600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
+	  0x0000000 },
+	{ 0x0000000, 0x000FC00, 0x000FF00, 0x0000380, 0x02000E0, 0x0600060, 0x0E00030, 0x1E00018,
+	  0x3E00018, 0x1F0000C, 0x070000C, 0x1B0000C, 0x190000C, 0x180000C, 0x180000C, 0x180000C,
+	  0x0C00018, 0x0C00018, 0x0600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
+	  0x0000000 },
+	{ 0x0000000, 0x00FE000, 0x00FC000, 0x00F8000, 0x03F00E0, 0x0370060, 0x0660030, 0x0C40018,
+	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C,
+	  0x0C00018, 0x0C00018, 0x0600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
+	  0x0000000 },
+	{ 0x0000200, 0x001FF00, 0x007FF80, 0x00E0FC0, 0x0381FE0, 0x0302000, 0x0600000, 0x0C00000,
+	  0x0C00000, 0x1800000, 0x1800000, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C,
+	  0x0C00018, 0x0C00018, 0x0600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
+	  0x0000000 },
+};
+
+static void profile_roaming(int x, int cy, uint32_t frame, color_t ink)
+{
+	static const uint32_t letter[] = { 0x3C, 0x3C, 0x33, 0x33, 0x3C, 0x3C, 0x33, 0x33, 0x33, 0x33 };
+	PROFILE_PIXELS(x, cy - 12, profile_orbit[frame % 8u], PROFILE_ORBIT_W, ink);
+	PROFILE_MARK(x + 10, cy - 5, letter, 6, ink);
+}
+#endif
+
+static bool profile_clock(const ui_state_t *s, char *out, size_t cap)
+{
+	uint32_t date = s->gps_utc_ymd, time = s->gps_utc_hms;
+	uint32_t month = date / 100u % 100u, day = date % 100u;
+	if (!s->gps_clock || !s->gps_fix || date == 0 || month == 0 || month > 12 || day == 0 || day > 31 ||
+	    time / 10000u > 23 || time / 100u % 100u > 59 || time % 100u > 60)
+		return false;
+	static const tr_id_t months[] = {
+		TRN(CLOCK_MONTH_JAN, "Jan"), TRN(CLOCK_MONTH_FEB, "Feb"), TRN(CLOCK_MONTH_MAR, "Mar"),
+		TRN(CLOCK_MONTH_APR, "Apr"), TRN(CLOCK_MONTH_MAY, "May"), TRN(CLOCK_MONTH_JUN, "Jun"),
+		TRN(CLOCK_MONTH_JUL, "Jul"), TRN(CLOCK_MONTH_AUG, "Aug"), TRN(CLOCK_MONTH_SEP, "Sep"),
+		TRN(CLOCK_MONTH_OCT, "Oct"), TRN(CLOCK_MONTH_NOV, "Nov"), TRN(CLOCK_MONTH_DEC, "Dec"),
+	};
+	sbuf_t b;
+	sb_init(&b, out, cap);
+	sb_u32(&b, day, 1);
+	sb_chr(&b, ' ');
+	sb_str(&b, tr(months[month - 1]));
+	sb_chr(&b, ' ');
+	sb_u32(&b, time / 10000u, 2);
+	sb_chr(&b, ':');
+	sb_u32(&b, time / 100u % 100u, 2);
+	sb_chr(&b, 'Z');
+	return true;
+}
+
+static void profile_battery(const radio_view_t *v, const ui_state_t *s, profile_mark_pos_t at, color_t ink)
+{
+	bool low = v->battery != RADIO_BATT_OK || (s->battery_pct &&
+		s->battery_pct <= (s->low_batt_pct ? s->low_batt_pct : 15));
+	color_t c = low ? ui_col.tx : ink;
+	profile_round_block(at, 3, -5, 5, 3, c);
+	profile_round_block(at, 0, -3, 11, 16, c);
+	profile_round_block(at, 1, -2, 9, 14, ui_col.strip_bg);
+	unsigned segments = (s->battery_pct + 33u) / 34u;
+	for (int i = 0; i < 3; i++)
+		profile_block(at, 2, 8 - i * 4, 7, 3, (unsigned)i < segments ? c : ui_col.line);
+}
+
+static unsigned profile_power_level(const radio_view_t *v)
+{
+	unsigned level = v->power * 3u / board.power_count;
+	return level < 3 ? level : 2;
+}
+
+static void profile_power(const radio_view_t *v, profile_mark_pos_t at, color_t ink)
+{
+	// Tall, rounded L/M/H share one slot even when the level changes.
+	static const uint32_t power[][10] = {
+		{ 0x080, 0x180, 0x180, 0x180, 0x180, 0x180, 0x180, 0x180, 0x1FE, 0x0FC },
+		{ 0x082, 0x1C7, 0x1C7, 0x1EF, 0x1BB, 0x193, 0x183, 0x183, 0x183, 0x082 },
+		{ 0x082, 0x183, 0x183, 0x183, 0x1FF, 0x1FF, 0x183, 0x183, 0x183, 0x082 },
+	};
+	PROFILE_MARK_AT(at, power[profile_power_level(v)], 9, ink);
+}
+
+typedef struct {
+	int x;
+	bool reverse;
+	bool measure;
+	bool tight;
+} profile_row_cursor_t;
+
+static int profile_slot(profile_row_cursor_t *row, int width)
+{
+	int x = row->reverse ? row->x - width : row->x;
+	row->x += row->reverse ? -width : width;
+	return x;
+}
+
+static void profile_status_key(const radio_view_t *v, const ui_state_t *s, int y, int scale,
+	profile_row_cursor_t *row)
+{
+	bool encrypted = false;
+	bool warning = false;
+	const char *algorithm = NULL;
+#if CONFIG_DMR
+	if (v->ch.mode == RADIO_MODE_DMR) {
+		encrypted = v->dmr.privacy;
+		bool aes = CONFIG_DMR_AES && v->ch.kind == CODEPLUG_KIND_DMR_AES;
+		bool receiving = v->state == RS_RX &&
+			(v->dmr.state == RDMR_RX || v->dmr.state == RDMR_RX_OTHER);
+		warning = receiving && v->dmr.call.encrypted &&
+			(!encrypted || (v->dmr.call.pi_header && !aes) || v->dmr.call.privacy_blocked);
+		if (encrypted && aes && !warning)
+			algorithm = "AES";
+	}
+#else
+	(void)v;
+#endif
+#ifdef GFX_FIT_TRACE
+	if (s->gui_sim_crypt && !warning) {
+		algorithm = s->gui_sim_crypt == 1 ? "ARC4" : "AES";
+		encrypted = true;
+	}
+#endif
+	if (!encrypted && !warning)
+		return;
+	const font_t *algo_font = scale > 4 ? &font_aa_6x12 : &font_5x8;
+	// gfx_text_title adds one column of weight per character at native height.
+	int key_w = algorithm ? (int)strlen(algorithm) * (algo_font->w + 1) : profile_px(15, scale);
+	if (!row->reverse)
+		profile_slot(row, 2);
+	int key_x = profile_slot(row, key_w + (row->reverse ? (scale > 4 ? 3 : 5) : 5));
+	if (row->measure)
+		return;
+	int kx = key_x + (key_w - profile_px(13, scale)) / 2;
+	color_t key_color = !warning ? ui_col.rx : s->gui_night ? RGB565(160, 168, 178) : RGB565(105, 114, 124);
+	PROFILE_STATUS_MARK(kx, algorithm ? y - profile_px(4, scale) : y + 1, profile_key, 13, key_color);
+	if (algorithm)
+		gfx_text_title(algo_font, key_x + key_w / 2, y + profile_px(5, scale) + algo_font->ascent,
+			key_w, algorithm, ui_col.rx, 4);
+	if (warning) {
+		static const uint32_t cross[] = { 0x1001, 0x0802, 0x040C, 0x0310, 0x00A0, 0x0040, 0x00A0, 0x0310, 0x040C, 0x0802, 0x1001 };
+		PROFILE_STATUS_MARK(kx, y - profile_px(1, scale), cross, 13, ui_col.tx);
+	}
+}
+
+static int profile_operating_marks(const radio_view_t *v, const ui_state_t *s, int y, int scale,
+	color_t ink, profile_row_cursor_t row)
+{
+	if (!row.reverse)
+		profile_status_key(v, s, y, scale, &row);
+#ifdef GFX_FIT_TRACE
+	if (row.reverse && s->gui_sim_recording) {
+		int rx = profile_slot(&row, 20);
+		if (!row.measure)
+			profile_recording(rx, y + 5, 17, s);
+	}
+#endif
+	if (s->unread) {
+		int rx = profile_slot(&row, PROFILE_MAIL_W + (row.tight ? 2 : 3));
+		if (!row.measure)
+			PROFILE_PIXELS(rx, y, profile_mail_art, PROFILE_MAIL_W, ink);
+	}
+	if (row.reverse)
+		profile_status_key(v, s, y, scale, &row);
+#ifdef GFX_FIT_TRACE
+	if (s->gui_sim_talkaround) {
+		int rx = profile_slot(&row, PROFILE_DIRECT_W + (row.tight ? 2 : 3));
+		if (!row.measure)
+			PROFILE_PIXELS(rx, y - 3, profile_direct_art, PROFILE_DIRECT_W, ink);
+	}
+#endif
+	bool scanning = s->scanning;
+#if CONFIG_DUAL_WATCH
+	scanning = scanning && !s->dual.on;
+#endif
+	if (scanning) {
+		int rx = profile_slot(&row, PROFILE_SCAN_W + (row.tight ? 2 : 3));
+		if (!row.measure)
+			profile_scan(rx, y + 7, s->now_ms / 100u % 13u, ink, ui_col.dim);
+	}
+	return row.x;
+}
+
+static int profile_status_right(const radio_view_t *v, const ui_state_t *s, int y, int scale, color_t ink)
+{
+	// Grow the marks within their slots where possible to keep space for the clock and the feature icons.
+	int rx = gfx_width() - (scale > 4 ? 5 : 6);
+	if (!s->no_battery) {
+		rx -= profile_px(11, scale);
+		profile_battery(v, s, (profile_mark_pos_t){ rx, y, scale }, ink);
+		rx -= 3;
+	}
+#ifdef GFX_FIT_TRACE
+	if (s->gui_sim_bt) {
+		rx -= PROFILE_BT_W + 2;
+		profile_bluetooth(rx, y + 4, 21, s);
+	}
+#endif
+	if (board.power_count) {
+		rx -= scale > 4 ? 13 : 12;
+		profile_power(v, (profile_mark_pos_t){ rx, y, scale }, ink);
+	}
+	if (s->locked) {
+		rx -= 14;
+		PROFILE_STATUS_MARK(rx, y - 1, profile_lock, 10, ink);
+	}
+	if (s->gps_fix) {
+		rx -= scale > 4 ? 15 : 14;
+		PROFILE_STATUS_MARK(rx, y - 1, profile_pin, 11, ink);
+	}
+	profile_row_cursor_t row = { .x = rx, .reverse = true };
+	return profile_operating_marks(v, s, y, scale, ink, row) - (scale > 4 ? 2 : 3);
+}
+
+static const char *profile_status_mode(const radio_view_t *v, const ui_state_t *s)
+{
+	const char *mode = mode_word(v);
+#if CONFIG_DUAL_WATCH
+	if (s->dual.on)
+		mode = dual_mode_word(&s->dual.pane[s->dual.sel]);
+#endif
+#ifdef GFX_FIT_TRACE
+	if (s->gui_sim_dstar)
+		mode = "D-STAR";
+#endif
+	if (v->aprs_tx)
+		mode = "FM";
+	return mode;
+}
+
+static const char *profile_status_activity(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
+	bool titled, char clock[32], color_t *color)
+{
+	const char *activity = NULL;
+	*color = ui_col.dim;
+	if (st == RS_TX) {
+		activity = v->aprs_tx ? "TX APRS" : "TX";
+		*color = ui_col.tx;
+	} else if (st == RS_TX_DENIED) {
+		activity = TR(TOP_STATE_NO_TX, "NO TX");
+		*color = ui_col.warn;
+	} else if (st == RS_RX && titled) {
+		activity = "RX";
+		*color = ui_col.rx;
+	} else if (st == RS_IDLE && !titled && profile_clock(s, clock, 32)) {
+		activity = clock;
+	}
+	return activity;
+}
+
+static void draw_profile_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, bool titled, int strip_h)
+{
+	ui_strip_draws++;
+	const font_t *f = &font_6x12;
+#if CONFIG_LANG_ZH
+	if (lang_wide(lang_current()))
+		f = &font_8x16;
+#endif
+	int w = gfx_width();
+	int scale = strip_h == PROFILE_COMMERCIAL_STATUS_H ? 5 : 4;
+	int iy = (strip_h - profile_px(9, scale)) / 2;
+	color_t ink = profile_ink(s);
+	gfx_fill(0, 0, w, strip_h, ui_col.strip_bg);
+	gfx_hline(0, strip_h - 1, w, ui_col.line);
+	int rx = profile_status_right(v, s, iy, scale, ink);
+	const char *mode = profile_status_mode(v, s);
+
+	char clock[32];
+	color_t c;
+	const char *activity = profile_status_activity(v, st, s, titled, clock, &c);
+	bool monitor = (v->monitor || s->hear_all) && !v->aprs_tx;
+	bool dual = false;
+#if CONFIG_DUAL_WATCH
+	dual = s->dual.on;
+#endif
+
+	const font_t *mode_font = scale > 4 ? &font_aa_8x16 : &font_aa_6x12;
+	int mode_w = gfx_text_width(mode_font, mode);
+	bool functions = monitor || dual || v->vox_on;
+	int features_w = (monitor ? PROFILE_SPEAKER_W + 3 : 0) +
+		(dual ? PROFILE_DUAL_W + 3 : 0) + (v->vox_on ? PROFILE_VOX_W : 0);
+	int roaming_w = 0;
+#if CONFIG_DMR_ROAMING
+	if (v->roam.state != RROAM_STATE_OFF && !v->aprs_tx)
+		roaming_w = PROFILE_ORBIT_W + 3;
+#endif
+	int signal_w = profile_px(18, scale);
+	int inline_w = signal_w + 4 + mode_w;
+	int gap = scale > 4 ? 3 : 5;
+	int x = 5;
+	int next = x + inline_w + gap;
+	bool above_roam = scale > 4 && roaming_w && f == &font_6x12;
+	int activity_w = activity != NULL ?
+		gfx_text_width(scale > 4 && f == &font_6x12 ? &font_5x8 : f, activity) : 0;
+	// Put the mode beside the bars when both rows of the status strip still fit. Crowded combinations
+	// use the two-line badge so the clock and active feature marks have the same space as before.
+	bool side = next + roaming_w + features_w <= rx &&
+		(!activity_w || next + (above_roam ? 0 : roaming_w) + activity_w <= rx);
+	int badge_w = side ? inline_w : profile_px(24, scale);
+	if (!side && mode_w + 4 > badge_w)
+		badge_w = mode_w + 4;
+	int signal_x = side ? x : x + (badge_w - signal_w) / 2;
+	int signal_y = side ? (strip_h - profile_px(9, scale)) / 2 - profile_px(4, scale) : 0;
+	profile_mark_pos_t signal = { signal_x, signal_y, scale };
+	int strength = v->rssi_dbm ? rssi_bars(v->rssi_dbm) : 0;
+	for (int bar = 0; bar < 4; bar++) {
+		int height = 3 + bar * 2;
+		profile_block(signal, bar * 5, 13 - height, 3, height, bar < strength ? ink : ui_col.line);
+	}
+	int mode_x = side ? x + signal_w + 4 : x + (badge_w - mode_w) / 2;
+	int mode_y = side ? (strip_h - mode_font->h) / 2 : strip_h - mode_font->h - 2;
+	gfx_text(mode_font, mode_x, mode_y, mode, ink);
+
+	x += badge_w + gap;
+	int activity_x = x;
+#if CONFIG_DMR_ROAMING
+	if (roaming_w) {
+		bool moving = v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY;
+		int cy = above_roam ? strip_h - 13 : strip_h / 2;
+		profile_roaming(x, cy, moving ? s->now_ms / 125u : 0, ink);
+		x += roaming_w;
+	}
+#endif
+	if (!above_roam)
+		activity_x = x;
+	if (scale > 4 && activity != NULL && f == &font_6x12 &&
+	    (above_roam || activity_x + gfx_text_width(f, activity) > rx))
+		f = &font_5x8;
+	if (functions && activity != NULL && !above_roam && f->h + 17 >= strip_h)
+		f = &font_5x8;
+	bool show_activity = activity != NULL && activity_x + gfx_text_width(f, activity) <= rx;
+	if (show_activity)
+		gfx_text(f, activity_x, functions || above_roam ? 0 : (strip_h - f->h) / 2, activity, c);
+	int fy = show_activity && !above_roam ? f->h + 1 : iy;
+	if (monitor && x + PROFILE_SPEAKER_W <= rx) {
+		PROFILE_PIXELS(x, fy, profile_speaker_art, PROFILE_SPEAKER_W, ink);
+		x += PROFILE_SPEAKER_W + 3;
+	}
+#if CONFIG_DUAL_WATCH
+	if (dual && x + PROFILE_DUAL_W <= rx) {
+		PROFILE_PIXELS(x, fy, profile_dual_art, PROFILE_DUAL_W, ink);
+		x += PROFILE_DUAL_W + 3;
+	}
+#endif
+	if (v->vox_on && x + PROFILE_VOX_W <= rx)
+		PROFILE_PIXELS(x, fy + 2, profile_vox_art, PROFILE_VOX_W, ink);
+}
+
+static int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
+	const char *prefix, const char *name)
+{
+	const ui_layout_t *L = &ui_layout;
+	bool titled = prefix != NULL || name != NULL;
+	draw_profile_status(v, st, s, titled, L->strip_h);
+	if (!titled)
+		return L->strip_h;
+	int w = gfx_width();
+	int y = L->strip_h;
+	gfx_fill(0, y, w, L->small->h + 2, ui_col.bg);
+	ui_draw_title(L->small, 0, y + 1, w, prefix, name, ui_col.fg);
+	gfx_hline(0, y + L->small->h + 1, w, ui_col.line);
+	return y + L->small->h + 2;
+}
+#endif
+
 // The pill shows st instead of v->state: the hotspot screen shows what the hotspot does without a copy of the whole
 // view on the UI task's stack (the UI task's deepest path, stack check)
 static int draw_top_as(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
 {
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles)
+		return draw_profile_top(v, st, s, prefix, name);
+#endif
 	ui_strip_draws++;
 	const ui_layout_t *L = &ui_layout;
 	const font_t *f = L->small;
@@ -479,7 +1135,7 @@ static int draw_top_as(const radio_view_t *v, radio_state_t st, const ui_state_t
 			sb_u32(&b, s->battery_pct, 1);
 			sb_chr(&b, '%');
 			rx -= gfx_text_width(f, pct);
-			// Settings > Power saving > Low battery warning
+			// Settings > Power > Low battery warning
 			uint8_t low = s->low_batt_pct ? s->low_batt_pct : 15;
 			bc = s->battery_pct <= low ? swarn : sfg;
 			gfx_text(f, rx, ty, pct, bc);
@@ -634,12 +1290,12 @@ static int wrap_lines(const font_t *f, const char *t, int max_w, int max, char l
 // An overlay's top edge (banner, two-line toast) moved up to a gap between lines of what is under it, so it never
 // cuts a line of text in half: the first row at or above y whose row above is all one color (background, or the
 // edge of a focus bar), at most one line up
-static int overlay_top(int y)
+static int overlay_top(int y, int x0)
 {
 	int w = gfx_width();
 	for (int t = y; t > 0 && t > y - ui_layout.large->h - 2; t--) {
-		color_t c = gfx_get_pixel(0, t - 1);
-		int x = 1;
+		color_t c = gfx_get_pixel(x0, t - 1);
+		int x = x0 + 1;
 		while (x < w && gfx_get_pixel(x, t - 1) == c)
 			x++;
 		if (x == w)
@@ -682,6 +1338,40 @@ static bool alt_mark(char c)
 {
 	return c == TEXT_ALT_OPEN[0] || c == TEXT_ALT_NEXT[0] || c == TEXT_ALT_CLOSE[0];
 }
+
+#if CONFIG_UI_PROFILES
+static void profile_hint_split(char *left, char *right, size_t cap)
+{
+	// Back already has the right edge. Otherwise use the last hint, preferring Quick when it
+	// is followed by a third group such as the last-caller shortcut on Home.
+	if (right[0])
+		return;
+	const char *quick = board.quick_label != NULL ? board.quick_label : "*";
+	size_t quick_len = strlen(quick);
+	char *chosen = NULL;
+	for (char *sep = strstr(left, "  "); sep != NULL; sep = strstr(sep + 2, "  ")) {
+		const char *group = sep + 2;
+		const char *end = strstr(group, "  ");
+		size_t n = end != NULL ? (size_t)(end - group) : strlen(group);
+		if (n == 0 || n >= cap)
+			continue;
+		chosen = sep;
+		if (n > quick_len && group[quick_len] == ' ' && strncmp(group, quick, quick_len) == 0)
+			break;
+	}
+	if (chosen == NULL)
+		return;
+	const char *group = chosen + 2;
+	const char *end = strstr(group, "  ");
+	size_t n = end != NULL ? (size_t)(end - group) : strlen(group);
+	memcpy(right, group, n);
+	right[n] = 0;
+	if (end != NULL)
+		memmove(chosen, end, strlen(end) + 1);
+	else
+		*chosen = 0;
+}
+#endif
 
 static bool board_has_digits(void)
 {
@@ -745,6 +1435,14 @@ void ui_draw_hint(const char *text, bool toast)
 	char fit[64];
 	color_t bg = toast ? ui_col.fg : ui_col.hint_bg;
 	color_t fg = toast ? ui_col.bg : ui_col.dim;
+	int text_y = L->hint_y;
+#if CONFIG_UI_PROFILES
+	if (profile_theme()) {
+		text_y += (PROFILE_BAND_H - f->h) / 2;
+		if (!toast)
+			fg = profile_bar_fg;
+	}
+#endif
 	if (gfx_bpp() == 1 && !toast)
 		fg = ui_col.fg;
 	if (toast) {
@@ -766,7 +1464,7 @@ void ui_draw_hint(const char *text, bool toast)
 			memcpy(first, second, sizeof first);	// the rest below may point into it, and second is reused
 		}
 		const char *rest = wrap_line(f, first, w - 2, fit, sizeof fit);
-		int y = L->hint_y, top = y;
+		int y = text_y, top = L->hint_y;
 		second[0] = 0;
 		if (*rest) {
 			// Two lines: the first ends at a word, the rest goes below it
@@ -775,7 +1473,7 @@ void ui_draw_hint(const char *text, bool toast)
 			memcpy(second, rest, n);
 			second[n] = 0;
 			y -= f->h;
-			top = overlay_top(y);
+			top = overlay_top(y, 0);
 		}
 		gfx_fill(0, top, w, gfx_height() - top, bg);
 		gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
@@ -795,6 +1493,10 @@ void ui_draw_hint(const char *text, bool toast)
 	for (int level = 0; more; level++) {
 		gfx_text_alt(text, level, form, sizeof form, &more);
 		hint_split(key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
+#if CONFIG_UI_PROFILES
+		if (profile_theme())
+			profile_hint_split(left, right, sizeof right);
+#endif
 		lw = gfx_text_width(f, left);
 		rw = gfx_text_width(f, right);
 		if (lw + (rw && lw ? f->w : 0) + rw <= w)
@@ -811,15 +1513,19 @@ void ui_draw_hint(const char *text, bool toast)
 		lw = gfx_text_width(f, left);
 	}
 	int margin = lw + (rw && lw ? f->w : 0) + rw <= w - 2 ? 1 : 0;
+#if CONFIG_UI_PROFILES
+	if (profile_theme() && lw + (rw && lw ? f->w : 0) + rw <= w - 30)
+		margin = 15;
+#endif
 	if (rw > w - 2 * margin)
 		rw = w - 2 * margin;
 	if (right[0]) {
 		gfx_text_fit(f, right, rw, fit, sizeof fit);
-		gfx_text(f, w - margin - gfx_text_width(f, fit), L->hint_y, fit, fg);
+		gfx_text(f, w - margin - gfx_text_width(f, fit), text_y, fit, fg);
 	}
 	if (left[0]) {
 		gfx_text_fit(f, left, w - 2 * margin - (right[0] ? rw + f->w : 0), fit, sizeof fit);
-		gfx_text(f, margin, L->hint_y, fit, fg);
+		gfx_text(f, margin, text_y, fit, fg);
 	}
 }
 
@@ -2459,11 +3165,436 @@ static void draw_home_large(const radio_view_t *v, const ui_state_t *s)
 	gfx_text(f, 0, y, fit, v->state == RS_TX ? ui_col.tx : v->state == RS_RX ? ui_col.rx : ui_col.fg);
 }
 
+#if CONFIG_UI_PROFILES
+static void fit_end(const font_t *f, const char *s, int max_w, char *out, size_t len);
+
+static void profile_center(const font_t *f, int y, const char *text, color_t c)
+{
+	char fit[64];
+	int w = gfx_width();
+	fit_end(f, text, w - 30, fit, sizeof fit);
+	gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, c);
+}
+
+static void profile_frequency(sbuf_t *b, uint32_t hz)
+{
+	if (hz) {
+		sb_freq(b, hz);
+		sb_str(b, " MHz");
+	}
+}
+
+static uint32_t profile_talk_id(const radio_view_t *v, bool *private_call, const char **label)
+{
+	*label = "";
+	*private_call = false;
+#if CONFIG_DMR
+	if (v->ch.mode == RADIO_MODE_DMR && v->dmr.active) {
+		const radio_dmr_view_t *d = &v->dmr;
+		if (v->state == RS_TX && d->call.dst != 0 && !v->aprs_tx && !sending_data(v)) {
+			*label = !d->call.dst_name[0] && d->call.dst == d->target_id && d->call.group != d->target_private ?
+				 d->target_name : d->call.dst_name;
+			*private_call = !d->call.group;
+			return d->call.dst;
+		}
+		*label = d->target_name;
+		*private_call = d->target_private;
+		return d->target_id;
+	}
+#endif
+#if CONFIG_P25
+	if (v->ch.mode == RADIO_MODE_P25 && !v->ch.rx_only) {
+		*private_call = (v->p25.flags & RADIO_P25_TALK_UNIT) != 0;
+		return v->p25.talk;
+	}
+#endif
+#if CONFIG_NXDN
+	if (v->ch.mode == RADIO_MODE_NXDN && !v->ch.rx_only) {
+		*private_call = (v->nxdn.flags & RADIO_NXDN_TALK_UNIT) != 0;
+		return v->nxdn.talk;
+	}
+#endif
+	(void)v;
+	return 0;
+}
+
+static void profile_target(sbuf_t *b, uint32_t id, bool private_call)
+{
+	if (id == 0xFFFFFFu) {
+		sb_str(b, TR(VALUE_ALL_CALL, "All call"));
+	} else {
+		sb_str(b, private_call ? "ID " : "TG ");
+		sb_u32(b, id, 1);
+	}
+}
+
+static const char *profile_home_target(const radio_view_t *v, const ui_state_t *s, char *out, size_t cap,
+	uint32_t id, bool private_call, const char *label, color_t *c)
+{
+	sbuf_t b;
+	sb_init(&b, out, cap);
+	if (s->entry) {
+		home_entry_text(s, out, cap);
+		*c = ui_col.warn;
+		return out;
+	}
+	if (v->vfo) {
+		bool tx = v->state == RS_TX && !v->aprs_tx;
+		profile_frequency(&b, tx ? v->ch.tx_hz : v->ch.rx_hz);
+		*c = tx ? ui_col.tx : ui_col.fg;
+		return out;
+	}
+	if (id && !v->ch.rx_only) {
+		if (id != 0xFFFFFFu && label[0] && !ui_name_is_id(label, id, private_call))
+			return label;
+		profile_target(&b, id, private_call);
+		return out;
+	}
+	if (v->ch.name[0])
+		return v->ch.name;
+	profile_frequency(&b, v->ch.rx_hz);
+	return out;
+}
+
+static void profile_home_details(const radio_view_t *v, const ui_state_t *s, int y, uint32_t id, bool private_call)
+{
+	const font_t *f = ui_layout.small;
+	sbuf_t b;
+	char buf[64];
+	sb_init(&b, buf, sizeof buf);
+	if (!v->vfo)
+		sb_str(&b, v->ch.name);
+	if (v->temporary)
+		sb_str(&b, GLYPH_DOT);
+	if (id && !v->ch.rx_only) {
+		if (buf[0])
+			sb_str(&b, " " GLYPH_DOT " ");
+		profile_target(&b, id, private_call);
+	}
+#if CONFIG_DMR
+	else if (v->ch.mode == RADIO_MODE_DMR && v->dmr.active && !v->ch.rx_only) {
+		if (buf[0])
+			sb_str(&b, " " GLYPH_DOT " ");
+		sb_str(&b, TR(HOME_STATE_NO_TARGET, "No talk target"));
+	}
+#endif
+	if (buf[0])
+		profile_center(f, y, buf, ui_col.dim);
+	sb_init(&b, buf, sizeof buf);
+	profile_frequency(&b, v->ch.rx_hz);
+#if CONFIG_DMR
+	if (v->ch.mode == RADIO_MODE_DMR) {
+		sb_str(&b, " " GLYPH_DOT " TS");
+		sb_u32(&b, v->dmr.ts ? v->dmr.ts : v->ch.timeslot, 1);
+		sb_str(&b, " " GLYPH_DOT " CC");
+		sb_u32(&b, v->dmr.active ? v->dmr.cc : v->ch.color_code, 1);
+	}
+#endif
+	if (v->vfo && !s->entry && v->ch.tx_hz && v->ch.tx_hz != v->ch.rx_hz && !v->ch.rx_only) {
+		sb_str(&b, " " GLYPH_DOT " TX ");
+		sb_freq(&b, v->ch.tx_hz);
+	}
+	if (buf[0])
+		profile_center(f, y + f->h + 1, buf, ui_col.dim);
+}
+
+static void profile_home_activity(const radio_view_t *v, const ui_state_t *s)
+{
+	const char *text = NULL;
+	const font_t *f = ui_layout.medium;
+	color_t c = ui_col.warn;
+	char buf[72];
+	sbuf_t b;
+	if (v->state == RS_TX_DENIED) {
+		text = deny_reason(v, buf, sizeof buf);
+	} else if (v->state == RS_TX) {
+		if (!v->aprs_tx && !sending_data(v) && v->tot_s) {
+			sb_init(&b, buf, sizeof buf);
+			uint32_t elapsed = v->tx_elapsed_ms / 1000u;
+			sb_mmss(&b, elapsed < v->tot_s ? v->tot_s - elapsed : 0);
+			text = buf;
+			c = v->tot_warning ? ui_col.warn : ui_col.tx;
+		}
+#if CONFIG_DMR
+	} else if (v->state == RS_RX && v->ch.mode == RADIO_MODE_DMR && v->dmr.active) {
+		if (v->dmr.state == RDMR_RX && s->alias_show && v->dmr.alias[0]) {
+			text = v->dmr.alias;
+			c = ui_col.priv;
+			if (!s->gui_profile && gfx_text_width(ui_layout.large, text) <= gfx_width() - 30)
+				f = ui_layout.large;
+		}
+#endif
+	} else if (board_hwopt_pending() != NULL) {
+		sb_init(&b, buf, sizeof buf);
+		hwopt_needed(&b);
+		text = buf;
+	} else if (v->ch.rx_hz && !v->ch.tx_hz && !v->ch.rx_only && !v->am && !v->bcast) {
+		text = TR(HOME_STATE_NO_TX_FREQ, "No TX frequency");
+#if CONFIG_DMR
+	} else if (v->ch.mode == RADIO_MODE_DMR && !v->dmr.active && s->dmr_off) {
+		text = TR(HOME_STATE_DMR_MODEM_OFF, "DMR modem off");
+	} else if (v->ch.mode == RADIO_MODE_DMR && !v->vfo && v->dmr.active && !v->dmr.target_id &&
+		   !v->ch.rx_only && !s->gui_profile) {
+		text = TR(HOME_STATE_NO_TARGET, "No talk target");
+#endif
+	}
+	if (text != NULL) {
+		int y = ui_layout.hint_y - f->h - 5;
+		gfx_hline(15, y - 4, gfx_width() - 30, ui_col.line);
+		profile_center(f, y, text, c);
+	}
+}
+
+#define PROFILE_HOME_OPERATING_H 28
+
+// Center the visible capitals inside the strip, allowing for the font's blank rows.
+static int profile_native_caps(const font_t *font, int x, int cy, const char *label, color_t ink)
+{
+	int top, rows;
+	font_glyph(font, 'M', &top, &rows);
+	int y = cy - rows / 2 - top;
+	return gfx_text(font, x, y > 0 ? y : 0, label, ink);
+}
+
+// Keep each device mark centered in its reserved width.
+static int profile_device_slot(int *right, int slot_w, int mark_w)
+{
+	*right -= slot_w;
+	return *right + (slot_w - mark_w) / 2;
+}
+
+static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int strip_h)
+{
+	int cy = strip_h / 2;
+	int w = gfx_width(), right = w - 6;
+	bool tall = strip_h == PROFILE_COMMERCIAL_STATUS_H;
+	bool tx = v->state == RS_TX || v->state == RS_TX_DENIED;
+	int slot_w = tx ? 24 : 28;
+	int scale = tall ? 9 : 8;
+#if CONFIG_DUAL_WATCH || defined(GFX_FIT_TRACE)
+	int mark_h = tall ? 24 : 22;
+#endif
+	color_t ink = profile_ink(s);
+	gfx_fill(0, 0, w, strip_h, ui_col.strip_bg);
+	gfx_hline(0, strip_h - 1, w, ui_col.line);
+
+	if (!s->no_battery) {
+		int battery_scale = tall ? 6 : 5;
+		int x = profile_device_slot(&right, slot_w, profile_px(11, battery_scale));
+		profile_battery(v, s, (profile_mark_pos_t){ x, cy - profile_px(4, battery_scale), battery_scale }, ink);
+	}
+#ifdef GFX_FIT_TRACE
+	if (s->gui_sim_bt) {
+		int x = profile_device_slot(&right, slot_w, PROFILE_BT_W);
+		profile_bluetooth(x, cy, strip_h - 7, s);
+	}
+#endif
+	if (board.power_count) {
+		char level[] = { "LMH"[profile_power_level(v)], 0 };
+		const font_t *font = tall ? FONT_AA_LARGEST : &font_aa_12x24;
+		int x = profile_device_slot(&right, slot_w, font->w);
+		profile_native_caps(font, x, cy, level, ink);
+	}
+	if (s->locked) {
+		int x = profile_device_slot(&right, slot_w, profile_px(10, scale));
+		PROFILE_STATUS_MARK(x, cy - profile_px(11, scale) / 2, profile_lock, 10, ink);
+	}
+	if (s->gps_fix) {
+		int x = profile_device_slot(&right, slot_w, profile_px(11, scale));
+		PROFILE_STATUS_MARK(x, cy - profile_px(11, scale) / 2, profile_pin, 11, ink);
+	}
+#if CONFIG_DUAL_WATCH
+	if (s->dual.on) {
+		const int pane_w = 16, gap = 4;
+		const font_t *font = &font_aa_12x24;
+		int x = profile_device_slot(&right, tx ? 36 : 40, 2 * pane_w + gap);
+		int y = cy - mark_h / 2;
+		for (int pane = 0; pane < 2; pane++) {
+			const char *letter = pane == 0 ? "A" : "B";
+			profile_round_fill(x, y, pane_w, mark_h, ink);
+			profile_round_fill(x + 2, y + 2, pane_w - 4, mark_h - 4, ui_col.strip_bg);
+			profile_native_caps(font, x + (pane_w - font->w) / 2, cy, letter, ink);
+			x += pane_w + gap;
+		}
+	}
+#endif
+#ifdef GFX_FIT_TRACE
+	if (s->gui_sim_recording) {
+		int x = profile_device_slot(&right, slot_w, mark_h);
+		profile_recording(x, cy, mark_h, s);
+	}
+#endif
+	if (v->vox_on) {
+		const font_t *font = &font_aa_12x24;
+		int x = profile_device_slot(&right, tx ? 36 : 42, 3 * font->w);
+		profile_native_caps(font, x, cy, "VOX", ink);
+	}
+	int strength = v->rssi_dbm ? rssi_bars(v->rssi_dbm) : 0;
+	for (int bar = 0; bar < 4; bar++) {
+		int height = (bar + 1) * (strip_h - 8) / 4;
+		profile_round_fill(15 + bar * 6, strip_h - 4 - height, 5, height, bar < strength ? ink : ui_col.line);
+	}
+	if (tx) {
+		char clock[32], fit[32];
+		color_t activity_ink;
+		const char *activity = profile_status_activity(v, v->state, s, false, clock, &activity_ink);
+		const font_t *font = &font_aa_8x16;
+		const int left = 42;
+		int room = right - left - 3;
+		if (gfx_text_width(font, activity) > room)
+			font = &font_aa_6x12;
+		gfx_text_fit(font, activity, room, fit, sizeof fit);
+		gfx_text(font, left, (strip_h - font->h) / 2, fit, activity_ink);
+	}
+}
+
+static int profile_home_marks(const radio_view_t *v, const ui_state_t *s, int top, color_t ink,
+	profile_row_cursor_t row)
+{
+	const int y = top + 7;
+#if CONFIG_DMR_ROAMING
+	if (v->roam.state != RROAM_STATE_OFF && !v->aprs_tx) {
+		int x = profile_slot(&row, PROFILE_ORBIT_W + (row.tight ? 2 : 5));
+		if (!row.measure) {
+			bool moving = v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY;
+			profile_roaming(x, top + 14, moving ? s->now_ms / 125u : 0, ink);
+		}
+	}
+#endif
+	row.x = profile_operating_marks(v, s, y, 6, ink, row);
+	if ((v->monitor || s->hear_all) && !v->aprs_tx) {
+		int x = profile_slot(&row, PROFILE_SPEAKER_W + (row.tight ? 2 : 3));
+		if (!row.measure)
+			PROFILE_PIXELS(x, y - 1, profile_speaker_art, PROFILE_SPEAKER_W, ink);
+	}
+	if (v->ch.rx_only || v->am || v->bcast) {
+		int x = profile_slot(&row, 24) + 4;
+		if (!row.measure)
+			PROFILE_PIXELS(x, top + 7, profile_rx_art, 20, ink);
+	}
+	return row.x;
+}
+
+static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t *s, int top)
+{
+	char date[32];
+	char *time = NULL;
+	const font_t *date_font = &font_aa_6x12;
+#if CONFIG_LANG_ZH
+	if (lang_wide(lang_current()))
+		date_font = &font_aa_8x16;
+#endif
+	const font_t *time_font = &font_aa_6x12;
+	int right = gfx_width() - 6;
+	int marks_right = right;
+	if (v->state == RS_IDLE && profile_clock(s, date, sizeof date)) {
+		time = strrchr(date, ' ');
+		*time++ = '\0';
+		int date_w = gfx_text_width(date_font, date);
+		int time_w = gfx_text_width(time_font, time);
+		marks_right -= (date_w > time_w ? date_w : time_w) + 5;
+	}
+
+	const char *mode = profile_status_mode(v, s);
+	color_t ink = profile_ink(s);
+	const font_t *font = FONT_AA_LARGEST;
+	const int left = 15, gap = 5;
+	// Keep a full-size mode label where possible. Pack the gaps before stepping down a native font size.
+	profile_row_cursor_t row = { .measure = true };
+	int marks_w = profile_home_marks(v, s, top, ink, row);
+	int mode_room = marks_right - left - gap - marks_w;
+	if (gfx_text_width(font, mode) > mode_room) {
+		row.tight = true;
+		marks_w = profile_home_marks(v, s, top, ink, row);
+		mode_room = marks_right - left - gap - marks_w;
+		if (gfx_text_width(font, mode) > mode_room)
+			font = &font_aa_12x24;
+		if (gfx_text_width(font, mode) > mode_room)
+			font = &font_aa_8x16;
+	}
+	row.measure = false;
+	row.x = profile_native_caps(font, left, top + PROFILE_HOME_OPERATING_H / 2, mode, ui_col.fg) + gap;
+	profile_home_marks(v, s, top, ink, row);
+
+	if (time) {
+		int y = top + (PROFILE_HOME_OPERATING_H - date_font->h - time_font->h) / 2;
+		gfx_text(date_font, right - gfx_text_width(date_font, date), y, date, ui_col.dim);
+		gfx_text(time_font, right - gfx_text_width(time_font, time), y + date_font->h, time, ui_col.dim);
+	}
+}
+
+static int draw_home_status(const radio_view_t *v, const ui_state_t *s)
+{
+	if (!s->gui_profiles)
+		return ui_draw_top(v, s, NULL, NULL);
+	int strip_h = s->gui_profile ? ui_layout.strip_h : PROFILE_COMMERCIAL_STATUS_H;
+	ui_strip_draws++;
+	profile_home_devices(v, s, strip_h);
+	profile_home_operating_marks(v, s, strip_h);
+	return strip_h + PROFILE_HOME_OPERATING_H;
+}
+
+static void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
+{
+	const ui_layout_t *L = &ui_layout;
+	gfx_clear(ui_col.bg);
+	int strip_h = draw_home_status(v, s) - PROFILE_HOME_OPERATING_H;
+
+	bool commercial = s->gui_profile == 0;
+	bool amateur = !commercial && !s->large_text;
+	const char *label;
+	bool private_call;
+	uint32_t id = profile_talk_id(v, &private_call, &label);
+	char buf[64];
+	color_t c = ui_col.fg;
+	const char *target = profile_home_target(v, s, buf, sizeof buf, id, private_call, label, &c);
+	int center = (strip_h + L->hint_y) / 2;
+	int y = center - (amateur ? 48 : 26);
+	const char *zone = v->vfo ? "VFO" : v->zone_name;
+	profile_center(commercial ? L->large : L->medium, commercial ? center - 47 : y - 4, zone, ui_col.dim);
+	y += L->medium->h + 5;
+	int baseline = commercial ? center + 26 : y + L->large->ascent;
+	int height_quarters = commercial ? 6 : 5;
+	int w = gfx_width();
+	if (!gfx_text_title(L->large, w / 2, baseline, w - 30, target, c, height_quarters) &&
+	    !gfx_text_title(L->medium, w / 2, baseline, w - 30, target, c, height_quarters))
+		profile_center(L->medium, baseline - L->medium->ascent, target, c);
+	if (amateur && !s->entry)
+		profile_home_details(v, s, y + L->large->h + 5, id, private_call);
+
+	profile_home_activity(v, s);
+	ui_draw_banner(s);
+	ui_draw_bottom(s, home_hint(v, s));
+}
+
+static bool profile_operational_home(const radio_view_t *v)
+{
+#if CONFIG_DMR_TRUNK
+	if (v->t3.sys != 0)
+		return true;
+#endif
+	if (v->ch.kind == CODEPLUG_KIND_DMR_TRUNK || v->ch.kind == CODEPLUG_KIND_P25_TRUNK ||
+	    (v->ch.kind != CODEPLUG_KIND_NONE && !codeplug_kind_built(v->ch.kind)))
+		return true;
+#if CONFIG_DMR
+	return v->ch.mode == RADIO_MODE_DMR && v->dmr.sfr_rpt;
+#else
+	return v->ch.mode == RADIO_MODE_DMR;
+#endif
+}
+#endif
+
 void ui_draw_home(const radio_view_t *v, const ui_state_t *s)
 {
 #if CONFIG_DUAL_WATCH
 	if (s->dual.on) {
 		ui_draw_home_dual(v, s);
+		return;
+	}
+#endif
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles && !profile_operational_home(v)) {
+		draw_profile_home(v, s);
 		return;
 	}
 #endif
@@ -2634,6 +3765,10 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	int w = gfx_width();
 	bool tx = v->state == RS_TX && d->sel == i, rx = !tx && p->rx, sel = d->sel == i;
 	bool entry = s->entry && sel && p->vfo;
+	bool commercial = false;
+#if CONFIG_UI_PROFILES
+	commercial = s->gui_profiles && s->gui_profile == 0;
+#endif
 	bool quiet = !rx && d->pane[!i].rx;	// the other pane has a call: this one steps back
 	color_t fg = quiet ? ui_col.dim : ui_col.fg;
 	char buf[48], fit[48];
@@ -2712,7 +3847,7 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	// frequency
 	int base = y1 + nf->ascent;
 	int x = x0;
-	if (!p->vfo) {
+	if (!p->vfo && !commercial) {
 		char num[8];
 		sbuf_t nb;
 		sb_init(&nb, num, sizeof num);
@@ -2758,8 +3893,20 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	sb_init(&b, buf, sizeof buf);
 	color_t c2 = fg;
 	if (rx) {
-		sb_str(&b, p->caller[0] ? p->caller : TR(STATE_RECEIVING, "Receiving"));
+		const char *caller = p->caller;
+		if (commercial) {
+			caller = "";
+#if CONFIG_DMR
+			if (d->rx == i && v->ch.mode == RADIO_MODE_DMR && v->dmr.state == RDMR_RX && s->alias_show)
+				caller = v->dmr.alias;
+#endif
+		}
+		sb_str(&b, caller[0] ? caller : TR(STATE_RECEIVING, "Receiving"));
 		c2 = ui_col.rx;
+#if CONFIG_UI_PROFILES
+	} else if (commercial) {
+		sb_str(&b, p->target_label[0] ? p->target_label : p->zone);
+#endif
 	} else if (p->mode == RADIO_MODE_DMR) {
 		sb_str(&b, p->target[0] ? p->target : "DMR");
 		if (ft->detail == NULL && !p->vfo)
@@ -2831,12 +3978,12 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 
 // Large text (Settings > Display): the two channels only, each as large as fits. The selected one has the arrow;
 // the one a call comes in on is green and says RX (a word, for mono displays)
-static void dual_large(const radio_view_t *v, const ui_state_t *s)
+static void dual_large(const radio_view_t *v, const ui_state_t *s, int top)
 {
 	const ui_layout_t *L = &ui_layout;
 	const ui_dual_t *d = &s->dual;
 	int w = gfx_width();
-	int y = L->strip_h + 2;
+	int y = top + 2;
 	int room = (L->hint_y - y) / 2;
 	for (int i = 0; i < 2; i++) {
 		const ui_dual_pane_t *p = &d->pane[i];
@@ -2908,6 +4055,12 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 	sbuf_t b;
 	if (lines <= 0)
 		return;
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles && v->state == RS_TX_DENIED) {
+		profile_center(sm, y, deny_reason(v, buf, sizeof buf), ui_col.warn);
+		return;
+	}
+#endif
 	// A transmission or a call coming in takes the first line
 	sb_init(&b, buf, sizeof buf);
 	if (v->state == RS_TX) {
@@ -2950,6 +4103,10 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 		}
 	}
 	// Then the calls heard, newest first, as many as fit
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles)
+		return;	// the current alias is only a live receiving indication on the profile Homes
+#endif
 	if (lines > 0 && d->calls == 0)
 		gfx_text(sm, 0, y, TR(EMPTY_NO_CALLS_HEARD, "No calls heard yet"), ui_col.dim);
 	for (int k = 0; k < d->calls && k < lines; k++, y += sm->h)
@@ -2986,7 +4143,7 @@ static const char *dual_hint(const radio_view_t *v, const ui_state_t *s)
 // The richest layout that fits avail rows: names in the large font first, then fewer rows, never a smaller font for a
 // row than the single-channel Home uses for it (P5). noinline: inlined, the table sits in the frame every pane is
 // drawn from, on the UI task's deepest path
-static void __attribute__((noinline)) dual_choose(int avail, int gap, dual_fit_t *out, int *pad)
+static void __attribute__((noinline)) dual_choose(int avail, int gap, bool commercial, dual_fit_t *out, int *pad)
 {
 	const ui_layout_t *L = &ui_layout;
 	const font_t *lg = L->large, *md = L->medium, *sm = L->small;
@@ -2999,6 +4156,8 @@ static void __attribute__((noinline)) dual_choose(int avail, int gap, dual_fit_t
 	const dual_fit_t *ft = &fits[sizeof fits / sizeof fits[0] - 1];
 	int used = 0;
 	for (unsigned k = 0; k < sizeof fits / sizeof fits[0]; k++) {
+		if (commercial && fits[k].detail != NULL)
+			continue;
 		used = 2 * dual_pane_h(&fits[k]) + gap + fits[k].act * sm->h + (fits[k].act ? 2 : 0);
 		if (used <= avail) {
 			ft = &fits[k];
@@ -3017,13 +4176,21 @@ void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)
 	const ui_layout_t *L = &ui_layout;
 	int w = gfx_width();
 	gfx_clear(ui_col.bg);
-	ui_draw_top(v, s, NULL, NULL);
+#if CONFIG_UI_PROFILES
+	int top = draw_home_status(v, s);
+#else
+	int top = ui_draw_top(v, s, NULL, NULL);
+#endif
 	if (s->large_text) {
-		dual_large(v, s);
+		dual_large(v, s, top);
 	} else {
-		int top = L->strip_h, gap = gfx_height() >= UI_TALL_PX ? 6 : 2, pad;
+		int gap = gfx_height() >= UI_TALL_PX ? 6 : 2, pad;
 		dual_fit_t fit;
-		dual_choose(L->hint_y - top, gap, &fit, &pad);
+		bool commercial = false;
+#if CONFIG_UI_PROFILES
+		commercial = s->gui_profiles && s->gui_profile == 0;
+#endif
+		dual_choose(L->hint_y - top, gap, commercial, &fit, &pad);
 		const dual_fit_t *ft = &fit;
 		const font_t *sm = L->small;
 		int ph = dual_pane_h(ft) + 2 * pad;
@@ -3098,13 +4265,23 @@ void ui_draw_banner(const ui_state_t *s)
 	int pad = gfx_height() >= UI_TALL_PX ? 2 : 1;
 	int h = (nt + nx + 1) * f->h + 2 * pad;
 	int y = L->hint_y - h;
-	int top = overlay_top(y);	// the box grows up to a gap between lines; its text stays at the bottom
+	int x0 = 0;
+#if CONFIG_UI_PROFILES && CONFIG_DUAL_WATCH
+	if (s->gui_profiles && s->dual.on)
+		x0 = dual_tag_w(L->large);	// the receiver tabs span multiple lines of text
+#endif
+	int top = overlay_top(y, x0);	// the box grows up to a gap between lines; its text stays at the bottom
 	color_t edge = bn->warn ? ui_col.warn : ui_col.focus;
 	if (gfx_bpp() == 1) {
 		// inverse video box (wireframe 128x64)
 		gfx_fill(0, top, w, L->hint_y - top, ui_col.fg);
 	} else {
-		gfx_fill(0, top, w, L->hint_y - top, ui_col.hint_bg);
+		color_t bg = ui_col.hint_bg;
+#if CONFIG_UI_PROFILES
+		if (s->gui_profiles)
+			bg = ui_col.strip_bg;
+#endif
+		gfx_fill(0, top, w, L->hint_y - top, bg);
 		gfx_rect(0, top, w, L->hint_y - top, edge);
 	}
 	color_t fg = gfx_bpp() == 1 ? ui_col.bg : ui_col.fg;
@@ -3133,7 +4310,32 @@ void ui_draw_banner(const ui_state_t *s)
 
 static int list_top(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
-	int y = draw ? ui_draw_top(v, s, l->prefix, l->name) : ui_layout.strip_h +
+	int y;
+#if CONFIG_UI_PROFILES
+	if (l->roomy && (l->prefix || l->name)) {
+		char title[64];
+		sbuf_t b;
+		sb_init(&b, title, sizeof title);
+		if (l->prefix)
+			sb_str(&b, l->prefix);
+		if (l->prefix && l->name)
+			sb_chr(&b, ' ');
+		if (l->name)
+			sb_str(&b, l->name);
+		const font_t *f = ui_layout.large;
+		if (gfx_text_width(f, title) > gfx_width() - 30)
+			f = ui_layout.medium;
+		y = ui_layout.strip_h + 5;
+		if (draw) {
+			char fit[48];
+			draw_profile_status(v, v->state, s, true, ui_layout.strip_h);
+			gfx_text_fit(f, title, gfx_width() - 30, fit, sizeof fit);
+			gfx_text(f, 15, y, fit, ui_col.fg);
+		}
+		y += f->h + 5;
+	} else
+#endif
+		y = draw ? ui_draw_top(v, s, l->prefix, l->name) : ui_layout.strip_h +
 		((l->prefix || l->name) && gfx_height() >= UI_TALL_PX ? ui_layout.small->h + 2 : 0);
 	if (l->header != NULL) {
 		if (draw) {
@@ -3149,6 +4351,15 @@ static int list_top(const radio_view_t *v, const ui_state_t *s, const ui_list_t 
 static int list_bottom(const ui_state_t *s)
 {
 	return s == NULL || s->hints || s->toast ? ui_layout.hint_y : gfx_height();
+}
+
+static int list_pitch(const ui_list_t *l)
+{
+#if CONFIG_UI_PROFILES
+	if (l->roomy)
+		return ui_layout.row_h + 10;
+#endif
+	return ui_layout.row_h;
 }
 
 // One line of word-wrapped text: copies into line what fits in max_w pixels (breaking at the last space, or inside a
@@ -3401,9 +4612,84 @@ int ui_list_rows(const ui_list_t *l)
 	int y = list_top(NULL, NULL, l, false);
 	if (l->body != NULL)
 		y = wrap_text(ui_layout.small, l->body, y, y + (ui_layout.hint_y - y) / 2 + ui_layout.small->h, false, 0) + 2;
-	int n = (ui_layout.hint_y - y) / ui_layout.row_h;
+	int n = (ui_layout.hint_y - y) / list_pitch(l);
 	return n < 1 ? 1 : n;
 }
+
+#if CONFIG_UI_PROFILES
+#define PROFILE_GEAR_OUTLINE RGB565(0, 0, 0)
+#define PROFILE_GEAR_FILL RGB565(148, 148, 148)
+
+static void draw_menu_icon(uint8_t icon, int x, int y)
+{
+	if (icon == UI_MENU_ICON_SETTINGS) {
+		static const uint32_t outline[] = {
+			0x00F0, 0x00F0, 0x07FC, 0x0FFE, 0x1F1F, 0x0E0E, 0x0E0E,
+			0x0E0F, 0x1F1F, 0x0FFE, 0x07FC, 0x00F0, 0x00F0,
+		};
+		static const uint32_t fill[] = {
+			0x0000, 0x0060, 0x00F0, 0x071C, 0x0E0E, 0x0404, 0x0404,
+			0x0406, 0x0E0E, 0x071C, 0x00F0, 0x0060, 0x0000,
+		};
+		PROFILE_MARK(x, y, outline, 13, PROFILE_GEAR_OUTLINE);
+		PROFILE_MARK(x, y, fill, 13, PROFILE_GEAR_FILL);
+		return;
+	}
+	if (icon == UI_MENU_ICON_PRIVACY) {
+		PROFILE_MARK(x, y + 3, profile_key, 13, ui_col.warn);
+		return;
+	}
+
+	static const struct { uint8_t tint; uint32_t rows[13]; } marks[UI_MENU_ICON_COUNT] = {
+		[UI_MENU_ICON_SOUND] = { 0, { 0x0000, 0x0080, 0x0188, 0x0384, 0x0FB2, 0x1F8A, 0x1F8A,
+			0x1F8A, 0x0FB2, 0x0384, 0x0188, 0x0080, 0x0000 } },
+		[UI_MENU_ICON_DISPLAY] = { 0, { 0x0FFE, 0x1803, 0x1803, 0x1803, 0x1803, 0x1803, 0x1803,
+			0x1803, 0x0FFE, 0x00E0, 0x00E0, 0x03F8, 0x0000 } },
+		[UI_MENU_ICON_TALK] = { 1, { 0x00E0, 0x01F0, 0x01F0, 0x01F0, 0x05F4, 0x05F4, 0x05F4,
+			0x060C, 0x03F8, 0x0040, 0x0040, 0x01F0, 0x0000 } },
+		[UI_MENU_ICON_LOCATION] = { 3, { 0x01F0, 0x071C, 0x060C, 0x0C46, 0x0CA6, 0x0C46, 0x060C,
+			0x060C, 0x0318, 0x01B0, 0x00E0, 0x0040, 0x0000 } },
+		[UI_MENU_ICON_CONNECTIONS] = { 0, { 0x0000, 0x0110, 0x0110, 0x0110, 0x01F0, 0x03F8, 0x03F8,
+			0x03F8, 0x01F0, 0x0060, 0x0060, 0x0060, 0x0060 } },
+		[UI_MENU_ICON_POWER] = { 1, { 0x00E0, 0x00E0, 0x07FC, 0x060C, 0x064C, 0x06CC, 0x06EC,
+			0x066C, 0x064C, 0x060C, 0x07FC, 0x0000, 0x0000 } },
+		[UI_MENU_ICON_KEYS] = { 0, { 0x07FC, 0x0C06, 0x0D56, 0x0C06, 0x0D56, 0x0C06, 0x0D56,
+			0x0C06, 0x0D56, 0x0C06, 0x07FC, 0x0000, 0x0000 } },
+		[UI_MENU_ICON_LOCK] = { 2, { 0x01F0, 0x0318, 0x0318, 0x0318, 0x07FC, 0x0C06, 0x0C46,
+			0x0CE6, 0x0C46, 0x0C46, 0x0C06, 0x07FC, 0x0000 } },
+		[UI_MENU_ICON_RADIO] = { 0, { 0x0000, 0x0300, 0x0300, 0x03F8, 0x07FC, 0x07FC, 0x060C,
+			0x060C, 0x07FC, 0x060C, 0x07FC, 0x07FC, 0x03F8 } },
+		[UI_MENU_ICON_TONES] = { 1, { 0x0000, 0x0306, 0x03FE, 0x0306, 0x0306, 0x0306, 0x0306,
+			0x0306, 0x0F1E, 0x1F3E, 0x1E3C, 0x0000, 0x0000 } },
+		[UI_MENU_ICON_ADVANCED] = { 2, { 0x0000, 0x0300, 0x1FFF, 0x1FFF, 0x0300, 0x0018, 0x1FFF,
+			0x1FFF, 0x0018, 0x00C0, 0x1FFF, 0x1FFF, 0x00C0 } },
+		[UI_MENU_ICON_CALLER] = { 1, { 0x0E00, 0x1E00, 0x1F00, 0x0F00, 0x0F00, 0x0700, 0x0780,
+			0x038C, 0x03DE, 0x01FF, 0x00FF, 0x003E, 0x000C } },
+		[UI_MENU_ICON_CONTACTS] = { 0, { 0x00E0, 0x01F0, 0x01F0, 0x01F0, 0x01F0, 0x00E0, 0x0000,
+			0x03F8, 0x07FC, 0x0FFE, 0x0FFE, 0x07FC, 0x03F8 } },
+		[UI_MENU_ICON_MESSAGES] = { 0, { 0x0000, 0x0FFE, 0x1FFF, 0x1803, 0x1C07, 0x1A0B, 0x1913,
+			0x18E3, 0x1803, 0x1803, 0x1FFF, 0x0FFE, 0x0000 } },
+		[UI_MENU_ICON_RECENT] = { 1, { 0x01F0, 0x060C, 0x0C06, 0x0842, 0x1843, 0x1843, 0x1873,
+			0x1803, 0x1803, 0x0802, 0x0C06, 0x060C, 0x01F0 } },
+		[UI_MENU_ICON_ZONES] = { 0, { 0x0000, 0x0000, 0x0000, 0x0FC0, 0x0FC0, 0x0FFE, 0x0FFF,
+			0x0C03, 0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF, 0x0000 } },
+		[UI_MENU_ICON_CHANNELS] = { 1, { 0x0000, 0x0000, 0x0DFE, 0x01FE, 0x0000, 0x0000, 0x0DFE,
+			0x01FE, 0x0000, 0x0000, 0x0DFE, 0x01FE, 0x0000 } },
+		[UI_MENU_ICON_TOOLS] = { 2, { 0x0001, 0x0007, 0x000F, 0x001E, 0x0038, 0x01F0, 0x03E0,
+			0x0770, 0x0EF0, 0x1DE0, 0x1BC0, 0x0F80, 0x0700 } },
+	};
+	const color_t colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx };
+	PROFILE_MARK(x, y, marks[icon].rows, 13, colors[marks[icon].tint]);
+}
+
+static void profile_row(int x, int y, int w, int h, color_t ink)
+{
+	// Three stepped bands round off the corners cleanly at native resolution.
+	gfx_fill(x + 3, y, w - 6, h, ink);
+	gfx_fill(x + 1, y + 1, w - 2, h - 2, ink);
+	gfx_fill(x, y + 3, w, h - 6, ink);
+}
+#endif
 
 void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l)
 {
@@ -3411,6 +4697,16 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	const font_t *f = L->small;
 	int w = gfx_width();
 	gfx_clear(ui_col.bg);
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles) {
+		const color_t row_colors[] = { profile_row_bg, profile_row_focus, ui_col.fg };
+		const color_t icon_colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx,
+			PROFILE_GEAR_FILL, PROFILE_GEAR_OUTLINE };
+		gfx_reserve_colors(row_colors, sizeof row_colors / sizeof row_colors[0]);
+		if (l->menu_icons)
+			gfx_reserve_colors(icon_colors, sizeof icon_colors / sizeof icon_colors[0]);
+	}
+#endif
 	int y = list_top(v, s, l, true);
 	int y_end = list_bottom(s);
 	if (l->body != NULL) {
@@ -3420,52 +4716,174 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 			y += 2;
 		}
 	}
-	int rows = (y_end - y) / L->row_h;
+	int pitch = list_pitch(l);
+	int rows = (y_end - y) / pitch;
 	if (rows < 1)
 		rows = 1;
+	bool two_columns = false;
+	bool paginated = false;
+#if CONFIG_UI_PROFILES
+	two_columns = l->two_columns;
+	paginated = two_columns && l->count > 2 * rows;
+	if (paginated && rows > 3 && (y_end - y) / 3 >= 2 * f->h + 8) {
+		rows = 3;
+		pitch = (y_end - y) / rows;
+	}
+#endif
+	int visible = two_columns ? 2 * rows : rows;
 	uint16_t top = l->top != NULL ? *l->top : 0;
-	if (l->focus < top)
-		top = l->focus;
-	if (l->focus >= top + rows)
-		top = (uint16_t)(l->focus - rows + 1);
-	if (top + rows > l->count)
-		top = (uint16_t)(l->count > rows ? l->count - rows : 0);
+	if (two_columns) {
+		top = (uint16_t)(l->focus / visible * visible);
+	} else {
+		if (l->focus < top)
+			top = l->focus;
+		if (l->focus >= top + visible)
+			top = (uint16_t)(l->focus - visible + 1);
+		if (top + visible > l->count)
+			top = (uint16_t)(l->count > visible ? l->count - visible : 0);
+	}
 	if (l->top != NULL)
 		*l->top = top;
 	if (l->count == 0 && l->empty != NULL)
 		wrap_text(f, l->empty, y + 1, y_end, true, ui_col.dim);
-	int pad = (L->row_h - f->h) / 2;
-	for (int r = 0; r < rows && top + r < l->count; r++) {
+	int pad = (pitch - f->h) / 2;
+	int inset = 0, gap = 0;
+	color_t disabled = ui_col.line;
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles) {
+		inset = 10;
+		gap = 2;
+		disabled = ui_col.dim;
+		if (l->roomy) {
+			inset = 15;
+			gap = 4;
+		}
+	}
+#endif
+	const int column_gap = 8;
+	int inner_w = w - 2 * inset;
+	int column_w = (inner_w - column_gap) / 2;
+#if CONFIG_UI_PROFILES
+	if (paginated) {
+		char page[16];
+		sbuf_t b;
+		sb_init(&b, page, sizeof page);
+		sb_u32(&b, top / visible + 1, 1);
+		sb_chr(&b, '/');
+		sb_u32(&b, (l->count + visible - 1) / visible, 1);
+		const font_t *badge = &font_aa_8x16;
+		int bx = w - inset - gfx_text_width(badge, page), by = y - badge->h - 4;
+		gfx_text(badge, bx, by, page, ui_col.dim);
+		for (int dx = -2; dx <= 2; dx++) {
+			int slope = dx < 0 ? -dx : dx;
+			if (top > 0)
+				gfx_pixel(bx - 7 + dx, by + 4 + slope, ui_col.fg);
+			if (top + visible < l->count)
+				gfx_pixel(bx - 7 + dx, by + 12 - slope, ui_col.fg);
+		}
+	}
+	if (two_columns) {
+		// Give a column extra width for longer translations before shortening a label.
+		int minimum[2] = { 0, 0 };
+		for (uint16_t i = top; i < l->count && i < top + visible; i++) {
+			ui_item_t it = { 0 };
+			l->item(i, &it);
+			int need = (paginated ? 8 : 10) + gfx_text_width(f, it.label);
+			if (l->menu_icons && it.icon != UI_MENU_ICON_NONE)
+				need += 16 + (it.num ? 0 : f->w + 3);
+			if (it.num)
+				need += f->w + 3;
+			int column = i - top >= rows;
+			if (need > minimum[column])
+				minimum[column] = need;
+		}
+		int max_left = inner_w - column_gap - minimum[1];
+		if (minimum[0] <= max_left) {
+			if (column_w < minimum[0])
+				column_w = minimum[0];
+			if (column_w > max_left)
+				column_w = max_left;
+		}
+	}
+#endif
+	for (int r = 0; r < visible && top + r < l->count; r++) {
 		uint16_t i = (uint16_t)(top + r);
 		ui_item_t it;
 		it.label[0] = it.value[0] = 0;
 		it.num = 0;
 		it.flags = 0;
+#if CONFIG_UI_PROFILES
+		it.icon = UI_MENU_ICON_NONE;
+#endif
 		l->item(i, &it);
-		int ry = y + r * L->row_h;
+		// Fill the left column first so Up and Down keep the numbered menu order.
+		bool second = two_columns && r >= rows;
+		int rx = inset + (second ? column_w + column_gap : 0);
+		int item_w = !two_columns ? inner_w : second ? inner_w - column_gap - column_w : column_w;
+		int ry = y + (r % rows) * pitch;
 		bool focus = i == l->focus && !(it.flags & UI_ITEM_INFO);
-		color_t fg = (it.flags & UI_ITEM_DIM) ? ui_col.line : (it.flags & UI_ITEM_WARN) ? ui_col.warn : ui_col.fg;
+		color_t fg = (it.flags & UI_ITEM_DIM) ? disabled : (it.flags & UI_ITEM_WARN) ? ui_col.warn : ui_col.fg;
 		if (gfx_bpp() == 1)
 			fg = ui_col.fg;
 		if ((it.flags & UI_ITEM_INFO) && gfx_bpp() != 1)
 			fg = ui_col.dim;
-		color_t vfg = (it.flags & UI_ITEM_DIM) && gfx_bpp() != 1 ? ui_col.line : ui_col.dim;
+		color_t vfg = (it.flags & UI_ITEM_DIM) && gfx_bpp() != 1 ? disabled : ui_col.dim;
 		if (it.flags & UI_ITEM_TEMP)
 			vfg = ui_col.warn;
 		if (focus) {
 			color_t bg = (it.flags & UI_ITEM_EDIT) ? ui_col.warn : ui_col.focus;
-			gfx_fill(0, ry, w, L->row_h, bg);
+#if CONFIG_UI_PROFILES
+			if (inset) {
+				profile_row(rx, ry + gap, item_w, pitch - 2 * gap,
+					    it.flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
+				gfx_fill(rx + 2, ry + gap + 5, 2, pitch - 2 * gap - 10, ui_col.fg);
+			} else
+#endif
+				gfx_fill(rx, ry + gap, item_w, pitch - 2 * gap, bg);
 			fg = gfx_bpp() == 1 ? ui_col.bg : (it.flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
 			vfg = fg;
+#if CONFIG_UI_PROFILES
+		} else if (inset && !(it.flags & UI_ITEM_INFO)) {
+			profile_row(rx, ry + gap, item_w, pitch - 2 * gap, profile_row_bg);
+#endif
 		}
-		int x = 1;
+		int x = inset ? rx + 5 : 1;
+#if CONFIG_UI_PROFILES
+		if (l->menu_icons && it.icon != UI_MENU_ICON_NONE) {
+			draw_menu_icon(it.icon, x, ry + (pitch - 13) / 2);
+			x += two_columns ? 16 : 19;
+			if (!it.num)
+				x += two_columns ? f->w + 3 : 2 * f->w;
+		}
+#endif
 		if (gfx_bpp() == 1 && !focus)
 			x = gfx_text(f, 0, ry + pad, " ", fg);
+		int right = rx + item_w - (paginated ? 3 : inset ? 5 : 0);
+		int label_room = right - x - (it.num ? f->w + 3 : 0);
+		char val[48];
+		const char *rest = NULL;
+		if (paginated && !it.value[0] && pitch >= 2 * f->h &&
+		    gfx_text_width(f, it.label) > label_room)
+			rest = wrap_line(f, it.label, label_room, val, sizeof val);
+		int ty = ry + (rest && *rest ? (pitch - 2 * f->h) / 2 : pad);
 		if (it.num) {
 			char n[3] = { it.num, ' ', 0 };
-			x = gfx_text(f, x, ry + pad, n, focus ? fg : (gfx_bpp() == 1 ? fg : ui_col.dim));
+			color_t num_ink = focus || gfx_bpp() == 1 ? fg : ui_col.dim;
+#if CONFIG_UI_PROFILES
+			if (two_columns) {
+				n[1] = '\0';
+				int digit_w = f->w + 1;
+				gfx_text_title(f, x + digit_w / 2, ry + pad + f->ascent, digit_w, n, num_ink, 4);
+				x += f->w + 3;
+			} else
+#endif
+				x = gfx_text(f, x, ty, n, num_ink);
 		}
-		char val[48];
+		if (rest && *rest) {
+			row_text(f, x, ty, right, val, "", fg, vfg, false);
+			row_text(f, x, ty + f->h, right, rest, "", fg, vfg, false);
+			continue;
+		}
 		if (it.flags & UI_ITEM_EDIT) {
 			sbuf_t b;
 			sb_init(&b, val, sizeof val);
@@ -3475,13 +4893,14 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		} else {
 			str_copy(val, sizeof val, it.value);
 		}
-		row_text(f, x, ry + pad, w, it.label, val, fg, vfg, (it.flags & UI_ITEM_PREVIEW) != 0);
+		row_text(f, x, ty, right, it.label, val, fg, vfg,
+			 (it.flags & UI_ITEM_PREVIEW) != 0);
 	}
 	// Scroll marks: more above / below
-	if (top > 0)
+	if (!paginated && top > 0)
 		gfx_fill(w - 3, y, 3, 2, ui_col.dim);
-	if (top + rows < l->count)
-		gfx_fill(w - 3, y + rows * L->row_h - 2, 3, 2, ui_col.dim);
+	if (!paginated && top + visible < l->count)
+		gfx_fill(w - 3, y + rows * pitch - 2, 3, 2, ui_col.dim);
 	ui_draw_banner(s);
 	ui_draw_bottom(s, l->hint);
 }
@@ -3856,10 +5275,9 @@ static void __attribute__((noinline)) draw_quick_list(const radio_view_t *v, con
 	quick_v = v;
 	quick_s = s;
 	quick_list_focus = s->quick_focus;
-	ui_list_t l = { TR(QUICK_TITLE, "Quick"), v->vfo ? "VFO" : v->ch.name, NULL, NULL, UI_QUICK_TILES,
-		quick_list_focus, &top,
-			quick_list_item, NULL, split_hint != NULL ? split_hint :
-				TR(QUICK_HINT, "1-9 change  Hold OK save") };
+	ui_list_t l = { .prefix = TR(QUICK_TITLE, "Quick"), .name = v->vfo ? "VFO" : v->ch.name,
+		.count = UI_QUICK_TILES, .focus = quick_list_focus, .top = &top, .item = quick_list_item,
+		.hint = split_hint != NULL ? split_hint : TR(QUICK_HINT, "1-9 change  Hold OK save") };
 	ui_draw_list(v, s, &l);
 }
 

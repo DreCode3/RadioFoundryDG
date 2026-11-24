@@ -4,6 +4,8 @@
 //
 //   uiSim [--geom 160x120i5|160x128|128x64|240x320|WxH[iN|m]] [--map K|M|V|F|P] [--scale N] [--out FILE.png]
 //         [--script "ok 4 down ok expect:zone=1"]
+//   uiSim --geom 320x240iR10 --out FILE.png --interactive
+//         writes one frame and prints OK, then accepts one script per line without restarting the radio
 //   uiSim --gallery DIR      every screen at every display class: DIR/<geom>/<screen>.png, plus the contact sheets
 //                            in DIR/sheets. A color page is drawn again in each highlight color UI_GALLERY_COLORS
 //                            names (space separated, sim_color_find: "red yellow light_blue"), as
@@ -659,12 +661,53 @@ static int run_sheets(const char *dir, const char *geom)
 	return fails != 0;
 }
 
+static int run_interactive(const char *out, int scale, const char *script)
+{
+	char err[256];
+	if (!sim_run(script, err, sizeof err)) {
+		fprintf(stderr, "%s\n", err);
+		return 1;
+	}
+	if (!sim_save_png(out, scale)) {
+		fprintf(stderr, "can't write %s\n", out);
+		return 2;
+	}
+	puts("OK");
+	fflush(stdout);
+	char line[1025];
+	while (fgets(line, sizeof line, stdin) != NULL) {
+		size_t end = strcspn(line, "\r\n");
+		if (end >= sizeof line - 1) {
+			int c;
+			do {
+				c = getchar();
+			} while (c != '\n' && c != EOF);
+			puts("ERROR script too long");
+			fflush(stdout);
+			continue;
+		}
+		line[end] = '\0';
+		bool ok = sim_run(line, err, sizeof err);
+		if (!sim_save_png(out, scale)) {
+			fprintf(stderr, "can't write %s\n", out);
+			return 2;
+		}
+		if (ok)
+			puts("OK");
+		else
+			printf("ERROR %s\n", err);
+		fflush(stdout);
+	}
+	return ferror(stdin) ? 2 : 0;
+}
+
 int main(int argc, char **argv)
 {
 	const sim_geom_t *g = &sim_geoms[0];
 	sim_map_t map = SIM_MAP_K;
 	const char *script = "", *out = NULL;
 	int scale = 2;
+	bool interactive = false;
 	for (int i = 1; i < argc; i++) {
 		const char *a = argv[i];
 		const char *v = i + 1 < argc ? argv[i + 1] : NULL;
@@ -701,14 +744,22 @@ int main(int argc, char **argv)
 		} else if (strcmp(a, "--scale") == 0 && v != NULL) {
 			scale = atoi(v);
 			i++;
+		} else if (strcmp(a, "--interactive") == 0) {
+			interactive = true;
 		} else {
 			fprintf(stderr, "usage: uiSim [--geom G] [--map K|M|V|F] [--script S] [--out F.png] [--scale N] | "
-				"--gallery DIR | --sheets DIR [GEOM]\n");
+				"--interactive --out F.png | --gallery DIR | --sheets DIR [GEOM]\n");
 			return 2;
 		}
 	}
 	char err[256];
+	if (interactive && out == NULL) {
+		fprintf(stderr, "--interactive requires --out\n");
+		return 2;
+	}
 	sim_reset(g, map);
+	if (interactive)
+		return run_interactive(out, scale, script);
 	bool ok = sim_run(script, err, sizeof err);
 	if (!ok)
 		printf("FAIL %s\n", err);

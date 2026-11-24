@@ -54,6 +54,7 @@ extern radio_view_t ui_svc_view;
 #define UI_FEAT_REF_TRIM	(1u << 20)	// a reference trim (hal_radio_t.ref_trim, radio/ref_trim.h): Freq trim setting
 #define UI_FEAT_P25		(1u << 22)	// P25 on this board (CONFIG_P25, radio_p25_fits): the VFO's mode tile offers it
 #define UI_FEAT_NXDN		(1u << 23)	// NXDN on this board (CONFIG_NXDN, radio_nxdn_fits): the same
+#define UI_FEAT_GUI_PROFILES	(1u << 24)	// Commercial and Amateur layouts on a supported color display
 uint32_t ui_svc_features(void);
 // The parts of it each package reports (ui_svc_features ORs them): dmr-voice / radio core, dmr-data, storage-cps,
 // radio-features
@@ -234,6 +235,10 @@ typedef struct {
 	uint16_t hdop10;	// horizontal dilution x 10, 0xFFFF unknown
 	uint16_t speed_kmh, course;	// 0xFFFF unknown
 	uint32_t utc_hms;	// hhmmss, 0xFFFFFFFF unknown
+#if CONFIG_UI_PROFILES
+	uint32_t utc_ymd;	// YYYYMMDD from a recent RMC fix, 0 unknown
+	uint32_t utc_clock_hms;	// hhmmss from the same RMC sentence
+#endif
 } ui_position_t;
 bool ui_svc_position(ui_position_t *out);	// false: no GPS on this radio (or off)
 #if CONFIG_GPS && CONFIG_POSITION && CONFIG_SATELLITE_TLE
@@ -459,6 +464,7 @@ typedef enum {
 	// One step of a chain, set whole (its frequency and length in one write of the settings area): the value is
 	// UI_SIG_STEP(event, step, Hz, ms). Write only
 	UI_SET_SIG_STEP,
+	UI_SET_GUI_PROFILE, UI_SET_GUI_NIGHT, UI_SET_GPS_CLOCK,
 	UI_SET_COUNT
 } ui_setting_t;
 

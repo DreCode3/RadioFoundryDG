@@ -162,6 +162,7 @@ without its label, for the cursor's steps. With 1024 channels a key took 0.34 s 
 | My Radio | `dmr-id` | Settings > My radio > DMR ID and name: the radio model above the rows DMR ID (`CONFIG_DMR`), Radio name, Boot 1 and Boot 2, from the codeplug. On DMR ID, digits type an ID as the channel editor's Own ID (2.1): the first digit replaces the shown one, a digit that would take it past `CODEPLUG_DMR_ID_MAX` (16776415) is refused, BACK takes the last digit back and with none typed leaves the ID as it was, OK writes it into the codeplug (with nothing typed, leaves it; 0 is refused: "IDs start at 1"). OK on a name row opens Text entry (2.1, `CONFIG_CHANNEL_EDIT`; without it "Typing: not in this build"); OK there writes the radio name (`codeplug_set_radio_name`) or the boot line (`codeplug_set_boot_text`) as a storage job (`ui_svc_name_set`), "Saved" |
 | Signaling Tone Steps | `sig-chain` | Settings > Signaling tones > Start / End / Idle steps (the title is Start Tone, End Tone or Idle Tone): the event's ten steps, a row each ("Step 1", value "1570 Hz  40 ms", or "-" when its length is 0), above them "Length: n / 900 ms" or "Standard sound" with no step. OK on a step opens its frequency (digits type it, Up / Down / the knob step it by 10, 0 to 3400), OK takes it and opens the length (0 to 900 ms in steps of 10), OK saves both; a value off the steps or out of the range is refused with what fits, BACK leaves the step as it was. A step that was off starts at 40 ms. A length of 0 ends the chain ([radio-features.md](radio-features.md) 4.3) |
 | Data Services | `data-services` | Settings > Connections > Data services (`CONFIG_DMR_ARS` or `CONFIG_DMR_IP_GATEWAY`): the rows ARS server and IP gateway, each a DMR ID or Off, and above them "Saved in the codeplug" and the ARS state (Off, Registering, Registered, Refused, No answer). Digits type an ID as My Radio's DMR ID; 0 is Off. OK sets it as a storage job, "Saved": the key goes into the codeplug's settings area when the area can be written, and the setting is saved as the radio's own ([codeplug-settings.md](codeplug-settings.md) 5.2). It isn't a codeplug write that asks about another firmware's codeplug. Only a key that is present and can't be updated refuses it: "Couldn't write the codeplug: not saved" |
+| Display choice | `display-choice` | Settings > Display > Display Profile, Day/Night or GPS clock. Each opens its own two-choice list with the stored value focused and marked "In use". OK saves the choice and returns to Display. Back returns to Display with the stored value intact |
 | Language | `language` | Settings > Display > Language (the last row; its value is the language in use): every language the firmware has a catalog for, each in its own name ("English", "Español"), the one in use marked "In use". OK switches at once and goes back; a language this image was built without is dimmed and OK says "Not in this build" (2.5) |
 | About | `about` | Settings > My radio > About, and Settings > Advanced > About: a text page (`ui_draw_text_page`) in the smallest font, word-wrapped and never shortened, Up / Down / the knob scroll a line. `SF_NO_STRIP`: no status strip while the radio is idle (the owner's request); RX or TX draws it again, so the TX / RX pill still shows (P2) |
 | Message text | `message-read` | The Full message row, first in a message (`message`) whose text the screen shortens: the sender, the age and the whole text on a text page as About's (no dim labels: the sender wrote the colons). Whether the row is there is decided when the message opens, so the rows never shift under the cursor. PTT calls the sender |
@@ -471,7 +472,7 @@ stored value stays, as the module is detected after start-up and its driver foll
 Small displays (under 200 px tall) merge a screen's title into the status strip: the state pill shows only when not
 idle, the bars, the GPS icon and the battery (icon and percent) give way, so the title is centered across the whole row; the lock
 and the unread count stay. Home shows the battery, and the low battery banner warns on any screen. On a radio without
-a battery, `CAP_NO_BATTERY`, the battery is drawn nowhere, and Settings > Power saving > Battery saver and Low battery
+a battery, `CAP_NO_BATTERY`, the battery is drawn nowhere, and Settings > Power > Battery saver and Low battery
 warning are left out of their lists. The Battery tool is not present; tools retain their assigned numbers. Only the name part of the title is
 shortened with a middle ellipsis (the prefix stays whole: "Quick COUNTY DMR", not "Quick ..tions").
 
@@ -578,12 +579,12 @@ A request to save channel changes reports the reason when it cannot start: the V
 automatically, hotspot mode must end first, a stored channel must be selected, or another storage job must finish.
 The Home and Quick save keys and Actions > Save to channel use the same messages.
 
-Auto power off is the UI's: `ui_app_power_off_due()` turns true after Settings > Power saving > Auto power off without use
+Auto power off is the UI's: `ui_app_power_off_due()` turns true after Settings > Power > Auto power off without use
 (keys, RX, TX, scan and hotspot count as use), with a banner and beep one minute before; the housekeeping loop
 (core/app) then powers off as for the knob, except that if the power is still on 2 s after releasing the latch it
 latches again, cancels the radio core's power off (`radio_req_power_off_cancel`) and raises `UI_EV_POWER_OFF_FAILED`
 ("Couldn't switch off / Turn the knob off"). The low battery warning is the UI's too: a banner (and the low beep
-while the radio core's level is still OK) at Settings > Power saving > Low battery warning, repeated every 5 minutes, reset
+while the radio core's level is still OK) at Settings > Power > Low battery warning, repeated every 5 minutes, reset
 3 % above it.
 
 Inbound events go through `ui_notify()` (a ring of 4, safe from any task) or, for packages the UI polls, through
@@ -606,6 +607,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 | `CONFIG_GPS_SKY` | = GPS and APRS | Tools > Position is a page of text instead of the GPS screen (2.3) and the satellite sentences aren't read (about 5.2 KB, 176 B of RAM) |
 | `CONFIG_LANG_ES` | y | Spanish is listed dimmed in Settings > Display > Language (2.5); without any language the lookup and the fonts' Latin-1 glyphs are left out |
 | `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Theme, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 600 B). For radios whose only screen is monochrome |
+| `CONFIG_UI_PROFILES` | n | Off keeps the existing Home layout, status strip and color settings. On enables the profile layout when `UI_FEAT_GUI_PROFILES` is set and the color display is 240 px high with at least 310 drawable pixels across |
 
 Screens for features that are off (`CONFIG_DMR`, `CONFIG_HOTSPOT`, `CONFIG_VFO_FM`, `CONFIG_VFO_DMR`, `CONFIG_SCAN`, data features) are
 left out or dimmed with the feature. Some radios' default images have only a few KB free (`docs/feature-matrix.md`); the UI was about 50 KB when last measured (`gfx` + fonts about 11 KB, screens and behavior the rest). The frame buffer (40 KB by default) bounds the display: 240x320 at
@@ -744,6 +746,36 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   least 5:1 on its strip after RGB565 rounding. The shades are light so black
   text reads on them (at least 7.5:1 after RGB565 rounding); the red is lighter and pinker than TX's red, and there is
   no green, which would hide the RX pill. Gallery: `home_dmr*`, `home_plain`, `channels*` (section 7).
+- A display with GUI profiles offers Commercial (default) and Amateur. Both show the zone and talk target. Amateur
+  also shows the channel and tuning details. Day/Night switches the palette across Home and menus. Day is the default.
+  The profile menus use these palettes in place of Theme, Highlight color and Filled status bar. Both profiles put a
+  named talk target first. Commercial Home gives the status icons a taller strip and uses larger type for the zone,
+  talk target, and short receive aliases. The zone and bold talk target are centered. A received alias appears on a
+  separate bottom line and leaves both positions fixed. The TG name / number key assignment applies to the earlier
+  Home layout. Large text hides Amateur details. With a board GPS,
+  GPS clock (default Off) shows the UTC date and minute on idle Home while a recent GPS fix has both date and time.
+  The three choices are saved in the settings store.
+  Profile Home puts signal, power, battery, GPS fix, lock, Bluetooth, Dual Watch, recording and VOX in the top strip.
+  Dual Watch uses larger A/B lettering in two panes, and VOX uses wider lettering. The GPS clock stacks its
+  date and time at the right end of the operating row. The mode label uses the largest native font that fits
+  alongside the clock, roaming, encryption, and other marks. In menus,
+  mode lettering sits beside the bars when it fits. Roaming places a rotating arrow around a fixed R.
+  Monitor uses a speaker with one wave, and receive-only channels are marked RX. The scan highlight follows the
+  open zigzag stroke and ends on the full arrowhead. Normal status marks use black in
+  Day and light ink in Night. The battery uses an upright outline with a top terminal and three fill segments.
+  With antialiasing enabled, status and menu icons blend their corners at native pixel size, including each
+  frame of the scan, roaming, and recording animations.
+  Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
+  larger left-aligned headings and separated, tinted rows with rounded corners.
+  The profile hub fits its numbered entries into two columns when the display has room, with Up and Down
+  following the numbers down the left column and then the right. The hub shows Zones without a current-zone
+  value. The Zones list continues to show the current zone.
+  The first level of Settings shows three rows of two tiles per page on the wide profile display.
+  Up and Down move in shortcut order across pages, and the page indicator shows the available direction.
+  Longer labels can wrap. Submenus use the roomy list layout. Focused rows have a solid leading marker.
+  The profile hub uses static labels. The status strip shows unread messages and scanning.
+  Profile footer hints are split across the two edges. Back takes the right edge when present. Otherwise Quick
+  takes the right edge after the first hint, or the last hint goes there.
 - The VFO has a mode of its own (`dmr-voice.md` 2.1). The Mode tile (tile 4 in the VFO only) switches it FM / DMR ("VFO: DMR", no "for now": it is kept), and in a build with only one VFO kind the tile is dimmed ("VFO: one mode in this build"). On a channel tile 4 is "To VFO" (`dmr-voice.md` 2.2): it copies what is in effect on the channel to the VFO and opens it on Home ("Copied to VFO"); a channel the VFO can't hold is refused with a toast. A channel has no temporary mode change any more. In DMR the quick menu is the DMR one: Timeslot, Color and Talk to change the VFO's own settings, with no dot on Home. The talk target picker lists the VFO's current target first ("Current"); both OK and hold OK keep the target for the VFO.
 - The privacy key types are named by key size with the key's range, "8-bit (1-255)" and "16-bit (0-65535)". The key
   is typed in decimal. Number rows take typed digits; a value outside the range or between steps is refused with the

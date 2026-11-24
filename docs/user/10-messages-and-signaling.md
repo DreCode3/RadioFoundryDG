@@ -16,8 +16,8 @@ is off. A call alert or a private call to you gives one long vibration, an emerg
 
 <img src="../ux/screens/160x120i5/banner_message.png" width="200" alt="A message banner">
 
-After the banner, the status line shows "M" and the number of unread messages, and the hub shows "1 new" next to
-Messages.
+After the banner, the profile display shows an envelope in the status line. On the original display, the status
+line shows "M" and the number of unread messages, and the hub shows "1 new" next to Messages.
 
 ## Reading messages
 
@@ -37,6 +37,9 @@ Messages.
 **#** on a DMR message opens the actions for its sender. **PTT** in an open DMR message calls the sender. The Call
 action is unavailable for APRS messages, whose sender is a callsign. **#** on an APRS message opens a composer addressed
 to that callsign.
+
+The Messages footer shows **# Reply** for received messages. On the **New APRS message** row it shows
+**OK Compose**.
 
 <img src="../ux/screens/160x120i5/messages.png" width="200" alt="Messages">
 <img src="../ux/screens/160x120i5/message_view.png" width="200" alt="A message">

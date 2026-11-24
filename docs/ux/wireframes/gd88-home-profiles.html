@@ -1,0 +1,1097 @@
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Copyright (c) 2026 The RadioFoundry Authors -->
+<div id="rf-gd88-profiles" data-color-mode="Day">
+  <div class="viz-dotted-background rf-preview">
+    <div class="rf-display" aria-label="GD-88 display preview">
+      <div class="rf-status">
+        <span class="rf-status-left">
+          <span class="rf-mode-roaming">
+            <span class="rf-mode-signal">
+              <span class="rf-receive-bars" role="img" aria-label="Signal strength: 3 of 4 bars">
+                <b data-lit></b><b data-lit></b><b data-lit></b><b></b>
+              </span>
+              <span class="rf-status-icon" data-icon="fm" role="img" aria-label="Analog FM" hidden><span class="rf-mode-mark" aria-hidden="true">FM</span></span>
+              <span class="rf-status-icon" data-icon="dmr" role="img" aria-label="DMR"><span class="rf-mode-mark" aria-hidden="true">DMR</span></span>
+              <span class="rf-status-icon" data-icon="p25" role="img" aria-label="P25" hidden><span class="rf-mode-mark" aria-hidden="true">P25</span></span>
+              <span class="rf-status-icon" data-icon="nxdn" role="img" aria-label="NXDN" hidden><span class="rf-mode-mark" aria-hidden="true">NXDN</span></span>
+              <span class="rf-status-icon" data-icon="dstar" role="img" aria-label="D-STAR" hidden><span class="rf-mode-mark" aria-hidden="true">D-STAR</span></span>
+            </span>
+            <span class="rf-status-icon" data-icon="roam" role="img" aria-label="Roaming" hidden><span class="rf-roam" aria-hidden="true"><span class="rf-roam-orbit"><i data-lucide="rotate-cw" aria-hidden="true">⟳</i></span><span class="rf-roam-tower"><i data-lucide="radio-tower" aria-hidden="true">↟</i></span></span></span>
+          </span>
+          <span class="rf-status-info">
+            <span data-radio-state></span>
+            <span class="rf-status-functions">
+              <span data-feature="monitor" role="img" aria-label="Monitor active" hidden><i data-lucide="ear" aria-hidden="true">◖</i></span>
+              <span data-feature="dual" role="img" aria-label="Dual watch" hidden><span class="rf-dual-lens" aria-hidden="true"><span class="rf-lens-circle"><b>AB</b></span></span></span>
+              <span data-feature="vox" role="img" aria-label="VOX armed" hidden><span class="rf-vox-mark" aria-hidden="true"><b>V</b><b>O</b><b>X</b></span></span>
+            </span>
+          </span>
+        </span>
+        <span class="rf-indicators">
+          <span class="rf-status-icon" data-icon="scan" role="img" aria-label="Scanning" hidden><i class="rf-zigzag" aria-hidden="true"><b></b><b></b><b></b><b></b></i></span>
+          <span class="rf-status-icon" data-icon="talkaround" role="img" aria-label="Talkaround" hidden><i class="rf-talkaround" aria-hidden="true"><b></b></i></span>
+          <span class="rf-status-icon" data-icon="clear" role="img" aria-label="Encryption clear"><span class="rf-key" data-encryption-state="clear" aria-hidden="true"><i data-lucide="key-round" aria-hidden="true">⚿</i></span></span>
+          <span class="rf-status-icon" data-icon="arc4" role="img" aria-label="ARC4 encryption" hidden><span class="rf-key" data-encryption-state="ARC4" aria-hidden="true"><i data-lucide="key-round" aria-hidden="true">⚿</i><b>ARC4</b></span></span>
+          <span class="rf-status-icon" data-icon="aes" role="img" aria-label="AES encryption" hidden><span class="rf-key" data-encryption-state="AES" aria-hidden="true"><i data-lucide="key-round" aria-hidden="true">⚿</i><b>AES</b></span></span>
+          <span class="rf-status-icon" data-icon="messages" role="img" aria-label="Unread messages" hidden><i class="rf-envelope" aria-hidden="true"><b></b></i></span>
+          <span class="rf-status-icon" data-icon="recording" role="img" aria-label="Recording active" hidden><span class="rf-record-mark" aria-hidden="true"><i data-lucide="square" aria-hidden="true">□</i></span></span>
+          <span class="rf-status-icon" data-icon="fix" role="img" aria-label="Valid GPS fix" hidden><i data-lucide="map-pin" aria-hidden="true">◇</i></span>
+          <span class="rf-status-icon" data-icon="locked" role="img" aria-label="Keypad locked" hidden><i data-lucide="lock-keyhole" aria-hidden="true">▣</i></span>
+          <span class="rf-status-icon" data-icon="power" role="img" aria-label="Low power"><b aria-hidden="true">L</b></span>
+          <span class="rf-status-icon" data-icon="bluetooth" role="img" aria-label="Bluetooth off" data-bt-state="off" hidden><i data-lucide="bluetooth" aria-hidden="true">ᛒ</i></span>
+          <span class="rf-status-icon" data-icon="battery" role="img" aria-label="Battery level"><i class="rf-battery" aria-hidden="true"><b></b><b></b><b></b></i></span>
+        </span>
+      </div>
+      <section class="rf-home" data-screen="home" aria-label="Home" aria-live="polite">
+        <div class="rf-home-status" aria-label="Active radio features">
+          <span data-feature="rx-only" role="img" aria-label="Receive-only channel" hidden><span class="rf-rx-only-mark" aria-hidden="true"><b>TX</b></span></span>
+        </div>
+        <div class="rf-zone">Local repeaters</div>
+        <div class="rf-group">USA Nationwide</div>
+        <div class="rf-details" data-amateur hidden>
+          <div>County repeater<span data-dmr-details> · TG 3100</span></div>
+          <div>444.625 MHz<span data-dmr-details> · TS1 · CC1</span></div>
+        </div>
+        <div class="rf-caller" data-caller hidden></div>
+      </section>
+      <section class="rf-menu" data-screen="menu" aria-label="Menu" hidden>
+        <h2>Menu</h2>
+        <button type="button" data-go="settings">Settings <span aria-hidden="true">›</span></button>
+      </section>
+      <section class="rf-menu" data-screen="settings" aria-label="Settings" hidden>
+        <h2>Settings</h2>
+        <button type="button" data-go="display">Display <span aria-hidden="true">›</span></button>
+      </section>
+      <section class="rf-menu" data-screen="display" aria-label="Display" hidden>
+        <h2>Display</h2>
+        <button type="button" data-go="profiles">Display Profile <span data-current>Commercial</span></button>
+        <button type="button" data-go="color-mode">Day/Night <span data-current-mode>Day</span></button>
+        <button type="button" data-go="gps-clock">GPS clock <span data-current-clock>Off</span></button>
+      </section>
+      <section class="rf-menu" data-screen="profiles" aria-label="Display Profile" hidden>
+        <h2>Display Profile</h2>
+        <button type="button" data-profile="Commercial" aria-pressed="true">Commercial <span aria-hidden="true">✓</span></button>
+        <button type="button" data-profile="Amateur" aria-pressed="false">Amateur <span aria-hidden="true"></span></button>
+      </section>
+      <section class="rf-menu" data-screen="color-mode" aria-label="Day/Night" hidden>
+        <h2>Day/Night</h2>
+        <button type="button" data-mode="Day" aria-pressed="true">Day <span aria-hidden="true">✓</span></button>
+        <button type="button" data-mode="Night" aria-pressed="false">Night <span aria-hidden="true"></span></button>
+      </section>
+      <section class="rf-menu" data-screen="gps-clock" aria-label="GPS clock" hidden>
+        <h2>GPS clock</h2>
+        <button type="button" data-clock="off" aria-pressed="true">Off <span aria-hidden="true">✓</span></button>
+        <button type="button" data-clock="on" aria-pressed="false">On <span aria-hidden="true"></span></button>
+      </section>
+      <div class="rf-keybar">
+        <button type="button" data-go="menu" data-home-key>OK Menu</button>
+        <span data-home-key>* Quick</span>
+        <button type="button" data-back hidden>Back</button>
+      </div>
+    </div>
+  </div>
+  <div class="viz-controls rf-controls">
+    <label class="form-label">Simulated radio activity
+      <select class="form-select" data-activity>
+        <option value="idle">Standby</option>
+        <option value="alias">Receiving with alias</option>
+        <option value="rx">Receiving without alias</option>
+        <option value="tx">Transmitting</option>
+        <option value="aprs">Transmitting APRS</option>
+        <option value="denied">Transmit denied</option>
+      </select>
+    </label>
+  </div>
+  <fieldset class="rf-legend">
+    <legend>Status icons</legend>
+    <div class="rf-legend-grid">
+      <label class="rf-legend-row rf-legend-choice rf-mode-choice">
+        <span>Radio mode</span>
+        <select class="form-select" aria-label="Radio mode" data-select="radio-mode"><option value="fm">Analog FM</option><option value="dmr" selected>DMR</option><option value="p25">P25</option><option value="nxdn">NXDN</option><option value="dstar">D-STAR</option></select>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Analog FM"><span class="rf-mode-mark" aria-hidden="true">FM</span></span><span class="rf-legend-icon" role="img" aria-label="DMR"><span class="rf-mode-mark" aria-hidden="true">DMR</span></span><span class="rf-legend-icon" role="img" aria-label="P25"><span class="rf-mode-mark" aria-hidden="true">P25</span></span><span class="rf-legend-icon" role="img" aria-label="NXDN"><span class="rf-mode-mark" aria-hidden="true">NXDN</span></span><span class="rf-legend-icon" role="img" aria-label="D-STAR"><span class="rf-mode-mark" aria-hidden="true">D-STAR</span></span></span>
+      </label>
+      <label class="rf-legend-row rf-legend-choice">
+        <span>Signal strength</span>
+        <select class="form-select" data-select="signal">
+          <option value="0">No signal</option><option value="1">1 bar</option><option value="2">2 bars</option>
+          <option value="3" selected>3 bars</option><option value="4">4 bars</option>
+        </select>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="scan">
+        <span>Scan</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Scanning"><i class="rf-zigzag" aria-hidden="true"><b></b><b></b><b></b><b></b></i></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="monitor">
+        <span>Monitor</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Monitor"><i data-lucide="ear" aria-hidden="true">◖</i></span><small>DMon / MON</small></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="dual">
+        <span>Dual watch</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon rf-dual-legend" role="img" aria-label="Dual watch"><span class="rf-dual-lens" aria-hidden="true"><span class="rf-lens-circle"><b>AB</b></span></span></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="vox">
+        <span>VOX armed</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon rf-vox-legend" role="img" aria-label="VOX armed"><span class="rf-vox-mark" aria-hidden="true"><b>V</b><b>O</b><b>X</b></span></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="rx-only">
+        <span>Receive-only channel</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon rf-rx-only-legend" role="img" aria-label="Receive-only channel"><span class="rf-rx-only-mark" aria-hidden="true"><b>TX</b></span></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="talkaround">
+        <span>Talkaround</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Talkaround"><i class="rf-talkaround" aria-hidden="true"><b></b></i></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="roam">
+        <span>Roaming</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Roaming"><span class="rf-roam" aria-hidden="true"><span class="rf-roam-orbit"><i data-lucide="rotate-cw" aria-hidden="true">⟳</i></span><span class="rf-roam-tower"><i data-lucide="radio-tower" aria-hidden="true">↟</i></span></span></span></span>
+      </label>
+      <label class="rf-legend-row rf-legend-choice">
+        <span>Encryption</span>
+        <select class="form-select" aria-label="Encryption" data-select="encryption"><option value="clear">Clear</option><option value="arc4">ARC4</option><option value="aes">AES</option></select>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Encryption clear"><span class="rf-key" data-encryption-state="clear" aria-hidden="true"><i data-lucide="key-round" aria-hidden="true">⚿</i></span></span><span class="rf-legend-icon" role="img" aria-label="ARC4 encryption"><span class="rf-key" data-encryption-state="ARC4" aria-hidden="true"><i data-lucide="key-round" aria-hidden="true">⚿</i><b>ARC4</b></span></span><span class="rf-legend-icon" role="img" aria-label="AES encryption"><span class="rf-key" data-encryption-state="AES" aria-hidden="true"><i data-lucide="key-round" aria-hidden="true">⚿</i><b>AES</b></span></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="messages">
+        <span>Unread messages</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Unread messages"><i class="rf-envelope" aria-hidden="true"><b></b></i></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="record">
+        <span>Recording</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Recording active"><span class="rf-record-mark" aria-hidden="true"><i data-lucide="square" aria-hidden="true">□</i></span></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="fix">
+        <span>Valid GPS fix</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Valid GPS fix"><i data-lucide="map-pin" aria-hidden="true">◇</i></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="locked">
+        <span>Keypad locked</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Keypad locked"><i data-lucide="lock-keyhole" aria-hidden="true">▣</i></span></span>
+      </label>
+      <label class="rf-legend-row rf-legend-choice">
+        <span>Power level</span>
+        <select class="form-select" aria-label="Power level" data-select="power"><option value="L">Low</option><option value="M">Medium</option><option value="H">High</option></select>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Low power"><b aria-hidden="true">L</b></span><span class="rf-legend-icon" role="img" aria-label="Medium power"><b aria-hidden="true">M</b></span><span class="rf-legend-icon" role="img" aria-label="High power"><b aria-hidden="true">H</b></span></span>
+      </label>
+      <label class="rf-legend-row rf-legend-choice">
+        <span>Bluetooth</span>
+        <select class="form-select" aria-label="Bluetooth" data-select="bluetooth"><option value="off">Off</option><option value="on">On</option><option value="connected">Connected</option></select>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Bluetooth on" data-bt-state="on"><i data-lucide="bluetooth" aria-hidden="true">ᛒ</i></span><span class="rf-legend-icon" role="img" aria-label="Bluetooth connected" data-bt-state="connected"><i data-lucide="bluetooth" aria-hidden="true">ᛒ</i></span></span>
+      </label>
+      <label class="rf-legend-row form-check form-switch">
+        <input class="form-check-input" type="checkbox" data-toggle="low-battery">
+        <span>Low battery</span>
+        <span class="rf-legend-glyphs"><span class="rf-legend-icon" role="img" aria-label="Low battery" data-battery="low"><i class="rf-battery" aria-hidden="true"><b></b><b></b><b></b></i></span></span>
+      </label>
+    </div>
+  </fieldset>
+</div>
+<style>
+  #rf-gd88-profiles [hidden] { display: none !important; }
+  #rf-gd88-profiles .rf-preview {
+    display: grid;
+    justify-items: start;
+    padding-block: 12px;
+  }
+  #rf-gd88-profiles {
+    --ink: #172835;
+    --symbol-ink: #000;
+    --muted: #354e65;
+    --bar: #244f88;
+    --bar-ink: #fff;
+    --accent: #244f88;
+    --panel: #dceaf4;
+    --status: #f4f8fc;
+    --line: #abc3d8;
+    --record: #92362f;
+    --radio-gray: #69727c;
+    --radio-green: #14653b;
+    --radio-blue: #1d61a5;
+    --radio-red: #bd2929;
+    --radio-warning: #876000;
+  }
+  #rf-gd88-profiles .rf-display {
+    --selection: #c2d9ed;
+    box-sizing: border-box;
+    container-type: inline-size;
+    position: relative;
+    width: min(100%, 448px);
+    /* The 320 × 240 panel has a 10 px right inset in the GD-88 board defaults. */
+    aspect-ratio: 310 / 240;
+    overflow: hidden;
+    background: var(--panel);
+    color: var(--ink);
+    font-family: system-ui, sans-serif;
+  }
+  #rf-gd88-profiles[data-color-mode="Night"] {
+    --ink: #edf2f7;
+    --symbol-ink: #edf2f7;
+    --muted: #b4c2d1;
+    --bar: #1d3656;
+    --bar-ink: #e2ebf4;
+    --accent: #98bfe7;
+    --panel: #111a24;
+    --status: #192634;
+    --line: #4a6179;
+    --record: #ff9a8d;
+    --radio-gray: #a0a8b2;
+    --radio-green: #74d899;
+    --radio-blue: #82bcff;
+    --radio-red: #ff7777;
+    --radio-warning: #f5c668;
+    --selection: #263d55;
+  }
+  #rf-gd88-profiles .rf-status,
+  #rf-gd88-profiles .rf-keybar {
+    position: absolute;
+    inset-inline: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 5cqw;
+  }
+  #rf-gd88-profiles .rf-status {
+    --status-icon-size: 4.5cqw;
+    top: 0;
+    height: 9.375cqw;
+    padding-inline: 1.8cqw;
+    font-size: 4.0625cqw;
+    font-weight: 650;
+    background: var(--status);
+    color: var(--symbol-ink);
+    box-shadow: inset 0 -1px var(--line);
+  }
+  #rf-gd88-profiles .rf-status-left {
+    display: flex;
+    align-items: center;
+    gap: 1.05cqw;
+    flex: none;
+  }
+  #rf-gd88-profiles .rf-mode-roaming {
+    display: flex;
+    align-items: center;
+    gap: .4cqw;
+  }
+  #rf-gd88-profiles .rf-mode-signal {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 7.25cqw;
+    justify-items: center;
+    gap: .35cqw;
+  }
+  #rf-gd88-profiles .rf-receive-bars {
+    display: flex;
+    align-items: end;
+    gap: .32cqw;
+    width: 4.8cqw;
+    height: 2.45cqw;
+  }
+  #rf-gd88-profiles .rf-receive-bars b {
+    flex: 1;
+    border-radius: .5px;
+    background: currentColor;
+    opacity: .3;
+  }
+  #rf-gd88-profiles .rf-receive-bars b:nth-child(1) { height: 34%; }
+  #rf-gd88-profiles .rf-receive-bars b:nth-child(2) { height: 56%; }
+  #rf-gd88-profiles .rf-receive-bars b:nth-child(3) { height: 78%; }
+  #rf-gd88-profiles .rf-receive-bars b:nth-child(4) { height: 100%; }
+  #rf-gd88-profiles .rf-receive-bars b[data-lit] { opacity: 1; }
+  #rf-gd88-profiles .rf-status-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .15cqw;
+    line-height: 1;
+  }
+  #rf-gd88-profiles [data-radio-state]:empty,
+  #rf-gd88-profiles .rf-status-functions:not(:has([data-feature]:not([hidden]))) {
+    display: none;
+  }
+  #rf-gd88-profiles .rf-status-functions {
+    display: flex;
+    align-items: center;
+    gap: 1.3cqw;
+    height: 5.1cqw;
+    color: var(--symbol-ink);
+    font-size: var(--status-icon-size);
+  }
+  #rf-gd88-profiles .rf-status-functions > span {
+    display: inline-flex;
+    align-items: center;
+  }
+  #rf-gd88-profiles .rf-status-functions > span > i,
+  #rf-gd88-profiles .rf-status-functions > span > svg {
+    --icon-size: 1em;
+    stroke-width: 3;
+    font-style: normal;
+  }
+  #rf-gd88-profiles .rf-dual-lens {
+    display: inline-block;
+    width: 1.56em;
+    height: 1.56em;
+    font-size: 12px;
+  }
+  #rf-gd88-profiles .rf-status-functions .rf-dual-lens { font-size: 3.25cqw; }
+  #rf-gd88-profiles .rf-lens-circle {
+    position: relative;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    width: 1.38em;
+    aspect-ratio: 1;
+    border: .135em solid currentColor;
+    border-radius: 50%;
+  }
+  #rf-gd88-profiles .rf-lens-circle::after {
+    content: "";
+    position: absolute;
+    top: 88%;
+    left: 88%;
+    width: .47em;
+    height: .16em;
+    border-radius: .09em;
+    background: currentColor;
+    transform: rotate(45deg);
+    transform-origin: left center;
+  }
+  #rf-gd88-profiles .rf-lens-circle b {
+    font: 950 .68em / 1 system-ui, sans-serif;
+    letter-spacing: .035em;
+    text-indent: .035em;
+  }
+  #rf-gd88-profiles .rf-status-functions .rf-lens-circle { top: -.1em; }
+  #rf-gd88-profiles .rf-status-functions .rf-lens-circle::after { top: 86%; width: .4em; }
+  #rf-gd88-profiles .rf-status-functions .rf-lens-circle b { font-size: .69em; }
+  #rf-gd88-profiles [data-radio-state] {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  #rf-gd88-profiles [data-activity-state="tx"],
+  #rf-gd88-profiles [data-activity-state="aprs"],
+  #rf-gd88-profiles [data-battery="low"] { color: var(--radio-red); }
+  #rf-gd88-profiles [data-activity-state="denied"] { color: var(--radio-warning); }
+  #rf-gd88-profiles .rf-indicators {
+    display: flex;
+    align-items: center;
+    gap: .35cqw;
+    flex: none;
+  }
+  #rf-gd88-profiles .rf-status-icon,
+  #rf-gd88-profiles .rf-legend-icon {
+    display: inline-grid;
+    place-items: center;
+  }
+  #rf-gd88-profiles .rf-status-icon {
+    width: var(--status-icon-size);
+    height: var(--status-icon-size);
+    font: normal 4.375cqw / 1 system-ui, sans-serif;
+  }
+  #rf-gd88-profiles .rf-status-icon > *,
+  #rf-gd88-profiles .rf-legend-icon > * {
+    width: 100%;
+    height: 100%;
+    font-style: normal;
+  }
+  #rf-gd88-profiles .rf-status-icon > svg.lucide { --icon-size: 100%; }
+  #rf-gd88-profiles .rf-status-icon .lucide,
+  #rf-gd88-profiles .rf-legend-icon .lucide {
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #rf-gd88-profiles .rf-record-mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  #rf-gd88-profiles .rf-record-mark > * {
+    --icon-size: 100%;
+    width: 100%;
+    height: 100%;
+    font-style: normal;
+  }
+  #rf-gd88-profiles .rf-record-mark::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: .19em;
+    height: .19em;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: currentColor;
+  }
+  #rf-gd88-profiles [data-icon="recording"] { color: var(--record); }
+  #rf-gd88-profiles .rf-envelope {
+    position: relative;
+    box-sizing: border-box;
+    width: 93%;
+    height: 68%;
+    border: .11em solid currentColor;
+    border-radius: .16em;
+  }
+  #rf-gd88-profiles .rf-envelope::before {
+    content: "";
+    position: absolute;
+    right: 9%;
+    top: 12%;
+    width: .15em;
+    height: .15em;
+    border-radius: .035em;
+    background: currentColor;
+  }
+  #rf-gd88-profiles .rf-envelope b {
+    position: absolute;
+    left: 20%;
+    bottom: 20%;
+    width: 53%;
+    height: .075em;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 -.13em currentColor;
+  }
+  #rf-gd88-profiles .rf-talkaround {
+    position: relative;
+    box-sizing: border-box;
+    width: 84%;
+    height: 75%;
+    border-inline: .12em solid currentColor;
+    border-radius: .12em;
+  }
+  #rf-gd88-profiles .rf-talkaround b {
+    position: absolute;
+    top: 50%;
+    left: 13%;
+    width: 44%;
+    height: .11em;
+    border-radius: 999px;
+    transform: translateY(-50%);
+    background: currentColor;
+  }
+  #rf-gd88-profiles .rf-talkaround b::after {
+    content: "";
+    position: absolute;
+    left: 85%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: .22em;
+    height: .38em;
+    background: currentColor;
+    clip-path: polygon(0 6%, 12% 4%, 94% 44%, 100% 50%, 94% 56%, 12% 96%, 0 94%);
+  }
+  #rf-gd88-profiles .rf-mode-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .13em;
+    font: 800 .75em / 1 system-ui, sans-serif;
+    white-space: nowrap;
+  }
+  #rf-gd88-profiles .rf-mode-signal .rf-status-icon {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    height: 3.85cqw;
+  }
+  #rf-gd88-profiles .rf-mode-signal .rf-mode-mark { font-size: .68em; }
+  #rf-gd88-profiles .rf-mode-signal:has([data-icon="dstar"]:not([hidden])) { width: 12.9cqw; }
+  #rf-gd88-profiles [data-icon="nxdn"] .rf-mode-mark {
+    font-size: .62em;
+    letter-spacing: -.045em;
+  }
+  #rf-gd88-profiles .rf-zigzag { position: relative; }
+  #rf-gd88-profiles .rf-zigzag b {
+    position: absolute;
+    height: 15%;
+    border-radius: 999px;
+    background: currentColor;
+  }
+  #rf-gd88-profiles .rf-zigzag b:nth-child(1) {
+    top: 16%;
+    left: 7%;
+    width: 78%;
+  }
+  #rf-gd88-profiles .rf-zigzag b:nth-child(2) {
+    width: 88%;
+    left: 12%;
+    top: 65%;
+    transform: rotate(-37deg);
+    transform-origin: 8% center;
+  }
+  #rf-gd88-profiles .rf-zigzag b:nth-child(3) {
+    top: 65%;
+    left: 7%;
+    width: 68%;
+  }
+  #rf-gd88-profiles .rf-zigzag b:last-child {
+    width: 31%;
+    height: 48%;
+    right: 2%;
+    top: 48.5%;
+    clip-path: polygon(0 8%, 10% 3%, 96% 45%, 100% 50%, 96% 55%, 10% 97%, 0 92%);
+  }
+  #rf-gd88-profiles [data-icon="roam"] {
+    width: 6.4cqw;
+    height: 6.4cqw;
+  }
+  #rf-gd88-profiles .rf-legend-icon:has(.rf-roam) {
+    width: 23px;
+    height: 23px;
+    background: var(--status);
+  }
+  #rf-gd88-profiles .rf-roam {
+    position: relative;
+    display: block;
+    color: var(--symbol-ink);
+  }
+  #rf-gd88-profiles .rf-roam-orbit,
+  #rf-gd88-profiles .rf-roam-tower {
+    position: absolute;
+    display: grid;
+    place-items: center;
+  }
+  #rf-gd88-profiles .rf-roam-orbit { inset: 0; }
+  #rf-gd88-profiles .rf-roam-tower { inset: 29%; }
+  #rf-gd88-profiles .rf-roam-orbit > *,
+  #rf-gd88-profiles .rf-roam-tower > * {
+    --icon-size: 100%;
+    width: 100%;
+    height: 100%;
+    font-style: normal;
+  }
+  #rf-gd88-profiles .rf-roam-orbit .lucide { stroke-width: 2.2; }
+  #rf-gd88-profiles .rf-roam-tower .lucide { stroke-width: 2.8; }
+  @media (prefers-reduced-motion: no-preference) {
+    #rf-gd88-profiles [data-icon="scan"] .rf-zigzag b::after {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      width: 50%;
+      border-radius: inherit;
+      background: color-mix(in srgb, var(--symbol-ink) 55%, var(--status));
+      animation: rf-gd88-scan-stroke 1.4s step-end infinite;
+    }
+    #rf-gd88-profiles [data-icon="scan"] .rf-zigzag b:nth-child(2)::after {
+      --scan-stroke-start: 50%;
+      --scan-stroke-end: 0%;
+      animation-delay: -1s;
+    }
+    #rf-gd88-profiles [data-icon="scan"] .rf-zigzag b:nth-child(3)::after {
+      animation-delay: -.6s;
+    }
+    #rf-gd88-profiles [data-icon="scan"] .rf-zigzag b:last-child::after {
+      inset-inline: 0;
+      width: 100%;
+      animation-name: rf-gd88-scan-head;
+    }
+    #rf-gd88-profiles [data-icon="recording"] .rf-record-mark::after {
+      animation: rf-gd88-record 1.4s step-end infinite;
+    }
+    #rf-gd88-profiles [data-icon="roam"] .rf-roam-orbit {
+      animation: rf-gd88-roam 1.6s steps(4, end) infinite;
+    }
+  }
+  @keyframes rf-gd88-scan-stroke {
+    0% { left: var(--scan-stroke-start, 0%); opacity: 1; }
+    14.2857% { left: var(--scan-stroke-end, 50%); opacity: 1; }
+    28.5714%, 100% { opacity: 0; }
+  }
+  @keyframes rf-gd88-scan-head {
+    0% { opacity: 0; }
+    85.7143%, 100% { opacity: 1; }
+  }
+  @keyframes rf-gd88-record {
+    0% { opacity: 1; }
+    50% { opacity: .15; }
+  }
+  @keyframes rf-gd88-roam {
+    to { transform: rotate(1turn); }
+  }
+  #rf-gd88-profiles .rf-key {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+    line-height: 1;
+    color: var(--radio-green);
+  }
+  #rf-gd88-profiles .rf-key > i,
+  #rf-gd88-profiles .rf-key > svg {
+    --icon-size: .9em;
+    width: .9em;
+    height: .9em;
+    font-style: normal;
+    transform: rotate(45deg);
+  }
+  #rf-gd88-profiles .rf-key b {
+    justify-self: stretch;
+    text-align: center;
+    font: 750 .61em / 1 system-ui, sans-serif;
+  }
+  #rf-gd88-profiles [data-encryption-state="clear"] { color: var(--radio-gray); }
+  #rf-gd88-profiles [data-encryption-state="clear"] > * { --icon-size: 1.12em; width: 1.12em; height: 1.12em; }
+  #rf-gd88-profiles [data-encryption-state="clear"]::before,
+  #rf-gd88-profiles [data-encryption-state="clear"]::after {
+    content: "";
+    position: absolute;
+    inset: 50% 11% auto;
+    height: max(1px, .07em);
+    background: var(--radio-red);
+    transform: rotate(42deg);
+  }
+  #rf-gd88-profiles [data-encryption-state="clear"]::after { transform: rotate(-42deg); }
+  #rf-gd88-profiles [data-icon="clear"],
+  #rf-gd88-profiles [data-icon="arc4"],
+  #rf-gd88-profiles [data-icon="aes"] {
+    width: 6.5cqw;
+    height: 7cqw;
+  }
+  #rf-gd88-profiles [data-icon="power"] { width: 4cqw; }
+  #rf-gd88-profiles .rf-mode-mark,
+  #rf-gd88-profiles .rf-vox-mark,
+  #rf-gd88-profiles [data-icon="power"] > b,
+  #rf-gd88-profiles .rf-legend-icon > b {
+    font-family: ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+    -webkit-text-stroke: .025em currentColor;
+    paint-order: stroke fill;
+  }
+  #rf-gd88-profiles [data-icon="power"] > b,
+  #rf-gd88-profiles .rf-legend-icon > b {
+    width: auto;
+    height: auto;
+    font-weight: 800;
+  }
+  #rf-gd88-profiles [data-bt-state="on"] { color: var(--radio-green); }
+  #rf-gd88-profiles [data-bt-state="connected"] {
+    position: relative;
+    color: var(--radio-blue);
+  }
+  #rf-gd88-profiles [data-bt-state="connected"] > *,
+  #rf-gd88-profiles [data-bt-state="connected"] > svg.lucide {
+    --icon-size: 75%;
+    width: 75%;
+  }
+  #rf-gd88-profiles [data-bt-state="connected"]::before,
+  #rf-gd88-profiles [data-bt-state="connected"]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: .15em;
+    height: .15em;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: currentColor;
+  }
+  #rf-gd88-profiles [data-bt-state="connected"]::before { left: .08em; }
+  #rf-gd88-profiles [data-bt-state="connected"]::after { right: .08em; }
+  #rf-gd88-profiles .rf-battery {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-self: end;
+    gap: .07em;
+    padding: .08em;
+    border: .1em solid currentColor;
+    border-radius: .115em;
+    width: 65%;
+    height: 94%;
+  }
+  #rf-gd88-profiles .rf-battery::before {
+    content: "";
+    position: absolute;
+    top: -.2em;
+    inset-inline: 22%;
+    height: .13em;
+    border-radius: .055em .055em 0 0;
+    background: currentColor;
+  }
+  #rf-gd88-profiles .rf-battery b {
+    flex: 1;
+    border-radius: .045em;
+    background: currentColor;
+  }
+  #rf-gd88-profiles .rf-battery b:first-child { opacity: .34; }
+  #rf-gd88-profiles [data-battery="low"] .rf-battery b:nth-child(-n+2) { opacity: .34; }
+  #rf-gd88-profiles .rf-home-status {
+    position: absolute;
+    inset: 2.7cqw 5cqw auto;
+    display: flex;
+    justify-content: center;
+    gap: 3.5cqw;
+    color: var(--symbol-ink);
+    font-size: 3.6cqw;
+    font-weight: 750;
+    line-height: 1;
+  }
+  #rf-gd88-profiles .rf-home-status > span {
+    display: inline-flex;
+    align-items: center;
+    gap: .4em;
+    white-space: nowrap;
+  }
+  #rf-gd88-profiles .rf-vox-mark {
+    position: relative;
+    display: inline-block;
+    width: 1.32em;
+    height: 1.08em;
+    line-height: 1;
+  }
+  #rf-gd88-profiles .rf-vox-mark b {
+    position: absolute;
+    font-size: .55em;
+    font-weight: 850;
+    -webkit-text-stroke: .018em currentColor;
+  }
+  #rf-gd88-profiles .rf-vox-mark b:first-child { top: 0; left: 0; }
+  #rf-gd88-profiles .rf-vox-mark b:nth-child(2) {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  #rf-gd88-profiles .rf-vox-mark b:last-child { bottom: 0; right: 0; }
+  #rf-gd88-profiles .rf-legend-icon.rf-vox-legend { width: 24px; }
+  #rf-gd88-profiles .rf-rx-only-mark {
+    --mark-bg: var(--status);
+    display: inline-grid;
+    place-items: center;
+    position: relative;
+    box-sizing: border-box;
+    width: 1.38em;
+    height: 1.38em;
+    border: .11em solid currentColor;
+    border-radius: 50%;
+  }
+  #rf-gd88-profiles .rf-home-status .rf-rx-only-mark { --mark-bg: var(--panel); }
+  #rf-gd88-profiles .rf-rx-only-mark::after {
+    content: "";
+    position: absolute;
+    width: 108%;
+    height: .105em;
+    border-radius: 999px;
+    background: currentColor;
+    transform: rotate(-45deg);
+  }
+  #rf-gd88-profiles .rf-rx-only-mark b {
+    z-index: 1;
+    font: 900 .57em / 1 system-ui, sans-serif;
+    letter-spacing: -.045em;
+    -webkit-text-stroke: .11em var(--mark-bg);
+    paint-order: stroke fill;
+  }
+  #rf-gd88-profiles .rf-legend-icon.rf-rx-only-legend {
+    width: 24px;
+    height: 24px;
+  }
+  #rf-gd88-profiles .rf-rx-only-legend > .rf-rx-only-mark {
+    width: 1.38em;
+    height: 1.38em;
+  }
+  #rf-gd88-profiles .rf-home {
+    position: absolute;
+    inset: 9.375cqw 0 9.375cqw;
+    box-sizing: border-box;
+    padding-inline: 5cqw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+  #rf-gd88-profiles .rf-zone,
+  #rf-gd88-profiles .rf-group,
+  #rf-gd88-profiles .rf-caller,
+  #rf-gd88-profiles .rf-details > div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #rf-gd88-profiles .rf-zone {
+    color: var(--muted);
+    font-size: 6.25cqw;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+  #rf-gd88-profiles .rf-group {
+    margin-top: 1.875cqw;
+    font-size: 10cqw;
+    line-height: 1.15;
+    font-weight: 650;
+  }
+  #rf-gd88-profiles .rf-details {
+    margin-top: 1.875cqw;
+    color: var(--muted);
+    font-size: 4.6875cqw;
+    line-height: 5.625cqw;
+    font-variant-numeric: tabular-nums;
+  }
+  #rf-gd88-profiles .rf-caller {
+    position: absolute;
+    inset-inline: 5cqw;
+    bottom: 1.25cqw;
+    padding-top: 1.25cqw;
+    border-top: 1px solid var(--line);
+    color: var(--accent);
+    font-size: 6.5cqw;
+    line-height: 1.15;
+    font-weight: 650;
+  }
+  #rf-gd88-profiles .rf-menu {
+    position: absolute;
+    inset: 9.375cqw 0 9.375cqw;
+    padding: 4.375cqw 5cqw;
+  }
+  #rf-gd88-profiles .rf-menu h2 {
+    margin: 0 0 3.125cqw;
+    color: var(--ink);
+    font: 650 7.5cqw / 1.15 system-ui, sans-serif;
+  }
+  #rf-gd88-profiles .rf-display button {
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0;
+    border-radius: 0;
+    font: inherit;
+    color: inherit;
+  }
+  #rf-gd88-profiles .rf-menu button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2cqw;
+    width: 100%;
+    min-height: 13.75cqw;
+    padding: 2cqw 2.5cqw;
+    background: var(--status);
+    font-size: 5.625cqw;
+    text-align: left;
+  }
+  #rf-gd88-profiles [data-screen="display"] button { min-height: 12.5cqw; }
+  #rf-gd88-profiles .rf-menu button + button { margin-top: 1.25cqw; }
+  #rf-gd88-profiles .rf-menu button span { color: var(--accent); font-size: 5cqw; }
+  #rf-gd88-profiles .rf-menu button[aria-pressed="true"] { background: var(--selection); }
+  #rf-gd88-profiles .rf-keybar {
+    justify-content: flex-start;
+    gap: 5cqw;
+    bottom: 0;
+    height: 9.375cqw;
+    background: var(--bar);
+    color: var(--bar-ink);
+    font-size: 4.6875cqw;
+    font-weight: 600;
+  }
+  #rf-gd88-profiles .rf-keybar button {
+    height: 100%;
+    padding: 0;
+    background: transparent;
+  }
+  #rf-gd88-profiles button:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+  #rf-gd88-profiles .rf-controls { width: min(100%, 448px); margin-top: 8px; }
+  #rf-gd88-profiles .rf-legend {
+    box-sizing: border-box;
+    width: min(100%, 448px);
+    min-inline-size: 0;
+    margin: 12px 0 0;
+    border: 0;
+    padding: 0;
+  }
+  #rf-gd88-profiles .rf-legend legend {
+    margin-bottom: 4px;
+    padding: 0;
+    font-weight: 500;
+  }
+  #rf-gd88-profiles .rf-legend-grid { display: grid; }
+  #rf-gd88-profiles .rf-legend-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    border-bottom: 1px solid var(--border, #8885);
+  }
+  #rf-gd88-profiles .rf-legend-choice {
+    grid-template-columns: minmax(0, 1fr) minmax(6.5rem, 8rem) auto;
+    padding-block: 4px;
+  }
+  #rf-gd88-profiles .rf-legend-choice .rf-legend-glyphs {
+    min-width: 66px;
+    justify-content: space-evenly;
+    padding: 4px;
+  }
+  #rf-gd88-profiles [data-select="encryption"] + .rf-legend-glyphs .rf-legend-icon {
+    width: 26px;
+    height: 26px;
+  }
+  #rf-gd88-profiles .rf-mode-choice .rf-legend-glyphs {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+  }
+  #rf-gd88-profiles .rf-mode-choice .rf-legend-icon { width: 36px; }
+  #rf-gd88-profiles .rf-legend-icon {
+    width: 18px;
+    height: 18px;
+    font: normal 16px / 1 system-ui, sans-serif;
+  }
+  #rf-gd88-profiles .rf-dual-legend {
+    width: 26px;
+    height: 22px;
+  }
+  #rf-gd88-profiles .rf-dual-legend > .rf-dual-lens {
+    width: 1.56em;
+    height: 1.56em;
+  }
+  #rf-gd88-profiles .rf-legend-glyphs small { font-size: 12px; }
+  #rf-gd88-profiles .rf-legend-glyphs {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: var(--status);
+    color: var(--symbol-ink);
+  }
+</style>
+<script>
+  (() => {
+    const root = document.getElementById('rf-gd88-profiles');
+    const screens = [...root.querySelectorAll('[data-screen]')];
+    const profileChoices = [...root.querySelectorAll('[data-profile]')];
+    const modeChoices = [...root.querySelectorAll('[data-mode]')];
+    const clockChoices = [...root.querySelectorAll('[data-clock]')];
+    const statusToggles = [...root.querySelectorAll('[data-toggle]')];
+    const statusChoices = [...root.querySelectorAll('[data-select]')];
+    const encryption = root.querySelector('[data-select="encryption"]');
+    const power = root.querySelector('[data-select="power"]');
+    const bluetooth = root.querySelector('[data-select="bluetooth"]');
+    const radioMode = root.querySelector('[data-select="radio-mode"]');
+    const signal = root.querySelector('[data-select="signal"]');
+    const signalIcon = root.querySelector('.rf-receive-bars');
+    const signalBars = [...signalIcon.children];
+    const toggles = Object.fromEntries(statusToggles.map(toggle => [toggle.dataset.toggle, toggle]));
+    const statusIcons = Object.fromEntries(
+      [...root.querySelectorAll('[data-icon]')].map(icon => [icon.dataset.icon, icon])
+    );
+    const activity = root.querySelector('[data-activity]');
+    const featureIndicators = Object.fromEntries(
+      [...root.querySelectorAll('[data-feature]')].map(mark => [mark.dataset.feature, mark])
+    );
+    const transmitLabels = { tx: 'TX', aprs: 'TX APRS', denied: 'NO TX' };
+    const caller = root.querySelector('[data-caller]');
+    const amateurDetails = root.querySelector('[data-amateur]');
+    const dmrDetails = [...root.querySelectorAll('[data-dmr-details]')];
+    const currentProfile = root.querySelector('[data-current]');
+    const currentMode = root.querySelector('[data-current-mode]');
+    const currentClock = root.querySelector('[data-current-clock]');
+    const radioState = root.querySelector('[data-radio-state]');
+    const homeKeys = [...root.querySelectorAll('[data-home-key]')];
+    const back = root.querySelector('[data-back]');
+    const parents = {
+      menu: 'home', settings: 'menu', display: 'settings', profiles: 'display', 'color-mode': 'display', 'gps-clock': 'display'
+    };
+    let screen = 'home';
+    let profile = 'Commercial';
+    let clockEnabled = false;
+
+    function renderHome() {
+      amateurDetails.hidden = profile !== 'Amateur';
+      caller.hidden = activity.value !== 'alias';
+      caller.textContent = caller.hidden ? '' : 'Morgan Reed';
+      renderStatus();
+    }
+
+    function renderStatus() {
+      const showClock = screen === 'home' && activity.value === 'idle' && clockEnabled && toggles.fix.checked;
+      radioState.textContent = showClock ? '21 Nov 14:08Z' : transmitLabels[activity.value] ?? '';
+      radioState.dataset.activityState = activity.value;
+      if (showClock) radioState.setAttribute('aria-label', '21 November, 14:08 UTC');
+      else radioState.removeAttribute('aria-label');
+      for (const key of ['scan', 'roam', 'talkaround', 'messages', 'fix', 'locked']) {
+        statusIcons[key].hidden = !toggles[key].checked;
+      }
+      for (const state of ['clear', 'arc4', 'aes']) {
+        statusIcons[state].hidden = state !== encryption.value;
+      }
+      statusIcons.power.querySelector('b').textContent = power.value;
+      statusIcons.power.setAttribute('aria-label', power.selectedOptions[0].text + ' power');
+      statusIcons.bluetooth.hidden = bluetooth.value === 'off';
+      statusIcons.bluetooth.dataset.btState = bluetooth.value;
+      statusIcons.bluetooth.setAttribute('aria-label', 'Bluetooth ' + bluetooth.value);
+      for (const detail of dmrDetails) detail.hidden = radioMode.value !== 'dmr';
+      signalIcon.setAttribute('aria-label', 'Signal strength: ' + signal.value + ' of 4 bars');
+      signalBars.forEach((bar, index) => bar.toggleAttribute('data-lit', index < Number(signal.value)));
+      const activeMode = activity.value === 'aprs' ? 'fm' : radioMode.value;
+      for (const option of radioMode.options) {
+        statusIcons[option.value].hidden = option.value !== activeMode;
+      }
+      statusIcons.recording.hidden = !toggles.record.checked;
+      const lowBattery = toggles['low-battery'].checked;
+      statusIcons.battery.dataset.battery = lowBattery ? 'low' : 'normal';
+      statusIcons.battery.setAttribute('aria-label', lowBattery ? 'Low battery' : 'Battery level');
+
+      const monitorLabels = { dmr: 'DMR Digital Monitor', fm: 'FM monitor, squelch open' };
+      featureIndicators.monitor.hidden = !toggles.monitor.checked || activity.value === 'aprs';
+      featureIndicators.monitor.setAttribute('aria-label', monitorLabels[radioMode.value] ?? 'Monitor active');
+      featureIndicators.dual.hidden = !toggles.dual.checked;
+      featureIndicators.vox.hidden = !toggles.vox.checked;
+      featureIndicators['rx-only'].hidden = !toggles['rx-only'].checked;
+    }
+
+    function navigate(next, returnFrom) {
+      screen = next;
+      renderStatus();
+      for (const panel of screens) panel.hidden = panel.dataset.screen !== next;
+      for (const key of homeKeys) key.hidden = next !== 'home';
+      back.hidden = next === 'home';
+
+      const panel = screens.find(item => item.dataset.screen === next);
+      const target = next === 'home' ? homeKeys[0]
+        : returnFrom ? panel.querySelector('[data-go="' + returnFrom + '"]')
+          : panel.querySelector('[aria-pressed="true"]') ?? panel.querySelector('button');
+      target.focus({ preventScroll: true });
+    }
+
+    for (const button of root.querySelectorAll('[data-go]')) {
+      button.addEventListener('click', () => navigate(button.dataset.go));
+    }
+    function bindChoices(choices, apply) {
+      for (const button of choices) {
+        button.addEventListener('click', () => {
+          apply(button);
+          for (const choice of choices) {
+            const active = choice === button;
+            choice.setAttribute('aria-pressed', String(active));
+            choice.querySelector('span').textContent = active ? '✓' : '';
+          }
+          navigate('home');
+        });
+      }
+    }
+
+    bindChoices(profileChoices, button => {
+      profile = button.dataset.profile;
+      currentProfile.textContent = profile;
+      renderHome();
+    });
+    bindChoices(modeChoices, button => {
+      root.dataset.colorMode = button.dataset.mode;
+      currentMode.textContent = button.dataset.mode;
+    });
+    bindChoices(clockChoices, button => {
+      clockEnabled = button.dataset.clock === 'on';
+      currentClock.textContent = clockEnabled ? 'On' : 'Off';
+    });
+    for (const control of [...statusToggles, ...statusChoices]) control.addEventListener('change', renderStatus);
+    back.addEventListener('click', () => navigate(parents[screen], screen));
+    activity.addEventListener('change', renderHome);
+    renderHome();
+  })();
+</script>

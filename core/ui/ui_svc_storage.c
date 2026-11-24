@@ -79,6 +79,17 @@ static uint16_t clamp16(int32_t v, int32_t lo, int32_t hi)
 }
 
 // The UI's on / off settings kept as settings_t.ui_flags bits (0: not one of them)
+#if CONFIG_UI_PROFILES
+static uint8_t gui_flag(uint8_t id)
+{
+	switch (id) {
+	case UI_SET_GUI_PROFILE: return SETTINGS_GUI_AMATEUR;
+	case UI_SET_GUI_NIGHT: return SETTINGS_GUI_NIGHT;
+	default: return SETTINGS_GUI_GPS_CLOCK;
+	}
+}
+#endif
+
 static uint8_t ui_flag(uint8_t id)
 {
 	switch (id) {
@@ -315,6 +326,12 @@ static __attribute__((noinline)) int32_t setting_get_flash(uint8_t id)
 		return (SETTINGS_FIELD(ui_flags) & SETTINGS_UI_NO_VIBRATE) == 0;
 	case UI_SET_THEME:
 		return settings_theme_of(SETTINGS_FIELD(theme));
+#if CONFIG_UI_PROFILES
+	case UI_SET_GUI_PROFILE:
+	case UI_SET_GUI_NIGHT:
+	case UI_SET_GPS_CLOCK:
+		return (SETTINGS_FIELD(gui_flags) & gui_flag(id)) != 0;
+#endif
 	case UI_SET_ACCENT:
 		return SETTINGS_FIELD(accent) & SETTINGS_ACCENT_COLOR;
 	case UI_SET_STRIP:
@@ -487,6 +504,19 @@ bool ui_svc_setting_set(uint8_t id, int32_t value)
 					 st->ui_flags | SETTINGS_UI_NO_VIBRATE);
 		settings_end(hal_millis());
 		return true;
+#if CONFIG_UI_PROFILES
+	case UI_SET_GUI_PROFILE:
+	case UI_SET_GUI_NIGHT:
+	case UI_SET_GPS_CLOCK: {
+		if (value != 0 && value != 1)
+			return false;
+		uint8_t flag = gui_flag(id);
+		st = settings_begin();
+		st->gui_flags = (uint8_t)(value ? st->gui_flags | flag : st->gui_flags & ~flag);
+		settings_end(hal_millis());
+		return true;
+	}
+#endif
 	case UI_SET_THEME:
 	case UI_SET_ACCENT:
 	case UI_SET_STRIP:

@@ -168,6 +168,7 @@ typedef struct {
 	uint8_t fid;
 	uint8_t svc;		// service options (emergency, privacy, priority)
 	bool encrypted;		// PI or the privacy service option
+	bool privacy_blocked;	// the last encrypted voice burst could not be decoded
 	bool late_entry;	// acquired from the embedded LC, no header heard
 	bool emergency;		// the emergency service option
 	bool pi_header;		// a PI header (data type 0) was heard for this call

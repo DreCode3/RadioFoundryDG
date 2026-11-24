@@ -2868,7 +2868,7 @@ static void test_crypt_hook(void)
 	rx_pi_header_burst(info, 1, true);
 	run_ms(60);
 	rx_call(lc, 1, false, 0, 1, false, &frame);
-	CHECK(sink_log.frames == 0);
+	CHECK(sink_log.frames == 0 && V()->caller.privacy_blocked);
 	rx_header(lc, 1, 0, DMR_SYNC_MS, true);
 	run_ms(500);
 	crypt_key_id = 5;

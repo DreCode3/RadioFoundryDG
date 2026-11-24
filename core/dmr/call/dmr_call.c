@@ -661,6 +661,7 @@ static void rx_lc(const uint8_t lc[DMR_LC_BYTES], const dmr_burst_t *b, bool lat
 	if (!continuing) {
 		// A resumed call keeps its PI header: the talker sends one per over, and the keystream runs on from it
 		if (!resumed) {
+			c->privacy_blocked = false;
 			c->pi_header = false;
 			c->pi_alg = c->pi_key = 0;
 			c->pi_mi = 0;
@@ -829,7 +830,12 @@ static void rx_play(const dmr_burst_t *b, uint32_t now, uint32_t slot)
 #else
 	bool drop = pi || !s.cfg.privacy;
 #endif
-	if (enc && drop) {
+	bool blocked = enc && drop;
+	if (s.view.caller.privacy_blocked != blocked) {
+		s.view.caller.privacy_blocked = blocked;
+		s.dirty = true;
+	}
+	if (blocked) {
 		stats.rx_enc_dropped++;
 		TR_WHAT('e');
 		sink_lost(DMR_AMBE_FRAMES_PER_BURST);

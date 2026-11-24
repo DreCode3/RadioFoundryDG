@@ -67,7 +67,7 @@ int main(void)
 	CHECK(strcmp(tr(settings), "Ajustes") == 0);
 	CHECK(strcmp(tr_en(settings), "Settings") == 0);	// Find matches both
 	CHECK(strcmp(TR(SET_LABEL_LANGUAGE, "Language"), "Idioma/Language") == 0);
-	CHECK(strcmp(TR(SET_ROW_POWER_SAVING, "Power saving"), "Ahorro de energ\xED" "a") == 0);
+	CHECK(strcmp(TR(SET_ROW_POWER_SAVING, "Power"), "Energ\xED" "a") == 0);
 	CHECK(strcmp(TR(LABEL_POWER, "Power"), "Potencia") == 0);
 	CHECK(strcmp(TR(QUICK_LABEL_POWER, TEXT_ALT_OPEN "Power" TEXT_ALT_NEXT "Pwr" TEXT_ALT_CLOSE),
 		     TEXT_ALT_OPEN "Pot" TEXT_ALT_NEXT "Pt" TEXT_ALT_CLOSE) == 0);

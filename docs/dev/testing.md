@@ -74,6 +74,17 @@ The display classes are `160x120i5` (160x120 with 5 px hidden left and right), `
 `128x64`, `240x320` and `320x240` (landscape); [the wireframes README](../ux/wireframes/README.md) says which radio uses which.
 The user manual uses the `160x120i5` images.
 
+Use `python3 tests/host/uiLive.py` to build the host simulator and open its controls in a local browser. The launcher
+uses `320x240iR10`, the 320 × 240 panel with a 10 px right inset, for a visible area of 310 × 240. Use the simulated
+keys to explore the native menus. From Home, open **Menu → Settings → Display** to change the Display Profile, Day/Night,
+or GPS clock. The clock needs a valid simulated GPS date and time. Stop the launcher with Ctrl-C.
+
+Use the **Radio GUI** buttons above the display to switch between the original RadioFoundry GUI and the prototype
+on the same display. Switching opens Home and keeps the selected channel and saved display settings.
+
+The launcher uses a simulated radio on loopback. D-STAR, Bluetooth, recording, and the preview encryption and
+talkaround controls inject status examples. Browser controls send actions with their own hold and repeat timing.
+
 After a UI change, run `ui-gallery` and commit the PNGs with the change, so the review shows the difference. The
 gallery target deletes and rewrites `docs/ux/screens/*/`; commit only what you meant to change. Commit the contact
 sheet of each class whose screens changed. A new screen gets an

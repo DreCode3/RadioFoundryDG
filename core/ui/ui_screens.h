@@ -59,6 +59,9 @@ typedef struct {
 	char name[CODEPLUG_NAME_LEN + 1];
 	char zone[CODEPLUG_NAME_LEN + 1];	// the zone's name, "VFO" for the VFO
 	char target[32];	// what PTT talks to here on DMR: "TG 3100 USA" ("" on FM: Home shows the frequency)
+#if CONFIG_UI_PROFILES
+	char target_label[CODEPLUG_NAME_LEN + 1];	// the target's label for Commercial Home
+#endif
 	char detail[24];	// the rest, short: "TS1 CC1" (DMR), "T100.0 25k" (FM)
 	bool rx;		// a call or signal coming in on it now (on two receivers, both can)
 	bool heard;		// its audio is playing (with two calls at once, one of them)
@@ -126,13 +129,27 @@ typedef struct {
 	bool message_tone;	// a tone when a message arrives (Settings > Sound)
 	bool vibrate;		// vibrate for messages, calls to us, emergencies (Settings > Sound, CONFIG_VIBRATE)
 	uint8_t updown;		// what Up / Down change on Home: 0 channel, 1 zone, 2 talk target (Settings > Keys)
-	uint8_t low_batt_pct;	// warn at this battery percent, 0 = never (Settings > Power saving)
+	uint8_t low_batt_pct;	// warn at this battery percent, 0 = never (Settings > Power)
 	uint8_t volume;		// speaker volume step 0..RADIO_VOLUME_MAX of a radio without a knob (the volume screen, Settings > Sound)
 	int8_t volbar;		// the knob was turned: its step in the bar over the screen (ui_draw_volume_bar), -1 = none
 	bool knob_lock;		// the volume knob does nothing while the keys are locked (Knob when locked Off)
-	uint16_t auto_off_min;	// switch off after this long without use, 0 = never (Settings > Power saving)
+	uint16_t auto_off_min;	// switch off after this long without use, 0 = never (Settings > Power)
 	uint16_t unread;	// unread messages
 	const char *home_hint;	// the hint for Home's idle state, built from the board's keys ("OK Menu *Quick #Joe")
+#if CONFIG_UI_PROFILES
+	bool gui_profiles;	// the display can use the Commercial and Amateur layouts
+	uint8_t gui_profile;	// 0 Commercial, 1 Amateur
+	bool gui_night;
+	bool gps_clock;		// show the GPS date and time while idle
+	bool gps_fix;
+	uint32_t gps_utc_ymd;	// YYYYMMDD, 0 without a valid GPS date and time
+	uint32_t gps_utc_hms;	// HHMMSS
+#ifdef GFX_FIT_TRACE
+	bool gui_sim_recording, gui_sim_dstar, gui_sim_talkaround;
+	uint8_t gui_sim_bt;	// 0 off, 1 on, 2 connected
+	uint8_t gui_sim_crypt;	// 0 radio state, 1 ARC4, 2 AES
+#endif
+#endif
 	ui_banner_t banner;
 #if CONFIG_DUAL_WATCH
 	ui_dual_t dual;
@@ -190,6 +207,9 @@ extern ui_colors_t ui_col;
 // on black, for eyes adapted to the dark: it has no highlight color of its own choosing
 enum { UI_THEME_DARK, UI_THEME_LIGHT, UI_THEME_HIGH_CONTRAST, UI_THEME_NIGHT, UI_THEME_COUNT };
 // After ui_layout_init; a value out of range is the dark theme
+#if CONFIG_UI_PROFILES
+enum { UI_THEME_PROFILE_DAY = UI_THEME_COUNT, UI_THEME_PROFILE_NIGHT };
+#endif
 void ui_theme_set(uint8_t theme);
 uint8_t ui_theme_get(void);
 // Color displays (Settings > Display): the highlight color (UI_ACCENT_*, ui_svc.h) for list and tile focus and Home's
@@ -221,11 +241,24 @@ void ui_draw_banner(const ui_state_t *s);
 #define UI_ITEM_INFO	0x10u	// a text line, not something to pick (never focused)
 #define UI_ITEM_PREVIEW	0x20u	// the label is the start of a longer text (a message): shortened at its end, not the middle
 
+#if CONFIG_UI_PROFILES
+typedef enum {
+	UI_MENU_ICON_NONE, UI_MENU_ICON_SOUND, UI_MENU_ICON_DISPLAY, UI_MENU_ICON_TALK, UI_MENU_ICON_PRIVACY,
+	UI_MENU_ICON_LOCATION, UI_MENU_ICON_CONNECTIONS, UI_MENU_ICON_POWER, UI_MENU_ICON_KEYS, UI_MENU_ICON_LOCK,
+	UI_MENU_ICON_RADIO, UI_MENU_ICON_TONES, UI_MENU_ICON_ADVANCED, UI_MENU_ICON_CALLER, UI_MENU_ICON_CONTACTS,
+	UI_MENU_ICON_MESSAGES, UI_MENU_ICON_RECENT, UI_MENU_ICON_ZONES, UI_MENU_ICON_CHANNELS, UI_MENU_ICON_TOOLS,
+	UI_MENU_ICON_SETTINGS, UI_MENU_ICON_COUNT,
+} ui_menu_icon_t;
+#endif
+
 typedef struct {
 	char label[36];
 	char value[44];		// may hold text alternates (font.h); an empty last alternate leaves the value out
 	char num;		// key shown before the label ('1'..'9', '0'), 0 = none
 	uint8_t flags;
+#if CONFIG_UI_PROFILES
+	uint8_t icon;			// a top-level Menu or Settings entry
+#endif
 } ui_item_t;
 
 typedef void (*ui_item_fn)(uint16_t i, ui_item_t *it);
@@ -240,6 +273,11 @@ typedef struct {
 	ui_item_fn item;
 	const char *empty;		// shown when count is 0
 	const char *hint;
+#if CONFIG_UI_PROFILES
+	bool roomy;			// a larger left-aligned heading and taller rows
+	bool menu_icons;		// first-level Menu and Settings only
+	bool two_columns;		// first-level Menu and Settings on a wide profile display
+#endif
 } ui_list_t;
 
 void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l);

@@ -49,6 +49,9 @@ typedef enum {
 #if CONFIG_BACKLIGHT_TEST
 	SCR_BL_TEST,			// Settings > Advanced > Backlight tests
 #endif
+#if CONFIG_UI_SETTINGS && CONFIG_UI_PROFILES
+	SCR_DISPLAY_CHOICE,		// Settings > Display: one of the profile, Day/Night or GPS clock pickers
+#endif
 	SCR_COUNT
 } ui_scr_t;
 

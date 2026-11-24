@@ -28,6 +28,10 @@ bool ui_svc_position(ui_position_t *out)
 	out->speed_kmh = g.speed_kmh;
 	out->course = g.course;
 	out->utc_hms = g.utc_hms;
+#if CONFIG_UI_PROFILES
+	out->utc_ymd = g.utc_ymd;
+	out->utc_clock_hms = g.utc_clock_hms;
+#endif
 	return true;
 }
 

@@ -1916,6 +1916,15 @@ static void list_draw(const ui_scr_def_t *d)
 	l.empty = tr(d->empty);
 	l.hint = (d->flags & SF_HINT_FN) ? d->hint_fn() : tr(d->hint);
 	l.body = d->body != NULL ? d->body() : NULL;
+#if CONFIG_UI_PROFILES
+	l.roomy = ui_st.gui_profiles;
+	l.menu_icons = l.roomy && (f->scr == SCR_HUB || f->scr == SCR_SETTINGS);
+	l.two_columns = l.menu_icons;
+	if (l.roomy && f->scr == SCR_HUB)
+		l.prefix = TR(FIND_CHIP_MENU, "Menu");
+	if (l.roomy && f->scr == SCR_SETTINGS)
+		l.hint = TR(HINT_OK_OPEN_BACK, "OK Open  Back");
+#endif
 	if ((d->flags & SF_FILTER) && filter_keys[0]) {
 		sbuf_t b;
 		sb_init(&b, header, sizeof header);
@@ -1951,6 +1960,11 @@ void ui_app_init(void)
 #endif
 	view = &view_none;
 	memset(&ui_st, 0, sizeof ui_st);
+#if CONFIG_UI_PROFILES
+	// The profile layout needs a 240 px panel with room for its full status strip and caller line.
+	ui_st.gui_profiles = CONFIG_UI_COLOR && (ui_svc_features() & UI_FEAT_GUI_PROFILES) != 0 &&
+			     gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
+#endif
 	ui_st.volbar = -1;
 #if CONFIG_VOLUME_BAR
 	knob_seen = -1;
@@ -1974,6 +1988,9 @@ void ui_app_init(void)
 					  UI_SET_UPDOWN_HOME, UI_SET_LABEL_FIRST, UI_SET_LOW_BATTERY, UI_SET_AUTO_OFF_MIN, UI_SET_THEME, UI_SET_ACCENT,
 					  UI_SET_STRIP, UI_SET_VIBRATE, UI_SET_VOLUME, UI_SET_LANGUAGE,
 					  UI_SET_KNOB_WHEN_LOCKED,
+#if CONFIG_UI_PROFILES
+					  UI_SET_GUI_PROFILE, UI_SET_GUI_NIGHT, UI_SET_GPS_CLOCK,
+#endif
 #if CONFIG_DUAL_WATCH
 					  UI_SET_DUAL_TALK_BACK,
 #endif
@@ -2066,14 +2083,35 @@ void ui_apply_setting(uint8_t id, int32_t v)
 		ui_svc_ptt_block(ui_st.locked && !ui_st.ptt_locked);
 		break;
 	case UI_SET_THEME:
+#if CONFIG_UI_PROFILES
+		if (ui_st.gui_profiles)
+			break;
+#endif
 		ui_theme_set((uint8_t)v);
 		break;
 	case UI_SET_ACCENT:
+#if CONFIG_UI_PROFILES
+		if (ui_st.gui_profiles)
+			v = UI_ACCENT_DEFAULT;
+#endif
 		ui_accent_set((uint8_t)v);
 		break;
 	case UI_SET_STRIP:
+#if CONFIG_UI_PROFILES
+		if (ui_st.gui_profiles)
+			v = 0;
+#endif
 		ui_strip_set(v != 0);
 		break;
+#if CONFIG_UI_PROFILES
+	case UI_SET_GUI_PROFILE: ui_st.gui_profile = v == 1; break;
+	case UI_SET_GUI_NIGHT:
+		ui_st.gui_night = v == 1;
+		if (ui_st.gui_profiles)
+			ui_theme_set(ui_st.gui_night ? UI_THEME_PROFILE_NIGHT : UI_THEME_PROFILE_DAY);
+		break;
+	case UI_SET_GPS_CLOCK: ui_st.gps_clock = v == 1; break;
+#endif
 	case UI_SET_LANGUAGE:
 		if (!lang_set(lang_find(v)))
 			lang_set(LANG_ENGLISH);	// a language this image was built without
@@ -2271,6 +2309,10 @@ void ui_app_key(const input_event_t *ev)
 			return;
 #if CONFIG_DMR
 		case ACT_TALK_LABEL:
+#if CONFIG_UI_PROFILES
+			if (ui_st.gui_profiles)
+				return;		// both profiles already lead with the talkgroup name
+#endif
 			// Saved like Settings > Display > Talkgroup name first, so the choice survives a power cycle
 			ui_svc_setting_set(UI_SET_LABEL_FIRST, !ui_st.label_first);
 			ui_apply_setting(UI_SET_LABEL_FIRST, !ui_st.label_first);
@@ -2363,7 +2405,7 @@ void ui_app_key(const input_event_t *ev)
 		ui_toast(TR(HOME_TOAST_KEY_NOT_USED, "Not used here"));
 }
 
-// Auto power off (Settings > Power saving): after auto_off_min without a key press, a call, a scan or the hotspot, a
+// Auto power off (Settings > Power): after auto_off_min without a key press, a call, a scan or the hotspot, a
 // banner a minute before, then the housekeeping task switches off (ui_app_power_off_due)
 static void use_tick(const radio_view_t *v)
 {
@@ -2384,7 +2426,7 @@ static void use_tick(const radio_view_t *v)
 		power_off_due = true;
 }
 
-// Low battery warning (Settings > Power saving): a banner when the battery falls to the level, again every 5 min while
+// Low battery warning (Settings > Power): a banner when the battery falls to the level, again every 5 min while
 // it stays there, with the low battery tone unless the radio core's own voltage warning has sounded (view.battery)
 static void battery_tick(const radio_view_t *v)
 {
@@ -2481,6 +2523,37 @@ __attribute__((noinline)) static void knob_tick(const radio_view_t *v)
 }
 #endif
 
+#if CONFIG_UI_PROFILES
+static void profile_tick(const radio_view_t *v, uint32_t now_ms)
+{
+	if (!ui_st.gui_profiles)
+		return;
+	if (v->scan != 0 && v->scan != 3 && now_ms / 100u != ui_st.now_ms / 100u)
+		dirty = true;
+#if CONFIG_DMR_ROAMING
+	if ((v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY) &&
+	    now_ms / 125u != ui_st.now_ms / 125u)
+		dirty = true;
+#endif
+#ifdef GFX_FIT_TRACE
+	if (ui_st.gui_sim_recording && now_ms / 400u != ui_st.now_ms / 400u)
+		dirty = true;
+#endif
+#if CONFIG_GPS
+	ui_position_t pos = { 0 };
+	bool fix = ui_svc_position(&pos) && pos.fix;
+	uint32_t date = fix ? pos.utc_ymd : 0;
+	uint32_t hms = date != 0 ? pos.utc_clock_hms : 0;
+	if (ui_st.gps_fix != fix ||
+	    (ui_st.gps_clock && (ui_st.gps_utc_ymd != date || ui_st.gps_utc_hms / 100u != hms / 100u)))
+		dirty = true;
+	ui_st.gps_fix = fix;
+	ui_st.gps_utc_ymd = date;
+	ui_st.gps_utc_hms = hms;
+#endif
+}
+#endif
+
 bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 {
 	static uint32_t serial_seen;
@@ -2491,6 +2564,9 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 	view = v;
 #endif
 	now = now_ms;
+#if CONFIG_UI_PROFILES
+	profile_tick(v, now_ms);
+#endif
 	ui_st.now_ms = now_ms;
 #if CONFIG_VOLUME_BAR
 	knob_tick(v);

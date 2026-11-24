@@ -173,7 +173,8 @@ typedef struct {
 	bool to_us;		// private call to our ID
 	bool encrypted;		// privacy service option, PI or a PI header
 	bool emergency;		// the emergency service option
-	bool pi_header;		// a PI header was heard (an MI-based scheme: we can't decrypt it)
+	bool pi_header;		// a Privacy Indicator header was heard
+	bool privacy_blocked;	// the receiver could not use the call's encryption
 	char src_name[CODEPLUG_NAME_LEN + 1];	// codeplug contact, else the DMR ID database's text cut short, "" if unknown
 	char dst_name[CODEPLUG_NAME_LEN + 1];	// talkgroup name, "" if unknown
 	// The caller's position from an ETSI GPS Info LC (CONFIG_DMR_GPS, docs/spec/dmr-voice.md)

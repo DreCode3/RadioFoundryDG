@@ -101,6 +101,10 @@ typedef struct {
 	uint16_t hdop10;	// x 10, 0xFFFF unknown
 	uint16_t speed_kmh, course;	// 0xFFFF unknown
 	uint32_t utc_hms;	// hhmmss of the last fix, 0xFFFFFFFF
+#if CONFIG_UI_PROFILES
+	uint32_t utc_ymd;	// YYYYMMDD from a recent RMC fix, 0 unknown
+	uint32_t utc_clock_hms;	// hhmmss from the same RMC sentence
+#endif
 	uint8_t mode;		// GSA (CONFIG_GPS_SKY): 1 no fix, 2 2D, 3 3D, 0 unknown
 	uint8_t in_view;	// satellites in the table (position_gps_sat)
 } position_gps_t;

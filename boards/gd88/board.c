@@ -32,14 +32,13 @@ static const band_t bands[] = {
 static const char *const power_names[] = { "100mW", "500mW", "1W", "2.5W", "5W" };
 _Static_assert(sizeof(power_names) / sizeof(power_names[0]) == GD88_POWER_LEVELS, "a name per level of gd88_tx_levels");
 
-// docs/ux/information-architecture.md 7.1. The left soft key opens the menu and accepts
-// (its screen label Menu or Ok), the right one is A/B, red goes back; green is its programmable key. The side
-// keys go by the two receivers: SK1 (above PTT) is their key, a press for A / B and a hold for dual watch, and SK2
-// (below PTT) is Monitor. SOS (the orange top key) as on the other radios
+// The left soft key opens the menu and accepts, and the right soft key goes back. Green is A/B and red toggles
+// VFO/Channel. SK1 (above PTT) switches receivers on a press and toggles dual watch on a hold. SK2 (below PTT)
+// is Monitor. SOS is the orange top key.
 static const keymap_entry_t keymap[] = {
 	{ KEY_UP, ACT_NAV_UP, ACT_NAV_UP, false, true, 0 },
 	{ KEY_DOWN, ACT_NAV_DOWN, ACT_NAV_DOWN, false, true, 0 },
-	// The soft keys are Ok and Back
+	// The soft keys are OK and Back
 	{ KEY_SOFT_LEFT, ACT_SELECT, ACT_SELECT, false, false, 0 },
 	{ KEY_SOFT_RIGHT, ACT_BACK, ACT_BACK, false, false, 0 },
 	{ KEY_GREEN, ACT_AB, ACT_DUAL_WATCH, false, false, 0 },

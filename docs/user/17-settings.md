@@ -13,6 +13,8 @@ a group directly. Find also reaches each setting by name: type its first letters
 Each row shows its current value.
 
 - On/off and list settings change with **OK**: each press goes to the next value.
+- Display Profile, Day/Night and GPS clock open a choice list. Use **Up** or **Down** to choose, then **OK** to save or
+  **Back** to cancel.
 - Number settings open an editor on **OK**. Change the value with **Up** and **Down** (or the channel knob), or type
   it with the number keys, press **OK** to keep it, **Back** to leave it unchanged. A typed value outside the range,
   or between steps, isn't taken: the radio says "Not changed" with the range.
@@ -51,8 +53,23 @@ Some settings are on the menu before the feature behind them exists, or don't ap
 
 ### Display (key 2)
 
+On supported wide color displays, status icons and the colored icons in Menu and Settings have antialiased edges.
+Settings shows six categories per page in two columns. Use **Up** or **Down** to move through the categories
+and turn the page. **OK** opens the marked category, and numbered shortcuts open their categories directly.
+Settings submenus use larger headings and
+spaced, rounded rows.
+
+On these displays, Display Profile and Day/Night appear in place of Theme, Highlight color and Filled status
+bar. Both profiles show the talkgroup name first. The **TG name / number** key setting applies to the original Home
+layout. On profile Home screens, a speaker with one wave indicates Monitor, plain RX indicates a receive-only
+channel, and an R inside a circular arrow indicates roaming. A board GPS adds the GPS clock option to the profile
+displays.
+
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
+| Display Profile | Commercial, Amateur | Commercial | Centers the zone and bold talk target on Home, with the received alias below. Commercial uses larger Home text and status icons. Amateur shows channel and tuning details | Works |
+| Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
+| GPS clock | Off, On | Off | Stacks the GPS date and UTC time at the right end of the mode row on idle Home while the radio has a valid GPS fix with date and time | Works |
 | Brightness | 10 to 100 %, steps of 10 | 100 % | Backlight brightness. Also in quick settings, tile 9 | Works |
 | Backlight Dim/Off | 5s/20s, 10s/40s, 30s/2m, 1m/4m, 2m/8m, 10s/dim, 30s/dim, 1m/dim, 2m/dim, Never | 30s/2m | Without a key press, the backlight dims to a fifth after the first time and goes off after the second. The "dim" choices dim and never go off | Works |
 | Theme | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
@@ -130,7 +147,7 @@ and by APRS. None of them needs the others: a radio without APRS still reports i
 | USB address | By DMR ID, 192.168.10.x | By DMR ID | The addresses of the USB network link: from your DMR ID, or the fixed pair 192.168.10.1 (radio) and 192.168.10.2 (computer) | Works |
 | Data services | ARS server, IP gateway: a DMR ID or Off | Off | Opens a screen with the ARS presence server ([ARS](10-messages-and-signaling.md#registration-ars-and-location-lrrp)) and the gateway radio for other networks ([USB network](15-usb-network.md#other-networks-through-a-gateway-radio)). Type an ID and press **OK**; 0 is Off. Both are saved in the codeplug | Works |
 
-### Power saving (key 7)
+### Power (key 7)
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|

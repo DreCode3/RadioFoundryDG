@@ -236,6 +236,9 @@
 #ifndef CONFIG_UI_SETTINGS
 #define CONFIG_UI_SETTINGS		1
 #endif
+#ifndef CONFIG_UI_PROFILES
+#define CONFIG_UI_PROFILES		0
+#endif
 #ifndef CONFIG_SCAN
 #define CONFIG_SCAN			1
 #endif

@@ -102,6 +102,17 @@ static void hub_item(uint16_t i, ui_item_t *it)
 	uint8_t e = hub_entry(i);
 	str_copy(it->label, sizeof it->label, tr(names[e]));
 	item_num(it, e);
+#if CONFIG_UI_PROFILES
+	static const uint8_t icons[] = {
+		UI_MENU_ICON_CALLER, UI_MENU_ICON_CONTACTS, UI_MENU_ICON_MESSAGES, UI_MENU_ICON_RECENT,
+		UI_MENU_ICON_ZONES, UI_MENU_ICON_CHANNELS, UI_MENU_ICON_TOOLS, UI_MENU_ICON_SETTINGS,
+	};
+	it->icon = icons[e];
+	if (ui_st.gui_profiles) {
+		it->value[0] = '\0';
+		return;
+	}
+#endif
 	sbuf_t b;
 	sb_init(&b, it->value, sizeof it->value);
 	if (e == HUB_MESSAGES && ui_st.unread) {
@@ -862,9 +873,25 @@ static void msgs_context(uint16_t i)
 	ui_open_actions(&t);
 }
 
+static const char *msgs_hint(void)
+{
+	uint16_t focus = ui_frame()->focus;
+	bool aprs;
+	uint16_t index;
+	if (msg_row(focus, &aprs, &index)) {
+		ui_msg_t message;
+		if (aprs || (ui_svc_msg_get(index, &message) && !message.sent))
+			return TR(MSG_HINT_LIST, "OK open  # reply  Back");
+		return TR(HINT_OK_OPEN_BACK, "OK Open  Back");
+	}
+	if (aprs_new_available())
+		return TR(MSG_HINT_NEW, "OK Compose  Back");
+	return TR(HINT_BACK, "Back");
+}
+
 static const ui_scr_def_t messages_screen = {
-	.name = "messages", .flags = SF_LIST | SF_FIELD, .prefix = TRN(TITLE_MESSAGES, "Messages"),
-	.hint = TRN(MSG_HINT_LIST, "OK open  # reply  Back"),
+	.name = "messages", .flags = SF_LIST | SF_FIELD | SF_HINT_FN, .prefix = TRN(TITLE_MESSAGES, "Messages"),
+	.hint_fn = msgs_hint,
 	.empty = TRN(MSG_EMPTY, "No messages yet"),
 	.count = msgs_count, .item = msgs_item, .select = msgs_select, .context = msgs_context,
 };
@@ -902,6 +929,9 @@ static void msg_enter(void)
 	l.name = msg_title();
 	l.body = msg_body();
 	l.count = MV_COUNT;
+#if CONFIG_UI_PROFILES
+	l.roomy = ui_st.gui_profiles;
+#endif
 	if (!ui_list_body_fits(&ui_st, &l))
 		ui_frame()->arg |= MSG_LONG_ARG;
 }
@@ -6538,23 +6568,30 @@ static const ui_scr_def_t tools_screen = {
 // CONFIG_UI_SETTINGS=n leaves the whole menu out (the settings keep their stored values; qdmr sets them)
 #if CONFIG_UI_SETTINGS
 
-typedef enum { ST_TOGGLE, ST_LIST, ST_NUMBER, ST_ACTION } set_type_t;
+typedef enum {
+	ST_TOGGLE, ST_LIST, ST_NUMBER, ST_ACTION,
+#if CONFIG_UI_PROFILES
+	ST_CHOICE,
+#endif
+} set_type_t;
 enum { SA_DIAG, SA_FIRMWARE, SA_CODEPLUG, SA_RESET, SA_MY_RADIO, SA_CRASH, SA_LANGUAGE, SA_HARDWARE, SA_FIXED_POS,
-	SA_SAVE_GPS_POS, SA_DATA_SERVICES, SA_BL_TEST, SA_SIG_BEGIN, SA_SIG_END, SA_SIG_IDLE };	// signaling tone steps, by sig_event_t
+       SA_SAVE_GPS_POS, SA_DATA_SERVICES,
+       SA_BL_TEST,
+       SA_SIG_BEGIN, SA_SIG_END, SA_SIG_IDLE };	// the three: a signaling tone's steps, by sig_event_t
 
 typedef struct {
 	tr_id_t name;			// TRN; TR_NONE for a key's row (set_name)
 	const char *syn;		// another name Find knows it by, in English (never shown)
 	uint8_t type;			// set_type_t
 	uint8_t id;			// ui_setting_t, or SA_* for an action
-	uint8_t n;			// ST_LIST: how many values
+	uint8_t n;			// ST_LIST / ST_CHOICE: how many values
 	// By type, in the same bytes (24 a row, not 32: there are about 80 rows)
 	union {
 		struct {			// ST_NUMBER
 			int16_t min, max, step;
 			const char *unit;	// after the number, or NULL
 		};
-		struct {			// ST_LIST
+		struct {			// ST_LIST / ST_CHOICE
 			const int16_t *values;
 			const tr_id_t *names;	// TRN, or TRX for one never translated
 		};
@@ -6567,6 +6604,9 @@ typedef struct {
 	tr_id_t title;		// the group's page title, in Title Case (the name is its row in Settings)
 	const set_item_t *items;
 	uint8_t count;
+#if CONFIG_UI_PROFILES
+	uint8_t icon;
+#endif
 } set_group_t;
 
 static const int16_t v_backlight[] = { 5, 10, 30, 60, 120, -10, -30, -60, -120, 0 };	// < 0: dims, never off
@@ -6587,6 +6627,15 @@ static const tr_id_t n_accent[] = { TRN(VALUE_DEFAULT, "Default"), TRN(SET_VALUE
 	TRN(SET_VALUE_ACCENT_ORANGE, "Orange"), TRN(SET_VALUE_ACCENT_YELLOW, "Yellow"),
 	TRN(SET_VALUE_ACCENT_TEAL, "Teal"), TRN(SET_VALUE_ACCENT_LIGHT_BLUE, "Light blue"),
 	TRN(SET_VALUE_ACCENT_PURPLE, "Purple"), TRN(SET_VALUE_ACCENT_PINK, "Pink") };
+#endif
+#if CONFIG_UI_PROFILES
+static const int16_t v_display_choice[] = { 0, 1 };
+static const tr_id_t n_gui_profile[] = { TRN(SET_VALUE_PROFILE_COMMERCIAL, "Commercial"),
+	TRN(SET_VALUE_PROFILE_AMATEUR, "Amateur") };
+static const tr_id_t n_gui_mode[] = { TRN(SET_VALUE_DISPLAY_DAY, "Day"), TRN(SET_VALUE_DISPLAY_NIGHT, "Night") };
+static const tr_id_t n_gps_clock[] = { TRN(VALUE_OFF, "Off"), TRN(VALUE_ON, "On") };
+#define DISPLAY_CHOICE(nm, sy, i, ns) \
+	{ .name = nm, .syn = sy, .type = ST_CHOICE, .id = i, .n = 2, .values = v_display_choice, .names = ns }
 #endif
 static const int16_t v_tot[] = { 0, 30, 60, 120, 180, 300, 600 };
 static const tr_id_t n_tot[] = { TRN(VALUE_OFF, "Off"), TRX(VALUE_30_S, "30 s"), TRN(VALUE_1_MIN, "1 min"),
@@ -6811,6 +6860,11 @@ static const set_item_t s_sigtones[] = {
 };
 #endif
 static const set_item_t s_display[] = {
+#if CONFIG_UI_PROFILES
+	DISPLAY_CHOICE(TRN(SET_LABEL_GUI_PROFILE, "Display Profile"), "home layout gui profile", UI_SET_GUI_PROFILE, n_gui_profile),
+	DISPLAY_CHOICE(TRN(SET_LABEL_DAY_NIGHT, "Day/Night"), "theme palette contrast", UI_SET_GUI_NIGHT, n_gui_mode),
+	DISPLAY_CHOICE(TRN(SET_LABEL_GPS_CLOCK, "GPS clock"), "date time UTC", UI_SET_GPS_CLOCK, n_gps_clock),
+#endif
 	NUMBER(TRN(SET_LABEL_BRIGHTNESS, "Brightness"), "backlight", UI_SET_BRIGHTNESS, 10, 100, 10, "%"),
 	LIST(TRN(SET_LABEL_BACKLIGHT_DIM_OFF, "Backlight Dim/Off"), "timeout", UI_SET_BACKLIGHT_S, v_backlight,
 		n_backlight),
@@ -7004,27 +7058,31 @@ static const set_item_t s_advanced[] = {
 #endif
 };
 
-#define GROUP(nm, a)		{ nm, nm, a, sizeof a / sizeof a[0] }
-#define GROUP_T(nm, t, a)	{ nm, t, a, sizeof a / sizeof a[0] }
-static const set_group_t groups[] = {
-	GROUP(TRN(SET_ROW_SOUND, "Sound"), s_sound), GROUP(TRN(SET_ROW_DISPLAY, "Display"), s_display),
-	GROUP_T(TRN(SET_ROW_TALK_LISTEN, "Talk & listen"), TRN(SET_TITLE_TALK_LISTEN, "Talk & Listen"), s_talk),
-#if CONFIG_DMR && CONFIG_DMR_PRIVACY
-		GROUP(TRN(SET_ROW_PRIVACY, "Privacy"), s_privacy),
+#if CONFIG_UI_PROFILES
+#define GROUP_ICON(icon)	, UI_MENU_ICON_##icon
 #else
-		// Privacy compiled out: a row with no settings keeps the groups after it on their keys (settings_select)
-		{ TRN(SET_ROW_PRIVACY, "Privacy"), TRN(SET_ROW_PRIVACY, "Privacy"), NULL, 0 },
+#define GROUP_ICON(icon)
 #endif
-	GROUP(TRN(SET_ROW_LOCATION, "Location"), s_location), GROUP(TRN(SET_ROW_CONNECTIONS, "Connections"),
-		s_connections),
-	GROUP_T(TRN(SET_ROW_POWER_SAVING, "Power saving"), TRN(SET_TITLE_POWER_SAVING, "Power Saving"), s_power),
-	GROUP(TRN(SET_ROW_KEYS, "Keys"), s_keys), GROUP(TRN(WORD_KEY_LOCK, "Key lock"), s_lock),
-	GROUP_T(TRN(SET_ROW_MY_RADIO, "My radio"), TRN(SET_TITLE_MY_RADIO, "My Radio"), s_my_radio),
+#define GROUP(nm, a, icon)	{ nm, nm, a, sizeof a / sizeof a[0] GROUP_ICON(icon) }
+#define GROUP_T(nm, t, a, icon)	{ nm, t, a, sizeof a / sizeof a[0] GROUP_ICON(icon) }
+static const set_group_t groups[] = {
+	GROUP(TRN(SET_ROW_SOUND, "Sound"), s_sound, SOUND), GROUP(TRN(SET_ROW_DISPLAY, "Display"), s_display, DISPLAY),
+	GROUP_T(TRN(SET_ROW_TALK_LISTEN, "Talk & listen"), TRN(SET_TITLE_TALK_LISTEN, "Talk & Listen"), s_talk, TALK),
+#if CONFIG_DMR && CONFIG_DMR_PRIVACY
+	GROUP(TRN(SET_ROW_PRIVACY, "Privacy"), s_privacy, PRIVACY),
+#else
+	{ TRN(SET_ROW_PRIVACY, "Privacy"), TRN(SET_ROW_PRIVACY, "Privacy"), NULL, 0 GROUP_ICON(PRIVACY) },
+#endif
+	GROUP(TRN(SET_ROW_LOCATION, "Location"), s_location, LOCATION),
+	GROUP(TRN(SET_ROW_CONNECTIONS, "Connections"), s_connections, CONNECTIONS),
+	GROUP_T(TRN(SET_ROW_POWER_SAVING, "Power"), TRN(SET_TITLE_POWER_SAVING, "Power"), s_power, POWER),
+	GROUP(TRN(SET_ROW_KEYS, "Keys"), s_keys, KEYS), GROUP(TRN(WORD_KEY_LOCK, "Key lock"), s_lock, LOCK),
+	GROUP_T(TRN(SET_ROW_MY_RADIO, "My radio"), TRN(SET_TITLE_MY_RADIO, "My Radio"), s_my_radio, RADIO),
 #if CONFIG_SIG_TONES
 	GROUP_T(TRN(SET_ROW_SIGNALING_TONES, "Signaling tones"), TRN(SET_TITLE_SIGNALING_TONES, "Signaling Tones"),
-		s_sigtones),
+		s_sigtones, TONES),
 #endif
-	GROUP(TRN(SET_ROW_ADVANCED, "Advanced"), s_advanced),
+	GROUP(TRN(SET_ROW_ADVANCED, "Advanced"), s_advanced, ADVANCED),
 };
 #define GROUPS	(sizeof groups / sizeof groups[0])
 
@@ -7049,6 +7107,13 @@ static uint16_t hwopt_visible(void)
 // shown disabled
 static bool set_hidden(const set_item_t *s)
 {
+#if CONFIG_UI_PROFILES
+	if (s->type == ST_CHOICE)
+		return !ui_st.gui_profiles || (s->id == UI_SET_GPS_CLOCK && !(feats() & UI_FEAT_GPS));
+	if (ui_st.gui_profiles && s->type != ST_ACTION &&
+	    (s->id == UI_SET_THEME || s->id == UI_SET_ACCENT || s->id == UI_SET_STRIP || s->id == UI_SET_LABEL_FIRST))
+		return true;
+#endif
 #if RFOUNDRY_HWOPTS
 	if (s->type == ST_ACTION && s->id == SA_HARDWARE)
 		return hwopt_visible() == 0;	// none, or every one detected
@@ -7133,6 +7198,9 @@ static void settings_item(uint16_t i, ui_item_t *it)
 #if !(CONFIG_DMR && CONFIG_DMR_PRIVACY)
 	if (groups[i].items == NULL)
 		it->flags |= UI_ITEM_DIM;	// the Privacy placeholder
+#endif
+#if CONFIG_UI_PROFILES
+	it->icon = groups[i].icon;
 #endif
 }
 
@@ -7368,6 +7436,16 @@ static const set_item_t *set_item_at(uint16_t i)
 }
 
 #if CONFIG_KEY_ASSIGN
+static uint8_t set_key_next(const set_item_t *s, uint8_t at)
+{
+	uint8_t next = (uint8_t)((at + 1u) % s->n);
+#if CONFIG_UI_PROFILES
+	if (ui_st.gui_profiles && s->values[next] == KEYFN_TALK_LABEL)
+		next = (uint8_t)((next + 1u) % s->n);
+#endif
+	return next;
+}
+
 // A home key left at Default (P1, P2: board.home_keys) does on Home what its arrow does there: the zone. Say that
 // instead of "Default". NULL for any other key or value
 static const char *home_key_default(uint8_t id, int32_t v)
@@ -7403,6 +7481,9 @@ static void set_value_text(const set_item_t *s, int32_t v, char *out, size_t len
 		sb_str(&b, v ? TR(VALUE_ON, "On") : TR(VALUE_OFF, "Off"));
 		break;
 	case ST_LIST:
+#if CONFIG_UI_PROFILES
+	case ST_CHOICE:
+#endif
 #if CONFIG_KEY_ASSIGN
 		{
 			const char *home = home_key_default(s->id, v);
@@ -7569,14 +7650,15 @@ static void group_item(uint16_t i, ui_item_t *it)
 		it->flags |= UI_ITEM_DIM;
 }
 
-static void set_store(const set_item_t *s, int32_t v)
+static bool set_store(const set_item_t *s, int32_t v)
 {
 	if (ui_svc_setting_set(s->id, v)) {
 		ui_apply_setting(s->id, v);	// the ones the UI acts on itself
 		ui_svc_apply(s->id, v);		// and the ones other packages do
-	} else {
-		ui_toast(TR(TOAST_SAVE_FAILED, "Couldn't save: try again"));
+		return true;
 	}
+	ui_toast(TR(TOAST_SAVE_FAILED, "Couldn't save: try again"));
+	return false;
 }
 
 static void group_select(uint16_t i, bool hold)
@@ -7601,16 +7683,26 @@ static void group_select(uint16_t i, bool hold)
 	case ST_TOGGLE:
 		set_store(s, !v);
 		break;
+#if CONFIG_UI_PROFILES
+	case ST_CHOICE:
+		ui_push(SCR_DISPLAY_CHOICE, (uint16_t)(s - s_display));
+		return;
+#endif
 	case ST_LIST: {
 		uint8_t k = 0;
 		while (k < s->n && s->values[k] != v)
 			k++;
 		uint8_t next = (uint8_t)((k + 1u) % s->n);
 #if CONFIG_KEY_ASSIGN
-		// A key's slot skips what it can't hold (a home key: Monitor, Tone burst)
+		// Skip functions unavailable for the key's slot or the Home layout.
 		if (s->id >= UI_SET_KEY_FIRST && s->id <= UI_SET_KEY_LAST) {
-			for (uint8_t t = 0; t < s->n && !ui_svc_key_offered(s->id, s->values[next]); t++)
-				next = (uint8_t)((next + 1u) % s->n);
+			uint8_t first = set_key_next(s, k);
+			next = first;
+			while (!ui_svc_key_offered(s->id, s->values[next])) {
+				next = set_key_next(s, next);
+				if (next == first)
+					break;
+			}
 		}
 #endif
 		set_store(s, s->values[next]);
@@ -8148,6 +8240,40 @@ static const ui_scr_def_t lang_screen = {
 	.count = lang_list_count, .item = lang_list_item, .select = lang_list_select, .enter = lang_list_enter,
 };
 
+#if CONFIG_UI_SETTINGS && CONFIG_UI_PROFILES
+static const set_item_t *display_choice(void) { return &s_display[ui_frame()->arg]; }
+static const char *display_choice_title(void) { return tr(display_choice()->name); }
+static uint16_t display_choice_count(void) { return display_choice()->n; }
+
+static void display_choice_item(uint16_t i, ui_item_t *it)
+{
+	const set_item_t *s = display_choice();
+	str_copy(it->label, sizeof it->label, tr(s->names[i]));
+	if (ui_svc_setting_get(s->id) == s->values[i])
+		str_copy(it->value, sizeof it->value, TR(LANG_VALUE_IN_USE, "In use"));
+}
+
+static void display_choice_enter(void)
+{
+	const set_item_t *s = display_choice();
+	ui_frame()->focus = ui_svc_setting_get(s->id) == s->values[1] ? 1u : 0u;
+}
+
+static void display_choice_select(uint16_t i, bool hold)
+{
+	(void)hold;
+	const set_item_t *s = display_choice();
+	if (set_store(s, s->values[i]))
+		ui_pop();
+}
+
+static const ui_scr_def_t display_choice_screen = {
+	.name = "display-choice", .flags = SF_LIST, .hint = TRN(HINT_OK_PICK_BACK, "OK pick  Back"),
+	.title = display_choice_title, .count = display_choice_count, .item = display_choice_item,
+	.enter = display_choice_enter, .select = display_choice_select,
+};
+#endif
+
 // ======================= Another firmware's codeplug: the first edit asks (defaults to Cancel; P7) ===============
 // ui_svc_codeplug_answer: the rows are UI_CP_CANCEL, UI_CP_NEW, UI_CP_USE. BACK is Cancel (ui_pop drops the write)
 
@@ -8219,6 +8345,9 @@ const ui_scr_def_t *const ui_scr[SCR_COUNT] = {
 #endif
 #if CONFIG_UI_SETTINGS && CONFIG_SIG_TONES
 	[SCR_SIG_CHAIN] = &sc_screen,
+#endif
+#if CONFIG_UI_SETTINGS && CONFIG_UI_PROFILES
+	[SCR_DISPLAY_CHOICE] = &display_choice_screen,
 #endif
 #if CONFIG_APRS_AFSK
 	[SCR_APRS_TO] = &aprs_to_screen,

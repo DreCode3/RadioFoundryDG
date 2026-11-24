@@ -128,9 +128,24 @@ bool nmea_number(const char *s, size_t n, uint8_t scale, uint32_t *out)
 	return fixed(s, n, scale, out);
 }
 
+static bool six_digits(const char *s)
+{
+	for (unsigned i = 0; i < 6; i++) {
+		if (s[i] < '0' || s[i] > '9')
+			return false;
+	}
+	return true;
+}
+
+static bool utc_time(const char *s, size_t n, uint32_t *out)
+{
+	return n >= 6 && six_digits(s) && (n == 6 || (n > 7 && s[6] == '.')) && fixed(s, n, 0, out);
+}
+
 bool nmea_parse(const char *s, size_t n, nmea_fix_t *out)
 {
 	memset(out, 0, sizeof(*out));
+	out->utc_hms = UINT32_MAX;
 	out->speed_kn10 = 0xFFFFu;
 	out->course10 = 0xFFFFu;
 	out->alt_dm = INT32_MIN;
@@ -147,7 +162,7 @@ bool nmea_parse(const char *s, size_t n, nmea_fix_t *out)
 			return false;
 		}
 		out->kind = NMEA_RMC;
-		if (fixed(f[1], fl[1], 0, &v)) {
+		if (utc_time(f[1], fl[1], &v)) {
 			out->utc_hms = v;
 			out->utc_valid = true;
 		}
@@ -162,7 +177,7 @@ bool nmea_parse(const char *s, size_t n, nmea_fix_t *out)
 		if (fixed(f[8], fl[8], 1, &v) && v < 3600u) {
 			out->course10 = (uint16_t)v;
 		}
-		if (fixed(f[9], fl[9], 0, &v)) {
+		if (fl[9] == 6 && six_digits(f[9]) && fixed(f[9], fl[9], 0, &v)) {
 			out->date = v;
 			out->date_valid = v != 0u;
 		}
@@ -173,7 +188,7 @@ bool nmea_parse(const char *s, size_t n, nmea_fix_t *out)
 			return false;
 		}
 		out->kind = NMEA_GGA;
-		if (fixed(f[1], fl[1], 0, &v)) {
+		if (utc_time(f[1], fl[1], &v)) {
 			out->utc_hms = v;
 			out->utc_valid = true;
 		}

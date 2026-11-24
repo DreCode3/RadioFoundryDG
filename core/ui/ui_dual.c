@@ -230,20 +230,26 @@ static void pane_fill(uint8_t i)
 	if (ch.mode == RADIO_MODE_DMR) {
 		static contact_t c;
 		uint16_t talk = codeplug_channel_talk_contact(&ch);
-		if (s->valid && s->target_id) {
-			ui_target_t t;
-			memset(&t, 0, sizeof t);
+		ui_target_t t = { 0 };
+		bool have_target = s->valid && s->target_id;
+		if (have_target) {
 			t.id = s->target_id;
 			t.group = !s->target_private;
 			strcpy(t.name, s->target_name);
-			ui_sb_target(p->target, sizeof p->target, &t);
 		} else if (talk && codeplug_contact(talk, &c)) {
-			ui_target_t t;
-			memset(&t, 0, sizeof t);
 			t.id = c.id;
 			t.group = c.type != CONTACT_PRIVATE;
 			strcpy(t.name, c.name);
+			have_target = true;
+		}
+		if (have_target) {
 			ui_sb_target(p->target, sizeof p->target, &t);
+#if CONFIG_UI_PROFILES
+			if (t.id == 0xFFFFFFu)
+				str_copy(p->target_label, sizeof p->target_label, TR(VALUE_ALL_CALL, "All call"));
+			else if (!ui_name_is_id(t.name, t.id, !t.group))
+				str_copy(p->target_label, sizeof p->target_label, t.name);
+#endif
 		}
 		sb_str(&b, "TS");
 		sb_u32(&b, s->valid && s->ts ? s->ts : ch.timeslot ? ch.timeslot : 1u, 1);

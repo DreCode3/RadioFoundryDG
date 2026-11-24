@@ -33,7 +33,8 @@
 //   chkind:<n>,p25|nxdn[,<name>]  a stored P25 or NXDN channel, with an optional name (_ = space)
 //   p25t:<state>[,<tg>] the channel on view is a trunked P25 one (CONFIG_P25_TRUNK builds), its follower in state
 //                       1 finding the system, 2 on the control channel, 3 following talk group tg
-//   rx:<src>,<dst>,g|p[,name]   a DMR call starts (g = group, p = private to us); rxend ends it
+//   rx:<src>,<dst>,g|p|e|i[,name]   a DMR call starts; rxend ends it
+//                       g = group, p = private to us, e = encrypted group, i = group with a privacy header
 //   call:<src>,<dst>,g|p        a 2 s call, then 1 s of quiet
 //   msg:<src>,<text>    a text message arrives (_ = space); alert:<src>; emergency:<src>; privcall:<src>
 //                       (each also <src>,<name>: the station's name, _ = space, for one not in the contacts)
@@ -43,6 +44,10 @@
 //   dlvfo:<hz>          the debug link tunes the VFO to hz (it opens, as Find's Tune VFO)
 //   chhz:<n>,<hz>       stored channel n is an FM channel on hz (the air band with "am": received in AM)
 //   hotspot:on|off      the host link enters / leaves hotspot mode
+//   gps:fix|searching|off    simulated board GPS state
+//   gui:<mode>         choose original or prototype presentation on the profile geometry
+//   prototype:<state>   preview a Bluetooth, recording, D-STAR, encryption, or talkaround mark
+//   vox:on|off, rxonly:on|off, roam:off|ready|searching|weak|locked    simulated channel and radio state
 //   usbnet:off|on|up    USB a serial port, a network adapter, or a network adapter the computer has brought up
 //   timeout             the TX timeout cuts the transmission off while PTT is still held (shows the timeout deny)
 //   pttlocked:on|off    turns Settings > Key lock > PTT when locked on or off
@@ -305,21 +310,27 @@ void gfx_draw_trace(gfx_trace_kind_t kind, int x, int y, int w, int h, const int
 }
 
 const sim_geom_t sim_geoms[] = {
-	{ "160x120i5", 160, 120, 4, 5, 0, false, false, false },	// DM-1701: the lens hides 5 px left and right (boards/dm1701/config.mk)
-	{ "160x128", 160, 128, 4, 0, 0, false, false, false },	// MD-380 / MD-UV380 / MD-9600 class
-	{ "128x64", 128, 64, 1, 0, 0, false, false, false },	// GD-77 class, mono
+	{ "160x120i5", 160, 120, 4, 5, 0, false, false, false, 0, false },	// DM-1701: the lens hides 5 px left and right (boards/dm1701/config.mk)
+	{ "160x128", 160, 128, 4, 0, 0, false, false, false, 0, false },	// MD-380 / MD-UV380 / MD-9600 class
+	{ "128x64", 128, 64, 1, 0, 0, false, false, false, 0, false },	// GD-77 class, mono
 	// DM-32UV: 16 colors, the bezel hides 10 px left and right, 5 top and bottom; FONT_BIG; a frame buffer of the
 	// safe area only (boards/dm32/board.mk GFX_FB_SAFE_AREA)
-	{ "240x320i10x5", 240, 320, 4, 10, 5, true, true, true },
-	{ "240x320", 240, 320, 16, 0, 0, true, false, false },	// 240x320 class at full resolution, standard text size
-	{ "320x240", 320, 240, 4, 0, 0, true, true, false },	// GD-88: landscape, 16 colors, the larger text as its build
-	{ "220x176", 220, 176, 4, 0, 0, true, true, false },	// GD-88 with the 220x176 panel: the same build, found at start-up
+	{ "240x320i10x5", 240, 320, 4, 10, 5, true, true, true, 0, false },
+	{ "240x320", 240, 320, 16, 0, 0, true, false, false, 0, false },	// 240x320 class at full resolution, standard text size
+	{ "320x240", 320, 240, 4, 0, 0, true, true, false, 0, false },	// GD-88: landscape, 16 colors, the larger text as its build
+	{ "220x176", 220, 176, 4, 0, 0, true, true, false, 0, false },	// GD-88 with the 220x176 panel: the same build, found at start-up
 };
 const int sim_geom_count = sizeof sim_geoms / sizeof sim_geoms[0];
+static const sim_geom_t profile_geom = {
+	.name = "320x240iR10", .w = 320, .h = 240, .bpp = 4, .aa = true, .big = true,
+	.inset_right = 10, .gui_profiles = true,
+};
 
 const sim_geom_t *sim_geom_find(const char *name)
 {
 	static sim_geom_t custom;
+	if (strcmp(name, profile_geom.name) == 0)
+		return &profile_geom;
 	for (int i = 0; i < sim_geom_count; i++)
 		if (strcmp(name, sim_geoms[i].name) == 0)
 			return &sim_geoms[i];
@@ -1746,6 +1757,8 @@ static bool bcast_rx;
 // P25 on this radio (UI_FEAT_P25: the VFO's mode tile offers it) only with the "p25" token; NXDN with "nxdn"
 static bool p25_radio;
 static bool nxdn_radio;
+static bool gui_profiles;
+static bool prototype_gui;
 // Hardware options (Settings > Advanced > Hardware, hal_hwopt.h) only with the "hwopt" token: a revision that starts
 // unset and a plain option
 static int8_t hwopt_val[2];
@@ -1770,7 +1783,7 @@ uint32_t ui_svc_features(void)
 	return 0xFFFFFFFFu & ~(soft_volume ? 0 : UI_FEAT_VOLUME) & ~(bcast_rx ? 0 : UI_FEAT_BCAST) &
 	       ~(ref_trim ? 0 : UI_FEAT_REF_TRIM) &
 	       ~(knob_radio ? 0 : UI_FEAT_VOLUME_KNOB) & ~(p25_radio ? 0 : UI_FEAT_P25) &
-	       ~(nxdn_radio ? 0 : UI_FEAT_NXDN);
+	       ~(nxdn_radio ? 0 : UI_FEAT_NXDN) & ~(prototype_gui ? 0 : UI_FEAT_GUI_PROFILES);
 }
 // My radio's names (ui_svc_name_*): placeholders, as the user's own would be; a save writes at once
 static char sim_names[UI_NAME_COUNT][17];
@@ -2269,7 +2282,14 @@ static const hal_gps_t sim_gps_hal;	// every hook NULL: fitted, always on
 bool ui_svc_position(ui_position_t *out)
 {
 	memset(out, 0, sizeof(*out));
-	out->fix = sim_gps != SIM_GPS_SEARCH;
+	out->utc_hms = UINT32_MAX;
+	if (gui_profiles && ui_svc_gps_power() != UI_GPS_POWER_ON)
+		return false;
+	if (sim_gps == SIM_GPS_SEARCH) {
+		out->mode = 1;
+		return true;
+	}
+	out->fix = true;
 	out->sats = 9;
 	out->lat_e7 = 423601000;
 	out->lon_e7 = -710589000;
@@ -2280,7 +2300,11 @@ bool ui_svc_position(ui_position_t *out)
 	out->hdop10 = 9;
 	out->speed_kmh = 4;
 	out->course = 45;
-	out->utc_hms = 123519;
+	out->utc_hms = gui_profiles ? 140800u : 123519u;
+#if CONFIG_UI_PROFILES
+	out->utc_ymd = 20261121u;
+	out->utc_clock_hms = out->utc_hms;
+#endif
 	return true;
 }
 
@@ -2475,7 +2499,8 @@ uint8_t ui_svc_gps_power(void)
 
 bool ui_svc_gps_sat(uint8_t i, ui_gps_sat_t *out)
 {
-	if (i >= SIM_SATS)
+	if (i >= SIM_SATS || (gui_profiles &&
+	     (ui_svc_gps_power() != UI_GPS_POWER_ON || sim_gps != SIM_GPS_FIX)))
 		return false;
 	*out = sim_sats[i];
 	return true;
@@ -2637,10 +2662,13 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 {
 	emergency_on = false;
 	sim_foreign = sim_held = false;
+	gui_profiles = g->gui_profiles;
+	prototype_gui = gui_profiles;
 	disp.width = g->w;
 	disp.height = g->h;
 	disp.bpp = g->bpp;
-	disp.inset_left = disp.inset_right = g->inset;
+	disp.inset_left = g->inset;
+	disp.inset_right = g->inset + g->inset_right;
 	disp.inset_top = disp.inset_bottom = g->inset_tb;
 	disp.fb_safe_area = g->safe;
 	disp.fill_insets = d_fill_insets;
@@ -2656,8 +2684,10 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	board.side_key_names = maps[map].names;
 	board.side_key_count = maps[map].side_n;
 	board.caps = maps[map].caps;
-	board.gps = NULL;
-	sim_gps = SIM_GPS_NONE;
+	board.gps = gui_profiles ? &sim_gps_hal : NULL;
+	sim_gps = gui_profiles ? SIM_GPS_SEARCH : SIM_GPS_NONE;
+	if (gui_profiles)
+		board.caps |= CAP_GPS;
 	board.bands = bands;
 	board.band_count = sizeof bands / sizeof bands[0];
 	power.supply_mv = NULL;
@@ -2731,8 +2761,8 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	view.volume = -1;	// no level passed on yet (power-up)
 	view.volume_src = RVOL_KNOB;
 	bcast_rx = false;
-	p25_radio = false;
-	nxdn_radio = false;
+	p25_radio = gui_profiles && CONFIG_P25;
+	nxdn_radio = gui_profiles && CONFIG_NXDN;
 #if CONFIG_NXDN
 	memset(&view.nxdn, 0, sizeof view.nxdn);
 	view.nxdn.flags = RADIO_NXDN_9600;	// the NXDN settings' defaults (radio_nxdn.c): 9600 bit/s, RAN 1, group 1
@@ -2782,6 +2812,12 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_AUTO_OFF_MIN, 0);
 	ui_svc_setting_set(UI_SET_LOW_BATTERY, 15);
 	ui_svc_setting_set(UI_SET_THEME, 0);
+	ui_svc_setting_set(UI_SET_GPS, gui_profiles);
+#if CONFIG_UI_PROFILES
+	ui_svc_setting_set(UI_SET_GUI_PROFILE, 0);
+	ui_svc_setting_set(UI_SET_GUI_NIGHT, 0);
+	ui_svc_setting_set(UI_SET_GPS_CLOCK, 0);
+#endif
 	ui_svc_setting_set(UI_SET_ACCENT, 0);
 	ui_svc_setting_set(UI_SET_STRIP, 1);
 	ui_svc_setting_set(UI_SET_ALIAS_SHOW, 1);
@@ -3050,6 +3086,14 @@ static bool check(const char *kv, char *err, size_t len)
 			if (strstr(live[i].s, want) != NULL)
 				snprintf(got, sizeof got, "shown in \"%s\"", live[i].s);
 	}
+	else if (strcmp(key, "layout") == 0) {
+		char issue[1][160];
+		int count = sim_layout_issues(issue, 1);
+		if (count > 0)
+			snprintf(got, sizeof got, "%.63s", issue[0]);
+		else
+			snprintf(got, sizeof got, "0");
+	}
 	else if (strcmp(key, "volbar_at") == 0) snprintf(got, sizeof got, "%s", s.volbar_top ? "top" : "bottom");
 	else if (strcmp(key, "volbar") == 0) snprintf(got, sizeof got, "%d", s.volbar);	// the knob's bar, -1 = none
 	else if (strcmp(key, "pttblock") == 0) snprintf(got, sizeof got, "%u", ptt_blocked);
@@ -3104,6 +3148,93 @@ static bool run_token(char *t, char *err, size_t len)
 	char *arg = strchr(t, ':');
 	if (arg != NULL)
 		*arg++ = 0;
+#if CONFIG_UI_PROFILES && defined(GFX_FIT_TRACE)
+	if (strcmp(t, "gui") == 0 && arg != NULL && gui_profiles) {
+		bool use_prototype = strcmp(arg, "prototype") == 0;
+		if (!use_prototype && strcmp(arg, "original") != 0) {
+			snprintf(err, len, "gui: expected original or prototype");
+			return false;
+		}
+		if (use_prototype != prototype_gui) {
+			// Display rows differ between GUIs, so leave menus before changing the presentation.
+			ui_go_home();
+			prototype_gui = use_prototype;
+			ui_st.gui_profiles = use_prototype;
+			ui_apply_setting(UI_SET_THEME, ui_svc_setting_get(UI_SET_THEME));
+			ui_apply_setting(UI_SET_ACCENT, ui_svc_setting_get(UI_SET_ACCENT));
+			ui_apply_setting(UI_SET_STRIP, ui_svc_setting_get(UI_SET_STRIP));
+			ui_apply_setting(UI_SET_GUI_NIGHT, ui_svc_setting_get(UI_SET_GUI_NIGHT));
+			advance(100);
+		}
+		return true;
+	}
+	if (strcmp(t, "prototype") == 0 && arg != NULL && gui_profiles) {
+		if (strcmp(arg, "record_on") == 0 || strcmp(arg, "record_off") == 0)
+			ui_st.gui_sim_recording = strcmp(arg, "record_on") == 0;
+		else if (strcmp(arg, "dstar_on") == 0 || strcmp(arg, "dstar_off") == 0)
+			ui_st.gui_sim_dstar = strcmp(arg, "dstar_on") == 0;
+		else if (strcmp(arg, "talkaround_on") == 0 || strcmp(arg, "talkaround_off") == 0)
+			ui_st.gui_sim_talkaround = strcmp(arg, "talkaround_on") == 0;
+		else if (strcmp(arg, "bt_off") == 0)
+			ui_st.gui_sim_bt = 0;
+		else if (strcmp(arg, "bt_on") == 0)
+			ui_st.gui_sim_bt = 1;
+		else if (strcmp(arg, "bt_connected") == 0)
+			ui_st.gui_sim_bt = 2;
+		else if (strcmp(arg, "crypt_basic") == 0)
+			ui_svc_privacy(true);
+		else if (strcmp(arg, "crypt_actual") == 0)
+			ui_st.gui_sim_crypt = 0;
+		else if (strcmp(arg, "crypt_arc4") == 0)
+			ui_st.gui_sim_crypt = 1;
+		else if (strcmp(arg, "crypt_aes") == 0)
+			ui_st.gui_sim_crypt = 2;
+		else {
+			snprintf(err, len, "prototype: unknown state %s", arg);
+			return false;
+		}
+		ui_dirty();
+		advance(100);
+		return true;
+	}
+#endif
+	if ((strcmp(t, "vox") == 0 || strcmp(t, "rxonly") == 0) && arg != NULL && gui_profiles) {
+		bool on = strcmp(arg, "on") == 0;
+		if (!on && strcmp(arg, "off") != 0) {
+			snprintf(err, len, "%s: expected on or off", t);
+			return false;
+		}
+		if (strcmp(t, "vox") == 0)
+			view.vox_on = on;
+		else
+			view.ch.rx_only = on;
+		changed();
+		advance(100);
+		return true;
+	}
+#if CONFIG_DMR_ROAMING
+	if (strcmp(t, "roam") == 0 && arg != NULL && gui_profiles) {
+		uint8_t state;
+		if (strcmp(arg, "off") == 0)
+			state = RROAM_STATE_OFF;
+		else if (strcmp(arg, "ready") == 0 || strcmp(arg, "weak") == 0)
+			state = RROAM_STATE_WATCH;
+		else if (strcmp(arg, "searching") == 0)
+			state = RROAM_STATE_SEARCH;
+		else if (strcmp(arg, "locked") == 0)
+			state = RROAM_STATE_LOCKED;
+		else {
+			snprintf(err, len, "roam: expected off, ready, searching, weak, or locked");
+			return false;
+		}
+		view.roam.state = state;
+		view.roam.zone_on = state != RROAM_STATE_OFF;
+		view.roam.weak = strcmp(arg, "weak") == 0;
+		changed();
+		advance(100);
+		return true;
+	}
+#endif
 	if (strcmp(t, "long") == 0)
 		return press(arg, true, err, len);
 	if (strcmp(t, "ptt") == 0) {
@@ -3239,6 +3370,13 @@ static bool run_token(char *t, char *err, size_t len)
 			if (*p == '_')
 				*p = ' ';
 		rx_start(src, dst, kind != 'p', alias);
+		if (kind == 'e' || kind == 'i') {
+			view.dmr.call.encrypted = true;
+			view.dmr.call.pi_header = kind == 'i';
+			if (!view.dmr.privacy || view.dmr.call.pi_header)
+				view.dmr.state = RDMR_RX_OTHER;
+			changed();
+		}
 		if (t[0] == 'c') {
 			advance(2000);
 			rx_end();
@@ -3769,7 +3907,11 @@ static bool run_token(char *t, char *err, size_t len)
 	if (strcmp(t, "gps") == 0 && arg != NULL) {	// gps:none, gps:off, gps:search, gps:fix (above ui_svc_position)
 		// Settings > Location > GPS: flows share the store
 		ui_svc_setting_set(UI_SET_GPS, strcmp(arg, "off") != 0);
-		if (strcmp(arg, "none") != 0) {
+		if (strcmp(arg, "none") == 0) {
+			sim_gps = SIM_GPS_NONE;
+			board.caps &= ~CAP_GPS;
+			board.gps = NULL;
+		} else {
 			sim_gps = strcmp(arg, "fix") == 0 ? SIM_GPS_FIX : SIM_GPS_SEARCH;
 			board.caps |= CAP_GPS;
 			board.gps = &sim_gps_hal;

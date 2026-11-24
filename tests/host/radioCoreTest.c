@@ -4486,7 +4486,7 @@ static void test_position(void)
 	static const char rmc[] = "$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A";
 	static const char rmc_void[] = "$GPRMC,123519,V,,,,,,,230394,,,N*51";
 	lrrpPosition_t lp;
-	ui_position_t up;
+	ui_position_t up = { 0 };
 	int32_t lat, lon;
 	uint32_t err;
 	bool send = true;
@@ -4514,9 +4514,15 @@ static void test_position(void)
 	CHECK(position_utc_fields(&gps_date, &gps_utc, now));
 	CHECK(gps_date == 230394u && gps_utc == 123519u);
 #endif
+#if CONFIG_UI_PROFILES
+	CHECK(ui_svc_position(&up) && up.fix && up.utc_ymd == 0);	// GGA alone has no date
+#endif
 	position_nmea(rmc, strlen(rmc), true, now);
 	CHECK(ui_svc_position(&up) && up.fix && up.sats == 8 && up.lat_e7 == 481173000 && up.lon_e7 == 115166666);
 	CHECK(up.alt_ok && up.alt_m == 545 && up.course == 84);
+#if CONFIG_UI_PROFILES
+	CHECK(up.utc_ymd == 20940323 && up.utc_clock_hms == 123519);
+#endif
 	position_cfg_t original_cfg;
 	position_get_cfg(&original_cfg);
 #if CONFIG_SATELLITE_TLE
@@ -4582,6 +4588,25 @@ static void test_position(void)
 	      lp.location.lonMinutes10000 == 310000);
 	CHECK(lp.location.speedKnots == 22 && lp.hasCourse && lp.courseDegrees == 84 && lp.utcYear == 2094 &&
 	      lp.utcMonth == 3 && lp.utcDay == 23 && lp.location.utcHours == 12 && lp.location.utcMinutes == 35);
+#if CONFIG_UI_PROFILES
+	static const char *const bad_clock[] = {
+		"$GPRMC,,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*67",
+		"$GPRMC,bogus,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*0B",
+		"$GPRMC,0,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*57",
+	};
+	for (unsigned i = 0; i < sizeof bad_clock / sizeof bad_clock[0]; i++) {
+		position_nmea(bad_clock[i], strlen(bad_clock[i]), true, now);
+		CHECK(ui_svc_position(&up) && up.fix && up.utc_ymd == 0);
+	}
+	static const char midnight[] = "$GPRMC,000000.00,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*49";
+	position_nmea(midnight, strlen(midnight), true, now);
+	CHECK(ui_svc_position(&up) && up.fix && up.utc_ymd == 20940323 && up.utc_clock_hms == 0);
+	position_gps_t stale_clock;
+	uint32_t later = now + POSITION_STALE_MS;
+	position_nmea(gga, strlen(gga), true, later);
+	CHECK(position_gps(&stale_clock, later) && stale_clock.fix && stale_clock.utc_ymd == 0);
+	position_nmea(rmc, strlen(rmc), true, now);
+#endif
 	dmrDataSettings_t ds;
 	dmrDataServiceGetSettings(&ds);
 	CHECK(ds.hasGps);			// LRRP takes triggered requests: a GPS is there
@@ -6481,6 +6506,33 @@ static const hal_flash_map_t reset_map = {
 	.calibration_addr = 0x10000u, .calibration_size = 0x200u,
 	.native_addr = 0x30000u, .native_size = 0x4000u,
 };
+
+#if CONFIG_UI_PROFILES
+static void test_display_profile_settings(void)
+{
+	sim_flash_create(0x40000u, &reset_map);
+	CHECK(storage_init());
+	CHECK(settings_init() == SETTINGS_DEFAULTS);
+	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 0 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
+	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 0);
+	CHECK(ui_svc_setting_set(UI_SET_THEME, 2));
+	CHECK(ui_svc_setting_set(UI_SET_GUI_PROFILE, 1));
+	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 1));
+	CHECK(ui_svc_setting_set(UI_SET_GPS_CLOCK, 1));
+	memset(ram, 0, sizeof ram);		// reboot clears the service's RAM-only settings
+	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED);
+	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 1 &&
+	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2);
+	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 0));
+	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED);
+	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
+	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2);
+	sim_flash.map = NULL;
+	storage_init();
+	settings_init();
+	sim_flash_free();
+}
+#endif
 
 static void test_factory_reset(void)
 {
@@ -11951,6 +12003,9 @@ int main(void)
 #endif
 	test_dmr_data_glue();	// (last: the data service's state carries over)
 	test_factory_reset();
+#if CONFIG_UI_PROFILES
+	test_display_profile_settings();
+#endif
 	test_volume_step_of();
 	CHECK(rekeys == 0);	// every keying in every test above was ended before the next
 	printf("# radioCoreTest: %d checks, %s\n", checks, failures ? "FAILED" : "PASSED");

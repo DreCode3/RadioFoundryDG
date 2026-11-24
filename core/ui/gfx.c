@@ -293,6 +293,24 @@ void gfx_pixel(int x, int y, color_t c)
 		span(x, x + 1, y, c);
 }
 
+#if CONFIG_UI_PROFILES
+void gfx_coverage_pixel(int x, int y, color_t fg, unsigned coverage)
+{
+	x += ox;
+	y += oy;
+	if (!coverage || x < clip_x0 || x >= clip_x1 || y < clip_y0 || y >= clip_y1)
+		return;
+#if CONFIG_FONT_AA
+	if (coverage < 3) {
+		edge_pixel(x, y, fg, coverage);
+		return;
+	}
+#endif
+	if (coverage >= 2)
+		span(x, x + 1, y, fg);
+}
+#endif
+
 color_t gfx_get_pixel(int x, int y)
 {
 	if (x < 0 || y < 0 || x >= vw || y >= vh)
@@ -387,6 +405,20 @@ void gfx_hline(int x, int y, int w, color_t c) { gfx_fill(x, y, w, 1, c); }
 void gfx_vline(int x, int y, int h, color_t c) { gfx_fill(x, y, 1, h, c); }
 
 // gfx_fill directly, not through the line helpers: one frame less on the deepest drawing path (stack-check.md)
+#if CONFIG_UI_PROFILES
+void gfx_reserve_colors(const color_t *colors, size_t count)
+{
+#if GFX_INDEXED
+	if (bpp == 4)
+		for (size_t i = 0; i < count; i++)
+			pal_index(colors[i]);
+#else
+	(void)colors;
+	(void)count;
+#endif
+}
+#endif
+
 void gfx_rect(int x, int y, int w, int h, color_t c)
 {
 	gfx_fill(x, y, w, 1, c);
@@ -734,6 +766,108 @@ int gfx_text(const font_t *f, int x, int y, const char *s, color_t fg)
 {
 	return text(f, x, y, s, fg, false, 0);
 }
+
+#if CONFIG_UI_PROFILES
+static unsigned title_coverage(const uint8_t *row, int x, int glyph_bpp)
+{
+#if CONFIG_FONT_AA
+	if (glyph_bpp == 2)
+		return (row[x >> 2] >> (6 - 2 * (x & 3))) & 3u;
+#else
+	(void)glyph_bpp;
+#endif
+	return (row[x >> 3] & (0x80u >> (x & 7))) ? 3u : 0;
+}
+
+bool gfx_text_title(const font_t *f, int cx, int y, int max_w, const char *s, color_t fg, int height_quarters)
+{
+	// Scale the face and add one pixel of weight. Keep the same height on long names by using
+	// the font's native cell width when the wider letterforms don't fit.
+	int wide_scale = height_quarters + 4;
+	int wide = 0, narrow = 0;
+	for (const char *p = s; *p;) {
+		int cell = f->w, seq = 1;
+#if CONFIG_LANG_ZH
+		cell = char_w(f, gfx_utf8_next(p, &seq));
+#endif
+		wide += cell * wide_scale / 8 + 1;
+		narrow += cell + 1;
+		if (narrow > max_w)
+			return false;
+		p += seq;
+	}
+	int scale = wide <= max_w ? wide_scale : 8;
+	int title_w = wide <= max_w ? wide : narrow;
+	int x = cx - title_w / 2, top_y = y - f->ascent * height_quarters / 4;
+	int title_h = f->h * height_quarters / 4;
+#ifdef GFX_FIT_TRACE
+	int ink_top = title_h, ink_end = 0;
+#endif
+	for (const char *p = s; *p;) {
+		int seq = 1, cell = f->w, glyph_bpp = f->bpp, top, count;
+		const uint8_t *glyph;
+#if CONFIG_LANG_ZH
+		uint32_t cp = gfx_utf8_next(p, &seq);
+		if (cp > 0xFF) {
+			cell = CJK_FONT_W;
+			glyph_bpp = 1;
+			top = f->h - CJK_FONT_H;
+			count = CJK_FONT_H;
+			glyph = cjk_font_glyph(cp);
+		} else
+#endif
+		{
+			glyph = font_glyph(f, (uint8_t)*p, &top, &count);
+		}
+		int scaled = cell * scale / 8;
+#ifdef GFX_FIT_TRACE
+		// The scaled cell can extend beyond the reserved band when only its capitals are used.
+		int first = glyph == NULL ? 2 : (top * height_quarters + 3) / 4;
+		int end = glyph == NULL ? title_h - 2 : ((top + count) * height_quarters + 3) / 4;
+		if (end > title_h)
+			end = title_h;
+		if (first < end) {
+			if (first < ink_top)
+				ink_top = first;
+			if (end > ink_end)
+				ink_end = end;
+		}
+#endif
+		if (glyph == NULL) {
+			gfx_rect(x + 1, top_y + 2, scaled - 1, title_h - 4, fg);
+		} else {
+			int bytes = (cell * glyph_bpp + 7) / 8;
+			for (int dy = 0; dy < title_h; dy++) {
+				int row = dy * 4 / height_quarters - top;
+				if (row < 0 || row >= count)
+					continue;
+				const uint8_t *data = glyph + row * bytes;
+				unsigned prev = 0;
+				for (int dx = 0; dx <= scaled; dx++) {
+					unsigned a = dx < scaled ? title_coverage(data, dx * 8 / scale, glyph_bpp) : 0;
+					unsigned weight = a > prev ? a : prev;
+					prev = a;
+					if (weight == 3) {
+						gfx_pixel(x + dx, top_y + dy, fg);
+#if CONFIG_FONT_AA
+					} else if (weight && x + dx + ox >= clip_x0 && x + dx + ox < clip_x1 &&
+						   top_y + dy + oy >= clip_y0 && top_y + dy + oy < clip_y1) {
+						edge_pixel(x + dx + ox, top_y + dy + oy, fg, weight);
+#endif
+					}
+				}
+			}
+		}
+		x += scaled + 1;
+		p += seq;
+	}
+#ifdef GFX_FIT_TRACE
+	if (ink_top < ink_end)
+		trace(GFX_TRACE_TEXT, cx - title_w / 2, top_y + ink_top, title_w, ink_end - ink_top, s);
+#endif
+	return true;
+}
+#endif
 
 int gfx_text_bg(const font_t *f, int x, int y, const char *s, color_t fg, color_t bg)
 {

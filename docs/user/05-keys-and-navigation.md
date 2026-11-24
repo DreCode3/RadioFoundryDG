@@ -69,6 +69,10 @@ Home
 In numbered lists (the hub, Tools, Settings, actions, quick settings) a number key picks the row with that number
 directly. For example, **OK**, **6** opens Tools.
 
+On displays with GUI profiles, the menu lists and their submenus use larger headings and spaced, rounded rows.
+The main menu fits its shortcuts in two columns. Use **Up** and **Down** to move through them in number order.
+Open **Zones** to see the current zone and other zones.
+
 In long lists (Contacts, Channels, a zone's channels) the number keys filter the list by name, the way a phone
 keypad spells words. **2** is ABC, **3** is DEF, and so on to **9** (WXYZ). Each key narrows the list to names with a
 word that starts with those letters. **Back** deletes the last key typed, then leaves the list.

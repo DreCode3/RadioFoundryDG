@@ -44,6 +44,10 @@ void gfx_clip(int x, int y, int w, int h);
 void gfx_clip_off(void);
 
 void gfx_pixel(int x, int y, color_t c);
+#if CONFIG_UI_PROFILES
+// Blend foreground coverage from 0 (transparent) to 3 (solid) at one native pixel.
+void gfx_coverage_pixel(int x, int y, color_t fg, unsigned coverage);
+#endif
 color_t gfx_get_pixel(int x, int y);	// RGB565, or 0 / 1 on a 1 bpp panel
 // n bytes of the frame as RGB565 (little endian, rows of width * 2 bytes) from byte off: screen captures of a bpp 4
 // panel. At bpp 16 the frame buffer itself. Always the whole panel: a safe-area frame buffer (hal_display_t
@@ -65,6 +69,10 @@ void gfx_fb_rect(gfx_fb_rect_t *r);
 // bpp 4 the palette (0 for an entry not set), bpp 1 the paper (0) and ink (1) of the UI gallery's screenshots, bpp 16
 // 0
 color_t gfx_palette(uint8_t i);
+#if CONFIG_UI_PROFILES
+// Reserve solid colors for the current frame before anti-aliased text can consume their palette slots.
+void gfx_reserve_colors(const color_t *colors, size_t count);
+#endif
 #define GFX_PAPER	RGB565(0xC8, 0xD0, 0xB8)
 #define GFX_INK		RGB565(0x14, 0x18, 0x10)
 
@@ -93,6 +101,10 @@ int gfx_text(const font_t *f, int x, int y, const char *s, color_t fg);
 // The same with each glyph cell filled with bg first
 int gfx_text_bg(const font_t *f, int x, int y, const char *s, color_t fg, color_t bg);
 int gfx_text_width(const font_t *f, const char *s);
+#if CONFIG_UI_PROFILES
+// Center an enlarged, emboldened title on cx, with its baseline at y. False if it can't fit in max_w.
+bool gfx_text_title(const font_t *f, int cx, int y, int max_w, const char *s, color_t fg, int height_quarters);
+#endif
 // Text alternates (font.h): s with every group at its alternative number level (or its last one) into out; *more says
 // whether a higher level would give something different. Returns the length
 size_t gfx_text_alt(const char *s, int level, char *out, size_t cap, bool *more);

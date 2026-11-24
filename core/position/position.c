@@ -30,6 +30,10 @@ static struct {
 	bool gps_off;		// Settings > Location > GPS is off: the board's fix doesn't count (position_gps_enable)
 	bool gps_heard;		// the board GPS has sent a valid sentence (fix or not), last at gps_heard_ms
 	uint32_t gps_heard_ms;
+#if CONFIG_UI_PROFILES
+	uint32_t gps_clock_ms;
+	uint32_t gps_utc_ymd, gps_utc_hms;
+#endif
 	uint8_t gps_sats;	// satellites used, from its last GGA
 	uint16_t gps_hdop10;	// ... and its dilution x 10, 0xFFFF unknown
 #if CONFIG_GPS_SKY
@@ -337,6 +341,20 @@ bool position_now(int32_t *lat, int32_t *lon, uint32_t *err_m, bool *dmr_gps, ui
 }
 
 #if CONFIG_GPS || CONFIG_POSITION_HOST
+#if CONFIG_GPS && CONFIG_UI_PROFILES
+// RMC carries the date and time together. GGA reports just the time, so it cannot advance this clock.
+static uint32_t gps_date(uint32_t date, uint32_t hms)
+{
+	static const uint8_t days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+	unsigned day = date / 10000u, month = date / 100u % 100u, year = 2000u + date % 100u;
+	if (month < 1 || month > 12 || day < 1 || hms / 10000u >= 24 || hms / 100u % 100u >= 60 ||
+	    hms % 100u > 60)
+		return 0;
+	unsigned max_day = days[month - 1] + (month == 2 && year % 4u == 0);
+	return day <= max_day ? year * 10000u + month * 100u + day : 0;
+}
+#endif
+
 void position_nmea(const char *s, size_t n, bool gps, uint32_t now_ms)
 {
 	nmea_fix_t x;
@@ -378,6 +396,15 @@ void position_nmea(const char *s, size_t n, bool gps, uint32_t now_ms)
 		UNLOCK();
 		return;
 	}
+#if CONFIG_GPS && CONFIG_UI_PROFILES
+	if (gps && !x.fix)
+		p.gps_utc_ymd = 0;
+	else if (gps && x.kind == NMEA_RMC) {
+		p.gps_utc_ymd = x.utc_valid && x.date_valid ? gps_date(x.date, x.utc_hms) : 0;
+		p.gps_utc_hms = x.utc_hms;
+		p.gps_clock_ms = now_ms;
+	}
+#endif
 #if CONFIG_GPS && CONFIG_POSITION_HOST
 	fix_t *f = gps ? &p.gps : &p.host;
 #elif CONFIG_GPS
@@ -427,6 +454,9 @@ void position_gps_enable(bool on)
 		p.gps_heard = false;
 		p.gps.utc_date_valid = false;
 		p.gps.utc_time_valid = false;
+#if CONFIG_UI_PROFILES
+		p.gps_utc_ymd = 0;
+#endif
 #if CONFIG_GPS_SKY
 		nmea_sky_init(&p.sky);
 #endif
@@ -453,6 +483,11 @@ bool position_gps(position_gps_t *out, uint32_t now_ms)
 		out->speed_kmh = p.gps.f.speed_kmh;
 		out->course = p.gps.f.course;
 		out->utc_hms = p.gps.f.utc_hms;
+#if CONFIG_UI_PROFILES
+		out->utc_ymd = out->fix && (int32_t)(now_ms - p.gps_clock_ms) < (int32_t)POSITION_STALE_MS ?
+			      p.gps_utc_ymd : 0;
+		out->utc_clock_hms = out->utc_ymd != 0 ? p.gps_utc_hms : 0;
+#endif
 #if CONFIG_GPS_SKY
 		out->mode = p.sky.mode;
 		out->in_view = p.sky.n;

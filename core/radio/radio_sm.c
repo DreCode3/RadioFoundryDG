@@ -2218,6 +2218,7 @@ static void copy_call(radio_sm_t *sm, const dmr_caller_t *c, radio_dmr_call_t *o
 	out->encrypted = c->encrypted;
 	out->emergency = c->emergency;
 	out->pi_header = c->pi_header;
+	out->privacy_blocked = c->privacy_blocked;
 	find_name(sm, c->src, false, out->src_name);
 	find_name(sm, c->dst, c->group, out->dst_name);
 	out->gps_valid = false;

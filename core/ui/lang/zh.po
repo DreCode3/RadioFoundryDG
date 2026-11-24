@@ -119,7 +119,7 @@ msgctxt "CPLUG_TOAST_NOT_SAVED"
 msgid "Not saved"
 msgstr "未保存"
 
-#: core/ui/ui_app.c core/ui/ui_menus.c core/ui/ui_screens.c
+#: core/ui/ui_app.c core/ui/ui_dual.c core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "VALUE_ALL_CALL"
 msgid "All call"
 msgstr "全呼"
@@ -643,6 +643,16 @@ msgstr "此处无内容可存"
 msgctxt "LIST_TOAST_NOTHING_TO_OPEN"
 msgid "Nothing to open"
 msgstr "无内容可打开"
+
+#: core/ui/ui_app.c core/ui/ui_find.c
+msgctxt "FIND_CHIP_MENU"
+msgid "Menu"
+msgstr "菜单"
+
+#: core/ui/ui_app.c core/ui/ui_menus.c
+msgctxt "HINT_OK_OPEN_BACK"
+msgid "OK Open  Back"
+msgstr "OK 打开  返回"
 
 #: core/ui/ui_app.c
 msgctxt "LIST_TITLE_FIND"
@@ -1400,11 +1410,6 @@ msgid "Phone call "
 msgstr "电话 "
 
 #: core/ui/ui_find.c
-msgctxt "FIND_CHIP_MENU"
-msgid "Menu"
-msgstr "菜单"
-
-#: core/ui/ui_find.c
 msgctxt "FIND_TOAST_NO_ACTIONS"
 msgid "No actions for this result"
 msgstr "此结果无操作"
@@ -1788,6 +1793,11 @@ msgstr "新 APRS 消息"
 msgctxt "MSG_HINT_LIST"
 msgid "OK open  # reply  Back"
 msgstr "OK 打开  # 回复  返回"
+
+#: core/ui/ui_menus.c
+msgctxt "MSG_HINT_NEW"
+msgid "OK Compose  Back"
+msgstr "OK 写消息  返回"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_EMPTY"
@@ -3675,6 +3685,26 @@ msgid "Pink"
 msgstr "粉"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_VALUE_PROFILE_COMMERCIAL"
+msgid "Commercial"
+msgstr "商用"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_PROFILE_AMATEUR"
+msgid "Amateur"
+msgstr "业余"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_DISPLAY_DAY"
+msgid "Day"
+msgstr "日间"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_DISPLAY_NIGHT"
+msgid "Night"
+msgstr "夜间"
+
+#: core/ui/ui_menus.c
 msgctxt "VALUE_3_MIN"
 msgid "3 min"
 msgstr "3 分钟"
@@ -3933,6 +3963,21 @@ msgstr "结束步骤"
 msgctxt "SIG_ROW_IDLE_STEPS"
 msgid "Idle steps"
 msgstr "空闲步骤"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GUI_PROFILE"
+msgid "Display Profile"
+msgstr "显示配置"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_DAY_NIGHT"
+msgid "Day/Night"
+msgstr "日间/夜间"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GPS_CLOCK"
+msgid "GPS clock"
+msgstr "GPS 时钟"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_BRIGHTNESS"
@@ -4251,13 +4296,13 @@ msgstr "连接"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_POWER_SAVING"
-msgid "Power saving"
-msgstr "省电"
+msgid "Power"
+msgstr "电源"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_TITLE_POWER_SAVING"
-msgid "Power Saving"
-msgstr "省电"
+msgid "Power"
+msgstr "电源"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_KEYS"
@@ -4750,14 +4795,74 @@ msgid "Tracking stopped"
 msgstr "跟踪已停止"
 
 #: core/ui/ui_screens.c
-msgctxt "TOP_STATE_IDLE"
-msgid "IDLE"
-msgstr "空闲"
+msgctxt "CLOCK_MONTH_JAN"
+msgid "Jan"
+msgstr "1月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_FEB"
+msgid "Feb"
+msgstr "2月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_MAR"
+msgid "Mar"
+msgstr "3月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_APR"
+msgid "Apr"
+msgstr "4月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_MAY"
+msgid "May"
+msgstr "5月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_JUN"
+msgid "Jun"
+msgstr "6月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_JUL"
+msgid "Jul"
+msgstr "7月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_AUG"
+msgid "Aug"
+msgstr "8月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_SEP"
+msgid "Sep"
+msgstr "9月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_OCT"
+msgid "Oct"
+msgstr "10月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_NOV"
+msgid "Nov"
+msgstr "11月"
+
+#: core/ui/ui_screens.c
+msgctxt "CLOCK_MONTH_DEC"
+msgid "Dec"
+msgstr "12月"
 
 #: core/ui/ui_screens.c
 msgctxt "TOP_STATE_NO_TX"
 msgid "NO TX"
 msgstr "禁发"
+
+#: core/ui/ui_screens.c
+msgctxt "TOP_STATE_IDLE"
+msgid "IDLE"
+msgstr "空闲"
 
 #: core/ui/ui_screens.c
 msgctxt "TOP_CHIP_DUAL"
@@ -5408,6 +5513,11 @@ msgstr "{返回：信道通话组|返回 默认目标}"
 msgctxt "HOME_HINT_VFO"
 msgid "0-9 freq  * Quick  Up/Dn"
 msgstr "0-9 频率  * 快捷  上下"
+
+#: core/ui/ui_screens.c
+msgctxt "HOME_STATE_NO_TARGET"
+msgid "No talk target"
+msgstr "无通话目标"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_BODY_HEARD"
