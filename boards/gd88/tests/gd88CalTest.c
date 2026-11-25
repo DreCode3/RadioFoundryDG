@@ -13,7 +13,7 @@ static int failures;
 
 #define CHECK(cond) do { if (!(cond)) { printf("FAIL %s:%d: %s\n", __FILE__, __LINE__, #cond); failures++; } } while (0)
 
-static uint8_t flash_page[GD88_CAL_LEN], nand_page[GD88_CAL_LEN];
+static uint8_t flash_page[GD88_CAL_LEN], nand_page[GD88_CAL_LEN], scratch[GD88_CAL_LEN];
 
 static void put16(uint8_t *p, uint16_t v)
 {
@@ -81,29 +81,36 @@ static void test_nand_load(void)
 	build(nand_page, 4);
 	put16(nand_page + 0x045 + 1, 1234);
 	nand_reads = 0;
-	CHECK(gd88_cal_load(flash_page, nand_reader));
+	CHECK(gd88_cal_load(flash_page, nand_reader, scratch));
 	CHECK(gd88_cal_source() == GD88_CAL_NAND && gd88_cal_counter() == 4 && nand_reads == 2);
+	memset(scratch, 0, sizeof scratch);
 	CHECK(gd88_cal_pa(403175000, true) == 1234);
+	CHECK(gd88_cal_rx_tune(136125000) == 3000);
+	CHECK(gd88_cal_squelch_db(136125000, 1) == 129);
+	CHECK(gd88_cal_tx_center() == 0x90);
+	nand_reads = 0;
+	CHECK(gd88_cal_load(flash_page, nand_reader, NULL));
+	CHECK(gd88_cal_source() == GD88_CAL_FLASH && gd88_cal_counter() == 3 && nand_reads == 0);
 	// Flash newer: only the NAND header is read
 	put32(flash_page + 4, 9);
 	nand_reads = 0;
-	CHECK(gd88_cal_load(flash_page, nand_reader));
+	CHECK(gd88_cal_load(flash_page, nand_reader, scratch));
 	CHECK(gd88_cal_source() == GD88_CAL_FLASH && gd88_cal_counter() == 9 && nand_reads == 1);
 	CHECK(gd88_cal_pa(403175000, true) == 1500);
 	// NAND wins on its header but the page read fails: the flash copy, or nothing without one
 	put32(flash_page + 4, 2);
 	fail_above = 8;
-	CHECK(gd88_cal_load(flash_page, nand_reader));
+	CHECK(gd88_cal_load(flash_page, nand_reader, scratch));
 	CHECK(gd88_cal_source() == GD88_CAL_FLASH && gd88_cal_counter() == 2);
-	CHECK(!gd88_cal_load(NULL, nand_reader));
+	CHECK(!gd88_cal_load(NULL, nand_reader, scratch));
 	CHECK(gd88_cal_source() == GD88_CAL_NONE && !gd88_cal_valid());
 	// The header read fails too: as if there were no NAND
 	fail_above = 0;
-	CHECK(gd88_cal_load(flash_page, nand_reader) && gd88_cal_source() == GD88_CAL_FLASH);
-	CHECK(!gd88_cal_load(NULL, nand_reader));
+	CHECK(gd88_cal_load(flash_page, nand_reader, scratch) && gd88_cal_source() == GD88_CAL_FLASH);
+	CHECK(!gd88_cal_load(NULL, nand_reader, scratch));
 	fail_above = 0xFFFFFFFFu;
 	// No NAND at all
-	CHECK(!gd88_cal_load(NULL, NULL));
+	CHECK(!gd88_cal_load(NULL, NULL, NULL));
 }
 
 static void test_choice(void)
@@ -121,13 +128,13 @@ static void test_choice(void)
 	nand_page[3] = 0xFF;
 	CHECK(gd88_cal_choose(flash_page, nand_page) == GD88_CAL_NONE);
 
-	CHECK(!gd88_cal_load(flash_page, nand_reader));
+	CHECK(!gd88_cal_load(flash_page, nand_reader, scratch));
 	CHECK(!gd88_cal_valid() && gd88_cal_source() == GD88_CAL_NONE && gd88_cal_counter() == 0);
 	CHECK(gd88_cal_pa(446000000, true) == 0 && gd88_cal_rx_tune(446000000) == 0);
 	CHECK(gd88_cal_tx_center() == 0x80 && gd88_cal_squelch_db(446000000, 5) == 136);
 
 	build(flash_page, 12);
-	CHECK(gd88_cal_load(flash_page, NULL));
+	CHECK(gd88_cal_load(flash_page, NULL, NULL));
 	CHECK(gd88_cal_valid() && gd88_cal_source() == GD88_CAL_FLASH && gd88_cal_counter() == 12);
 	// The page is copied: later changes to the source don't show
 	put16(flash_page + 0x045 + 1, 7);
@@ -137,7 +144,7 @@ static void test_choice(void)
 static void test_interpolation(void)
 {
 	build(flash_page, 1);
-	gd88_cal_load(flash_page, NULL);
+	gd88_cal_load(flash_page, NULL, NULL);
 	// UHF: at and below point 1 flat, exact points, midpoint, above point 8 flat at point 8
 	CHECK(gd88_cal_pa(400000000, true) == 1500);
 	CHECK(gd88_cal_pa(403175000, true) == 1500);
@@ -169,7 +176,7 @@ static void test_limits(void)
 	build(flash_page, 1);
 	put16(flash_page + 0x045 + 1 + 2 * 3, 0xFFFF);	// point 4 erased
 	put16(flash_page + 0x056 + 1 + 2 * 0, 0);
-	gd88_cal_load(flash_page, NULL);
+	gd88_cal_load(flash_page, NULL, NULL);
 	CHECK(gd88_cal_pa(436625000, true) == 0);
 	CHECK(gd88_cal_pa(400000000, false) == 0);
 	CHECK(gd88_cal_pa(414175000, true) == 1600);
@@ -188,7 +195,7 @@ static void test_limits(void)
 static void test_squelch(void)
 {
 	build(flash_page, 1);
-	gd88_cal_load(flash_page, NULL);
+	gd88_cal_load(flash_page, NULL, NULL);
 	CHECK(gd88_cal_squelch_db(446000000, 0) == 136);
 	CHECK(gd88_cal_squelch_db(446000000, 10) == 136);
 	CHECK(gd88_cal_squelch_db(405000000, 1) == 119);	// segment 1
@@ -207,12 +214,12 @@ static void test_tx_plan(void)
 {
 	gd88_tx_plan_t p = { 11, 22, 33 };
 	// No page: refused, and the plan isn't touched
-	CHECK(!gd88_cal_load(NULL, NULL));
+	CHECK(!gd88_cal_load(NULL, NULL, NULL));
 	CHECK(!gd88_cal_tx_plan(403175000, 4, &p) && p.pa == 11 && p.on_us == 22 && p.off_us == 33);
 	CHECK(gd88_cal_zero(403175000) == 0);
 
 	build(flash_page, 1);
-	gd88_cal_load(flash_page, NULL);
+	gd88_cal_load(flash_page, NULL, NULL);
 	// The fixed levels are the band's table, whatever the rows; the delays come with them
 	const gd88_power_band_t *u = &gd88_tx_levels[1], *v = &gd88_tx_levels[0];
 	CHECK(gd88_cal_tx_plan(403175000, 0, &p) && p.pa == u->fixed[0] && p.on_us == 100 && p.off_us == 1800);
@@ -228,7 +235,7 @@ static void test_tx_plan(void)
 	// A PA row that isn't one (erased, or beyond the DAC) refuses just that frequency, the fixed levels too
 	put16(flash_page + 0x045 + 1 + 2 * 3, 0xFFFF);
 	put16(flash_page + 0x056 + 1 + 2 * 0, 0);
-	gd88_cal_load(flash_page, NULL);
+	gd88_cal_load(flash_page, NULL, NULL);
 	CHECK(!gd88_cal_tx_plan(436625000, 4, &p) && !gd88_cal_tx_plan(436625000, 0, &p));
 	CHECK(!gd88_cal_tx_plan(400000000, 0, &p));
 	CHECK(gd88_cal_tx_plan(414175000, 4, &p));
@@ -301,7 +308,7 @@ static void test_dmr_timing(void)
 static void test_fd_squelch(void)
 {
 	build(flash_page, 1);
-	gd88_cal_load(flash_page, NULL);
+	gd88_cal_load(flash_page, NULL, NULL);
 	const uint32_t f = 405000000;
 	CHECK(gd88_fd_squelch_noise(f, 200, 20, 10, false) == radio_squelch_open_below(9) - 1u);	// strong and quiet
 	uint8_t n = gd88_fd_squelch_noise(f, 108, 30, 10, false);	// level 5's threshold exactly

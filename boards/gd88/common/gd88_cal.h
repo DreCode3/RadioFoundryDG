@@ -18,9 +18,11 @@ typedef enum { GD88_CAL_NONE, GD88_CAL_FLASH, GD88_CAL_NAND } gd88_cal_source_t;
 gd88_cal_source_t gd88_cal_choose(const uint8_t *flash_copy, const uint8_t *nand_copy);
 // Reads NAND main-area bytes (gd88_nand_read)
 typedef bool (*gd88_cal_read_fn)(uint32_t addr, void *buf, uint32_t len);
-// Copy the chosen page (GD88_CAL_LEN bytes) into RAM. Either argument may be NULL. A NAND copy that wins on its header
-// but can't be read whole gives way to the flash copy. False if neither copy is usable
-bool gd88_cal_load(const uint8_t *flash_copy, gd88_cal_read_fn nand_read);
+// Cache the fields used by the radio. NAND needs GD88_CAL_LEN bytes of temporary scratch. If the reader or scratch
+// is absent, or a winning NAND page cannot be read whole, try flash. False if neither copy is usable
+bool gd88_cal_load(const uint8_t *flash_copy, gd88_cal_read_fn nand_read, uint8_t *scratch);
+// Probe NAND and load the cache during board initialization
+void gd88_cal_init(void);
 bool gd88_cal_valid(void);
 gd88_cal_source_t gd88_cal_source(void);
 uint32_t gd88_cal_counter(void);

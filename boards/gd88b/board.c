@@ -70,8 +70,7 @@ void board_early_init(void)
 void board_init(void)
 {
 	// B's own factory page: both copies, the higher save counter wins (its NAND is on PTA18 as A's)
-	bool nand = gd88_nand_init();
-	gd88_cal_load((const uint8_t *)GD88_CAL_FLASH_ADDR, nand ? gd88_nand_read_factory : NULL);
+	gd88_cal_init();
 }
 
 #define STUB_BLINK_MS		250u

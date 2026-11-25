@@ -8,6 +8,7 @@
 // The geometry is the TC58CVG1S3HRAIJ's (2 Gbit, 2 KB pages, 64 pages a block), as in hardware-db25d.md: A's chip
 // answers ID 98 EB, that part, and keeps the settings.
 #include "gd88_rf.h"
+#include "gd88_cal.h"
 #include "config.h"
 #include "platform.h"
 #include "flash/spi_nand/spi_nand.h"
@@ -67,7 +68,7 @@ void gd88_nand_unlock(void)
 	}
 }
 
-bool gd88_nand_init(void)
+static bool nand_init(void)
 {
 	if (lock == NULL) {
 		lock = xSemaphoreCreateRecursiveMutex();
@@ -109,7 +110,8 @@ bool gd88_nand_read(uint32_t addr, void *buf, uint32_t len)
 	return ok;
 }
 
-bool gd88_nand_read_factory(uint32_t addr, void *buf, uint32_t len)
+// Factory data at its logical address, through the block map (spi-nand-lut.md)
+static bool nand_read_factory(uint32_t addr, void *buf, uint32_t len)
 {
 	static uint8_t table[SPI_NAND_LUT_LEN(GD88_NAND_BLOCKS)];
 	const uint32_t block = (uint32_t)nand.page_size * nand.pages_per_block;
@@ -119,6 +121,16 @@ bool gd88_nand_read_factory(uint32_t addr, void *buf, uint32_t len)
 		return false;
 	}
 	return gd88_nand_read(phys * block + addr % block, buf, len);
+}
+
+void gd88_cal_init(void)
+{
+	// Use boot-time heap space for the whole-page read and release it before other tasks need it.
+	uint8_t *scratch = nand_init() ? pvPortMalloc(GD88_CAL_LEN) : NULL;
+	gd88_cal_load((const uint8_t *)GD88_CAL_FLASH_ADDR, nand_read_factory, scratch);
+	if (scratch != NULL) {
+		vPortFree(scratch);
+	}
 }
 
 #if CONFIG_NAND_STORAGE

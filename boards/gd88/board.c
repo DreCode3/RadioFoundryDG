@@ -249,8 +249,7 @@ void board_init(void)
 	hrc_gps_init(&gps_cfg);
 #endif
 	// Both calibration copies, the higher save counter wins. Without the NAND, the flash copy
-	bool nand = gd88_nand_init();
-	gd88_cal_load((const uint8_t *)GD88_CAL_FLASH_ADDR, nand ? gd88_nand_read_factory : NULL);
+	gd88_cal_init();
 #if CONFIG_NAND_STORAGE
 	// The core's storage: mounted before storage_init reads it. Without it the radio runs on the default settings
 	gd88_flash.init();

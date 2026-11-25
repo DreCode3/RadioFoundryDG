@@ -139,13 +139,10 @@ void gd88_burst_off(hrc_rfburst_wait_fn wait);
 //
 #define GD88_NAND_RFOUNDRY_FIRST	1920u
 #define GD88_NAND_RFOUNDRY_BLOCKS	32u
-bool gd88_nand_init(void);
 bool gd88_nand_ready(void);
 uint16_t gd88_nand_id(void);
 uint32_t gd88_nand_corrected(void);
 bool gd88_nand_read(uint32_t addr, void *buf, uint32_t len);
-// Factory data at its logical address, through the block map (spi-nand-lut.md); false without one
-bool gd88_nand_read_factory(uint32_t addr, void *buf, uint32_t len);
 void gd88_nand_lock(void);
 void gd88_nand_unlock(void);
 #if CONFIG_NAND_STORAGE

@@ -5,7 +5,7 @@
 // hardware-db25d.md 6.
 //
 // Two copies exist, one in NAND and one in program flash. The higher save counter wins, and nothing is ever written
-// back. The chosen page is copied into RAM, so the lookups below cost no flash access. Only the
+// back. The fields used by the radio are decoded into RAM, so lookups cost no flash access. Only the
 // NAND copy's header is read before the choice.
 #include <string.h>
 #include "gd88_cal.h"
@@ -42,7 +42,16 @@ static const uint32_t segments_vhf[GD88_CAL_POINTS - 1] = {
 	142000000, 146000000, 152000000, 156000000, 162000000, 166000000, 173000000,
 };
 
-static uint8_t page[GD88_CAL_LEN];
+typedef struct {
+	uint16_t rx_tune[GD88_CAL_POINTS], pa_high[GD88_CAL_POINTS], pa_low[GD88_CAL_POINTS];
+	uint16_t mod[GD88_CAL_POINTS], on[GD88_CAL_POINTS], off[GD88_CAL_POINTS];
+	uint8_t squelch[GD88_CAL_POINTS][9];
+} cal_band_t;
+
+static cal_band_t cal_bands[2];
+#ifndef GD88_TX_CENTER_OVERRIDE
+static uint8_t cal_tx_center;
+#endif
 static bool valid;
 static gd88_cal_source_t source;
 static uint32_t counter;
@@ -72,20 +81,40 @@ gd88_cal_source_t gd88_cal_choose(const uint8_t *flash_copy, const uint8_t *nand
 	return f ? GD88_CAL_FLASH : n ? GD88_CAL_NAND : GD88_CAL_NONE;
 }
 
-bool gd88_cal_load(const uint8_t *flash_copy, gd88_cal_read_fn nand_read)
+static void cache_band(cal_band_t *band, const uint8_t *raw)
+{
+	for (uint8_t p = 0; p < GD88_CAL_POINTS; p++) {
+		band->rx_tune[p] = rd16(raw + OFF_RX_TUNE + 1 + 2u * p);
+		band->pa_high[p] = rd16(raw + OFF_PA_HIGH + 1 + 2u * p);
+		band->pa_low[p] = rd16(raw + OFF_PA_LOW + 1 + 2u * p);
+		band->mod[p] = raw[OFF_MOD + 1 + 2u * p];
+		band->on[p] = rd16(raw + OFF_TX_DELAY + 1 + 4u * p);
+		band->off[p] = rd16(raw + OFF_TX_DELAY + 3 + 4u * p);
+		for (uint8_t i = 0; i < 9; i++) {
+			band->squelch[p][i] = raw[OFF_SQUELCH + 1 + 18u * p + 2u * i];
+		}
+	}
+}
+
+bool gd88_cal_load(const uint8_t *flash_copy, gd88_cal_read_fn nand_read, uint8_t *scratch)
 {
 	uint8_t header[HEADER_LEN];
-	bool nand = nand_read != NULL && nand_read(GD88_CAL_NAND_ADDR, header, sizeof(header));
+	bool nand = scratch != NULL && nand_read != NULL && nand_read(GD88_CAL_NAND_ADDR, header, sizeof(header));
 	source = gd88_cal_choose(flash_copy, nand ? header : NULL);
-	// The NAND page goes straight into RAM; if it can't be read whole, the flash copy if there is one
-	if (source == GD88_CAL_NAND && !(nand_read(GD88_CAL_NAND_ADDR, page, GD88_CAL_LEN) && tagged(page))) {
+	if (source == GD88_CAL_NAND && !(nand_read(GD88_CAL_NAND_ADDR, scratch, GD88_CAL_LEN) && tagged(scratch))) {
 		source = tagged(flash_copy) ? GD88_CAL_FLASH : GD88_CAL_NONE;
 	}
-	if (source == GD88_CAL_FLASH) {
-		memcpy(page, flash_copy, GD88_CAL_LEN);
-	}
 	valid = source != GD88_CAL_NONE;
-	counter = valid ? rd32(page + 4) : 0;
+	counter = 0;
+	if (valid) {
+		const uint8_t *raw = source == GD88_CAL_NAND ? scratch : flash_copy;
+		counter = rd32(raw + 4);
+		cache_band(&cal_bands[0], raw);
+		cache_band(&cal_bands[1], raw + HALF);
+#ifndef GD88_TX_CENTER_OVERRIDE
+		cal_tx_center = raw[OFF_TX_CENTER];
+#endif
+	}
 	return valid;
 }
 
@@ -109,25 +138,17 @@ static bool is_vhf(uint32_t hz)
 	return hz < VHF_BELOW_HZ;
 }
 
-// The page's half for hz plus off
-static const uint8_t *at(uint32_t hz, uint32_t off)
+static const cal_band_t *band_at(uint32_t hz)
 {
-	return page + off + (is_vhf(hz) ? HALF : 0);
+	return &cal_bands[is_vhf(hz) ? 1 : 0];
 }
 
-// Value at point p (0-based) of a per-point table whose entries are size bytes (the first u16 of each entry)
-static int32_t entry(const uint8_t *table, uint8_t p, uint8_t size, bool byte)
-{
-	const uint8_t *e = table + 1 + (uint32_t)size * p;
-	return byte ? e[0] : rd16(e);
-}
-
-// Flat at and below point 1, linear between the two points around hz, rounded half up; point 8 above point 8
-static int32_t interpolate(uint32_t hz, const uint8_t *table, uint8_t size, bool byte)
+// Flat outside the curve, linear between the two points around hz, rounded half up
+static int32_t interpolate(uint32_t hz, const uint16_t *table)
 {
 	int32_t v[GD88_CAL_POINTS];
 	for (uint8_t p = 0; p < GD88_CAL_POINTS; p++) {
-		v[p] = entry(table, p, size, byte);
+		v[p] = table[p];
 	}
 	return cal_curve_at(is_vhf(hz) ? points_vhf : points_uhf, v, GD88_CAL_POINTS, hz, CAL_CURVE_ROUND);
 }
@@ -137,7 +158,8 @@ uint16_t gd88_cal_pa(uint32_t hz, bool high)
 	if (!valid) {
 		return 0;
 	}
-	int32_t v = interpolate(hz, at(hz, high ? OFF_PA_HIGH : OFF_PA_LOW), 2, false);
+	const cal_band_t *band = band_at(hz);
+	int32_t v = interpolate(hz, high ? band->pa_high : band->pa_low);
 	// 0 or an erased 0xFFFF is no calibration; anything above the DAC's range isn't one either
 	return v > 0 && v <= (int32_t)DAC_MAX ? (uint16_t)v : 0;
 }
@@ -201,7 +223,7 @@ uint16_t gd88_cal_rx_tune(uint32_t hz)
 	if (!valid) {
 		return 0;
 	}
-	int32_t v = interpolate(hz, at(hz, OFF_RX_TUNE), 2, false);
+	int32_t v = interpolate(hz, band_at(hz)->rx_tune);
 	return v > 0 && v <= (int32_t)DAC_MAX ? (uint16_t)v : 0;
 }
 
@@ -210,21 +232,22 @@ uint8_t gd88_cal_tx_center(void)
 #ifdef GD88_TX_CENTER_OVERRIDE
 	return GD88_TX_CENTER_OVERRIDE;	// bench sweep of the reference trim: make GD88_TX_CENTER=116 (config.mk)
 #else
-	return valid ? page[OFF_TX_CENTER] : 0x80u;
+	return valid ? cal_tx_center : 0x80u;
 #endif
 }
 
 uint8_t gd88_cal_mod(uint32_t hz)
 {
-	return valid ? (uint8_t)interpolate(hz, at(hz, OFF_MOD), 2, true) : 0;
+	return valid ? (uint8_t)interpolate(hz, band_at(hz)->mod) : 0;
 }
 
 void gd88_cal_tx_delays(uint32_t hz, uint16_t *on_us, uint16_t *off_us)
 {
 	int32_t on = 0, off = 0;
 	if (valid) {
-		on = interpolate(hz, at(hz, OFF_TX_DELAY), 4, false);
-		off = interpolate(hz, at(hz, OFF_TX_DELAY) + 2, 4, false);
+		const cal_band_t *band = band_at(hz);
+		on = interpolate(hz, band->on);
+		off = interpolate(hz, band->off);
 	}
 	*on_us = on > 0 && on <= (int32_t)TX_DELAY_MAX_US ? (uint16_t)on : 0;
 	*off_us = off > 0 && off <= (int32_t)TX_DELAY_MAX_US ? (uint16_t)off : 0;
@@ -240,7 +263,7 @@ uint8_t gd88_cal_squelch_db(uint32_t hz, uint8_t level)
 	while (seg < GD88_CAL_POINTS - 1 && hz >= edge[seg]) {
 		seg++;
 	}
-	return at(hz, OFF_SQUELCH)[1 + 18u * seg + 2u * (level - 1u)];
+	return band_at(hz)->squelch[seg][level - 1u];
 }
 
 // FD6818-family squelch: the noise limit falls as the signal rises (83.5 - 0.38 x 0x67, within 41 or 39 .. 45)
