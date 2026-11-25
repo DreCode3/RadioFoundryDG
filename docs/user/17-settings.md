@@ -163,7 +163,8 @@ and by APRS. None of them needs the others: a radio without APRS still reports i
 ### Keys (key 8)
 
 On radios with an assignable Home key, select **Quick** in its press row to open Quick settings from Home. The key
-keeps its usual navigation action in menus.
+keeps its usual navigation action in menus. Home shows the right soft key's press assignment at the bottom right,
+and leaves it blank when you choose **Nothing**.
 
 **Tone burst** opens FM repeaters that need a 1750 Hz access tone. Assign it to a side key's press slot: tap for
 1 second, or hold for longer. It uses the whole key, so its long-press assignment does not run. During PTT the tone

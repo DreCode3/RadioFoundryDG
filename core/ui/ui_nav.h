@@ -242,6 +242,9 @@ bool ui_emergency_key(const input_event_t *ev);
 void ui_diag_draw(void);
 bool ui_diag_key(const input_event_t *ev);
 void ui_home_draw(void);
+#if CONFIG_KEY_ASSIGN
+const char *ui_home_soft_key_label(void);
+#endif
 bool ui_home_key(const input_event_t *ev);
 void ui_quick_draw(void);
 bool ui_quick_key(const input_event_t *ev);

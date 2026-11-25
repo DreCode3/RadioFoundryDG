@@ -136,6 +136,9 @@ typedef struct {
 	uint16_t auto_off_min;	// switch off after this long without use, 0 = never (Settings > Power)
 	uint16_t unread;	// unread messages
 	const char *home_hint;	// the hint for Home's idle state, built from the board's keys ("OK Menu *Quick #Joe")
+#if CONFIG_KEY_ASSIGN
+	const char *home_soft_key_label;	// NULL without an assignable Back key, empty for Nothing
+#endif
 #if CONFIG_UI_PROFILES
 	bool gui_profiles;	// the display can use the Commercial and Amateur layouts
 	uint8_t gui_profile;	// 0 Commercial, 1 Amateur

@@ -1274,6 +1274,9 @@ bool ui_home_key(const input_event_t *ev)
 
 void ui_home_draw(void)
 {
+#if CONFIG_KEY_ASSIGN
+	ui_st.home_soft_key_label = ui_home_soft_key_label();
+#endif
 	ui_draw_home(view, &ui_st);
 }
 

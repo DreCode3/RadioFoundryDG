@@ -6660,9 +6660,10 @@ static const tr_id_t n_possrc[] = { TRN(VALUE_AUTO, "Auto"), TRX(WORD_GPS, "GPS"
 #endif
 static const tr_id_t n_possend[] = { TRN(VALUE_OFF, "Off"), TRN(VALUE_1_MIN, "1 min"), TRN(VALUE_5_MIN, "5 min"),
 	TRN(VALUE_15_MIN, "15 min") };
+#endif // CONFIG_UI_SETTINGS
+
 #if CONFIG_KEY_ASSIGN
-// Side keys (core/input/keyassign.h, KEYFN_* values): monitor needs the key held, so it is a press only;
-// emergency is hold to activate, so a long press only
+// The short-press labels also name the assigned function on Home.
 static const int16_t v_keyfn_press[] = { KEYFN_DEFAULT, KEYFN_NONE, KEYFN_QUICK, KEYFN_MONITOR, KEYFN_TALK_TARGET, KEYFN_POWER,
 					 KEYFN_ZONE_UP, KEYFN_ZONE_DOWN, KEYFN_SCAN, KEYFN_SCAN_SKIP, KEYFN_MONITOR_TOGGLE,
 					 KEYFN_KEY_LOCK,
@@ -6702,6 +6703,40 @@ static const tr_id_t n_keyfn_press[] = { TRN(VALUE_DEFAULT, "Default"), TRN(KEYF
 					     TRX(KEYFN_VALUE_A_B, "A/B"), TRN(WORD_DUAL_WATCH, "Dual watch"),
 #endif
 };
+
+static uint8_t home_key_action(uint8_t index, bool hold)
+{
+	uint8_t bit = board.home_keys[index];
+	for (uint8_t i = 0; i < board.keymap_len; i++) {
+		if (board.keymap[i].bit == bit)
+			return hold ? board.keymap[i].long_action : board.keymap[i].short_action;
+	}
+	return ACT_NONE;
+}
+
+const char *ui_home_soft_key_label(void)
+{
+	for (uint8_t i = 0; i < board.home_key_count; i++) {
+		if (home_key_action(i, false) != ACT_BACK)
+			continue;
+		int32_t fn = ui_svc_setting_get(UI_SET_KEY_FIRST + 2 * (board.side_key_count + i));
+		if (fn == KEYFN_NONE)
+			return "";
+		for (unsigned k = 1; k < sizeof v_keyfn_press / sizeof v_keyfn_press[0]; k++) {
+			if (v_keyfn_press[k] == fn)
+				return tr(n_keyfn_press[k]);
+		}
+		return TR(HINT_BACK, "Back");
+	}
+	return NULL;
+}
+
+#endif
+
+#if CONFIG_UI_SETTINGS
+#if CONFIG_KEY_ASSIGN
+// Side keys (core/input/keyassign.h, KEYFN_* values): monitor needs the key held, so it is a press only;
+// emergency is hold to activate, so a long press only
 static const int16_t v_keyfn_hold[] = { KEYFN_DEFAULT, KEYFN_NONE, KEYFN_TALK_TARGET, KEYFN_POWER, KEYFN_ZONE_UP,
 					KEYFN_ZONE_DOWN, KEYFN_SCAN, KEYFN_SCAN_SKIP, KEYFN_MONITOR_TOGGLE,
 #if CONFIG_DMR_EMERGENCY
@@ -6986,16 +7021,6 @@ static const set_item_t s_power[] = {
 _Static_assert(UI_KEY_ROLES == 9, "KEY_ROWS below");
 static char key_label[2 * UI_KEY_ROLES][20];
 static uint8_t key_label_lang = 0xFF;	// the language they were built in: rebuilt when the user picks another
-
-static uint8_t home_key_action(uint8_t index, bool hold)
-{
-	uint8_t bit = board.home_keys[index];
-	for (uint8_t i = 0; i < board.keymap_len; i++) {
-		if (board.keymap[i].bit == bit)
-			return hold ? board.keymap[i].long_action : board.keymap[i].short_action;
-	}
-	return ACT_NONE;
-}
 
 static void key_labels(void)
 {

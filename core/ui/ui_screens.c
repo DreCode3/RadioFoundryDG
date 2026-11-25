@@ -1354,12 +1354,12 @@ static bool alt_mark(char c)
 	return c == TEXT_ALT_OPEN[0] || c == TEXT_ALT_NEXT[0] || c == TEXT_ALT_CLOSE[0];
 }
 
-#if CONFIG_UI_PROFILES
-static void profile_hint_split(char *left, char *right, size_t cap)
+#if CONFIG_UI_PROFILES || CONFIG_KEY_ASSIGN
+static void secondary_hint_split(char *left, char *right, size_t cap, bool quick_only)
 {
-	// Back already has the right edge. Otherwise use the last hint, preferring Quick when it
-	// is followed by a third group such as the last-caller shortcut on Home.
-	if (right[0])
+	// Use Quick before the last-caller shortcut. With an assigned soft key, only remove Quick
+	// so other groups stay on the left.
+	if (right[0] && !quick_only)
 		return;
 	const char *quick = board.quick_label != NULL ? board.quick_label : "*";
 	size_t quick_len = strlen(quick);
@@ -1368,19 +1368,24 @@ static void profile_hint_split(char *left, char *right, size_t cap)
 		const char *group = sep + 2;
 		const char *end = strstr(group, "  ");
 		size_t n = end != NULL ? (size_t)(end - group) : strlen(group);
-		if (n == 0 || n >= cap)
+		if (n == 0 || (!quick_only && n >= cap))
 			continue;
-		chosen = sep;
-		if (n > quick_len && group[quick_len] == ' ' && strncmp(group, quick, quick_len) == 0)
+		if (n > quick_len && group[quick_len] == ' ' && strncmp(group, quick, quick_len) == 0) {
+			chosen = sep;
 			break;
+		}
+		if (!quick_only)
+			chosen = sep;
 	}
 	if (chosen == NULL)
 		return;
 	const char *group = chosen + 2;
 	const char *end = strstr(group, "  ");
 	size_t n = end != NULL ? (size_t)(end - group) : strlen(group);
-	memcpy(right, group, n);
-	right[n] = 0;
+	if (!quick_only) {
+		memcpy(right, group, n);
+		right[n] = 0;
+	}
 	if (end != NULL)
 		memmove(chosen, end, strlen(end) + 1);
 	else
@@ -1461,7 +1466,7 @@ static const char *key_names(const char *text, char *out, size_t cap, bool hint)
 // ("Back", "Back keeps", ...) is pinned to the right edge, under the key, and the others run from the left. A hint may
 // hold text alternates (font.h): the longest form that fits is used. A toast is centered; one too long for the row
 // takes a second line above it, so it is never shortened
-static void draw_hint(const char *text, bool toast, const ui_list_t *list)
+static void draw_hint(const char *text, bool toast, const ui_list_t *list, const char *soft_key)
 {
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
@@ -1554,12 +1559,12 @@ static void draw_hint(const char *text, bool toast, const ui_list_t *list)
 			compact_menu_hint(form, list->numbered);
 #endif
 		hint_split(key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
-#if CONFIG_UI_PROFILES
-		if (inset)
-			profile_hint_split(left, right, sizeof right);
+#if CONFIG_UI_PROFILES || CONFIG_KEY_ASSIGN
+		if (inset || soft_key != NULL)
+			secondary_hint_split(left, right, sizeof right, soft_key != NULL);
 #endif
 		lw = gfx_text_width(f, left);
-		rw = gfx_text_width(f, right);
+		rw = gfx_text_width(f, soft_key != NULL ? soft_key : right);
 		if (lw + (rw && lw ? f->w : 0) + rw <= room)
 			break;
 #if CONFIG_UI_PROFILES
@@ -1590,19 +1595,39 @@ static void draw_hint(const char *text, bool toast, const ui_list_t *list)
 #endif
 	if (rw > w - 2 * margin)
 		rw = w - 2 * margin;
-	if (right[0]) {
-		gfx_text_fit(f, right, rw, fit, sizeof fit);
+	const char *right_text = soft_key != NULL ? soft_key : right;
+	if (*right_text) {
+		gfx_text_fit(f, right_text, rw, fit, sizeof fit);
 		gfx_text(f, inset + w - margin - gfx_text_width(f, fit), text_y, fit, fg);
 	}
 	if (left[0]) {
-		gfx_text_fit(f, left, w - 2 * margin - (right[0] ? rw + f->w : 0), fit, sizeof fit);
+		gfx_text_fit(f, left, w - 2 * margin - (*right_text ? rw + f->w : 0), fit, sizeof fit);
 		gfx_text(f, inset + margin, text_y, fit, fg);
 	}
 }
 
 void ui_draw_hint(const char *text, bool toast)
 {
-	draw_hint(text, toast, NULL);
+	draw_hint(text, toast, NULL, NULL);
+}
+
+static const char *home_soft_key(const ui_state_t *s)
+{
+#if CONFIG_KEY_ASSIGN
+	if (!s->entry && !s->locked)
+		return s->home_soft_key_label;
+#else
+	(void)s;
+#endif
+	return NULL;
+}
+
+static void draw_bottom(const ui_state_t *s, const char *hint, const char *soft_key)
+{
+	if (s->toast != NULL)
+		ui_draw_hint(s->toast, true);
+	else if (s->hints && hint != NULL)
+		draw_hint(hint, false, NULL, soft_key);
 }
 
 // --- boot splash ---
@@ -2842,8 +2867,8 @@ static void draw_dmr_call(const radio_view_t *v, const ui_state_t *s)
 			sb_mmss(&b, v->tot_s);
 		}
 		call_line(L->small, y, buf, ui_col.fg);
-		ui_draw_hint(d->state == RDMR_TX_ENDING ? TR(CALL_HINT_FINISHING, "Finishing the call") :
-			TR(CALL_HINT_RELEASE_PTT, "Release PTT to stop"), false);
+		draw_hint(d->state == RDMR_TX_ENDING ? TR(CALL_HINT_FINISHING, "Finishing the call") :
+			TR(CALL_HINT_RELEASE_PTT, "Release PTT to stop"), false, NULL, home_soft_key(s));
 		return;
 	}
 
@@ -2917,8 +2942,8 @@ static void draw_dmr_call(const radio_view_t *v, const ui_state_t *s)
 		gfx_text(L->small, w - tw, y, buf, ui_col.fg);
 		draw_meter(0, y + L->small->h / 4, w - tw - L->small->w, L->small->h / 2, dbm);
 	}
-	ui_draw_hint(d->state == RDMR_RX_OTHER ? TR(CALL_HINT_MON_DMON, "MON: digital monitor") :
-		TR(HINT_PTT_REPLIES, "PTT replies"), false);
+	draw_hint(d->state == RDMR_RX_OTHER ? TR(CALL_HINT_MON_DMON, "MON: digital monitor") :
+		TR(HINT_PTT_REPLIES, "PTT replies"), false, NULL, home_soft_key(s));
 }
 #endif
 
@@ -3618,10 +3643,7 @@ static void draw_banner(const ui_state_t *s, int bottom);
 static void profile_home_footer(const ui_state_t *s, const char *hint)
 {
 	draw_banner(s, profile_footer_top() - PROFILE_HOME_GAP);
-	if (s->toast)
-		ui_draw_hint(s->toast, true);
-	else if (s->hints && hint)
-		ui_draw_hint(hint, false);
+	draw_bottom(s, hint, home_soft_key(s));
 }
 
 static void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
@@ -3712,7 +3734,7 @@ void ui_draw_home(const radio_view_t *v, const ui_state_t *s)
 		draw_activity(v, s);
 	}
 	ui_draw_banner(s);
-	ui_draw_bottom(s, home_hint(v, s));
+	draw_bottom(s, home_hint(v, s), home_soft_key(s));
 }
 
 #if CONFIG_DUAL_WATCH
@@ -4321,16 +4343,13 @@ void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)
 	}
 #endif
 	ui_draw_banner(s);
-	ui_draw_bottom(s, dual_hint(v, s));
+	draw_bottom(s, dual_hint(v, s), home_soft_key(s));
 }
 #endif
 
 void ui_draw_bottom(const ui_state_t *s, const char *hint)
 {
-	if (s->toast != NULL)
-		ui_draw_hint(s->toast, true);
-	else if (s->hints && hint != NULL)
-		ui_draw_hint(hint, false);
+	draw_bottom(s, hint, NULL);
 }
 
 static void fit_end(const font_t *f, const char *s, int max_w, char *out, size_t len);
@@ -5038,7 +5057,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	if (s->toast)
 		ui_draw_hint(s->toast, true);
 	else if (s->hints && l->hint)
-		draw_hint(l->hint, false, l);
+		draw_hint(l->hint, false, l, NULL);
 }
 
 // Received emergency: the whole screen, a word label and the caller (P5: never color alone)
