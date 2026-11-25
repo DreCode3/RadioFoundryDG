@@ -117,7 +117,11 @@ copyright header, not a personal one.
   them.
 - Host tests run here (`make -C tests/host`). The container is rebuilt between sessions, so the toolchains may be
   missing: `tools/install-arm-toolchain.sh` (Arm, minutes) and `tools/build-csky-toolchain.sh` (C-SKY, about
-  45 minutes), plus `git submodule update --init --depth 1`. Say which checks ran and which didn't.
+  45 minutes), plus `git submodule update --init --depth 1`. The C-SKY build first needs
+  `apt-get install -y build-essential libgmp-dev libmpfr-dev libmpc-dev libisl-dev texinfo bison flex`; without
+  texinfo it fails at `doc/bfd.info`. Say which checks ran and which didn't.
+- GD-88 budget (default build, Nov 2026): flash 87.9% (about 107 KB free), RAM 95.0% (about 10.5 KB free). RAM is
+  the tight one: prefer `const` tables and drawing on the fly over buffers.
 - The UI preview loop: `make -C tests/host uiSim`, then `tests/host/uiSim --geom 320x240iR10 --scale 2 --script
   "<keys>" --out <png>` and show the PNG. `python3 tests/host/uiPrototypeTest.py` checks the profiles.
 - Use `tools/worktree.sh` for worktrees, and remove worktrees and `build/` trees when done.
