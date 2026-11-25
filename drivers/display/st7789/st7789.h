@@ -42,6 +42,9 @@ void st7789_write_rows_indexed(const st7789_t *p, const uint8_t *fb, const uint1
 // from (x, y) (hal_display_t fb_safe_area: the safe area inside the insets), at scale 1. Clipped to the panel
 void st7789_write_window_indexed(const st7789_t *p, const uint8_t *fb, const uint16_t *palette, uint16_t x, uint16_t y,
 				 uint16_t w, uint16_t y0, uint16_t y1);
+// Columns x0 .. x1-1 of those rows only (frame buffer pixels): the panel's column window takes just that part
+void st7789_write_rect_indexed(const st7789_t *p, const uint8_t *fb, const uint16_t *palette, uint16_t x0, uint16_t y0,
+			       uint16_t x1, uint16_t y1);
 void st7789_fill(const st7789_t *p, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
 void st7789_invert(const st7789_t *p, bool on);
 void st7789_display_on(const st7789_t *p, bool on);

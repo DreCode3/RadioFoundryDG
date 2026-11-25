@@ -120,6 +120,14 @@ static void fill_insets(uint16_t color)
 	st7789_fill(&panel, 0, t, l, (uint16_t)(t + SAFE_H), color);
 	st7789_fill(&panel, (uint16_t)(l + SAFE_W), t, PANEL_W, (uint16_t)(t + SAFE_H), color);
 }
+#else
+static void flush_rect(const void *fb, const uint16_t *palette, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1)
+{
+	if (!ready || fb == NULL) {
+		return;
+	}
+	st7789_write_rect_indexed(&panel, (const uint8_t *)fb, palette, x0, y0, x1, y1);
+}
 #endif
 
 const hal_display_t dm32_display = {
@@ -134,5 +142,8 @@ const hal_display_t dm32_display = {
 #endif
 	.init = init,
 	.flush_indexed = flush,
+#if !GFX_FB_SAFE_AREA
+	.flush_rect = flush_rect,
+#endif
 	.set_backlight = set_backlight,
 };
