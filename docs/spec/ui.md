@@ -764,14 +764,16 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   Dual Watch uses larger A/B lettering in two panes, and VOX uses wider lettering. The GPS clock stacks its
   date and time at the right end of the operating row. The mode label uses the largest native font that fits
   alongside the clock, roaming, encryption, and other marks. In menus,
-  mode lettering sits beside the bars when it fits. Roaming places a rotating arrow around a fixed R.
+  mode lettering sits beside the bars when it fits. The bars indicate reception without a separate label.
+  Roaming places a rotating arrow around a fixed R.
   Monitor uses a speaker with one wave, and receive-only channels are marked RX. The scan highlight follows the
   open zigzag stroke and ends on the full arrowhead. Normal status marks use black in
   Day and light ink in Night. The battery uses an upright outline with a top terminal and three fill segments.
   The GPS pin, lock, key, envelope, speaker, scan and roaming artwork use coverage masks generated from curves
   and strokes at their final sizes. With antialiasing enabled, the masks blend edges into the display palette.
   Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
-  larger left-aligned headings and separated, tinted rows with rounded corners.
+  larger left-aligned headings and separated, tinted rows with rounded corners. The main menu and submenus
+  share the same outer margins.
   Menu status bars use a larger mode label and larger battery, power, GPS and lock indicators.
   The mode label reduces in size when active indicators need the room.
   The profile hub shows three rows of two larger tiles per page. Up and Down follow the numbers down the left

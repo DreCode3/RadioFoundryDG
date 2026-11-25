@@ -191,26 +191,33 @@ class PrototypeTest(unittest.TestCase):
         second = self.render_frame("ok 7 up expect:layout=0")
         display = self.render_frame("ok 7 2 expect:layout=0")
 
-        def saturated(frame, top, bottom, left=20):
+        def saturated(frame, top, bottom, left=12):
             return any(max(rgb) - min(rgb) > 70 for y in range(top, bottom)
                        for x in range(left, left + 14) for rgb in [frame[y][x * 3:x * 3 + 3]])
 
+        def right_icon_start(frame):
+            row = frame[93]
+            # The right tile starts at the end of the eight-pixel gutter.
+            gutter = next(x for x in range(100, 200) if row[x * 3:x * 3 + 3] == row[:3])
+            return gutter + 8 + 5
+
         for page in (first, second):
-            for left in (20, 164):
+            for left in (12, right_icon_start(page)):
                 for y in range(85, 172, 43):
                     self.assertTrue(saturated(page, y, y + 13, left))
-        self.assertEqual(first[93][17 * 3:18 * 3], first[93][18 * 3:19 * 3])
-        self.assertLess(max(first[93][17 * 3:18 * 3]), 100)
-        # Shortcut 3 belongs in the tile center even though Talk & listen wraps.
-        digit_rows = [y for y in range(159, 198) for x in range(36, 46)
+        self.assertEqual(first[93][9 * 3:10 * 3], first[93][10 * 3:11 * 3])
+        self.assertLess(max(first[93][9 * 3:10 * 3]), 100)
+        # Shortcut 3 belongs in the tile's vertical center.
+        digit_rows = [y for y in range(159, 198) for x in range(28, 38)
                       if max(first[y][x * 3:x * 3 + 3]) < 150]
         self.assertLess(abs(sum(digit_rows) / len(digit_rows) - 178), 3)
+        key_left = right_icon_start(first)
         key_sides = [set(), set()]
         for y in range(85, 103):
-            for x in range(164, 177):
+            for x in range(key_left, key_left + 13):
                 red, green, blue = first[y][x * 3:x * 3 + 3]
                 if red > blue + 40 and green > blue + 30:
-                    key_sides[x >= 170].add(y)
+                    key_sides[x >= key_left + 6].add(y)
         self.assertGreater(len(key_sides[0]), len(key_sides[1]))
         self.assertFalse(saturated(display, 77, 202))
         self.run_script("ok 7 expect:shows=1/2 expect:shows=OK expect:hides=OK_Open expect:hides=0-9_open "
@@ -284,8 +291,8 @@ class PrototypeTest(unittest.TestCase):
                 )
                 heading_ink = sum(frame[y][x * 3] < 110 for y in range(39, 49) for x in range(16, 100))
                 self.assertGreater(heading_ink, 75)
-                self.assertEqual(frame[75][15 * 3:15 * 3 + 3], frame[75][:3])
-                self.assertNotEqual(frame[75][18 * 3:18 * 3 + 3], frame[75][:3])
+                self.assertEqual(frame[75][7 * 3:8 * 3], frame[75][:3])
+                self.assertNotEqual(frame[75][10 * 3:11 * 3], frame[75][:3])
                 self.run_script(f"{script} down up expect:count={count} expect:layout=0")
 
     def test_nested_profile_lists_share_the_roomy_heading(self):
@@ -339,8 +346,19 @@ class PrototypeTest(unittest.TestCase):
                 self.assertGreaterEqual(max(ink) - min(ink) + 1, height)
         self.run_script("gps:fix prototype:bt_connected mon vox:on roam:ready "
                         "msg:9991234,Hello wait:9000 prototype:crypt_aes ok 7 "
-                        "rx:9991234,3100,g,Morgan_Reed expect:shows=DMR expect:shows=RX "
+                        "rx:9991234,3100,g,Morgan_Reed expect:shows=DMR expect:hides=RX "
                         "expect:shows=AES expect:layout=0")
+
+    def test_submenu_rows_align_with_main_menu_edges(self):
+        for screen in ("ok", "ok 1", "ok 1 down ctx", "ok 2",
+                       "call:9991234,3100,g wait:11000 ok 3", "ok 4", "ok 4 down ctx",
+                       "ok 5", "ok 5 ok", "ok 6", "ok 6 6", "ok 7", "ok 7 2", "ok 7 2 ok"):
+            with self.subTest(screen=screen):
+                frame = self.render_frame(screen + " expect:layout=0")
+                for outside, inside in ((6, 7), (303, 302)):
+                    self.assertTrue(any(
+                        row[outside * 3:outside * 3 + 3] != row[inside * 3:inside * 3 + 3]
+                        for row in frame[75:198]))
 
     def test_home_has_four_inset_panes_in_both_themes(self):
         amateur = "ok 7 2 ok down ok long:back "

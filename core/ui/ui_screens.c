@@ -919,9 +919,6 @@ static const char *profile_status_activity(const radio_view_t *v, radio_state_t 
 	} else if (st == RS_TX_DENIED) {
 		activity = TR(TOP_STATE_NO_TX, "NO TX");
 		*color = ui_col.warn;
-	} else if (st == RS_RX && titled) {
-		activity = "RX";
-		*color = ui_col.rx;
 	} else if (st == RS_IDLE && !titled && profile_clock(s, clock, 32)) {
 		activity = clock;
 	}
@@ -4882,13 +4879,9 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	color_t disabled = ui_col.line;
 #if CONFIG_UI_PROFILES
 	if (s->gui_profiles) {
-		inset = 10;
-		gap = 2;
+		inset = 7;
+		gap = l->roomy ? 4 : 2;
 		disabled = ui_col.dim;
-		if (l->roomy) {
-			inset = main_menu ? 7 : 15;
-			gap = 4;
-		}
 	}
 #endif
 	const int column_gap = 8;
