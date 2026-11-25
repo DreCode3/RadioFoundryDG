@@ -32,6 +32,8 @@ RFOUNDRY_CI_SANITIZE=1 tools/ci.sh  # the host step also runs the host tests und
 
 The CI workflows run these pieces per push and nightly ([docs/dev/ci.md](../dev/ci.md)).
 
+[GD-88 GUI CI results, November 25, 2026](gd88-gui-ci-2026-11-25.md) records the full branch run and diagnostic builds.
+
 It runs, and reports each as ok / FAIL / skip (exit status 0 only when nothing failed):
 
 1. **Host tests**: `make -C tests/host` (the same as `make test`), built with no warnings. They need only the host's
