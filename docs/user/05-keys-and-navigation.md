@@ -69,9 +69,18 @@ Home
 In numbered lists (the hub, Tools, Settings, actions, quick settings) a number key picks the row with that number
 directly. For example, **OK**, **6** opens Tools.
 
-On displays with GUI profiles, the menu lists and their submenus use larger headings and spaced, rounded rows.
-The main menu fits its shortcuts in two columns. Use **Up** and **Down** to move through them in number order.
-Open **Zones** to see the current zone and other zones.
+On displays with profiles, Menu and the first level of Settings use two columns of three rows per page.
+**Up** and **Down** follow shortcut order down the left column, then the right, then move between pages. The page
+indicator shows where you are. With all seven main entries available, **Settings** is on page two, and **7** opens
+it directly from Menu. **OK** opens the highlighted item. **Back** returns to the previous screen.
+
+<img src="../ux/profile-samples/menu.png" width="310" alt="First page of Menu with six numbered tiles">
+<img src="../ux/profile-samples/settings-night.png" width="310" alt="First page of Settings in the Night palette">
+
+Colored category icons appear on Menu and on the first level of Settings. Submenus use larger left-aligned headings
+and spaced, rounded rows aligned with the main menu's outer edges. The footer remains the same height. While
+receiving, the status bar shows signal bars alongside the mode when there is room. Open **Zones** to see the current
+zone and the other zones.
 
 In long lists (Contacts, Channels, a zone's channels) the number keys filter the list by name, the way a phone
 keypad spells words. **2** is ABC, **3** is DEF, and so on to **9** (WXYZ). Each key narrows the list to names with a

@@ -201,6 +201,11 @@ spec = "docs/spec/radio-features.md"
 switch = "KEY_ASSIGN"
 spec = "docs/spec/ui.md"
 
+[feature.ui_profiles]
+switch = "UI_PROFILES"
+spec = "docs/spec/ui.md"
+source = ["core/ui/ui_app.c", "core/ui/ui_menus.c", "core/ui/ui_screens.c", "core/ui/ui_profile_icons.h"]
+
 [feature.scan]
 switch = "SCAN"
 spec = "docs/spec/radio-features.md"

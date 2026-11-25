@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 The RadioFoundry Authors
-"""Exercise the GD-88 prototype through the native simulator's public entry points."""
+"""Exercise the display profiles through the native simulator's public entry points."""
 
 from pathlib import Path
 import subprocess

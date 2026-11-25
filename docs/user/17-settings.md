@@ -53,34 +53,22 @@ Some settings are on the menu before the feature behind them exists, or don't ap
 
 ### Display (key 2)
 
-On supported wide color displays, status icons and the colored icons in Menu and Settings have antialiased edges.
-Menu and Settings show two columns of three tiles per page. The larger blue soft-key bar keeps the same height
-across profile screens. **OK** selects the highlighted entry, and the numbered shortcuts still work.
-Submenu rows align with the outer edges of the main menu tiles. Signal bars in the menu status bar indicate reception.
-The top status bar uses larger lettering and device indicators on menus and settings screens.
-Settings shows six categories per page in two columns. Use **Up** or **Down** to move through the categories
-and turn the page. **OK** opens the marked category, and numbered shortcuts open their categories directly.
-Settings submenus use larger headings and
-spaced, rounded rows.
-
-On these displays, Display Profile and Day/Night appear in place of Theme, Highlight color and Filled status
-bar. Both profiles show the talkgroup name first. The **TG name / number** key setting applies to the original Home
-layout. Signal bars appear during reception and clear when it ends. On profile Home screens, a speaker with one
-wave indicates Monitor, plain RX indicates a receive-only channel, and an R inside a circular arrow indicates
-roaming. Profile Home uses four rounded panels and larger labels for the bottom keys. A board GPS adds the GPS
-clock option to the profile displays.
+On displays that support profiles, **Display Profile** and **Day/Night** replace **Theme**,
+**Highlight color**, and **Filled status bar**. A board GPS adds **GPS clock**.
+[Commercial and Amateur Home](06-home-screen.md#commercial-and-amateur-home) shows what changes on Home.
+[Menu navigation](05-keys-and-navigation.md#moving-around) describes the profile menus.
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
 | Display Profile | Commercial, Amateur | Commercial | Centers the zone and bold talk target on Home, with the received alias below. Commercial uses larger Home text and status icons. Amateur shows channel and tuning details | Works |
 | Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
-| GPS clock | Off, On | Off | Stacks the GPS date and UTC time at the right end of the mode row on idle Home while the radio has a valid GPS fix with date and time | Works |
+| GPS clock | Off, On | Off | Stacks the date and UTC time at the right of idle Home when a valid GPS fix supplies both | Works |
 | Brightness | 10 to 100 %, steps of 10 | 100 % | Backlight brightness. Also in quick settings, tile 9 | Works |
 | Backlight Dim/Off | 5s/20s, 10s/40s, 30s/2m, 1m/4m, 2m/8m, 10s/dim, 30s/dim, 1m/dim, 2m/dim, Never | 30s/2m | Without a key press, the backlight dims to a fifth after the first time and goes off after the second. The "dim" choices dim and never go off | Works |
 | Theme | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
 | Highlight color | Default, Red, Orange, Yellow, Teal, Light blue, Purple, Pink | Default | The color of the selected row or tile and of the channel number on Home. Not in the Night theme, which is always red. Not on radios with a monochrome screen | Works |
 | Filled status bar | On, Off | On | Fills the top status line with the highlight color (light gray with Default, white in the high-contrast theme, bright red in Night) and draws its text black. Not on radios with a monochrome screen | Works |
-| Large text | On, Off | Off | Home shows only the status line, the channel and the talk target, large | Works |
+| Large text | On, Off | Off | On standard Home, shows just the status line, channel, and talk target in large text. In the Amateur profile, hides the extra channel and tuning details | Works |
 | Hint row | On, Off | On | The bottom line with key hints | Works |
 | Talkgroup name first | On, Off | Off | Home's talk line reads "World TG 91" instead of "TG 91 World": on a small screen the name is what fits. A side key set to **TG name / number** switches it too. On radios with DMR | Works |
 | Language | English, Español, Italiano, 中文 | English, or the Radio language picked in the web installer | The language of the menus and messages. A factory reset goes back to that default. The list shows every language RadioFoundry has; one that isn't in your firmware is dimmed. Pick it when you install with the web flasher to get it ([Installing](02-installing.md)). Chinese is off by default and needs a 16 px line ([Radio Reference](23-radios.md)). Names, callsigns and the standard radio abbreviations (TG, CC, VFO) stay as they are | Works |
@@ -162,9 +150,11 @@ and by APRS. None of them needs the others: a radio without APRS still reports i
 
 ### Keys (key 8)
 
-On radios with an assignable Home key, select **Quick** in its press row to open Quick settings from Home. The key
-keeps its usual navigation action in menus. Home shows the right soft key's press assignment at the bottom right,
-and leaves it blank when you choose **Nothing**.
+On radios with an assignable right soft key, open **Settings > Keys > Right soft key** for its short press.
+Choose **Quick** to open Quick settings, for example. The key is **Back** by default and acts as **Back** in menus
+regardless of its Home assignment. The profile Home footer shows **Menu** at left and the short-press function at
+right. With **Nothing** selected, the short press has no action and the right label is blank. Choose
+**Right soft key hold** to set the hold separately. The available functions depend on the radio and firmware build.
 
 **Tone burst** opens FM repeaters that need a 1750 Hz access tone. Assign it to a side key's press slot: tap for
 1 second, or hold for longer. It uses the whole key, so its long-press assignment does not run. During PTT the tone
@@ -183,7 +173,8 @@ For a repeater that always needs the tone, turn on **Tone burst** in the channel
 | Long press time | 400 to 1200 ms, steps of 100 | 600 ms | How long you hold a key for a long press | Works |
 | Key repeat | 60 to 300 ms, steps of 20 | 120 ms | The repeat rate of **Up** and **Down** while held | Works |
 | Up/Down on Home | Channel, Zone, Talk target | Channel | What **Up** and **Down** change on Home. Talk target steps through the channel's contact and its listen list on DMR channels. On FM channels they change the channel | Works |
-| One row per key, named as on the radio (SK1, SK2, ...) | Default, Nothing, Monitor, Talk target, Power level, Next zone, Prev zone, Scan, Scan skip, Monitor toggle, Key lock, Home zone, Tone burst, Copy to VFO, VFO/Channel, Call back, TG name / number | Default | What a press of the key does. Default is what the [key roles](23-radios.md#key-roles) say. Monitor opens the squelch while you hold the key on FM, and turns digital monitor on or off on DMR. Scan skip skips the channel that stopped the scan until the scan stops, as **Skip channel for now** does ([scanning](12-scan.md#while-scanning)); it does nothing when no scan is running. Monitor toggle does what **\***, **5** does: on FM it latches the squelch open or closes it again, on DMR it turns digital monitor on or off ([FM](08-fm.md#monitor), [DMR](09-dmr.md#digital-monitor)); unlike Monitor, it needs no held key. Key lock locks and unlocks the keys. Call back talks to the last call heard. Home zone goes to the codeplug's first zone: put your home zone first in the CPS. Copy to VFO copies the channel to the VFO and opens it ([the VFO](07-channels-zones-vfo.md#copy-a-channel-to-the-vfo)); in the VFO it says "Already in VFO". VFO/Channel goes between the channel and the VFO, as a **VFO/MR** key does ([the VFO](07-channels-zones-vfo.md#the-vfo)). TG name / number switches Home's talk line between the talkgroup's name first and its number first (Settings > Display > Talkgroup name first). The list offers both on radios with a VFO | Works |
+| One row per key, named as on the radio (SK1, SK2, ...) | Default, Nothing, Monitor, Talk target, Power level, Next zone, Prev zone, Scan, Scan skip, Monitor toggle, Key lock, Home zone, Tone burst, Copy to VFO, VFO/Channel, Call back, TG name / number | Default | What a press of the key does. Default is what the [key roles](23-radios.md#key-roles) say. Monitor opens the squelch while you hold the key on FM, and turns digital monitor on or off on DMR. Scan skip skips the channel that stopped the scan until the scan stops, as **Skip channel for now** does ([scanning](12-scan.md#while-scanning)); it does nothing when no scan is running. Monitor toggle does what **\***, **5** does: on FM it latches the squelch open or closes it again, on DMR it turns digital monitor on or off ([FM](08-fm.md#monitor), [DMR](09-dmr.md#digital-monitor)); unlike Monitor, it needs no held key. Key lock locks and unlocks the keys. Call back talks to the last call heard. Home zone goes to the codeplug's first zone: put your home zone first in the CPS. Copy to VFO copies the channel to the VFO and opens it ([the VFO](07-channels-zones-vfo.md#copy-a-channel-to-the-vfo)); in the VFO it says "Already in VFO". VFO/Channel goes between the channel and the VFO, as a **VFO/MR** key does ([the VFO](07-channels-zones-vfo.md#the-vfo)). TG name / number switches the standard Home layout's talk line between the talkgroup's name first and its number first (Settings > Display > Talkgroup name first). The list offers both on radios with a VFO | Works |
+| Right soft key (where available) | Default, Nothing, Quick, and supported Home key functions | Default (Back) | Sets the short press on Home. **Quick** opens Quick settings | Works |
 | The key's name and "hold" (SK1 hold, ...) | Default, Nothing, Talk target, Power level, Next zone, Prev zone, Scan, Scan skip, Monitor toggle, Emergency, Key lock, Home zone, Copy to VFO, VFO/Channel, Call back, TG name / number | Default | What holding the key does. Emergency needs a 1.5 s hold. With Monitor as the press, the hold works on DMR channels; on FM holding the key keeps the squelch open (for an open squelch that stays, use **\***, **5**) | Works |
 
 The list has a row pair for each key the menus don't need; [the radio's list](23-radios.md#key-roles) says which. On a

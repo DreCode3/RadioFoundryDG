@@ -807,10 +807,14 @@ A 128 x 64 monochrome screen.
 
 ## Radioddity GD-88
 
-A dual band handheld (136-174 and 400-480 MHz) with a 320x240 color display. It has two HR_C7000 chips. The first
+A dual band handheld (136-174 and 400-480 MHz) with a color display. It has two HR_C7000 chips. The first
 runs the display, keys, PTT, transmitter, GPS and FM broadcast receiver. The second chip is a second receiver that
 listens at the same time as the first, so both VFOs can receive at once. **In development:** there is no release for
 this radio yet.
+
+On the 320 × 240 panel, the default right inset is 10 pixels, giving the UI a 310 × 240 area.
+This panel supports the [Commercial and Amateur display profiles](06-home-screen.md#commercial-and-amateur-home).
+Units with the 220 × 176 register-style panel use the standard layout.
 
 GD-88 units differ in their RF chips: some have BK4819 chips, others FD6818 and WX4818N chips or an AT1141 synthesizer.
 RadioFoundry reads the chips at start-up and drives whichever the radio has. So far only a unit with a BK4819 and an
@@ -834,7 +838,7 @@ first chip the installer pauses and asks you to hold **SK1** until the top line 
 | Key | Role |
 |---|---|
 | Left soft key (under the display) | **OK** |
-| Right soft key (under the display) | **Back** by default. To open Quick settings from Home, select **Quick** under **Settings > Keys > Right soft key**. In menus it acts as **Back** |
+| Right soft key (under the display) | **Back** by default. Assign its Home press and hold under [Settings > Keys](17-settings.md#keys-key-8). In menus it acts as **Back** |
 | Green | **A/B** |
 | Red | **VFO** |
 | Up, Down | **Up**, **Down** |

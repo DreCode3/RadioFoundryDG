@@ -79,11 +79,25 @@ uses `320x240iR10`, the 320 × 240 panel with a 10 px right inset, for a visible
 keys to explore the native menus. From Home, open **Menu → Settings → Display** to change the Display Profile, Day/Night,
 or GPS clock. The clock needs a valid simulated GPS date and time. Stop the launcher with Ctrl-C.
 
-Use the **Radio GUI** buttons above the display to switch between the original RadioFoundry GUI and the prototype
-on the same display. Switching opens Home and keeps the selected channel and saved display settings.
+Use **Radio GUI** above the display to switch between **Original RadioFoundry** and **Commercial and Amateur**. Switching opens Home and keeps the selected channel and saved display settings.
 
-The launcher uses a simulated radio on loopback. D-STAR, Bluetooth, recording, and the preview encryption and
-talkaround controls inject status examples. Browser controls send actions with their own hold and repeat timing.
+The launcher uses a simulated radio on loopback. D-STAR, Bluetooth, recording, the ARC4 label, and the TA arrow
+are simulator status examples. Browser controls send actions with their own hold and repeat timing.
+
+Run `make -C tests/host uiSim` and `python3 tests/host/uiPrototypeTest.py` to check the profiles, both palettes,
+status indicators, menu pagination, and Home key behavior. `python3 tests/host/uiLiveTest.py` checks the local
+browser simulator controls.
+
+The manual's [profile samples](../ux/profile-samples/) show native, 310 × 240 output. From the repository root,
+run `tests/host/uiSim --geom 320x240iR10 --scale 1 --script "<script> expect:layout=0" --out docs/ux/profile-samples/<file>`
+with one of these scripts and filenames. Each run starts in Commercial and Day.
+
+| File | Script |
+|---|---|
+| `home-commercial.png` | `rx:9991234,3100,g,Morgan_Reed expect:centered=Morgan_Reed` |
+| `home-amateur.png` | `ok 7 2 ok down ok long:back rx:9991234,3100,g,Morgan_Reed expect:centered=Morgan_Reed` |
+| `menu.png` | `ok expect:screen=hub` |
+| `settings-night.png` | `ok 7 2 down ok down ok long:back ok 7 expect:screen=settings` |
 
 After a UI change, run `ui-gallery` and commit the PNGs with the change, so the review shows the difference. The
 gallery target deletes and rewrites `docs/ux/screens/*/`; commit only what you meant to change. Commit the contact

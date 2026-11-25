@@ -534,7 +534,8 @@ nothing once it has a function. In menus and during frequency entry, it uses the
 Monitor and Tone burst need raw edges, and Emergency the 1.5 s hold the input engine gives only a key whose long action
 is Emergency (a home key's long action is its home key action, so its hold would fire at the ordinary long press). None
 of the three can go on a home key (`keyassign_home_allowed`): Settings skips them and a slot holding one reads as
-Default. Settings shows Default as what the key does on Home ("Prev zone", "Next zone").
+Default. Quick is offered only in the press slot of a Home key.
+Settings shows Default as the board action on Home, such as Prev zone, Next zone, or Back.
 With dual watch on, Home's arrows pick A or B (a home key left at Default still does).
 
 Both places edit the same slots, so there is one copy:
@@ -747,16 +748,22 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   least 5:1 on its strip after RGB565 rounding. The shades are light so black
   text reads on them (at least 7.5:1 after RGB565 rounding); the red is lighter and pinker than TX's red, and there is
   no green, which would hide the RX pill. Gallery: `home_dmr*`, `home_plain`, `channels*` (section 7).
-- A display with GUI profiles offers Commercial (default) and Amateur. Both show the zone and talk target. Amateur
-  also shows the channel and tuning details. Day/Night switches the palette across Home and menus. Day is the default.
+- `CONFIG_UI_PROFILES` enables Commercial (default) and Amateur on color displays with a 240 px drawable height
+  and at least 310 px of drawable width after insets. Other geometries use the standard layout. Both profiles
+  show the zone and prefer a named talk target. Use the target ID if it has no name, the channel label if there is
+  no target, or the frequency when tuning the VFO. Amateur also shows channel and tuning details.
+  Dual Watch uses its two-pane Home view. Trunked, single-frequency repeater, and unsupported channels keep
+  their operating views. Day/Night switches the palette across Home and menus. Day is the default.
   The profile menus use these palettes in place of Theme, Highlight color and Filled status bar. Both profiles put a
   named talk target first. Commercial Home gives the status icons a taller strip and uses larger type for the zone,
   talk target, and short receive aliases. The zone and bold talk target are centered. A received alias appears on a
   separate bottom line and leaves both positions fixed. The TG name / number key assignment applies to the earlier
   Home layout. Large text hides Amateur details. With a board GPS,
   GPS clock (default Off) shows the UTC date and minute on idle Home while a recent GPS fix has both date and time.
-  The three choices are saved in the settings store.
-  Profile Home puts signal, power, battery, GPS fix, lock, Bluetooth, Dual Watch, recording and VOX in the top strip.
+  The three choices are saved in [the settings store](settings-store.md).
+  Profile Home puts signal, power, battery, GPS fix, lock, Dual Watch, and VOX in the device strip. The separate
+  operating row carries mode, roaming, privacy, unread mail, scan, monitor, and receive-only marks as applicable.
+  Bluetooth, recording, the TA arrow, and the D-STAR label are host simulator examples.
   The device strip, mode row, channel area and soft-key bar are separate rounded panels in both palettes.
   The rounded soft-key bar keeps the same height on profile screens. It uses the largest native font that fits
   the key labels.
@@ -766,12 +773,17 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   date and time at the right end of the operating row. The mode label uses the largest native font that fits
   alongside the clock, roaming, encryption, and other marks. In menus,
   mode lettering sits beside the bars when it fits. The bars indicate reception without a separate label.
-  Roaming places a rotating arrow around a fixed R.
+  Roaming places an arrow around a fixed R when roaming is active. Only search and survey animate it.
+  The privacy key is green when DMR privacy is configured and has an AES label on AES channels.
+  For encrypted receive activity without a usable key, the key has a red X. A clear channel has no idle key.
+  ARC4 labeling is a simulator example.
+  The channel pane shows the remaining time (minutes and seconds) during a timed voice transmission.
   Monitor uses a speaker with one wave, and receive-only channels are marked RX. The scan highlight follows the
   open zigzag stroke and ends on the full arrowhead. Normal status marks use black in
   Day and light ink in Night. The battery uses an upright outline with a top terminal and three fill segments.
   The GPS pin, lock, key, envelope, speaker, scan and roaming artwork use coverage masks generated from curves
   and strokes at their final sizes. With antialiasing enabled, the masks blend edges into the display palette.
+  `tools/profile_icons.py` generates the packed 2-bit coverage masks in `core/ui/ui_profile_icons.h`.
   Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
   larger left-aligned headings and separated, tinted rows with rounded corners. The main menu and submenus
   share the same outer margins.
@@ -784,7 +796,7 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   Up and Down move in shortcut order across pages, and the page indicator shows the available direction.
   Longer labels can wrap. Submenus use the roomy list layout. Focused rows have a solid leading marker.
   Menu hints abbreviate the selection key to OK. Numbered shortcuts still open their entries directly.
-  The profile hub uses static labels. The status strip shows unread messages and scanning.
+  The profile hub uses static labels. Status indicators show unread messages and scanning without changing menu labels.
   Profile footer hints are split across the two edges. On Home, a board with an assignable Back soft key shows
   Menu at the left edge and the saved short-press function at the right, with no right label for Nothing.
   Frequency entry, key lock, and toasts use their own hints. On other screens, Back takes the right edge when
