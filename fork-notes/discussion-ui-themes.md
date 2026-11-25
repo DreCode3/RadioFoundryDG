@@ -51,6 +51,11 @@ typedef struct {
 } ui_theme_t;
 ```
 
+Themes would come in two layers. Most themes need only data: palettes, fonts, sizes and an icon set, which anyone
+can write without touching drawing code. Contributors who want a different composition (their own Home, status strip
+or list cells) fill in drawing ops as well. The ops layer also matters for new radios: a radio with a new resolution
+or new features can get a look that fits it without reworking the shared UI.
+
 `ui_theme_ops_t` would have one entry for each drawn element (status strip, title, list row, grid tile, toggle tile,
 pick list row, value editor, soft key bar, banner, Quick grid, Home). A theme fills in what it changes and inherits the
 rest. Each theme sits in its own directory under `core/ui/themes/`, behind its own `CONFIG_UI_THEME_<NAME>` switch, so a
@@ -104,8 +109,8 @@ the task flows, press budgets, information-architecture.md and the translations 
 ## Questions for the maintainers
 
 1. Is the shared-versus-theme boundary above the one you have in mind?
-2. Should drawing be an ops table, as sketched, or would you prefer themes to be data only (palettes, metrics and
-   icons) with fewer drawing hooks?
+2. Are you comfortable with the two layers, data for most themes and drawing ops for the advanced ones? Or would you
+   rather start with data only and add ops later?
 3. Naming: "Theme" today means a palette (Dark, Light, High contrast, Night). Should the whole look be a "theme"
    and those become "palettes", or do you prefer another word for the look?
 4. Would you accept the menu tree change for all radios, and should it wait until the framework is merged?

@@ -34,6 +34,11 @@ The two looks differed in these places; each is now shared behavior, and a theme
 7. Each theme declares its own appearance options; Settings > Display shows the active theme's rows (the reference
    theme: Theme, Highlight color, Filled status bar; ours: Day/Night). Appearance options are not features.
 
+Themes are layered (decided): data (palettes, fonts, metrics, icons) that most users can write, and an ops table
+for elements whose composition differs (Home, status strip, list cell, soft key bar) for advanced contributors. The
+ops table also lets a new radio with a new resolution or new features get a fitting look without reworking the
+shared UI.
+
 Technical choices: per-cell list drawing ops; icons as a data table drawn by one shared blitter; the reference code
 stays in `ui_screens.c` until upstream agrees on the shape; the theme id goes in the spare settings byte with 0 = the
 build's default. Work goes ahead without waiting for the maintainers' reply to the discussion.
