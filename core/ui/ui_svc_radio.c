@@ -313,43 +313,20 @@ uint8_t ui_svc_receivers(void)
 
 // Each pane's own receiver: the main one on the selected pane, the second on the other. False while the second
 // receiver doesn't have its channel (down, or not yet): the screens then show the main receiver alone
-bool ui_svc_dual_rx(uint8_t pane, ui_dual_rx_t *out)
+bool ui_svc_dual_rx(radio_dual_rx_t out[2])
 {
-	radio_view_t *const v = &ui_svc_view;
-	radio_dual_ref_t ref[2];
-	uint8_t sel, at;
-	memset(out, 0, sizeof(*out));
-	if (board.rx2 == NULL || pane > 1 || !radio_get_dual(ref, &sel, &at)) {
+	uint8_t primary;
+	radio_dual_rx_t rx;
+	if (board.rx2 == NULL || !radio_get_dual_primary_rx(&primary, &rx))
 		return false;
-	}
-	radio_get_view(v);
-	if (!v->rx2) {
-		return false;
-	}
-	if (pane == sel) {
-		out->active = out->heard = v->state == RS_RX;
-		out->rssi_dbm = v->rssi_dbm;
-		out->dmr = v->ch.mode == RADIO_MODE_DMR;
-#if CONFIG_DMR
-		if (out->dmr) {
-			out->active = out->heard = v->state == RS_RX && v->dmr.state == RDMR_RX;
-			out->src = v->dmr.call.src;
-			out->dst = v->dmr.call.dst;
-			out->group = v->dmr.call.group;
-			strncpy(out->src_name, v->dmr.call.src_name, sizeof out->src_name - 1);
-		}
-#endif
-		return true;
-	}
+
+	out[primary] = rx;
 	rx2_status_t st;
 	board.rx2->status(&st);
-	out->active = st.tuned && st.active;
-	out->heard = out->active && st.heard;
-	out->dmr = st.dmr;
-	out->group = st.group;
-	out->rssi_dbm = st.rssi_dbm;
-	out->src = st.src;
-	out->dst = st.dst;
+	out[primary ^ 1u] = (radio_dual_rx_t){
+		.active = st.tuned && st.active, .heard = st.tuned && st.active && st.heard, .dmr = st.dmr,
+		.group = st.group, .rssi_dbm = st.rssi_dbm, .src = st.src, .dst = st.dst,
+	};
 	return true;
 }
 

@@ -25,10 +25,6 @@
 #include "nxdn/nxdn_codeplug.h"
 #endif
 
-// The UI services' one radio view copy (the UI task's only; too big for its stack). A service fetches it with
-// radio_get_view and reads it before returning: nothing may hold it across a call into another service
-extern radio_view_t ui_svc_view;
-
 // --- What is available (screens gray out what isn't, and say why on SELECT) ---
 #define UI_FEAT_TALK_TARGET	(1u << 0)	// ui_svc_talk_to / ui_svc_focus_target (dmr-voice)
 #define UI_FEAT_TIMESLOT	(1u << 1)	// ui_svc_dmr_timeslot (dmr-voice / radio core)
@@ -148,18 +144,8 @@ bool ui_svc_dual(const ui_dual_ref_t ref[2], uint8_t sel);
 bool ui_svc_dual_get(ui_dual_ref_t ref[2], uint8_t *sel);
 // How many channels the radio hears at once: 1 = dual watch alternates between them (no radio in the tree has more)
 uint8_t ui_svc_receivers(void);
-// On a radio with a receiver per dual watch channel (ui_svc_receivers() > 1): what pane's receiver hears. Both can
-// receive at once; the audio is one of them (heard). False: no receiver of its own (one receiver alternates)
-typedef struct {
-	bool active;		// a call or a signal now
-	bool heard;		// its audio is the one playing
-	bool dmr;
-	bool group;
-	int16_t rssi_dbm;
-	uint32_t src, dst;
-	char src_name[24];
-} ui_dual_rx_t;
-bool ui_svc_dual_rx(uint8_t pane, ui_dual_rx_t *out);
+// Two-receiver Dual Watch: the two panes' current reception. False when the second receiver is unavailable.
+bool ui_svc_dual_rx(radio_dual_rx_t out[2]);
 // VFO `index`'s settings (0 or 1) while something else is on view (a dual watch pane). False: not known
 bool ui_svc_vfo_get(uint8_t index, channel_t *out);
 

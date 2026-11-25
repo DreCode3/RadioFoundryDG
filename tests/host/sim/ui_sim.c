@@ -2235,13 +2235,13 @@ static void sim_tune(int pane)
 // receivers:2 makes the radio one with a receiver per dual watch channel; rxa: / rxb: then start a call on A's or
 // B's own receiver (the first call is the one heard), rxaend / rxbend end it
 static uint8_t sim_receivers = 1;
-static ui_dual_rx_t sim_drx[2];
+static radio_dual_rx_t sim_drx[2];
 uint8_t ui_svc_receivers(void) { return sim_receivers; }
-bool ui_svc_dual_rx(uint8_t pane, ui_dual_rx_t *out)
+bool ui_svc_dual_rx(radio_dual_rx_t out[2])
 {
-	if (sim_receivers < 2 || pane > 1)
+	if (sim_receivers < 2)
 		return false;
-	*out = sim_drx[pane];
+	memcpy(out, sim_drx, sizeof sim_drx);
 	return true;
 }
 bool ui_svc_vfo_get(uint8_t index, channel_t *out)
@@ -3487,7 +3487,7 @@ static bool run_token(char *t, char *err, size_t len)
 			snprintf(err, len, "bad %s", t);
 			return false;
 		}
-		ui_dual_rx_t *x = &sim_drx[t[2] == 'b'];
+		radio_dual_rx_t *x = &sim_drx[t[2] == 'b'];
 		memset(x, 0, sizeof *x);
 		x->active = x->dmr = true;
 		x->heard = !sim_drx[t[2] != 'b'].active;
@@ -3501,7 +3501,7 @@ static bool run_token(char *t, char *err, size_t len)
 		return true;
 	}
 	if (strcmp(t, "rxaend") == 0 || strcmp(t, "rxbend") == 0) {
-		ui_dual_rx_t *x = &sim_drx[t[2] == 'b'], *o = &sim_drx[t[2] != 'b'];
+		radio_dual_rx_t *x = &sim_drx[t[2] == 'b'], *o = &sim_drx[t[2] != 'b'];
 		x->active = x->heard = false;
 		o->heard = o->active;	// the other call's audio now
 		changed();

@@ -425,6 +425,21 @@ void radio_get_view(radio_view_t *v)
 	xSemaphoreGive(view_lock);
 }
 
+void radio_get_channel_state(radio_channel_state_t *state, channel_t *ch)
+{
+	if (view_lock == NULL) {
+		*state = (radio_channel_state_t){ 0 };
+		if (ch != NULL)
+			*ch = (channel_t){ 0 };
+		return;
+	}
+	xSemaphoreTake(view_lock, portMAX_DELAY);
+	*state = radio_channel_state(&shared_view);
+	if (ch != NULL)
+		*ch = shared_view.ch;
+	xSemaphoreGive(view_lock);
+}
+
 void radio_get_channel_profile(channel_t *ch)
 {
 	if (ch == NULL)
@@ -819,6 +834,26 @@ bool radio_get_dual(radio_dual_ref_t ref[2], uint8_t *sel, uint8_t *at)
 	return false;
 #endif
 }
+bool radio_get_dual_primary_rx(uint8_t *pane, radio_dual_rx_t *out)
+{
+#if CONFIG_SCAN && CONFIG_DUAL_WATCH
+	if (view_lock == NULL)
+		return false;
+	xSemaphoreTake(view_lock, portMAX_DELAY);
+	bool ready = shared_dual_on && shared_view.rx2 && shared_dual_sel < 2;
+	if (ready) {
+		*pane = shared_dual_sel;
+		radio_primary_reception(&shared_view, out);
+	}
+	xSemaphoreGive(view_lock);
+	return ready;
+#else
+	(void)pane;
+	(void)out;
+	return false;
+#endif
+}
+
 void radio_req_beep(uint8_t b) { post(RREQ_BEEP, b, 0); }
 void radio_req_beep_after(uint8_t b, uint32_t delay_ms) { post_pair(RREQ_BEEP, b, delay_ms, 0); }
 void radio_req_vibrate(uint8_t pattern) { post(RREQ_VIBRATE, pattern, 0); }

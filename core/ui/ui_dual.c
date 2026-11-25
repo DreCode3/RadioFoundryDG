@@ -1119,14 +1119,14 @@ __attribute__((noinline)) bool ui_dual_tick(const radio_view_t *v, uint32_t now)
 	}
 
 	// What each pane hears now: its own receiver's report, or the one receiver's on the pane it is tuned to
-	static ui_dual_rx_t r[2];	// static: not on the UI task's stack
+	static radio_dual_rx_t r[2];	// static: not on the UI task's stack
 	memset(r, 0, sizeof r);
-	bool own = d->both && ui_svc_dual_rx(0, &r[0]) && ui_svc_dual_rx(1, &r[1]);
+	bool own = d->both && ui_svc_dual_rx(r);
 	if (!own) {
 		memset(r, 0, sizeof r);
 		uint8_t t = v->state == RS_RX ? tuned_pane(v) : UI_DUAL_NONE;
 		if (t != UI_DUAL_NONE) {
-			ui_dual_rx_t *x = &r[t];
+			radio_dual_rx_t *x = &r[t];
 			x->active = x->heard = true;
 			x->rssi_dbm = v->rssi_dbm;
 			x->dmr = shown_mode(&v->ch) == RADIO_MODE_DMR;	// a P25 or NXDN record keeps DMR
@@ -1142,7 +1142,7 @@ __attribute__((noinline)) bool ui_dual_tick(const radio_view_t *v, uint32_t now)
 	uint8_t heard = UI_DUAL_NONE;
 	for (uint8_t i = 0; i < 2; i++) {
 		ui_dual_pane_t *p = &d->pane[i];
-		ui_dual_rx_t *x = &r[i];
+		radio_dual_rx_t *x = &r[i];
 		if (p->rx && !x->active) {
 			call_ended(d, i, now);
 			if (d->talk_back && i != d->sel && v->state != RS_TX)

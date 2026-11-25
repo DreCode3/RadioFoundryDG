@@ -106,7 +106,6 @@ static uint8_t ui_flag(uint8_t id)
 	}
 }
 
-radio_view_t ui_svc_view;	// ui_svc.h
 
 #if CONFIG_DMR_PRIVACY
 // Privacy key slot 1 (settings-store.md 3.1), typed in on the radio. While privacy is on, the radio core holds the
@@ -127,8 +126,9 @@ static void privacy_store(uint8_t type, uint32_t key)
 		st->privacy_active = 0;
 	}
 	settings_end(hal_millis());
-	radio_get_view(&ui_svc_view);
-	if (ui_svc_view.dmr.privacy) {
+	radio_channel_state_t state;
+	radio_get_channel_state(&state, NULL);
+	if (state.privacy) {
 		radio_req_dmr_privacy(type, (uint16_t)key);
 	}
 }
@@ -1240,21 +1240,21 @@ static void save_channel_job(void *ctx)
 	radio_req_clear_temporary();
 }
 
-// Whether the radio is on a stored channel (its view in ui_svc_view)
+// Capture the effective settings of a stored channel in the pending write job.
 static bool take_channel(void)
 {
 	if (job_busy()) {
 		return false;	// the last write is still going on
 	}
-	radio_get_view(&ui_svc_view);
-	if (ui_svc_view.vfo || ui_svc_view.channel_number == 0 || ui_svc_view.hotspot) {
+	radio_channel_state_t state;
+	radio_get_channel_state(&state, &job.now);
+	if (state.vfo || state.number == 0 || state.hotspot) {
 		return false;
 	}
-	job.channel = ui_svc_view.channel_number;
-	job.temp = ui_svc_view.temp;
-	job.power = ui_svc_view.power;
-	job.squelch = ui_svc_view.squelch;
-	job.now = ui_svc_view.ch;
+	job.channel = state.number;
+	job.temp = state.temp;
+	job.power = state.power;
+	job.squelch = state.squelch;
 	return true;
 }
 
@@ -1296,7 +1296,7 @@ static bool air_conv_save(uint16_t number, uint16_t from, const channel_t *ch, c
 
 // The channel editor's whole channel (ui.md 2.1). Writing the channel in use drops its temporary changes: the radio
 // core re-reads it (codeplug_serial), and the edited values are what the user wants now. Whether it is the channel in
-// use is decided here on the UI task: the job runs on the housekeeping task, which must not touch ui_svc_view. A copy
+// use is decided here on the UI task from the published channel state. A copy
 // of a channel of a kind takes its source's tag (job.id: the source); a plain channel in P25 or NXDN becomes a stored
 // one of that kind
 static void write_channel_job(void *ctx)
@@ -1331,9 +1331,10 @@ static bool write_channel_post(uint16_t number, const channel_t *ch, uint16_t fr
 	if (number == 0 || number > CODEPLUG_CHANNELS_MAX || job_busy()) {
 		return false;
 	}
-	radio_get_view(&ui_svc_view);
+	radio_channel_state_t state;
+	radio_get_channel_state(&state, NULL);
 	job.channel = number;
-	job.temp = !ui_svc_view.vfo && ui_svc_view.channel_number == number && ui_svc_view.temporary;	// here: drop the temporary changes after it
+	job.temp = !state.vfo && state.number == number && state.temporary;	// here: drop the temporary changes after it
 	job.now = *ch;
 	job.id = from;
 #if CONFIG_P25 || CONFIG_NXDN
@@ -1483,9 +1484,10 @@ bool ui_svc_save_talk_target(uint32_t id, bool private_call)
 {
 	if (id == 0)
 		return false;
-	radio_get_view(&ui_svc_view);
-	if (ui_svc_view.vfo) {
-		if (!CONFIG_VFO_DMR || ui_svc_view.hotspot)
+	radio_channel_state_t state;
+	radio_get_channel_state(&state, NULL);
+	if (state.vfo) {
+		if (!CONFIG_VFO_DMR || state.hotspot)
 			return false;
 		radio_req_dmr_target(id, private_call);	// the VFO's own target: kept with its settings, nothing to write
 		return true;

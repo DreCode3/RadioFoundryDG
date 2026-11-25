@@ -4201,7 +4201,22 @@ static void test_ui_requests(void)
 
 uint32_t hal_millis(void) { return now; }
 void hal_delay_ms(uint32_t ms) { now += ms; }	// the PA sweep op's wait
-void radio_get_view(radio_view_t *v) { *v = sm.view; }
+static unsigned full_view_copies;
+void radio_get_view(radio_view_t *v) { full_view_copies++; *v = sm.view; }
+void radio_get_channel_state(radio_channel_state_t *state, channel_t *ch)
+{
+	*state = radio_channel_state(&sm.view);
+	if (ch != NULL)
+		*ch = sm.view.ch;
+}
+bool radio_get_dual_primary_rx(uint8_t *pane, radio_dual_rx_t *out)
+{
+	if (sm.scan.kind != SCAN_DUAL || !sm.view.rx2)
+		return false;
+	*pane = sm.dual_sel;
+	radio_primary_reception(&sm.view, out);
+	return true;
+}
 uint32_t radio_view_serial(void) { return sm.serial; }
 void radio_get_settings(radio_settings_t *s) { *s = sm.set; }
 void radio_set_settings(const radio_settings_t *s) { radio_sm_set_settings(&sm, s, now); }
@@ -5732,7 +5747,9 @@ static void test_ui_settings(void)
 	run(20);
 	CHECK(sm.view.temp & RADIO_TEMP_SQUELCH);
 	uint8_t sq = sm.view.squelch;
+	unsigned copies = full_view_copies;
 	CHECK(sq != 2 && ui_svc_save_channel());
+	CHECK(full_view_copies == copies);
 	storage_job_poll();
 	settings_read(&sv);
 	CHECK(sv.squelch == sq && cp_writes == w + 1);

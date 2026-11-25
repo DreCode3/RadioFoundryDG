@@ -549,6 +549,23 @@ typedef struct {
 void radio_core_start(void);
 // A consistent copy of the current state
 void radio_get_view(radio_view_t *v);
+// Channel-save metadata and, optionally, the effective channel from the same published view.
+typedef struct {
+	uint16_t number;
+	uint8_t temp, power, squelch;
+	bool vfo, hotspot, temporary, privacy;
+} radio_channel_state_t;
+static inline radio_channel_state_t radio_channel_state(const radio_view_t *v)
+{
+	return (radio_channel_state_t){
+		.number = v->channel_number, .temp = v->temp, .power = v->power, .squelch = v->squelch,
+		.vfo = v->vfo, .hotspot = v->hotspot, .temporary = v->temporary,
+#if CONFIG_DMR
+		.privacy = v->dmr.privacy,
+#endif
+	};
+}
+void radio_get_channel_state(radio_channel_state_t *state, channel_t *ch);
 // The current channel settings, with nominal satellite frequencies when Doppler tracking is active
 void radio_get_channel_profile(channel_t *ch);
 #if CONFIG_SATELLITE_TLE
@@ -692,6 +709,32 @@ void radio_req_dual(const radio_dual_ref_t ref[2], uint8_t sel);
 bool radio_get_vfo(uint8_t index, channel_t *out);
 // Dual watch now (CONFIG_SCAN): the two channels, the selected one and the one the receiver is on. False while it is off
 bool radio_get_dual(radio_dual_ref_t ref[2], uint8_t *sel, uint8_t *at);
+
+// Reception details for one pane, with heard meaning the pane playing audio.
+typedef struct {
+	bool active, heard, dmr, group;
+	int16_t rssi_dbm;
+	uint32_t src, dst;
+	char src_name[24];
+} radio_dual_rx_t;
+
+static inline void radio_primary_reception(const radio_view_t *v, radio_dual_rx_t *out)
+{
+	*out = (radio_dual_rx_t){ .active = v->state == RS_RX, .heard = v->state == RS_RX,
+				.dmr = v->ch.mode == RADIO_MODE_DMR, .rssi_dbm = v->rssi_dbm };
+#if CONFIG_DMR
+	if (out->dmr) {
+		out->active = out->heard = out->active && v->dmr.state == RDMR_RX;
+		out->src = v->dmr.call.src;
+		out->dst = v->dmr.call.dst;
+		out->group = v->dmr.call.group;
+		for (unsigned i = 0; i < sizeof v->dmr.call.src_name && i < sizeof out->src_name - 1; i++)
+			out->src_name[i] = v->dmr.call.src_name[i];
+	}
+#endif
+}
+// When two receivers are active, take the primary pane and its reception from one published view.
+bool radio_get_dual_primary_rx(uint8_t *pane, radio_dual_rx_t *out);
 // DMR repeater roaming (CONFIG_DMR_ROAMING; no-op otherwise; docs/spec/dmr-roaming.md 6.1): the current zone's
 // roaming flag (stored), roam now (a search at once, clears a lock), lock to the current site (RAM only)
 typedef enum {
