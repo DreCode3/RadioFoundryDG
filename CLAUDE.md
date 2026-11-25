@@ -39,7 +39,12 @@ can go upstream as pull requests, so write every change as if it were one.
    on small panels, flash cost with `CONFIG_UI_PROFILES` off, the settings offset test, the gallery).
 
 Until step 3, don't spend effort on other display classes beyond keeping them building and unchanged. Decisions so
-far: a GD-88 starts in the Commercial layout (`gui_flags` 0).
+far:
+
+- A GD-88 starts in the Commercial layout (`gui_flags` 0).
+- Home shows the channel name as configured in the CPS as its main line (zone above it), in both layouts. The talk
+  target is secondary: on Commercial only when it differs from the channel's own (temporary target, reply window,
+  a call); on Amateur always, with the details row.
 
 ## Upstream pull request requirements
 
