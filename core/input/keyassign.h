@@ -43,11 +43,13 @@ typedef enum {
 	KEYFN_TALK_LABEL,	// Home's talk line: the talkgroup's name or its number first (CONFIG_DMR)
 	KEYFN_SCAN_SKIP,	// skip the channel that stopped the scan, until the scan stops
 	KEYFN_MONITOR_TOGGLE,	// latch the monitor on / off, as quick tile 5 does (FM: the squelch held open; DMR: digital monitor)
+	KEYFN_QUICK,		// open Quick from Home (press only)
 	KEYFN_COUNT
 } keyfn_t;
 
 // fn may go in a press (hold false) or long press slot
 bool keyassign_allowed(uint8_t fn, bool hold);
+bool keyassign_side_allowed(uint8_t fn, bool hold);
 // The same for a home key (board.home_keys): its arrow sends a press and a long press, never raw edges, so the
 // functions held for as long as the key is (Monitor, Tone burst) can't go there
 bool keyassign_home_allowed(uint8_t fn, bool hold);

@@ -3729,6 +3729,11 @@ msgctxt "KEYFN_VALUE_NOTHING"
 msgid "Nothing"
 msgstr "无"
 
+#: core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "QUICK_TITLE"
+msgid "Quick"
+msgstr "快捷"
+
 #: core/ui/ui_menus.c
 msgctxt "KEYFN_VALUE_MONITOR"
 msgid "Monitor"
@@ -4208,6 +4213,11 @@ msgstr "自动关机"
 msgctxt "SET_LABEL_LOW_BATTERY_WARNING"
 msgid "Low battery warning"
 msgstr "低电量提示"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_RIGHT_SOFT_KEY"
+msgid "Right soft key"
+msgstr "返回键"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_KEY_N"
@@ -5758,11 +5768,6 @@ msgstr "{上下: +/- 偏移  输入: 发射频率|上下 +/- 偏移  0-9 发射�
 msgctxt "QUICK_HINT_OK_SETS"
 msgid "  OK sets"
 msgstr "  OK 设定"
-
-#: core/ui/ui_screens.c
-msgctxt "QUICK_TITLE"
-msgid "Quick"
-msgstr "快捷"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"

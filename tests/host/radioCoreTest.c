@@ -5964,15 +5964,25 @@ static void test_side_keys(void)
 	CHECK(ui_svc_home_key(ACT_HOME_KEY_1, GESTURE_PRESS, true) == ACT_POWER);
 	CHECK(ui_svc_home_key(ACT_HOME_KEY_1, GESTURE_PRESS, false) == ACT_NAV_LEFT);
 	CHECK(ui_svc_home_key(ACT_HOME_KEY_1, GESTURE_LONG, true) == ACT_USER_1);
-	CHECK(ui_svc_setting_set(UI_SET_KEY_FIRST + 4, KEYFN_DEFAULT));
-	CHECK(got_keymap[3].short_action == ACT_NAV_LEFT);
+	CHECK(!ui_svc_key_offered(UI_SET_KEY_FIRST, KEYFN_QUICK));
+	CHECK(!ui_svc_key_offered(UI_SET_KEY_FIRST + 5, KEYFN_QUICK));
+	CHECK(ui_svc_setting_set(UI_SET_KEY_FIRST + 4, KEYFN_QUICK));
+	CHECK(ui_svc_setting_get(UI_SET_KEY_FIRST + 4) == KEYFN_QUICK);
+	CHECK(ui_svc_home_key(ACT_HOME_KEY_1, GESTURE_PRESS, true) == ACT_QUICK);
+	CHECK(ui_svc_home_key(ACT_HOME_KEY_1, GESTURE_PRESS, false) == ACT_NAV_LEFT);
 	CHECK(!ui_svc_setting_set(UI_SET_KEY_FIRST + 2, KEYFN_COUNT));
 	uint32_t ser = cp_serial;
 	ui_svc_keys_poll();
 	storage_job_poll();
 	CHECK(cp_quick[0] == KEYASSIGN_MARKER && cp_quick[1] == KEYFN_POWER && cp_serial == ser + 1u);
+	CHECK(cp_quick[3] == KEYFN_QUICK);
 	ui_svc_keys_poll();			// our own write read back: the same
 	CHECK(ui_svc_setting_get(UI_SET_KEY_FIRST) == KEYFN_POWER && got_keymap[1].short_action == ACT_POWER);
+	CHECK(ui_svc_setting_get(UI_SET_KEY_FIRST + 4) == KEYFN_QUICK && got_keymap[3].short_action == ACT_HOME_KEY_1);
+	CHECK(ui_svc_setting_set(UI_SET_KEY_FIRST + 4, KEYFN_DEFAULT));
+	CHECK(got_keymap[3].short_action == ACT_NAV_LEFT);
+	ui_svc_keys_poll();
+	storage_job_poll();
 	// A CPS wrote the slots: role 0's press, role 1's long press
 	cp_quick[1] = KEYFN_SCAN;
 	cp_quick[2] = KEYFN_ZONE_UP << 8;

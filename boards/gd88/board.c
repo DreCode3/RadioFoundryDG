@@ -63,6 +63,9 @@ static const keymap_entry_t keymap[] = {
 
 // Reassignable in Settings > Keys (core/input/keyassign.h): side key 1, side key 2, top key
 static const uint8_t side_keys[] = { KEY_SK1, KEY_SK2, KEY_SOS };
+#if CONFIG_KEY_ASSIGN
+static const uint8_t home_keys[] = { KEY_SOFT_RIGHT };
+#endif
 
 #if CONFIG_CPS_OPENFW
 // What the open-firmware CPS reads in the radio info (open-firmware-cps.md 4): type 6, as the other HR_C7000 boards
@@ -116,6 +119,10 @@ const board_t board = {
 	.keymap_len = sizeof(keymap) / sizeof(keymap[0]),
 	.side_keys = side_keys,
 	.side_key_count = sizeof(side_keys),
+#if CONFIG_KEY_ASSIGN
+	.home_keys = home_keys,
+	.home_key_count = sizeof(home_keys),
+#endif
 	.radio = &gd88_radio,
 #if CONFIG_APRS && GD88_TX
 	.afsk = &afsk_tonegen,

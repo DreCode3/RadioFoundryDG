@@ -6663,7 +6663,7 @@ static const tr_id_t n_possend[] = { TRN(VALUE_OFF, "Off"), TRN(VALUE_1_MIN, "1 
 #if CONFIG_KEY_ASSIGN
 // Side keys (core/input/keyassign.h, KEYFN_* values): monitor needs the key held, so it is a press only;
 // emergency is hold to activate, so a long press only
-static const int16_t v_keyfn_press[] = { KEYFN_DEFAULT, KEYFN_NONE, KEYFN_MONITOR, KEYFN_TALK_TARGET, KEYFN_POWER,
+static const int16_t v_keyfn_press[] = { KEYFN_DEFAULT, KEYFN_NONE, KEYFN_QUICK, KEYFN_MONITOR, KEYFN_TALK_TARGET, KEYFN_POWER,
 					 KEYFN_ZONE_UP, KEYFN_ZONE_DOWN, KEYFN_SCAN, KEYFN_SCAN_SKIP, KEYFN_MONITOR_TOGGLE,
 					 KEYFN_KEY_LOCK,
 					 KEYFN_HOME_ZONE,
@@ -6681,7 +6681,7 @@ static const int16_t v_keyfn_press[] = { KEYFN_DEFAULT, KEYFN_NONE, KEYFN_MONITO
 #endif
 };
 static const tr_id_t n_keyfn_press[] = { TRN(VALUE_DEFAULT, "Default"), TRN(KEYFN_VALUE_NOTHING, "Nothing"),
-	TRN(KEYFN_VALUE_MONITOR, "Monitor"), TRN(KEYFN_VALUE_TALK_TARGET, "Talk target"),
+	TRN(QUICK_TITLE, "Quick"), TRN(KEYFN_VALUE_MONITOR, "Monitor"), TRN(KEYFN_VALUE_TALK_TARGET, "Talk target"),
 					     TRN(KEYFN_VALUE_POWER_LEVEL, "Power level"),
 					TRN(KEYFN_VALUE_NEXT_ZONE, "Next zone"),
 					TRN(KEYFN_VALUE_PREV_ZONE, "Prev zone"), TRN(WORD_SCAN, "Scan"),
@@ -6987,6 +6987,16 @@ _Static_assert(UI_KEY_ROLES == 9, "KEY_ROWS below");
 static char key_label[2 * UI_KEY_ROLES][20];
 static uint8_t key_label_lang = 0xFF;	// the language they were built in: rebuilt when the user picks another
 
+static uint8_t home_key_action(uint8_t index, bool hold)
+{
+	uint8_t bit = board.home_keys[index];
+	for (uint8_t i = 0; i < board.keymap_len; i++) {
+		if (board.keymap[i].bit == bit)
+			return hold ? board.keymap[i].long_action : board.keymap[i].short_action;
+	}
+	return ACT_NONE;
+}
+
 static void key_labels(void)
 {
 	sbuf_t b;
@@ -6997,11 +7007,18 @@ static void key_labels(void)
 	for (uint8_t r = 0; r < UI_KEY_ROLES; r++) {
 		for (uint8_t h = 0; h < 2; h++) {
 			sb_init(&b, key_label[2 * r + h], sizeof key_label[0]);
+			const char *name = NULL;
 			if (board.side_key_names != NULL && r < board.side_key_count) {
-				sb_str(&b, board.side_key_names[r]);
-			} else if (board.home_key_names != NULL && r >= board.side_key_count &&
-				   r < board.side_key_count + board.home_key_count) {
-				sb_str(&b, board.home_key_names[r - board.side_key_count]);
+				name = board.side_key_names[r];
+			} else if (r >= board.side_key_count && r < board.side_key_count + board.home_key_count) {
+				uint8_t i = r - board.side_key_count;
+				if (board.home_key_names != NULL)
+					name = board.home_key_names[i];
+				else if (home_key_action(i, false) == ACT_BACK)
+					name = TR(SET_LABEL_RIGHT_SOFT_KEY, "Right soft key");
+			}
+			if (name != NULL) {
+				sb_str(&b, name);
 			} else {
 				sb_str(&b, TR(SET_LABEL_KEY_N, "Key "));
 				sb_i32(&b, r + 1);
@@ -7446,24 +7463,20 @@ static uint8_t set_key_next(const set_item_t *s, uint8_t at)
 	return next;
 }
 
-// A home key left at Default (P1, P2: board.home_keys) does on Home what its arrow does there: the zone. Say that
-// instead of "Default". NULL for any other key or value
+// Name the usual action for a home key left at Default when it makes the setting clearer.
 static const char *home_key_default(uint8_t id, int32_t v)
 {
 	uint8_t k = (uint8_t)(id - UI_SET_KEY_FIRST);
 	if (v != KEYFN_DEFAULT || id < UI_SET_KEY_FIRST || id > UI_SET_KEY_LAST || k / 2u < board.side_key_count ||
 	    k / 2u >= board.side_key_count + board.home_key_count)
 		return NULL;
-	uint8_t bit = board.home_keys[k / 2u - board.side_key_count];
-	for (uint8_t i = 0; i < board.keymap_len; i++) {
-		if (board.keymap[i].bit != bit)
-			continue;
-		uint8_t a = (k & 1u) ? board.keymap[i].long_action : board.keymap[i].short_action;
-		if (a == ACT_NAV_LEFT || a == ACT_USER_1 || a == ACT_ZONE_DOWN)	// ui_home_key
-			return TR(KEYFN_VALUE_PREV_ZONE, "Prev zone");
-		if (a == ACT_NAV_RIGHT || a == ACT_USER_4 || a == ACT_ZONE_UP)
-			return TR(KEYFN_VALUE_NEXT_ZONE, "Next zone");
-	}
+	uint8_t a = home_key_action(k / 2u - board.side_key_count, (k & 1u) != 0);
+	if (a == ACT_NAV_LEFT || a == ACT_USER_1 || a == ACT_ZONE_DOWN)
+		return TR(KEYFN_VALUE_PREV_ZONE, "Prev zone");
+	if (a == ACT_NAV_RIGHT || a == ACT_USER_4 || a == ACT_ZONE_UP)
+		return TR(KEYFN_VALUE_NEXT_ZONE, "Next zone");
+	if (a == ACT_BACK && !(k & 1u))
+		return TR(HINT_BACK, "Back");
 	return NULL;
 }
 #endif

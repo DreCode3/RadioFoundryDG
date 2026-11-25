@@ -14,6 +14,14 @@ GEOMETRY = "320x240iR10"
 
 
 class PrototypeTest(unittest.TestCase):
+    def test_right_soft_key_opens_quick_only_on_home(self):
+        self.run_script("back expect:screen=home ok 7 8 up up "
+                        "expect:focus=Right_soft_key ok ok expect:shows=Quick "
+                        "back expect:screen=settings back expect:screen=hub "
+                        "back expect:screen=home back expect:screen=quick back expect:screen=home "
+                        "reboot back expect:screen=quick back expect:screen=home "
+                        "quick expect:screen=quick")
+
     def render_frame(self, script):
         with tempfile.TemporaryDirectory() as temp:
             image = Path(temp) / "frame.png"
@@ -232,7 +240,7 @@ class PrototypeTest(unittest.TestCase):
 
     def test_profile_settings_submenus_use_roomy_headings(self):
         groups = [("1", 12), ("2", 8), ("3", 13), ("4", 2), ("5", 8), ("6", 10),
-                  ("7", 3), ("8", 9), ("9", 2), ("0", 2), ("up up ok", 9), ("up ok", 5)]
+                  ("7", 3), ("8", 11), ("9", 2), ("0", 2), ("up up ok", 9), ("up ok", 5)]
         for shortcut, count in groups:
             with self.subTest(shortcut=shortcut):
                 self.run_script(f"ok 7 {shortcut} expect:screen=group expect:count={count} expect:layout=0 "
@@ -399,7 +407,7 @@ class PrototypeTest(unittest.TestCase):
     def test_talkgroup_order_key_only_applies_to_legacy_home(self):
         self.run_script("labelkey expect:toast=none")
         self.run_script("labelkey expect:toast=Talkgroup_name_first", "320x240")
-        after_call_back = "ok 7 8 up " + "ok " * 14
+        after_call_back = "ok 7 8 " + "down " * 8 + "ok " * 14
         self.run_script(after_call_back + "expect:set47=12 ok expect:set47=16")
         self.run_script(after_call_back + "expect:set47=12 ok expect:set47=19", "320x240")
 

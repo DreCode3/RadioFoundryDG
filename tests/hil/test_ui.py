@@ -474,6 +474,52 @@ def settings_keys(r, keys):
     wait_screen(r, "home")
 
 
+@pytest.mark.feature("key_assign")
+@pytest.mark.needs_switch("UI_SETTINGS")
+@pytest.mark.codeplug_write
+def test_home_back_key_can_open_quick(home):
+    r = home
+    view = ui(r)
+    if "key.home_back.bit" not in view:
+        skip("no_hw", "no assignable Home key that acts as Back")
+    bit = int(view["key.home_back.bit"])
+    focus = 3 + 2 * int(view["key.home_back.role"])
+    saved = int(view["key.home_back.press"])
+    quick = 22  # KEYFN_QUICK in core/input/keyassign.h
+
+    def assign(function):
+        r.go_home()
+        for key in ("ok", "7", "8", *("down",) * focus):
+            r.press(key)
+        assert ui(r).get("ui.focus") == str(focus)
+        for _ in range(24):
+            before = ui(r)["key.home_back.press"]
+            if before == str(function):
+                r.go_home()
+                return
+            r.press("ok")
+            r.wait_for(lambda v: v.get("key.home_back.press") != before, sections=("link",),
+                       what="the Home key function saved")
+        raise AssertionError(f"the Home key did not offer function {function}")
+
+    def tap():
+        r.link.keys_mask(1 << bit, 100)
+        r.link.wait_keys_idle()
+
+    try:
+        assign(quick)
+        tap()
+        wait_screen(r, "quick")
+        tap()
+        wait_screen(r, "home")
+        r.press("ok")
+        wait_screen(r, "hub")
+        tap()
+        wait_screen(r, "home")
+    finally:
+        assign(saved)
+
+
 @pytest.mark.feature("ui_settings")
 def test_long_press_time_reaches_input(home):
     """Settings > Keys > Long press time: the gesture engine uses the new time at once (input.long_ms)."""

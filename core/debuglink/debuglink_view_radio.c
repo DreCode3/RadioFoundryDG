@@ -240,11 +240,25 @@ void debuglink_view_radio(const radio_view_t *v, dl_text_t *t)
 void debuglink_view_keys(dl_text_t *t)
 {
 #if CONFIG_KEY_ASSIGN
-	if (board.side_key_count != 0) {
+	if (board.side_key_count != 0 || board.home_key_count != 0) {
 		uint16_t slots[CODEPLUG_QUICK_KEYS];
 		(void)codeplug_quick_keys(slots);
 		// The saved assignment lets HIL restore the key through Settings after exercising its physical bit.
-		dl_text(t, "key.first.bit=%u\nkey.first.press=%u\n", board.side_keys[0], keyassign_get(slots, 0, false));
+		if (board.side_key_count != 0)
+			dl_text(t, "key.first.bit=%u\nkey.first.press=%u\n", board.side_keys[0], keyassign_get(slots, 0, false));
+		for (uint8_t i = 0; i < board.keymap_len; i++) {
+			const keymap_entry_t *key = &board.keymap[i];
+			if (key->short_action != ACT_BACK)
+				continue;
+			for (uint8_t h = 0; h < board.home_key_count; h++) {
+				if (key->bit != board.home_keys[h])
+					continue;
+				uint8_t role = board.side_key_count + h;
+				dl_text(t, "key.home_back.bit=%u\nkey.home_back.role=%u\nkey.home_back.press=%u\n",
+					key->bit, role, keyassign_get(slots, role, false));
+				return;
+			}
+		}
 	}
 #else
 	(void)t;

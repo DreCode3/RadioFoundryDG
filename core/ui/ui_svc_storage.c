@@ -1648,11 +1648,8 @@ static int32_t key_get(uint8_t id)
 	}
 	uint8_t k = (uint8_t)(id - UI_SET_KEY_FIRST);
 	uint8_t fn = keyassign_get(key_slots, k / 2u, (k & 1u) != 0);
-	// A home key's slot holding what it can't do (Monitor, Tone burst from a CPS) reads as Default, as it acts
-	if (k / 2u >= board.side_key_count && !keyassign_home_allowed(fn, (k & 1u) != 0)) {
-		return KEYFN_DEFAULT;
-	}
-	return fn;
+	// A slot holding a function the key cannot use reads as Default, as it acts.
+	return ui_svc_key_offered(id, fn) ? fn : KEYFN_DEFAULT;
 }
 
 uint8_t ui_svc_home_key(uint8_t action, uint8_t gesture, bool home)
@@ -1675,7 +1672,7 @@ bool ui_svc_key_offered(uint8_t id, int32_t value)
 		return false;
 	}
 	if (k / 2u < board.side_key_count) {
-		return keyassign_allowed((uint8_t)value, (k & 1u) != 0);
+		return keyassign_side_allowed((uint8_t)value, (k & 1u) != 0);
 	}
 	return k / 2u < board.side_key_count + board.home_key_count &&
 	       keyassign_home_allowed((uint8_t)value, (k & 1u) != 0);

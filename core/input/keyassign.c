@@ -20,6 +20,7 @@ static const uint8_t fn_action[KEYFN_COUNT] = {
 	[KEYFN_VFO_TOGGLE] = ACT_VFO_TOGGLE,
 	[KEYFN_TALK_LABEL] = ACT_TALK_LABEL, [KEYFN_SCAN_SKIP] = ACT_SCAN_SKIP,
 	[KEYFN_MONITOR_TOGGLE] = ACT_MONITOR_TOGGLE,
+	[KEYFN_QUICK] = ACT_QUICK,
 };
 
 bool keyassign_allowed(uint8_t fn, bool hold)
@@ -35,7 +36,12 @@ bool keyassign_allowed(uint8_t fn, bool hold)
 		return false;
 	}
 #endif
-	return hold ? fn != KEYFN_MONITOR && fn != KEYFN_TONE_BURST : fn != KEYFN_EMERGENCY;
+	return hold ? fn != KEYFN_MONITOR && fn != KEYFN_TONE_BURST && fn != KEYFN_QUICK : fn != KEYFN_EMERGENCY;
+}
+
+bool keyassign_side_allowed(uint8_t fn, bool hold)
+{
+	return fn != KEYFN_QUICK && keyassign_allowed(fn, hold);
 }
 
 bool keyassign_home_allowed(uint8_t fn, bool hold)
@@ -92,6 +98,9 @@ void keyassign_build(const keymap_entry_t *base, uint8_t base_len, const uint8_t
 	memcpy(out, base, base_len * sizeof(*base));
 	for (uint8_t role = 0; role < side_key_count && role < KEYASSIGN_ROLES; role++) {
 		uint8_t press = keyassign_get(slots, role, false), hold = keyassign_get(slots, role, true);
+		if (!keyassign_side_allowed(press, false)) {
+			press = KEYFN_DEFAULT;
+		}
 		if (press == KEYFN_DEFAULT && hold == KEYFN_DEFAULT) {
 			continue;
 		}

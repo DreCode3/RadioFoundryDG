@@ -505,6 +505,7 @@ position in the list is its role. Each role has a press and a long press, and ea
 | TG name / number (19) | TALK_LABEL: Home's talk line puts the talkgroup's name first, or back to its number first; the same as Settings > Display > Talkgroup name first, and saved. Toast "Talkgroup name first" / "Talkgroup number first". Offered in builds with DMR | yes | yes |
 | Scan skip (20) | SCAN_SKIP: what the scan action's "Skip channel for now" does, without the menu: the nuisance delete of the channel that stopped the scan, until the scan stops. Toast "Skipped until the scan stops", "Nothing to skip yet" when the radio has no channel to skip, "Not scanning" (and nothing else) when no scan is running. Allowed on a home key like Scan: it is a plain press or long press function | yes | yes |
 | Monitor toggle (21) | MONITOR_TOGGLE: what quick tile 5 does, on one key: on an FM channel it latches the squelch open (status line MON) or closes it again; on a DMR channel it turns digital monitor on or off (toast "Digital monitor on" / "Digital monitor off"). It is not the Monitor key: that one still opens the squelch only while held, and the retired values 9 and 10 stay retired. Allowed on a home key like Scan: it is a plain press or long press function, and works in the VFO too | yes | yes |
+| Quick (22) | QUICK: opens Quick settings from Home. Offered on Home keys | yes | no |
 
 POWER, ZONE_UP, ZONE_DOWN, SCAN, SCAN_SKIP, MONITOR_TOGGLE, CALL_BACK, HOME_ZONE, COPY_VFO, VFO_TOGGLE and TALK_LABEL do the same on a press and a long
 press and work on any screen. LOCK also gets through while the keys are locked, to unlock them. TALK_TARGET opens the picker on
@@ -523,13 +524,13 @@ marker the slots are another firmware's and every key is the board's; the first 
 marker. A value that isn't a `keyfn_t`, or isn't allowed in its
 slot (monitor on a long press, emergency on a press), reads as Default. The values are append-only (gotchas 9.11).
 
-**Home keys.** A board may also list keys the menus need but that are printed as programmable keys (arrows printed P1,
-P2): `board.home_keys`, `home_key_names`, `home_key_count`, up to `KEYASSIGN_HOME_KEYS` (4). Their roles follow the
+**Home keys.** A board may also list navigation keys that can have their own assignment on Home, such as
+a soft key: `board.home_keys`, `home_key_names`, `home_key_count`, up to `KEYASSIGN_HOME_KEYS` (4). Their roles follow the
 side keys (`side_key_count + i`), in the same slots and Settings > Keys rows. A home key with a function in either slot
 sends `ACT_HOME_KEY_1 + i` on a press and a long press (`keyassign_build_home`, repeat kept). The UI turns that back
 first thing (`ui_svc_home_key`, `keyassign_home_event`): on Home (the bottom of the stack, no frequency being typed)
 the slot's function, or the key map's own action for Default, nothing for Nothing, and a long press's repeats send
-nothing once it has a function; on any other screen the key map's own action, so the arrows keep working in the menus.
+nothing once it has a function. In menus and during frequency entry, it uses the key map's own action.
 Monitor and Tone burst need raw edges, and Emergency the 1.5 s hold the input engine gives only a key whose long action
 is Emergency (a home key's long action is its home key action, so its hold would fire at the ordinary long press). None
 of the three can go on a home key (`keyassign_home_allowed`): Settings skips them and a slot holding one reads as

@@ -2174,7 +2174,7 @@ static void call_back_key(void)
 
 void ui_app_key(const input_event_t *ev)
 {
-	// A programmed home key (P1, P2: board.home_keys): its function on Home, its arrow everywhere else. Home is the
+	// A programmed home key (board.home_keys): its function on Home, its usual action everywhere else. Home is the
 	// bottom of the stack, not while a frequency is typed there
 	input_event_t home_ev;
 	if (ev->action >= ACT_HOME_KEY_1 && ev->action <= ACT_HOME_KEY_4) {

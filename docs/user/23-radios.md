@@ -834,7 +834,7 @@ first chip the installer pauses and asks you to hold **SK1** until the top line 
 | Key | Role |
 |---|---|
 | Left soft key (under the display) | **OK** |
-| Right soft key | **Back** |
+| Right soft key (under the display) | **Back** by default. To open Quick settings from Home, select **Quick** under **Settings > Keys > Right soft key**. In menus it acts as **Back** |
 | Green | **A/B** |
 | Red | **VFO** |
 | Up, Down | **Up**, **Down** |

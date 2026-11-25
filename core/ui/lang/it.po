@@ -3727,6 +3727,11 @@ msgctxt "KEYFN_VALUE_NOTHING"
 msgid "Nothing"
 msgstr "Niente"
 
+#: core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "QUICK_TITLE"
+msgid "Quick"
+msgstr "Rapido"
+
 #: core/ui/ui_menus.c
 msgctxt "KEYFN_VALUE_MONITOR"
 msgid "Monitor"
@@ -4206,6 +4211,11 @@ msgstr "Spegnim. auto"
 msgctxt "SET_LABEL_LOW_BATTERY_WARNING"
 msgid "Low battery warning"
 msgstr "Avviso batt. scarica"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_RIGHT_SOFT_KEY"
+msgid "Right soft key"
+msgstr "Tasto destro"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_KEY_N"
@@ -5756,11 +5766,6 @@ msgstr "{Su/Giù: +/- scarto  Digita: freq. TX|Su/Giù +/- scarto  0-9 freq. TX|
 msgctxt "QUICK_HINT_OK_SETS"
 msgid "  OK sets"
 msgstr "  OK imposta"
-
-#: core/ui/ui_screens.c
-msgctxt "QUICK_TITLE"
-msgid "Quick"
-msgstr "Rapido"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"

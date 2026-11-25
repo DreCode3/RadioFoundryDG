@@ -3727,6 +3727,11 @@ msgctxt "KEYFN_VALUE_NOTHING"
 msgid "Nothing"
 msgstr "Rien"
 
+#: core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "QUICK_TITLE"
+msgid "Quick"
+msgstr "Rapide"
+
 #: core/ui/ui_menus.c
 msgctxt "KEYFN_VALUE_MONITOR"
 msgid "Monitor"
@@ -4206,6 +4211,11 @@ msgstr "Extinction auto"
 msgctxt "SET_LABEL_LOW_BATTERY_WARNING"
 msgid "Low battery warning"
 msgstr "Alerte batt. faible"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_RIGHT_SOFT_KEY"
+msgid "Right soft key"
+msgstr "Droite"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_KEY_N"
@@ -5756,11 +5766,6 @@ msgstr "{Ht/Bas: +/- shift 0-9 TX|Ht/Bas shift 0-9 TX|Ht/Bas shift 0-9 TX|Ht/Bas
 msgctxt "QUICK_HINT_OK_SETS"
 msgid "  OK sets"
 msgstr "  OK valide"
-
-#: core/ui/ui_screens.c
-msgctxt "QUICK_TITLE"
-msgid "Quick"
-msgstr "Rapide"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"

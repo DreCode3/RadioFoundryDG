@@ -87,6 +87,7 @@
 #include "ui/ui_svc.h"
 #include "ui/ui_nav.h"
 #include "input/input.h"
+#include "input/keyassign.h"
 #include "hostlink/hostlink.h"
 #include "hotspot/hotspot.h"
 #include "stubentry/stub_entry.h"
@@ -412,6 +413,9 @@ static const keymap_entry_t map_s[] = {	// side keys only, no display to navigat
 	{ K_PTT, ACT_PTT, ACT_PTT, true, false, 0 },
 };
 static const uint8_t side_k[] = { K_SK1, K_SK2, K_SK3 }, side_m[] = { K_SK1, K_SK2 };	// board.side_keys
+#if CONFIG_KEY_ASSIGN
+static const uint8_t profile_home_keys[] = { K_RED };	// the simulator's Back control
+#endif
 static const char *const side_names[] = { "SK1", "SK2", "SK3" };
 static const char *const side_names_p[] = { "P3", "P4", "Orange" };	// the MD-9600 (boards/md9600/board.c)
 static const struct {
@@ -755,13 +759,48 @@ bool ui_svc_codeplug_answer(uint8_t answer)
 // (ui_svc_storage.c); here they are plain values
 static int32_t sim_late[UI_SET_COUNT - UI_SET_RAM_COUNT];
 
+#if CONFIG_KEY_ASSIGN
+static uint16_t sim_key_slots[KEYASSIGN_SLOTS];
+
+bool ui_svc_key_offered(uint8_t id, int32_t value)
+{
+	if (id < UI_SET_KEY_FIRST || id > UI_SET_KEY_LAST || value < 0 || value >= KEYFN_COUNT)
+		return false;
+	uint8_t k = id - UI_SET_KEY_FIRST;
+	if (k / 2u < board.side_key_count)
+		return keyassign_side_allowed(value, k & 1u);
+	return k / 2u < board.side_key_count + board.home_key_count && keyassign_home_allowed(value, k & 1u);
+}
+
+uint8_t ui_svc_home_key(uint8_t action, uint8_t gesture, bool home)
+{
+	return keyassign_home_event(action, gesture, home, board.keymap, board.keymap_len, board.home_keys,
+				    board.home_key_count, board.side_key_count, sim_key_slots);
+}
+#endif
+
 int32_t ui_svc_setting_get(uint8_t id)
 {
+#if CONFIG_KEY_ASSIGN
+	if (id >= UI_SET_KEY_FIRST && id <= UI_SET_KEY_LAST) {
+		uint8_t k = id - UI_SET_KEY_FIRST;
+		return keyassign_get(sim_key_slots, k / 2u, k & 1u);
+	}
+#endif
 	return id >= UI_SET_RAM_COUNT && id < UI_SET_COUNT ? sim_late[id - UI_SET_RAM_COUNT] : ui_svc_ram_get(id);
 }
 
 bool ui_svc_setting_set(uint8_t id, int32_t value)
 {
+#if CONFIG_KEY_ASSIGN
+	if (id >= UI_SET_KEY_FIRST && id <= UI_SET_KEY_LAST) {
+		if (!ui_svc_key_offered(id, value))
+			return false;
+		uint8_t k = id - UI_SET_KEY_FIRST;
+		keyassign_set(sim_key_slots, k / 2u, k & 1u, value);
+		return true;
+	}
+#endif
 	if (id < UI_SET_RAM_COUNT || id >= UI_SET_COUNT)
 		return ui_svc_ram_set(id, value);
 	if (id == UI_SET_SIG_STEP) {	// a whole step: the firmware writes one record, here its two settings
@@ -2683,6 +2722,11 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	board.side_keys = maps[map].side;
 	board.side_key_names = maps[map].names;
 	board.side_key_count = maps[map].side_n;
+#if CONFIG_KEY_ASSIGN
+	board.home_keys = gui_profiles && map == SIM_MAP_K ? profile_home_keys : NULL;
+	board.home_key_count = board.home_keys != NULL ? sizeof(profile_home_keys) : 0;
+	memset(sim_key_slots, 0, sizeof sim_key_slots);
+#endif
 	board.caps = maps[map].caps;
 	board.gps = gui_profiles ? &sim_gps_hal : NULL;
 	sim_gps = gui_profiles ? SIM_GPS_SEARCH : SIM_GPS_NONE;
@@ -2807,8 +2851,6 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_UPDOWN_HOME, 0);
 	ui_svc_setting_set(UI_SET_VFO_STEP, 0);
 	sim_step = 0;
-	for (uint8_t k = UI_SET_KEY_FIRST; k <= UI_SET_KEY_LAST; k++)
-		ui_svc_setting_set(k, 0);	// the side keys as the board has them
 	ui_svc_setting_set(UI_SET_AUTO_OFF_MIN, 0);
 	ui_svc_setting_set(UI_SET_LOW_BATTERY, 15);
 	ui_svc_setting_set(UI_SET_THEME, 0);
@@ -2938,6 +2980,13 @@ static bool press(const char *name, bool lng, char *err, size_t len)
 			return true;
 		}
 		input_event_t ev = { a, (uint8_t)(lng ? GESTURE_LONG : GESTURE_PRESS), 0 };
+#if CONFIG_KEY_ASSIGN
+		if (a == ACT_BACK && board.home_key_count) {
+			keymap_entry_t key = { K_RED, ACT_BACK, ACT_BACK, false, false, 0 };
+			keyassign_build_home(&key, 1, board.home_keys, board.home_key_count, board.side_key_count, sim_key_slots);
+			ev.action = lng ? key.long_action : key.short_action;
+		}
+#endif
 		advance(lng ? LONG_MS : PRESS_MS / 2);
 		ui_app_key(&ev);
 		advance(PRESS_MS / 2);
