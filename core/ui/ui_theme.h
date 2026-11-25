@@ -16,6 +16,24 @@
 #define UI_BAR_NUMBERED	0x04u	// ... whose rows the digit keys pick (ui_list_t.numbered)
 #endif
 
+// Where a list's cells go (ops->list_geom). The shared list code (ui_draw_list) picks the cells on screen from it and
+// moves the list; the first column is filled first
+typedef struct {
+	const font_t *font;	// the rows' text
+	int16_t x, y;		// the first cell's corner
+	int16_t pitch;		// from one row to the next: a cell's height
+	int16_t col_w[2];	// each column's width
+	int16_t col_gap;	// between columns
+	uint8_t rows, cols;	// cells on screen: rows * cols
+	bool paged;		// the list moves a page at a time, not a row
+} ui_list_geom_t;
+
+// One cell of a list (ops->cell): its box, and whether it has the focus
+typedef struct {
+	int16_t x, y, w, h;
+	bool focus;
+} ui_cell_t;
+
 // An op left NULL is the reference theme's (UI_THEME_OP), so a theme gives only what it draws differently
 typedef struct ui_theme_ops {
 	// Fonts for the display and the regions, into *L
@@ -39,6 +57,18 @@ typedef struct ui_theme_ops {
 #endif
 	// Quick settings, the whole frame
 	void (*quick)(const radio_view_t *v, const ui_state_t *s);
+	// A list screen. ui_draw_list owns its frame (the body text, which cells are on screen, the banner, the bottom row)
+	// and calls these four.
+	// The strip and the title; returns the y below them. draw false: only measure (v and s are NULL)
+	int (*list_head)(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw);
+	// Where the cells go, between y and y_end
+	void (*list_geom)(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g);
+	// One cell: its background and focus, the key's digit, the label and the value, an open editor
+	void (*cell)(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it);
+	// That the list has more before top or after the cells on screen. Called before the cells are drawn (over false)
+	// and after them (over true); a theme draws in one of the two. Marks on the cells need the second. What is drawn
+	// first gets its colors first on a display with a 16-color palette, which is what the first is for
+	void (*scroll)(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over);
 } ui_theme_ops_t;
 
 typedef struct ui_theme {

@@ -4471,41 +4471,79 @@ void ui_draw_banner(const ui_state_t *s)
 
 // --- List screens (Hub, Contacts, Find, Settings, ...): title, optional header and body, rows, hint ---
 
+#if CONFIG_UI_PROFILES
+#define PROFILE_GEAR_OUTLINE RGB565(0, 0, 0)
+#define PROFILE_GEAR_FILL RGB565(148, 148, 148)
+
+// The palette entries the profile look's rows and icons need, taken before anything else is drawn
+static void profile_list_colors(const ui_list_t *l)
+{
+	const color_t row_colors[] = { profile_row_bg, profile_row_focus, ui_col.fg };
+	const color_t icon_colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx,
+		PROFILE_GEAR_FILL, PROFILE_GEAR_OUTLINE };
+	gfx_reserve_colors(row_colors, sizeof row_colors / sizeof row_colors[0]);
+	if (l->menu_icons)
+		gfx_reserve_colors(icon_colors, sizeof icon_colors / sizeof icon_colors[0]);
+}
+
+// The profile look's list heading. noinline, as list_header below: its buffers stay out of the frame of
+// ref_list_head, which also leads to the reference strip
+static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l,
+	bool draw)
+{
+	char title[64];
+	sbuf_t b;
+	sb_init(&b, title, sizeof title);
+	if (l->prefix)
+		sb_str(&b, l->prefix);
+	if (l->prefix && l->name)
+		sb_chr(&b, ' ');
+	if (l->name)
+		sb_str(&b, l->name);
+	const font_t *f = ui_layout.large;
+	if (gfx_text_width(f, title) > gfx_width() - 30)
+		f = ui_layout.medium;
+	int y = ui_layout.strip_h + 5;
+	if (draw) {
+		char fit[48];
+		draw_profile_status(v, v->state, s, true, ui_layout.strip_h);
+		gfx_text_fit(f, title, gfx_width() - 30, fit, sizeof fit);
+		gfx_text(f, 15, y, fit, ui_col.fg);
+	}
+	return y + f->h + 5;
+}
+#endif
+
+static int ref_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
+{
+#if CONFIG_UI_PROFILES
+	if (draw && s->gui_profiles)
+		profile_list_colors(l);
+	if (l->roomy && (l->prefix || l->name))
+		return profile_list_head(v, s, l, draw);
+#endif
+	return draw ? ui_draw_top(v, s, l->prefix, l->name) : ui_layout.strip_h +
+		((l->prefix || l->name) && gfx_height() >= UI_TALL_PX ? ui_layout.small->h + 2 : 0);
+}
+
+// noinline: its buffer stays out of list_top's frame. The stack check follows list_top from a screen that only measures
+// (ui_list_body_fits) on through the theme's head and the strip, one of the UI task's deepest paths, and the head is a
+// frame of its own there
+static void __attribute__((noinline)) list_header(const char *header, int y)
+{
+	char fit[48];
+	gfx_text_fit(ui_layout.small, header, gfx_width(), fit, sizeof fit);
+	gfx_text(ui_layout.small, 0, y, fit, ui_col.warn);
+}
+
+// Where a list's rows (or its body) start: below the theme's strip and title, and the header when there is one. draw
+// false only measures (v and s may be NULL)
 static int list_top(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
-	int y;
-#if CONFIG_UI_PROFILES
-	if (l->roomy && (l->prefix || l->name)) {
-		char title[64];
-		sbuf_t b;
-		sb_init(&b, title, sizeof title);
-		if (l->prefix)
-			sb_str(&b, l->prefix);
-		if (l->prefix && l->name)
-			sb_chr(&b, ' ');
-		if (l->name)
-			sb_str(&b, l->name);
-		const font_t *f = ui_layout.large;
-		if (gfx_text_width(f, title) > gfx_width() - 30)
-			f = ui_layout.medium;
-		y = ui_layout.strip_h + 5;
-		if (draw) {
-			char fit[48];
-			draw_profile_status(v, v->state, s, true, ui_layout.strip_h);
-			gfx_text_fit(f, title, gfx_width() - 30, fit, sizeof fit);
-			gfx_text(f, 15, y, fit, ui_col.fg);
-		}
-		y += f->h + 5;
-	} else
-#endif
-		y = draw ? ui_draw_top(v, s, l->prefix, l->name) : ui_layout.strip_h +
-		((l->prefix || l->name) && gfx_height() >= UI_TALL_PX ? ui_layout.small->h + 2 : 0);
+	int y = UI_THEME_OP(list_head)(v, s, l, draw);
 	if (l->header != NULL) {
-		if (draw) {
-			char fit[48];
-			gfx_text_fit(ui_layout.small, l->header, gfx_width(), fit, sizeof fit);
-			gfx_text(ui_layout.small, 0, y, fit, ui_col.warn);
-		}
+		if (draw)
+			list_header(l->header, y);
 		y += ui_layout.small->h;
 	}
 	return y;
@@ -4780,9 +4818,6 @@ int ui_list_rows(const ui_list_t *l)
 }
 
 #if CONFIG_UI_PROFILES
-#define PROFILE_GEAR_OUTLINE RGB565(0, 0, 0)
-#define PROFILE_GEAR_FILL RGB565(148, 148, 148)
-
 static void draw_menu_icon(uint8_t icon, int x, int y)
 {
 	if (icon == UI_MENU_ICON_SETTINGS) {
@@ -4854,52 +4889,234 @@ static void profile_row(int x, int y, int w, int h, color_t ink)
 }
 #endif
 
-void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l)
+// The reference theme's rows: one column of them from edge to edge, as many as fit
+static void ref_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 {
-	const ui_layout_t *L = &ui_layout;
-	const font_t *f = L->small;
-	int w = gfx_width();
-	gfx_clear(ui_col.bg);
+	g->font = ui_layout.small;
+	g->x = 0;
+	g->y = (int16_t)y;
+	g->pitch = (int16_t)list_pitch(l);
+	int rows = (y_end - y) / g->pitch;
+	if (rows < 1)
+		rows = 1;
+	g->cols = 1;
+	g->col_w[1] = 0;
+	g->col_gap = 0;
+	g->paged = false;
 #if CONFIG_UI_PROFILES
-	if (s->gui_profiles) {
-		const color_t row_colors[] = { profile_row_bg, profile_row_focus, ui_col.fg };
-		const color_t icon_colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx,
-			PROFILE_GEAR_FILL, PROFILE_GEAR_OUTLINE };
-		gfx_reserve_colors(row_colors, sizeof row_colors / sizeof row_colors[0]);
-		if (l->menu_icons)
-			gfx_reserve_colors(icon_colors, sizeof icon_colors / sizeof icon_colors[0]);
+	if (l->roomy)
+		g->x = 7;
+	if (l->two_columns) {
+		rows = 3;
+		g->pitch = (int16_t)((y_end - y) / rows);
+		if (l->main_menu)
+			g->font = &font_aa_12x24;
+		g->cols = 2;
+		g->col_gap = 8;
+		g->paged = true;
 	}
 #endif
+	g->rows = (uint8_t)rows;
+	int inner_w = gfx_width() - 2 * g->x;
+	g->col_w[0] = (int16_t)inner_w;
+#if CONFIG_UI_PROFILES
+	if (l->two_columns) {
+		int visible = 2 * rows;
+		bool paginated = l->count > visible;
+		int column_w = (inner_w - g->col_gap) / 2;
+		if (!l->main_menu) {
+			// Give a column extra width for longer translations before shortening a label. Measured over every page,
+			// so the columns keep one split as the pages turn
+			int minimum[2] = { 0, 0 };
+			for (uint16_t i = 0; i < l->count; i++) {
+				ui_item_t it = { 0 };
+				l->item(i, &it);
+				int need = (paginated ? 8 : 10) + gfx_text_width(g->font, it.label);
+				if (l->menu_icons && it.icon != UI_MENU_ICON_NONE)
+					need += 16 + (it.num ? 0 : g->font->w + 3);
+				if (it.num)
+					need += g->font->w + 3;
+				int column = i % visible >= rows;
+				if (need > minimum[column])
+					minimum[column] = need;
+			}
+			int max_left = inner_w - g->col_gap - minimum[1];
+			if (minimum[0] <= max_left) {
+				if (column_w < minimum[0])
+					column_w = minimum[0];
+				if (column_w > max_left)
+					column_w = max_left;
+			}
+		}
+		g->col_w[0] = (int16_t)column_w;
+		g->col_w[1] = (int16_t)(inner_w - g->col_gap - column_w);
+	}
+#endif
+}
+
+// The reference theme's row: the focus as a filled bar, the key's digit, the label and its value
+static void ref_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
+{
+	const ui_layout_t *L = &ui_layout;
+	const font_t *f = g->font;
+	int pitch = c->h;
+	bool paginated = false;
+	bool main_menu = false;
+	int inset = 0, gap = 0;
+	color_t disabled = ui_col.line;
+#if CONFIG_UI_PROFILES
+	bool two_columns = g->cols > 1;
+	paginated = two_columns && l->count > g->rows * g->cols;
+	main_menu = l->main_menu;
+	inset = g->x;
+	if (inset) {
+		gap = l->roomy ? 4 : 2;
+		disabled = ui_col.dim;
+	}
+#else
+	(void)l;
+#endif
+	bool focus = c->focus;
+	color_t fg = (it->flags & UI_ITEM_DIM) ? disabled : (it->flags & UI_ITEM_WARN) ? ui_col.warn : ui_col.fg;
+	if (gfx_bpp() == 1)
+		fg = ui_col.fg;
+	if ((it->flags & UI_ITEM_INFO) && gfx_bpp() != 1)
+		fg = ui_col.dim;
+	color_t vfg = (it->flags & UI_ITEM_DIM) && gfx_bpp() != 1 ? disabled : ui_col.dim;
+	if (it->flags & UI_ITEM_TEMP)
+		vfg = ui_col.warn;
+	if (focus) {
+		color_t bg = (it->flags & UI_ITEM_EDIT) ? ui_col.warn : ui_col.focus;
+#if CONFIG_UI_PROFILES
+		if (inset) {
+			profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap,
+				    it->flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
+			gfx_fill(c->x + 2, c->y + gap + 5, 2, pitch - 2 * gap - 10, ui_col.fg);
+		} else
+#endif
+			gfx_fill(c->x, c->y + gap, c->w, pitch - 2 * gap, bg);
+		fg = gfx_bpp() == 1 ? ui_col.bg : (it->flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
+		vfg = fg;
+#if CONFIG_UI_PROFILES
+	} else if (inset && !(it->flags & UI_ITEM_INFO)) {
+		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, profile_row_bg);
+#endif
+	}
+	int x = inset ? c->x + 5 : 1;
+#if CONFIG_UI_PROFILES
+	if (l->menu_icons && it->icon != UI_MENU_ICON_NONE) {
+		draw_menu_icon(it->icon, x, c->y + (pitch - 13) / 2);
+		x += two_columns ? 16 : 19;
+		if (!it->num)
+			x += two_columns ? f->w + 3 : 2 * f->w;
+	}
+#endif
+	int right = c->x + c->w - (paginated ? 3 : inset ? 5 : 0);
+	const font_t *row_font = f;
+	int digit_gap = main_menu ? 5 : 3;
+	if (main_menu && gfx_text_width(f, it->label) + (it->num ? f->w + digit_gap : 0) > right - x) {
+		row_font = L->small;
+		if (gfx_text_width(row_font, it->label) + (it->num ? row_font->w + digit_gap : 0) > right - x &&
+		    gfx_text_width(L->tiny, it->label) + (it->num ? L->tiny->w + digit_gap : 0) <= right - x)
+			row_font = L->tiny;
+	}
+	int pad = (pitch - row_font->h) / 2;
+	if (gfx_bpp() == 1 && !focus)
+		x = gfx_text(row_font, 0, c->y + pad, " ", fg);
+	int label_room = right - x - (it->num ? row_font->w + digit_gap : 0);
+	char val[48];
+	const char *rest = NULL;
+	if (paginated && !it->value[0] && pitch >= 2 * row_font->h &&
+	    gfx_text_width(row_font, it->label) > label_room)
+		rest = wrap_line(row_font, it->label, label_room, val, sizeof val);
+	int ty = c->y + (rest && *rest ? (pitch - 2 * row_font->h) / 2 : pad);
+	if (it->num) {
+		char n[3] = { it->num, ' ', 0 };
+		color_t num_ink = focus || gfx_bpp() == 1 ? fg : ui_col.dim;
+#if CONFIG_UI_PROFILES
+		if (two_columns) {
+			n[1] = '\0';
+			int digit_w = row_font->w + 1;
+			gfx_text_title(row_font, x + digit_w / 2, c->y + pad + row_font->ascent, digit_w, n, num_ink, 4);
+			x += row_font->w + digit_gap;
+		} else
+#endif
+			x = gfx_text(row_font, x, ty, n, num_ink);
+	}
+	if (rest && *rest) {
+		row_text(row_font, x, ty, right, val, "", fg, vfg, false);
+		row_text(row_font, x, ty + row_font->h, right, rest, "", fg, vfg, false);
+		return;
+	}
+	if (it->flags & UI_ITEM_EDIT) {
+		sbuf_t b;
+		sb_init(&b, val, sizeof val);
+		sb_chr(&b, '<');
+		sb_str(&b, it->value);
+		sb_chr(&b, '>');
+	} else {
+		str_copy(val, sizeof val, it->value);
+	}
+	row_text(row_font, x, ty, right, it->label, val, fg, vfg,
+		 (it->flags & UI_ITEM_PREVIEW) != 0);
+}
+
+// The reference theme's scroll marks, over the rows: more above / below
+static void ref_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+{
+	int w = gfx_width();
+	int visible = g->rows * g->cols;
+#if CONFIG_UI_PROFILES
+	if (g->cols > 1) {
+		// The page in the title, before the cells: its shades take their palette entries ahead of the cells' (gfx.c)
+		if (over || count <= visible)
+			return;
+		char page[16];
+		sbuf_t b;
+		sb_init(&b, page, sizeof page);
+		sb_u32(&b, top / visible + 1, 1);
+		sb_chr(&b, '/');
+		sb_u32(&b, (count + visible - 1) / visible, 1);
+		const font_t *badge = &font_aa_8x16;
+		int bx = w - g->x - gfx_text_width(badge, page), by = g->y - badge->h - 4;
+		gfx_text(badge, bx, by, page, ui_col.dim);
+		for (int dx = -2; dx <= 2; dx++) {
+			int slope = dx < 0 ? -dx : dx;
+			if (top > 0)
+				gfx_pixel(bx - 7 + dx, by + 4 + slope, ui_col.fg);
+			if (top + visible < count)
+				gfx_pixel(bx - 7 + dx, by + 12 - slope, ui_col.fg);
+		}
+		return;
+	}
+#endif
+	if (!over)
+		return;
+	if (top > 0)
+		gfx_fill(w - 3, g->y, 3, 2, ui_col.dim);
+	if (top + visible < count)
+		gfx_fill(w - 3, g->y + g->rows * g->pitch - 2, 3, 2, ui_col.dim);
+}
+
+// A list screen's frame, the same in every theme: the title, the body text, which rows are on screen, the banner and
+// the bottom row. The theme places the cells and draws each one (ui_theme.h); only this function moves *l->top
+void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l)
+{
+	gfx_clear(ui_col.bg);
 	int y = list_top(v, s, l, true);
 	int y_end = list_bottom(s);
 	if (l->body != NULL) {
-		y = wrap_text(f, l->body, y, list_body_end(l, y, y_end), true, ui_col.fg);
+		y = wrap_text(ui_layout.small, l->body, y, list_body_end(l, y, y_end), true, ui_col.fg);
 		if (l->count) {
-			gfx_hline(0, y, w, ui_col.line);
+			gfx_hline(0, y, gfx_width(), ui_col.line);
 			y += 2;
 		}
 	}
-	int pitch = list_pitch(l);
-	int rows = (y_end - y) / pitch;
-	if (rows < 1)
-		rows = 1;
-	bool two_columns = false;
-	bool paginated = false;
-	bool main_menu = false;
-#if CONFIG_UI_PROFILES
-	two_columns = l->two_columns;
-	main_menu = l->main_menu;
-	if (two_columns) {
-		rows = 3;
-		pitch = (y_end - y) / rows;
-		if (main_menu)
-			f = &font_aa_12x24;
-	}
-	paginated = two_columns && l->count > 2 * rows;
-#endif
-	int visible = two_columns ? 2 * rows : rows;
+	ui_list_geom_t g;
+	UI_THEME_OP(list_geom)(l, y, y_end, &g);
+	int visible = g.rows * g.cols;
 	uint16_t top = l->top != NULL ? *l->top : 0;
-	if (two_columns) {
+	if (g.paged) {
 		top = (uint16_t)(l->focus / visible * visible);
 	} else {
 		if (l->focus < top)
@@ -4912,63 +5129,8 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	if (l->top != NULL)
 		*l->top = top;
 	if (l->count == 0 && l->empty != NULL)
-		wrap_text(f, l->empty, y + 1, y_end, true, ui_col.dim);
-	int inset = 0, gap = 0;
-	color_t disabled = ui_col.line;
-#if CONFIG_UI_PROFILES
-	if (s->gui_profiles) {
-		inset = 7;
-		gap = l->roomy ? 4 : 2;
-		disabled = ui_col.dim;
-	}
-#endif
-	const int column_gap = 8;
-	int inner_w = w - 2 * inset;
-	int column_w = (inner_w - column_gap) / 2;
-#if CONFIG_UI_PROFILES
-	if (paginated) {
-		char page[16];
-		sbuf_t b;
-		sb_init(&b, page, sizeof page);
-		sb_u32(&b, top / visible + 1, 1);
-		sb_chr(&b, '/');
-		sb_u32(&b, (l->count + visible - 1) / visible, 1);
-		const font_t *badge = &font_aa_8x16;
-		int bx = w - inset - gfx_text_width(badge, page), by = y - badge->h - 4;
-		gfx_text(badge, bx, by, page, ui_col.dim);
-		for (int dx = -2; dx <= 2; dx++) {
-			int slope = dx < 0 ? -dx : dx;
-			if (top > 0)
-				gfx_pixel(bx - 7 + dx, by + 4 + slope, ui_col.fg);
-			if (top + visible < l->count)
-				gfx_pixel(bx - 7 + dx, by + 12 - slope, ui_col.fg);
-		}
-	}
-	if (two_columns && !main_menu) {
-		// Give a column extra width for longer translations before shortening a label. Measured over every page, so
-		// the columns keep one split as the pages turn
-		int minimum[2] = { 0, 0 };
-		for (uint16_t i = 0; i < l->count; i++) {
-			ui_item_t it = { 0 };
-			l->item(i, &it);
-			int need = (paginated ? 8 : 10) + gfx_text_width(f, it.label);
-			if (l->menu_icons && it.icon != UI_MENU_ICON_NONE)
-				need += 16 + (it.num ? 0 : f->w + 3);
-			if (it.num)
-				need += f->w + 3;
-			int column = i % visible >= rows;
-			if (need > minimum[column])
-				minimum[column] = need;
-		}
-		int max_left = inner_w - column_gap - minimum[1];
-		if (minimum[0] <= max_left) {
-			if (column_w < minimum[0])
-				column_w = minimum[0];
-			if (column_w > max_left)
-				column_w = max_left;
-		}
-	}
-#endif
+		wrap_text(g.font, l->empty, y + 1, y_end, true, ui_col.dim);
+	UI_THEME_OP(scroll)(&g, top, l->count, false);
 	for (int r = 0; r < visible && top + r < l->count; r++) {
 		uint16_t i = (uint16_t)(top + r);
 		ui_item_t it;
@@ -4979,100 +5141,15 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		it.icon = UI_MENU_ICON_NONE;
 #endif
 		l->item(i, &it);
-		// Fill the left column first so Up and Down keep the numbered menu order.
-		bool second = two_columns && r >= rows;
-		int rx = inset + (second ? column_w + column_gap : 0);
-		int item_w = !two_columns ? inner_w : second ? inner_w - column_gap - column_w : column_w;
-		int ry = y + (r % rows) * pitch;
-		bool focus = i == l->focus && !(it.flags & UI_ITEM_INFO);
-		color_t fg = (it.flags & UI_ITEM_DIM) ? disabled : (it.flags & UI_ITEM_WARN) ? ui_col.warn : ui_col.fg;
-		if (gfx_bpp() == 1)
-			fg = ui_col.fg;
-		if ((it.flags & UI_ITEM_INFO) && gfx_bpp() != 1)
-			fg = ui_col.dim;
-		color_t vfg = (it.flags & UI_ITEM_DIM) && gfx_bpp() != 1 ? disabled : ui_col.dim;
-		if (it.flags & UI_ITEM_TEMP)
-			vfg = ui_col.warn;
-		if (focus) {
-			color_t bg = (it.flags & UI_ITEM_EDIT) ? ui_col.warn : ui_col.focus;
-#if CONFIG_UI_PROFILES
-			if (inset) {
-				profile_row(rx, ry + gap, item_w, pitch - 2 * gap,
-					    it.flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
-				gfx_fill(rx + 2, ry + gap + 5, 2, pitch - 2 * gap - 10, ui_col.fg);
-			} else
-#endif
-				gfx_fill(rx, ry + gap, item_w, pitch - 2 * gap, bg);
-			fg = gfx_bpp() == 1 ? ui_col.bg : (it.flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
-			vfg = fg;
-#if CONFIG_UI_PROFILES
-		} else if (inset && !(it.flags & UI_ITEM_INFO)) {
-			profile_row(rx, ry + gap, item_w, pitch - 2 * gap, profile_row_bg);
-#endif
-		}
-		int x = inset ? rx + 5 : 1;
-#if CONFIG_UI_PROFILES
-		if (l->menu_icons && it.icon != UI_MENU_ICON_NONE) {
-			draw_menu_icon(it.icon, x, ry + (pitch - 13) / 2);
-			x += two_columns ? 16 : 19;
-			if (!it.num)
-				x += two_columns ? f->w + 3 : 2 * f->w;
-		}
-#endif
-		int right = rx + item_w - (paginated ? 3 : inset ? 5 : 0);
-		const font_t *row_font = f;
-		int digit_gap = main_menu ? 5 : 3;
-		if (main_menu && gfx_text_width(f, it.label) + (it.num ? f->w + digit_gap : 0) > right - x) {
-			row_font = L->small;
-			if (gfx_text_width(row_font, it.label) + (it.num ? row_font->w + digit_gap : 0) > right - x &&
-			    gfx_text_width(L->tiny, it.label) + (it.num ? L->tiny->w + digit_gap : 0) <= right - x)
-				row_font = L->tiny;
-		}
-		int pad = (pitch - row_font->h) / 2;
-		if (gfx_bpp() == 1 && !focus)
-			x = gfx_text(row_font, 0, ry + pad, " ", fg);
-		int label_room = right - x - (it.num ? row_font->w + digit_gap : 0);
-		char val[48];
-		const char *rest = NULL;
-		if (paginated && !it.value[0] && pitch >= 2 * row_font->h &&
-		    gfx_text_width(row_font, it.label) > label_room)
-			rest = wrap_line(row_font, it.label, label_room, val, sizeof val);
-		int ty = ry + (rest && *rest ? (pitch - 2 * row_font->h) / 2 : pad);
-		if (it.num) {
-			char n[3] = { it.num, ' ', 0 };
-			color_t num_ink = focus || gfx_bpp() == 1 ? fg : ui_col.dim;
-#if CONFIG_UI_PROFILES
-			if (two_columns) {
-				n[1] = '\0';
-				int digit_w = row_font->w + 1;
-				gfx_text_title(row_font, x + digit_w / 2, ry + pad + row_font->ascent, digit_w, n, num_ink, 4);
-				x += row_font->w + digit_gap;
-			} else
-#endif
-				x = gfx_text(row_font, x, ty, n, num_ink);
-		}
-		if (rest && *rest) {
-			row_text(row_font, x, ty, right, val, "", fg, vfg, false);
-			row_text(row_font, x, ty + row_font->h, right, rest, "", fg, vfg, false);
-			continue;
-		}
-		if (it.flags & UI_ITEM_EDIT) {
-			sbuf_t b;
-			sb_init(&b, val, sizeof val);
-			sb_chr(&b, '<');
-			sb_str(&b, it.value);
-			sb_chr(&b, '>');
-		} else {
-			str_copy(val, sizeof val, it.value);
-		}
-		row_text(row_font, x, ty, right, it.label, val, fg, vfg,
-			 (it.flags & UI_ITEM_PREVIEW) != 0);
+		// The first column is filled first, so Up and Down keep the order of a numbered menu
+		int col = r / g.rows;
+		ui_cell_t c = { .x = g.x, .y = (int16_t)(g.y + (r % g.rows) * g.pitch), .w = g.col_w[col], .h = g.pitch,
+			.focus = i == l->focus && !(it.flags & UI_ITEM_INFO) };
+		for (int k = 0; k < col; k++)
+			c.x += g.col_w[k] + g.col_gap;
+		UI_THEME_OP(cell)(l, &g, &c, &it);
 	}
-	// Scroll marks: more above / below
-	if (!paginated && top > 0)
-		gfx_fill(w - 3, y, 3, 2, ui_col.dim);
-	if (!paginated && top + visible < l->count)
-		gfx_fill(w - 3, y + rows * pitch - 2, 3, 2, ui_col.dim);
+	UI_THEME_OP(scroll)(&g, top, l->count, true);
 	ui_draw_banner(s);
 	if (s->toast)
 		ui_draw_hint(s->toast, true);
@@ -5630,6 +5707,10 @@ static const ui_theme_ops_t reference_ops = {
 	.home_dual = ref_home_dual,
 #endif
 	.quick = ref_quick,
+	.list_head = ref_list_head,
+	.list_geom = ref_list_geom,
+	.cell = ref_cell,
+	.scroll = ref_scroll,
 };
 
 const ui_theme_t ui_theme_reference = {
