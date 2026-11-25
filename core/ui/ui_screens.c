@@ -30,8 +30,11 @@ static bool ui_strip_fill;
 #if CONFIG_UI_PROFILES
 #define PROFILE_BAND_H 29
 #define PROFILE_COMMERCIAL_STATUS_H 36
+#define PROFILE_HOME_GAP 3
+#define PROFILE_HOME_INSET 4
+#define PROFILE_HOME_FOOTER_H 34
 static color_t profile_bar_fg;
-static color_t profile_row_bg, profile_row_focus;
+static color_t profile_row_bg, profile_row_focus, profile_home_gutter;
 static void layout_regions(void);
 
 static bool profile_theme(void)
@@ -54,6 +57,7 @@ static void profile_palette(bool night)
 	ui_col.strip_bg = night ? RGB565(25, 38, 52) : RGB565(244, 248, 252);
 	profile_row_bg = night ? RGB565(30, 46, 63) : RGB565(205, 223, 237);
 	profile_row_focus = night ? RGB565(48, 76, 102) : RGB565(174, 204, 231);
+	profile_home_gutter = night ? RGB565(8, 15, 23) : RGB565(155, 183, 207);
 	profile_bar_fg = night ? ui_col.fg : RGB565(255, 255, 255);
 	ui_col.idle = ui_col.dim;
 	ui_col.focus_fg = ui_col.fg;
@@ -505,6 +509,28 @@ static void profile_round_fill(int x, int y, int w, int h, color_t ink)
 		gfx_coverage_pixel(x, y + h - 1, ink, 1);
 		gfx_coverage_pixel(x + w - 1, y + h - 1, ink, 1);
 	}
+}
+
+static void profile_home_pane(int y, int h, color_t ink)
+{
+	static const uint8_t corner[] = { 5, 3, 2, 1, 1 };
+	const int x = PROFILE_HOME_INSET, w = gfx_width() - 2 * x;
+	const int r = sizeof corner;
+	gfx_fill(x, y + r, w, h - 2 * r, ink);
+	for (int i = 0; i < r; i++) {
+		int inset = corner[i], top = y + i, bottom = y + h - 1 - i;
+		gfx_hline(x + inset, top, w - 2 * inset, ink);
+		gfx_hline(x + inset, bottom, w - 2 * inset, ink);
+		gfx_coverage_pixel(x + inset - 1, top, ink, 1);
+		gfx_coverage_pixel(x + w - inset, top, ink, 1);
+		gfx_coverage_pixel(x + inset - 1, bottom, ink, 1);
+		gfx_coverage_pixel(x + w - inset, bottom, ink, 1);
+	}
+}
+
+static int profile_home_footer_top(void)
+{
+	return gfx_height() - PROFILE_HOME_INSET - PROFILE_HOME_FOOTER_H;
 }
 
 static void profile_round_block(profile_mark_pos_t at, int x, int y, int w, int h, color_t ink)
@@ -1265,9 +1291,9 @@ static int wrap_lines(const font_t *f, const char *t, int max_w, int max, char l
 // An overlay's top edge (banner, two-line toast) moved up to a gap between lines of what is under it, so it never
 // cuts a line of text in half: the first row at or above y whose row above is all one color (background, or the
 // edge of a focus bar), at most one line up
-static int overlay_top(int y, int x0)
+static int overlay_top(int y, int x0, int right_inset)
 {
-	int w = gfx_width();
+	int w = gfx_width() - right_inset;
 	for (int t = y; t > 0 && t > y - ui_layout.large->h - 2; t--) {
 		color_t c = gfx_get_pixel(x0, t - 1);
 		int x = x0 + 1;
@@ -1397,7 +1423,7 @@ static const char *key_names(const char *text, char *out, size_t cap, bool hint)
 // ("Back", "Back keeps", ...) is pinned to the right edge, under the key, and the others run from the left. A hint may
 // hold text alternates (font.h): the longest form that fits is used. A toast is centered; one too long for the row
 // takes a second line above it, so it is never shortened
-void ui_draw_hint(const char *text, bool toast)
+static void draw_hint(const char *text, bool toast, bool profile_home)
 {
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
@@ -1406,18 +1432,29 @@ void ui_draw_hint(const char *text, bool toast)
 	// tight on some radios) and no more stack (the UI task's deepest chain runs through here, docs/dev/stack-check.md)
 	const ui_layout_t *L = &ui_layout;
 	const font_t *f = L->small;
-	int w = gfx_width();
+	int inset = 0, top = L->hint_y, h = gfx_height() - top;
 	char fit[64];
 	color_t bg = toast ? ui_col.fg : ui_col.hint_bg;
 	color_t fg = toast ? ui_col.bg : ui_col.dim;
 	int text_y = L->hint_y;
 #if CONFIG_UI_PROFILES
-	if (profile_theme()) {
+	if (profile_home) {
+		inset = PROFILE_HOME_INSET;
+		top = profile_home_footer_top();
+		h = PROFILE_HOME_FOOTER_H;
+		f = toast ? L->small : &font_aa_12x24;
+		text_y = top + (h - f->h) / 2;
+		if (!toast)
+			fg = profile_bar_fg;
+	} else if (profile_theme()) {
 		text_y += (PROFILE_BAND_H - f->h) / 2;
 		if (!toast)
 			fg = profile_bar_fg;
 	}
+#else
+	(void)profile_home;
 #endif
+	int w = gfx_width() - 2 * inset;
 	if (gfx_bpp() == 1 && !toast)
 		fg = ui_col.fg;
 	if (toast) {
@@ -1439,7 +1476,7 @@ void ui_draw_hint(const char *text, bool toast)
 			memcpy(first, second, sizeof first);	// the rest below may point into it, and second is reused
 		}
 		const char *rest = wrap_line(f, first, w - 2, fit, sizeof fit);
-		int y = text_y, top = L->hint_y;
+		int y = text_y;
 		second[0] = 0;
 		if (*rest) {
 			// Two lines: the first ends at a word, the rest goes below it
@@ -1448,23 +1485,34 @@ void ui_draw_hint(const char *text, bool toast)
 			memcpy(second, rest, n);
 			second[n] = 0;
 			y -= f->h;
-			top = overlay_top(y, 0);
+			top = overlay_top(y, inset + (profile_home ? 5 : 0), inset + (profile_home ? 5 : 0));
 		}
-		gfx_fill(0, top, w, gfx_height() - top, bg);
-		gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
+#if CONFIG_UI_PROFILES
+		if (profile_home)
+			profile_home_pane(top, gfx_height() - PROFILE_HOME_INSET - top, bg);
+		else
+#endif
+			gfx_fill(0, top, w, gfx_height() - top, bg);
+		gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
 		if (second[0]) {
 			gfx_text_fit(f, second, w - 2, fit, sizeof fit);
-			gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y + f->h, fit, fg);
+			gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y + f->h, fit, fg);
 		}
 		return;
 	}
-	gfx_fill(0, L->hint_y, w, gfx_height() - L->hint_y, bg);
+#if CONFIG_UI_PROFILES
+	if (profile_home)
+		profile_home_pane(top, h, bg);
+	else
+#endif
+		gfx_fill(0, top, w, h, bg);
 	if (gfx_bpp() == 1)
 		gfx_hline(0, L->hint_y, w, ui_col.line);
 	// The longest alternate whose groups fit side by side (or the shortest there is)
 	char form[64], left[64], right[24];
 	bool more = true;
 	int lw = 0, rw = 0;
+	int room = w - (profile_home ? 12 : 0);
 	for (int level = 0; more; level++) {
 		gfx_text_alt(text, level, form, sizeof form, &more);
 		hint_split(key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
@@ -1474,8 +1522,16 @@ void ui_draw_hint(const char *text, bool toast)
 #endif
 		lw = gfx_text_width(f, left);
 		rw = gfx_text_width(f, right);
-		if (lw + (rw && lw ? f->w : 0) + rw <= w)
+		if (lw + (rw && lw ? f->w : 0) + rw <= room)
 			break;
+#if CONFIG_UI_PROFILES
+		if (!more && profile_home && f != L->small) {
+			f = L->small;
+			text_y = top + (h - f->h) / 2;
+			level = -1;
+			more = true;
+		}
+#endif
 	}
 	// Still too wide: the last groups on the left go, whole, before anything is shortened
 	while (lw + (rw && lw ? f->w : 0) + rw > w) {
@@ -1490,18 +1546,25 @@ void ui_draw_hint(const char *text, bool toast)
 	int margin = lw + (rw && lw ? f->w : 0) + rw <= w - 2 ? 1 : 0;
 #if CONFIG_UI_PROFILES
 	if (profile_theme() && lw + (rw && lw ? f->w : 0) + rw <= w - 30)
-		margin = 15;
+		margin = 15 - inset;
+	else if (profile_home)
+		margin = 6;
 #endif
 	if (rw > w - 2 * margin)
 		rw = w - 2 * margin;
 	if (right[0]) {
 		gfx_text_fit(f, right, rw, fit, sizeof fit);
-		gfx_text(f, w - margin - gfx_text_width(f, fit), text_y, fit, fg);
+		gfx_text(f, inset + w - margin - gfx_text_width(f, fit), text_y, fit, fg);
 	}
 	if (left[0]) {
 		gfx_text_fit(f, left, w - 2 * margin - (right[0] ? rw + f->w : 0), fit, sizeof fit);
-		gfx_text(f, margin, text_y, fit, fg);
+		gfx_text(f, inset + margin, text_y, fit, fg);
 	}
+}
+
+void ui_draw_hint(const char *text, bool toast)
+{
+	draw_hint(text, toast, false);
 }
 
 // --- boot splash ---
@@ -3314,7 +3377,7 @@ static void profile_home_activity(const radio_view_t *v, const ui_state_t *s)
 #endif
 	}
 	if (text != NULL) {
-		int y = ui_layout.hint_y - f->h - 5;
+		int y = profile_home_footer_top() - PROFILE_HOME_GAP - f->h - 5;
 		gfx_hline(15, y - 4, gfx_width() - 30, ui_col.line);
 		profile_center(f, y, text, c);
 	}
@@ -3341,7 +3404,7 @@ static int profile_device_slot(int *right, int slot_w, int mark_w)
 static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int strip_h)
 {
 	int cy = strip_h / 2;
-	int w = gfx_width(), right = w - 6;
+	int right = gfx_width() - 6;
 	bool tall = strip_h == PROFILE_COMMERCIAL_STATUS_H;
 	bool tx = v->state == RS_TX || v->state == RS_TX_DENIED;
 	int slot_w = tx ? 24 : 28;
@@ -3350,8 +3413,7 @@ static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int
 	int mark_h = tall ? 24 : 22;
 #endif
 	color_t ink = profile_ink(s);
-	gfx_fill(0, 0, w, strip_h, ui_col.strip_bg);
-	gfx_hline(0, strip_h - 1, w, ui_col.line);
+	profile_home_pane(2, strip_h - 2, ui_col.strip_bg);
 
 	if (!s->no_battery) {
 		int battery_scale = tall ? 6 : 5;
@@ -3462,7 +3524,7 @@ static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t
 		date_font = &font_aa_8x16;
 #endif
 	const font_t *time_font = &font_aa_6x12;
-	int right = gfx_width() - 6;
+	int right = gfx_width() - 12;
 	int marks_right = right;
 	if (v->state == RS_IDLE && profile_clock(s, date, sizeof date)) {
 		time = strrchr(date, ' ');
@@ -3505,17 +3567,32 @@ static int draw_home_status(const radio_view_t *v, const ui_state_t *s)
 	if (!s->gui_profiles)
 		return ui_draw_top(v, s, NULL, NULL);
 	int strip_h = s->gui_profile ? ui_layout.strip_h : PROFILE_COMMERCIAL_STATUS_H;
+	int operating_top = strip_h + PROFILE_HOME_GAP;
 	ui_strip_draws++;
 	profile_home_devices(v, s, strip_h);
-	profile_home_operating_marks(v, s, strip_h);
-	return strip_h + PROFILE_HOME_OPERATING_H;
+	profile_home_pane(operating_top, PROFILE_HOME_OPERATING_H, profile_row_bg);
+	profile_home_operating_marks(v, s, operating_top);
+	return operating_top + PROFILE_HOME_OPERATING_H + PROFILE_HOME_GAP;
+}
+
+static void draw_banner(const ui_state_t *s, int bottom);
+
+static void profile_home_footer(const ui_state_t *s, const char *hint)
+{
+	draw_banner(s, profile_home_footer_top() - PROFILE_HOME_GAP);
+	if (s->toast)
+		draw_hint(s->toast, true, true);
+	else if (s->hints && hint)
+		draw_hint(hint, false, true);
 }
 
 static void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
-	gfx_clear(ui_col.bg);
-	int strip_h = draw_home_status(v, s) - PROFILE_HOME_OPERATING_H;
+	gfx_clear(profile_home_gutter);
+	int channel_top = draw_home_status(v, s);
+	int channel_bottom = profile_home_footer_top() - PROFILE_HOME_GAP;
+	profile_home_pane(channel_top, channel_bottom - channel_top, ui_col.bg);
 
 	bool commercial = s->gui_profile == 0;
 	bool amateur = !commercial && !s->large_text;
@@ -3525,7 +3602,7 @@ static void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
 	char buf[64];
 	color_t c = ui_col.fg;
 	const char *target = profile_home_target(v, s, buf, sizeof buf, id, private_call, label, &c);
-	int center = (strip_h + L->hint_y) / 2;
+	int center = (channel_top + channel_bottom) / 2 - 12;
 	int y = center - (amateur ? 48 : 26);
 	const char *zone = v->vfo ? "VFO" : v->zone_name;
 	profile_center(commercial ? L->large : L->medium, commercial ? center - 47 : y - 4, zone, ui_col.dim);
@@ -3537,11 +3614,10 @@ static void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
 	    !gfx_text_title(L->medium, w / 2, baseline, w - 30, target, c, height_quarters))
 		profile_center(L->medium, baseline - L->medium->ascent, target, c);
 	if (amateur && !s->entry)
-		profile_home_details(v, s, y + L->large->h + 5, id, private_call);
+		profile_home_details(v, s, y + L->large->h, id, private_call);
 
 	profile_home_activity(v, s);
-	ui_draw_banner(s);
-	ui_draw_bottom(s, home_hint(v, s));
+	profile_home_footer(s, home_hint(v, s));
 }
 
 static bool profile_operational_home(const radio_view_t *v)
@@ -3733,13 +3809,24 @@ static void dual_arrow(int x, int y, int ah, int aw, color_t c)
 	}
 }
 
+static int dual_home_inset(const ui_state_t *s)
+{
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles)
+		return 12;
+#else
+	(void)s;
+#endif
+	return 0;
+}
+
 static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, int h, int pad, const dual_fit_t *ft)
 {
 	const ui_layout_t *L = &ui_layout;
 	const ui_dual_t *d = &s->dual;
 	const ui_dual_pane_t *p = &d->pane[i];
 	const font_t *nf = ft->name, *sm = L->small;
-	int w = gfx_width();
+	int inset = dual_home_inset(s), w = gfx_width() - inset;
 	bool tx = v->state == RS_TX && d->sel == i, rx = !tx && p->rx, sel = d->sel == i;
 	bool entry = s->entry && sel && p->vfo;
 	bool commercial = false;
@@ -3769,9 +3856,9 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	}
 	bool busy = p->busy && !rx && !tx;
 	if (tbg != ui_col.bg)
-		gfx_round_fill(0, ty, tw, th, tbg);
+		gfx_round_fill(inset, ty, tw, th, tbg);
 	else
-		gfx_rect(0, ty, tw, th, busy ? ui_col.rx : ui_col.line);
+		gfx_rect(inset, ty, tw, th, busy ? ui_col.rx : ui_col.line);
 	// The letter, and under it on the selected pane an arrow pointing at its channel (none on the other). Both
 	// letters sit at the same height; a font smaller where the tag is too short for the letter and the arrow
 	int ah = nf->h / 3 < 5 ? 5 : nf->h / 3 | 1;		// the arrow's height, odd
@@ -3785,12 +3872,12 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	else if (ah < lf->h * 2 / 3 && lf->h + 2 + lf->h * 2 / 3 <= th)
 		ah = lf->h * 2 / 3 | 1;			// tall tags: an arrow in proportion to the letter
 	int ly = ty + (th - lf->h - (ah ? ah + 2 : 0) + 1) / 2;
-	gfx_text(lf, (tw - gfx_text_width(lf, letter) + 1) / 2, ly, letter, tfg);
+	gfx_text(lf, inset + (tw - gfx_text_width(lf, letter) + 1) / 2, ly, letter, tfg);
 	if (sel && ah) {
-		dual_arrow((tw - (ah + 1) / 2) / 2, ly + lf->h + 2, ah, (ah + 1) / 2, tfg);
+		dual_arrow(inset + (tw - (ah + 1) / 2) / 2, ly + lf->h + 2, ah, (ah + 1) / 2, tfg);
 	}
 
-	int x0 = dual_x0(nf);
+	int x0 = inset + dual_x0(nf);
 	int rx_end = w;
 
 	// Row 1, right: PTT on the selected pane, always (TX while transmitting), so where PTT goes stays plain with
@@ -3955,13 +4042,13 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 
 // Large text (Settings > Display): the two channels only, each as large as fits. The selected one has the arrow;
 // the one a call comes in on is green and says RX (a word, for mono displays)
-static void dual_large(const radio_view_t *v, const ui_state_t *s, int top)
+static void dual_large(const radio_view_t *v, const ui_state_t *s, int top, int bottom)
 {
 	const ui_layout_t *L = &ui_layout;
 	const ui_dual_t *d = &s->dual;
-	int w = gfx_width();
+	int inset = dual_home_inset(s), w = gfx_width() - 2 * inset;
 	int y = top + 2;
-	int room = (L->hint_y - y) / 2;
+	int room = (bottom - y) / 2;
 	for (int i = 0; i < 2; i++) {
 		const ui_dual_pane_t *p = &d->pane[i];
 		char buf[48], form[48], fit[48];
@@ -3990,15 +4077,15 @@ static void dual_large(const radio_view_t *v, const ui_state_t *s, int top)
 		// other line starts at 0
 		int aw = d->sel == i ? f->w / 3 + 2 : 0, ah = (f->h / 2) | 1;
 		if (aw)
-			dual_arrow(0, y + (f->h - ah) / 2, ah, aw - 2, c);
+			dual_arrow(inset, y + (f->h - ah) / 2, ah, aw - 2, c);
 		gfx_text_fit(f, form, w - aw, fit, sizeof fit);
 		if (rx || tx) {	// receiving or transmitting: the letter in a filled box, as the tag on Home (the strip has the word)
 			char letter[2] = { fit[0], 0 };
-			gfx_fill(aw, y, f->w, f->h, c);
-			gfx_text(f, aw, y, letter, gfx_bpp() == 1 ? ui_col.bg : ui_col.pill_dark_fg);
-			gfx_text(f, aw + f->w, y, fit + 1, c);
+			gfx_fill(inset + aw, y, f->w, f->h, c);
+			gfx_text(f, inset + aw, y, letter, gfx_bpp() == 1 ? ui_col.bg : ui_col.pill_dark_fg);
+			gfx_text(f, inset + aw + f->w, y, fit + 1, c);
 		} else {
-			gfx_text(f, aw, y, fit, c);
+			gfx_text(f, inset + aw, y, fit, c);
 		}
 		y += room;
 	}
@@ -4027,7 +4114,7 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 	const ui_layout_t *L = &ui_layout;
 	const ui_dual_t *d = &s->dual;
 	const font_t *sm = L->small;
-	int w = gfx_width();
+	int inset = dual_home_inset(s), w = gfx_width() - inset;
 	char buf[64];
 	sbuf_t b;
 	if (lines <= 0)
@@ -4048,7 +4135,7 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 				TR(DUAL_STATE_TALKING_ON, "TALKING on "));
 			sb_str(&b, d->sel ? "B" : "A");
 		}
-		gfx_text(sm, 0, y, buf, ui_col.tx);
+		gfx_text(sm, inset, y, buf, ui_col.tx);
 		if (!v->aprs_tx) {
 			sb_init(&b, buf, sizeof buf);
 			sb_mmss(&b, v->tx_elapsed_ms / 1000u);
@@ -4058,7 +4145,7 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 		lines--;
 	} else if (d->pane[0].rx && d->pane[1].rx && lines == 1) {
 		// two receivers, a call on each
-		gfx_text(sm, 0, y, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B"), ui_col.rx);
+		gfx_text(sm, inset, y, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B"), ui_col.rx);
 		y += sm->h;
 		lines--;
 	} else if (d->rx != UI_DUAL_NONE) {
@@ -4072,7 +4159,7 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 			sb_str(&b, i ? "B" : "A");
 			if (k)
 				sb_str(&b, TR(DUAL_STATE_MUTED, ", muted"));
-			int x = gfx_text(sm, 0, y, buf, ui_col.rx) + sm->w;
+			int x = gfx_text(sm, inset, y, buf, ui_col.rx) + sm->w;
 			if (w - x >= 4 * sm->w)
 				draw_meter(x, y + sm->h / 4, w - x, sm->h / 2, d->pane[i].rssi_dbm);
 			y += sm->h;
@@ -4151,15 +4238,22 @@ static void __attribute__((noinline)) dual_choose(int avail, int gap, bool comme
 void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
-	int w = gfx_width();
-	gfx_clear(ui_col.bg);
+	int bottom = L->hint_y;
 #if CONFIG_UI_PROFILES
+	gfx_clear(s->gui_profiles ? profile_home_gutter : ui_col.bg);
 	int top = draw_home_status(v, s);
+	if (s->gui_profiles) {
+		bottom = profile_home_footer_top() - PROFILE_HOME_GAP;
+		profile_home_pane(top, bottom - top, ui_col.bg);
+		top += 4;
+		bottom -= 4;
+	}
 #else
+	gfx_clear(ui_col.bg);
 	int top = ui_draw_top(v, s, NULL, NULL);
 #endif
 	if (s->large_text) {
-		dual_large(v, s, top);
+		dual_large(v, s, top, bottom);
 	} else {
 		int gap = gfx_height() >= UI_TALL_PX ? 6 : 2, pad;
 		dual_fit_t fit;
@@ -4167,7 +4261,7 @@ void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)
 #if CONFIG_UI_PROFILES
 		commercial = s->gui_profiles && s->gui_profile == 0;
 #endif
-		dual_choose(L->hint_y - top, gap, commercial, &fit, &pad);
+		dual_choose(bottom - top, gap, commercial, &fit, &pad);
 		const dual_fit_t *ft = &fit;
 		const font_t *sm = L->small;
 		int ph = dual_pane_h(ft) + 2 * pad;
@@ -4176,11 +4270,18 @@ void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)
 		if (dual_nf->h < ft->target->h)
 			dual_nf = ft->target;	// never smaller than the row under it: a long name is shortened instead
 		dual_pane(v, s, 0, top, ph, pad, ft);
-		gfx_hline(0, top + ph + gap / 2, w, ui_col.line);
+		int inset = dual_home_inset(s);
+		gfx_hline(inset, top + ph + gap / 2, gfx_width() - 2 * inset, ui_col.line);
 		dual_pane(v, s, 1, top + ph + gap, ph, pad, ft);
 		int ay = top + 2 * ph + gap + 2;
-		dual_activity(v, s, ay, ft->act ? (L->hint_y - ay) / sm->h : 0);
+		dual_activity(v, s, ay, ft->act ? (bottom - ay) / sm->h : 0);
 	}
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles) {
+		profile_home_footer(s, dual_hint(v, s));
+		return;
+	}
+#endif
 	ui_draw_banner(s);
 	ui_draw_bottom(s, dual_hint(v, s));
 }
@@ -4217,7 +4318,7 @@ static int wrap_lines(const font_t *f, const char *t, int max_w, int max, char l
 
 // Banner: a framed box above the hint row with the title, the text and how to act on it. Title and text take a second
 // line each when they need it, so they are shown whole
-void ui_draw_banner(const ui_state_t *s)
+static void draw_banner(const ui_state_t *s, int bottom)
 {
 	const ui_banner_t *bn = &s->banner;
 	if (bn->kind == UI_BANNER_NONE)
@@ -4241,25 +4342,29 @@ void ui_draw_banner(const ui_state_t *s)
 	int nx = bn->text[0] ? wrap_lines(f, bn->text, w - 4, 2, text, bn->kind == UI_BANNER_MESSAGE) : 0;
 	int pad = gfx_height() >= UI_TALL_PX ? 2 : 1;
 	int h = (nt + nx + 1) * f->h + 2 * pad;
-	int y = L->hint_y - h;
-	int x0 = 0;
+	int y = bottom - h;
+	int x0 = 0, right_inset = 0;
+#if CONFIG_UI_PROFILES
+	if (bottom != L->hint_y)
+		x0 = right_inset = PROFILE_HOME_INSET + 5;
+#endif
 #if CONFIG_UI_PROFILES && CONFIG_DUAL_WATCH
-	if (s->gui_profiles && s->dual.on)
+	if (s->gui_profiles && s->dual.on && !x0)
 		x0 = dual_tag_w(L->large);	// the receiver tabs span multiple lines of text
 #endif
-	int top = overlay_top(y, x0);	// the box grows up to a gap between lines; its text stays at the bottom
+	int top = overlay_top(y, x0, right_inset);	// the box grows up to a gap between lines; its text stays at the bottom
 	color_t edge = bn->warn ? ui_col.warn : ui_col.focus;
 	if (gfx_bpp() == 1) {
 		// inverse video box (wireframe 128x64)
-		gfx_fill(0, top, w, L->hint_y - top, ui_col.fg);
+		gfx_fill(0, top, w, bottom - top, ui_col.fg);
 	} else {
 		color_t bg = ui_col.hint_bg;
 #if CONFIG_UI_PROFILES
 		if (s->gui_profiles)
 			bg = ui_col.strip_bg;
 #endif
-		gfx_fill(0, top, w, L->hint_y - top, bg);
-		gfx_rect(0, top, w, L->hint_y - top, edge);
+		gfx_fill(0, top, w, bottom - top, bg);
+		gfx_rect(0, top, w, bottom - top, edge);
 	}
 	color_t fg = gfx_bpp() == 1 ? ui_col.bg : ui_col.fg;
 	int ty = y + pad;
@@ -4281,6 +4386,11 @@ void ui_draw_banner(const ui_state_t *s)
 	sb_u32(&b, (left + 999u) / 1000u, 1);
 	sb_chr(&b, 's');
 	gfx_text(f, w - 2 - gfx_text_width(f, sec), ty, sec, gfx_bpp() == 1 ? fg : ui_col.dim);
+}
+
+void ui_draw_banner(const ui_state_t *s)
+{
+	draw_banner(s, ui_layout.hint_y);
 }
 
 // --- List screens (Hub, Contacts, Find, Settings, ...): title, optional header and body, rows, hint ---

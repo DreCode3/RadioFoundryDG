@@ -36,7 +36,7 @@ class PrototypeTest(unittest.TestCase):
             with self.subTest(profile=select or "commercial"):
                 def meter(script):
                     frame = self.render_frame(select + script)
-                    return [row[15 * 3:38 * 3] != row[:3] * 23 for row in frame[:20]]
+                    return [row[15 * 3:38 * 3] != row[50 * 3:51 * 3] * 23 for row in frame[:20]]
 
                 self.assertFalse(any(meter("")), "idle RSSI must not draw signal bars")
                 self.assertTrue(any(meter("fmrx")), "an active FM signal must draw bars")
@@ -96,9 +96,9 @@ class PrototypeTest(unittest.TestCase):
                       if sum(commercial[y][x * 3] < 120 for x in range(110, 200)) >= 6]
         self.assertGreaterEqual(max(title_rows) - min(title_rows) + 1, 24)
         amateur = "ok 7 2 ok down ok long:back "
-        for idle, receiving in ((commercial[75:161], self.render_frame(call)[75:161]),
-                                (self.render_frame(amateur)[60:170],
-                                 self.render_frame(amateur + call)[60:170])):
+        for idle, receiving in ((commercial[75:158], self.render_frame(call)[75:158]),
+                                (self.render_frame(amateur)[64:166],
+                                 self.render_frame(amateur + call)[64:166])):
             # The indexed palette can shift antialiased edge colors by one 4-bit step.
             self.assertLessEqual(max(abs(a - b) for idle_row, rx_row in zip(idle, receiving)
                                      for a, b in zip(idle_row, rx_row)), 17)
@@ -106,9 +106,9 @@ class PrototypeTest(unittest.TestCase):
     def test_commercial_home_has_larger_status_and_title(self):
         commercial = self.render_frame("expect:layout=0")
         amateur = self.render_frame("ok 7 2 ok down ok long:back expect:layout=0")
-        # The line separating the status strip from Home is lower in Commercial.
-        self.assertNotEqual(commercial[35][:3], commercial[36][:3])
-        self.assertEqual(amateur[35][:3], amateur[36][:3])
+        # Commercial's device strip is still taller than Amateur's.
+        self.assertNotEqual(commercial[35][300:303], commercial[36][300:303])
+        self.assertEqual(amateur[35][300:303], amateur[36][300:303])
         ink_rows = [y for y in range(115, 166)
                     if sum(commercial[y][x * 3] < 120 for x in range(110, 200)) >= 6]
         self.assertGreaterEqual(max(ink_rows) - min(ink_rows) + 1, 29)
@@ -116,7 +116,8 @@ class PrototypeTest(unittest.TestCase):
         heights = []
         for first_x in range(164, 304, 28):
             rows = [y for y, row in enumerate(frame[:35])
-                    if any(row[x * 3:x * 3 + 3] != row[:3] for x in range(first_x, first_x + 28))]
+                    if any(row[x * 3:x * 3 + 3] != row[150:153]
+                           for x in range(first_x, min(first_x + 28, 300)))]
             heights.append(max(rows) - min(rows) + 1)
         self.assertGreaterEqual(min(heights), 19)
         self.assertLessEqual(max(heights) - min(heights), 10)
@@ -311,6 +312,30 @@ class PrototypeTest(unittest.TestCase):
         self.assertGreater(footer_ink(15, 90), 40)
         self.assertGreater(footer_ink(225, 296), 40)
         self.assertEqual(footer_ink(155, 205), 0)
+        label_rows = [y for y in range(202, 236)
+                      if any(min(frame[y][x * 3:x * 3 + 3]) > 220 for x in range(15, 99))]
+        self.assertGreaterEqual(max(label_rows) - min(label_rows) + 1, 14)
+
+    def test_home_has_four_inset_panes_in_both_themes(self):
+        amateur = "ok 7 2 ok down ok long:back "
+        night = "ok 7 2 down ok down ok long:back "
+        for profile in ("", amateur):
+            for theme in ("", night):
+                with self.subTest(profile=profile or "Commercial", theme=theme or "Day"):
+                    frame = self.render_frame(profile + theme + "expect:layout=0")
+                    gutter = frame[0][:3]
+                    runs = []
+                    for y, row in enumerate(frame):
+                        self.assertEqual(row[:3], gutter)
+                        center = row[50 * 3:51 * 3]  # Clear of the footer labels and centered channel text.
+                        if center != gutter and (y == 0 or frame[y - 1][50 * 3:51 * 3] == gutter):
+                            runs.append(y)
+                    self.assertEqual(len(runs), 4)
+                    for top in runs:
+                        self.assertEqual(frame[top][4 * 3:5 * 3], gutter)
+                        self.assertNotEqual(frame[top + 6][4 * 3:5 * 3], gutter)
+                    self.assertLessEqual(runs[-1], 202)
+                    self.assertEqual(frame[-1][50 * 3:51 * 3], gutter)
 
     def run_script(self, script, geometry=GEOMETRY):
         run = subprocess.run([SIM, "--geom", geometry, "--script", script],
@@ -346,10 +371,11 @@ class PrototypeTest(unittest.TestCase):
             with self.subTest(profile=profile or "Commercial"):
                 frame = self.render_frame(profile + setup +
                                           "expect:shows=21_Nov expect:shows=14:08 expect:layout=0")
-                self.assertTrue(all(row[42 * 3:160 * 3] == row[:3] * 118 for row in frame[:top - 1]))
+                self.assertTrue(all(row[42 * 3:160 * 3] == row[150:153] * 118 for row in frame[:top - 1]))
                 # Date and time each end at the right edge of the mode row.
-                for first in (top, top + 14):
-                    self.assertTrue(any(row[295 * 3:304 * 3] != row[:3] * 9 for row in frame[first:first + 14]))
+                for first in (top + 3, top + 17):
+                    self.assertTrue(any(row[287 * 3:298 * 3] != row[150:153] * 11
+                                        for row in frame[first:first + 14]))
 
     def test_profiles_keep_call_context_on_home(self):
         self.run_script(

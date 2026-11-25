@@ -756,6 +756,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   GPS clock (default Off) shows the UTC date and minute on idle Home while a recent GPS fix has both date and time.
   The three choices are saved in the settings store.
   Profile Home puts signal, power, battery, GPS fix, lock, Bluetooth, Dual Watch, recording and VOX in the top strip.
+  The device strip, mode row, channel area and soft-key bar are separate rounded panels in both palettes.
+  The soft-key bar uses the 12x24 face where the labels fit. Long labels can use the smaller hint font.
   Signal bars show only during reception, using the audible pane during Dual Watch. Idle RSSI samples leave the
   signal slot blank.
   Dual Watch uses larger A/B lettering in two panes, and VOX uses wider lettering. The GPS clock stacks its
