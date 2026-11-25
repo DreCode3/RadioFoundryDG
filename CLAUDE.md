@@ -105,6 +105,7 @@ Keep these out of upstream PRs, or rework them to upstream conventions first:
 
 - This section of CLAUDE.md.
 - `fork-notes/` (plans and drafts for the fork).
+- The "Fork-only" block at the end of `tools/generic_allow.txt`, which lets the two items above name the GD-88.
 - `docs/superpowers/` (planning notes from earlier tool-assisted work).
 - One-off CI run write-ups such as `docs/testing/gd88-gui-ci-*.md`. Upstream records bring-up runs with
   `tools/bringup.py run` into `docs/testing/results/<id>/` and puts CI results in the PR's Testing table.

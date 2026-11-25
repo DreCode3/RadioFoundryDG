@@ -143,3 +143,7 @@ site/tests/stocklayouts.test.mjs a build named by its stock file in a comment
 
 # One section of a generic doc that names radios on purpose (owner-approved): path#anchor, that section only.
 docs/spec/sfr.md#6-known-issues-by-radio the per-radio known issues of the experimental standalone SFR
+
+# Fork-only (DreCode3/RadioFoundryDG, owner-approved): drop this block from upstream pull requests.
+CLAUDE.md the fork's agent notes name its GD-88 branches and work
+fork-notes/* the fork's plans and drafts are about the GD-88 GUI work
