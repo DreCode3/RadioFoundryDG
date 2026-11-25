@@ -3642,11 +3642,13 @@ static int draw_home_status(const radio_view_t *v, const ui_state_t *s)
 	return operating_top + PROFILE_HOME_OPERATING_H + PROFILE_HOME_GAP;
 }
 
-static void draw_banner(const ui_state_t *s, int bottom);
+static void banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg);
 
 static void profile_home_footer(const ui_state_t *s, const char *hint)
 {
-	draw_banner(s, profile_footer_top() - PROFILE_HOME_GAP);
+	// Above the footer pane; what it reads of the screen under it stays clear of the panes' rounded corners
+	banner_box(s, profile_footer_top() - PROFILE_HOME_GAP, PROFILE_HOME_INSET + 5, PROFILE_HOME_INSET + 5,
+		ui_col.strip_bg);
 	draw_bottom(s, hint, home_soft_key(s));
 }
 
@@ -4387,9 +4389,12 @@ static int wrap_lines(const font_t *f, const char *t, int max_w, int max, char l
 	return n;
 }
 
-// Banner: a framed box above the hint row with the title, the text and how to act on it. Title and text take a second
-// line each when they need it, so they are shown whole
-static void draw_banner(const ui_state_t *s, int bottom)
+// Banner: a framed box with the title, the text and how to act on it. Title and text take a second line each when
+// they need it, so they are shown whole. The caller places it: bottom is its lower edge (the top of the bottom row), bg
+// its background on a color display, and x0 and right_inset bound the columns of the screen under it that are read to
+// find a gap between lines for its top edge (overlay_top), for a caller whose screen has something other than text at
+// its sides
+static void banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg)
 {
 	const ui_banner_t *bn = &s->banner;
 	if (bn->kind == UI_BANNER_NONE)
@@ -4414,26 +4419,12 @@ static void draw_banner(const ui_state_t *s, int bottom)
 	int pad = gfx_height() >= UI_TALL_PX ? 2 : 1;
 	int h = (nt + nx + 1) * f->h + 2 * pad;
 	int y = bottom - h;
-	int x0 = 0, right_inset = 0;
-#if CONFIG_UI_PROFILES
-	if (bottom != L->hint_y)
-		x0 = right_inset = PROFILE_HOME_INSET + 5;
-#endif
-#if CONFIG_UI_PROFILES && CONFIG_DUAL_WATCH
-	if (s->gui_profiles && s->dual.on && !x0)
-		x0 = dual_tag_w(L->large);	// the receiver tabs span multiple lines of text
-#endif
 	int top = overlay_top(y, x0, right_inset);	// the box grows up to a gap between lines; its text stays at the bottom
 	color_t edge = bn->warn ? ui_col.warn : ui_col.focus;
 	if (gfx_bpp() == 1) {
 		// inverse video box (wireframe 128x64)
 		gfx_fill(0, top, w, bottom - top, ui_col.fg);
 	} else {
-		color_t bg = ui_col.hint_bg;
-#if CONFIG_UI_PROFILES
-		if (s->gui_profiles)
-			bg = ui_col.strip_bg;
-#endif
 		gfx_fill(0, top, w, bottom - top, bg);
 		gfx_rect(0, top, w, bottom - top, edge);
 	}
@@ -4459,9 +4450,21 @@ static void draw_banner(const ui_state_t *s, int bottom)
 	gfx_text(f, w - 2 - gfx_text_width(f, sec), ty, sec, gfx_bpp() == 1 ? fg : ui_col.dim);
 }
 
+// The reference theme's banner: above the hint row, on its color
 static void ref_banner(const ui_state_t *s)
 {
-	draw_banner(s, ui_layout.hint_y);
+	int x0 = 0;
+	color_t bg = ui_col.hint_bg;
+#if CONFIG_UI_PROFILES
+	if (s->gui_profiles) {
+		bg = ui_col.strip_bg;
+#if CONFIG_DUAL_WATCH
+		if (s->dual.on)
+			x0 = dual_tag_w(ui_layout.large);	// the receiver tabs span multiple lines of text
+#endif
+	}
+#endif
+	banner_box(s, ui_layout.hint_y, x0, 0, bg);
 }
 
 void ui_draw_banner(const ui_state_t *s)
