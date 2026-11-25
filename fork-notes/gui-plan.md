@@ -20,6 +20,24 @@ Themes never change the menu structure or behavior. The current look becomes the
 RadioFoundry"); the user's look is the second theme, with Commercial and Amateur as its two Home layouts. No feature
 or menu item is hidden by theme or layout.
 
+### Behavior every theme shares (decided)
+
+The two looks differed in these places; each is now shared behavior, and a theme only decides how it looks:
+
+1. During a DMR call Home shows the caller (name or ID), the destination talkgroup and the signal.
+2. The status strip shows the same set of states in every theme: TX/RX, signal, battery, lock, scan, monitor, unread
+   messages, GPS (including searching), USB network, privacy. Icon or word is the theme's choice.
+3. Large text works in every layout.
+4. "Talkgroup name first" (key and setting) works in every theme.
+5. Menu tiles show their values (unread count, current zone, scanning), as a badge or a second line.
+6. Dual watch keeps its call history and the caller's contact name.
+7. Each theme declares its own appearance options; Settings > Display shows the active theme's rows (the reference
+   theme: Theme, Highlight color, Filled status bar; ours: Day/Night). Appearance options are not features.
+
+Technical choices: per-cell list drawing ops; icons as a data table drawn by one shared blitter; the reference code
+stays in `ui_screens.c` until upstream agrees on the shape; the theme id goes in the spare settings byte with 0 = the
+build's default. Work goes ahead without waiting for the maintainers' reply to the discussion.
+
 ## Menu tree (shared by all radios, commercial conventions first)
 
 Main Menu, a 3x3 grid matching the keypad:
