@@ -194,6 +194,11 @@ void audio_mux_host_tx(bool on, bool dmr)
 	}
 }
 
+bool audio_mux_host_mic(void)
+{
+	return host_tx_dmr;
+}
+
 uint32_t audio_mux_host_pushes(void)
 {
 	return st.tx_pushes;
