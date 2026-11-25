@@ -38,13 +38,11 @@ can go upstream as pull requests, so write every change as if it were one.
 3. **Port** to other radios and display classes, then fix the CI blockers this leaves (maximal builds that overflow
    on small panels, flash cost with `CONFIG_UI_PROFILES` off, the settings offset test, the gallery).
 
-Until step 3, don't spend effort on other display classes beyond keeping them building and unchanged. Decisions so
-far:
+Until step 3, don't spend effort on other display classes beyond keeping them building and unchanged.
 
-- A GD-88 starts in the Commercial layout (`gui_flags` 0).
-- Home shows the channel name as configured in the CPS as its main line (zone above it), in both layouts. The talk
-  target is secondary: on Commercial only when it differs from the channel's own (temporary target, reply window,
-  a call); on Amateur always, with the details row.
+The approved design (theme framework boundary, menu tree, settings groups, naming, layout, Home, order of work) is in
+[fork-notes/gui-plan.md](fork-notes/gui-plan.md). Read it before any GUI work and keep it current when the user
+decides something. The upstream Discussions draft is [fork-notes/discussion-ui-themes.md](fork-notes/discussion-ui-themes.md).
 
 ## Upstream pull request requirements
 
@@ -106,6 +104,7 @@ pick a shorter word, don't drop words.
 Keep these out of upstream PRs, or rework them to upstream conventions first:
 
 - This section of CLAUDE.md.
+- `fork-notes/` (plans and drafts for the fork).
 - `docs/superpowers/` (planning notes from earlier tool-assisted work).
 - One-off CI run write-ups such as `docs/testing/gd88-gui-ci-*.md`. Upstream records bring-up runs with
   `tools/bringup.py run` into `docs/testing/results/<id>/` and puts CI results in the PR's Testing table.
