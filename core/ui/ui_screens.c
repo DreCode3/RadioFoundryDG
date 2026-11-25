@@ -4914,9 +4914,10 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		}
 	}
 	if (two_columns && !main_menu) {
-		// Give a column extra width for longer translations before shortening a label.
+		// Give a column extra width for longer translations before shortening a label. Measured over every page, so
+		// the columns keep one split as the pages turn
 		int minimum[2] = { 0, 0 };
-		for (uint16_t i = top; i < l->count && i < top + visible; i++) {
+		for (uint16_t i = 0; i < l->count; i++) {
 			ui_item_t it = { 0 };
 			l->item(i, &it);
 			int need = (paginated ? 8 : 10) + gfx_text_width(f, it.label);
@@ -4924,7 +4925,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 				need += 16 + (it.num ? 0 : f->w + 3);
 			if (it.num)
 				need += f->w + 3;
-			int column = i - top >= rows;
+			int column = i % visible >= rows;
 			if (need > minimum[column])
 				minimum[column] = need;
 		}
