@@ -27,14 +27,16 @@ class PrototypeTest(unittest.TestCase):
         home = "back back back "
         self.run_script("expect:shows=Back expect:hides=*_Quick " +
                         settings + "ok ok " + home + "expect:shows=Quick expect:hides=*_Quick "
-                        "expect:layout=0 ok expect:shows=Back")
+                        "expect:shows=Menu expect:hides=OK_Menu expect:layout=0 "
+                        "ok expect:shows=OK expect:shows=Back")
         self.run_script(settings + "ok ok ok ok " + home +
                         "expect:shows=Power_level expect:layout=0 long:dualkey wait:2000 "
                         "expect:dual=1 expect:shows=Power_level expect:layout=0 "
                         "gui:original expect:shows=Power_level")
         for profile in ("", "ok 7 2 ok down ok long:back "):
             frame = self.render_frame(profile + settings + "ok " + home +
-                                      "expect:shows=OK_Menu expect:hides=Nothing expect:hides=Quick expect:layout=0")
+                                      "expect:shows=Menu expect:hides=OK_Menu "
+                                      "expect:hides=Nothing expect:hides=Quick expect:layout=0")
             self.assertTrue(all(row[570:870] == row[570:573] * 100 for row in frame[208:230]))
 
     def render_frame(self, script):

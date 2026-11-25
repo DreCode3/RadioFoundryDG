@@ -67,9 +67,13 @@ static bool has_unlock_key;
 static int16_t knob_last = -1;	// the volume knob's position last seen, -1 = none since start-up
 static char home_hint[32];
 
-// The hint's keys part, in the language in use: the quick settings key, or holding OK on a radio without it
+// The hint's keys before the last-caller shortcut.
 static const char *home_hint_keys(void)
 {
+#if CONFIG_KEY_ASSIGN
+	if (ui_st.home_soft_key_label != NULL)
+		return TR(FIND_CHIP_MENU, "Menu");
+#endif
 	return has_quick_key ? TR(HOME_HINT_MENU_QUICK, "OK Menu  * Quick") :
 		TR(HOME_HINT_MENU_HOLD_QUICK, "OK Menu  Hold OK Quick");
 }
@@ -1272,11 +1276,34 @@ bool ui_home_key(const input_event_t *ev)
 	}
 }
 
-void ui_home_draw(void)
+static void update_home_hint(void)
 {
 #if CONFIG_KEY_ASSIGN
 	ui_st.home_soft_key_label = ui_home_soft_key_label();
 #endif
+	ui_target_t t;
+	char name[12];
+	sbuf_t b;
+	sb_init(&b, home_hint, sizeof home_hint);
+	sb_str(&b, home_hint_keys());
+	if (has_context_key && recent_n && caller_target(&t)) {
+		sb_str(&b, "  # ");
+		if (t.name[0]) {
+			memcpy(name, t.name, sizeof name - 1);
+			name[sizeof name - 1] = 0;
+			char *sp_ = strchr(name, ' ');
+			if (sp_ != NULL)
+				*sp_ = 0;	// first word of the name
+			sb_str(&b, name);
+		} else {
+			sb_u32(&b, t.id, 1);
+		}
+	}
+}
+
+void ui_home_draw(void)
+{
+	update_home_hint();
 	ui_draw_home(view, &ui_st);
 }
 
@@ -2010,8 +2037,7 @@ void ui_app_init(void)
 	has_quick_key = ui_has_action(ACT_QUICK);
 	has_unlock_key = has_quick_key || ui_has_action(ACT_BACK);
 	has_context_key = ui_has_action(ACT_CONTEXT);
-	// ui_app_tick builds it again each tick, in the language in use then
-	str_copy(home_hint, sizeof home_hint, home_hint_keys());
+	// Home builds the hint in the language in use when drawn.
 	ui_st.home_hint = home_hint;
 #if CONFIG_CRASH_SCREEN
 	ui_crash_reset();
@@ -2789,25 +2815,6 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 #if CONFIG_DMR
 	hear_all_tick(v);
 #endif
-	// The hint names the last caller: "OK Menu  * Quick  # Joe"
-	ui_target_t t;
-	char name[12];
-	sbuf_t b;
-	sb_init(&b, home_hint, sizeof home_hint);
-	sb_str(&b, home_hint_keys());
-	if (has_context_key && recent_n && caller_target(&t)) {
-		sb_str(&b, "  # ");
-		if (t.name[0]) {
-			memcpy(name, t.name, sizeof name - 1);
-			name[sizeof name - 1] = 0;
-			char *sp_ = strchr(name, ' ');
-			if (sp_ != NULL)
-				*sp_ = 0;	// first word of the name
-			sb_str(&b, name);
-		} else {
-			sb_u32(&b, t.id, 1);
-		}
-	}
 	uint32_t serial = radio_view_serial();
 	if (serial != serial_seen) {
 		serial_seen = serial;

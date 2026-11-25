@@ -29,9 +29,9 @@ The battery percentage turns to the warning color at the low battery warning lev
 
 ## Hint row messages
 
-The hint row changes with the situation. When the right soft key can be assigned on Home, the right end shows
-its short-press function from **Settings > Keys**. **Nothing** leaves that space blank. While entering a frequency
-or when the keys are locked, the row shows the controls for that state.
+The hint row changes with the situation. When the right soft key can be assigned on Home, the left label is
+**Menu** and the right label shows its short-press function from **Settings > Keys**. **Nothing** leaves the
+right label blank. While entering a frequency or when the keys are locked, the row shows the controls for that state.
 
 The most common hints:
 

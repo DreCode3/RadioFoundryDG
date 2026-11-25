@@ -102,6 +102,11 @@ msgctxt "PART_AGO"
 msgid " ago"
 msgstr " il y a"
 
+#: core/ui/ui_app.c core/ui/ui_find.c
+msgctxt "FIND_CHIP_MENU"
+msgid "Menu"
+msgstr "Menu"
+
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
 msgid "OK Menu  * Quick"
@@ -641,11 +646,6 @@ msgstr "Rien à sauver ici"
 msgctxt "LIST_TOAST_NOTHING_TO_OPEN"
 msgid "Nothing to open"
 msgstr "Rien à ouvrir"
-
-#: core/ui/ui_app.c core/ui/ui_find.c
-msgctxt "FIND_CHIP_MENU"
-msgid "Menu"
-msgstr "Menu"
 
 #: core/ui/ui_app.c
 msgctxt "LIST_TITLE_FIND"
