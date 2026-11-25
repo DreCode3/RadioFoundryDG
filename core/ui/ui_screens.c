@@ -870,17 +870,22 @@ static int profile_status_right(const radio_view_t *v, const ui_state_t *s, int 
 	}
 #endif
 	if (board.power_count) {
-		rx -= scale > 4 ? 13 : 12;
-		profile_power(v, (profile_mark_pos_t){ rx, y, scale }, ink);
+		rx -= scale == 6 ? 17 : scale > 4 ? 13 : 12;
+		if (scale == 6) {
+			char level[] = { "LMH"[profile_power_level(v)], 0 };
+			gfx_text(&font_aa_12x24, rx, 2, level, ink);
+		} else {
+			profile_power(v, (profile_mark_pos_t){ rx, y, scale }, ink);
+		}
 	}
 	if (s->locked) {
-		rx -= 14;
-		profile_mask(rx, y - 1, scale > 4 ? profile_lock_12 : profile_lock_10,
+		rx -= profile_px(10, scale) + 4;
+		profile_mask(rx, y - 1, scale == 6 ? profile_lock_15 : scale > 4 ? profile_lock_12 : profile_lock_10,
 			profile_px(10, scale), profile_px(11, scale), ink);
 	}
 	if (s->gps_fix) {
-		rx -= scale > 4 ? 15 : 14;
-		profile_mask(rx, y - 1, scale > 4 ? profile_pin_13 : profile_pin_11,
+		rx -= profile_px(11, scale) + 3;
+		profile_mask(rx, y - 1, scale == 6 ? profile_pin_16 : scale > 4 ? profile_pin_13 : profile_pin_11,
 			profile_px(11, scale), profile_px(11, scale), ink);
 	}
 	profile_row_cursor_t row = { .x = rx, .reverse = true };
@@ -948,7 +953,7 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 		f = &font_8x16;
 #endif
 	int w = gfx_width();
-	int scale = strip_h == PROFILE_COMMERCIAL_STATUS_H ? 5 : 4;
+	int scale = titled ? 6 : 4;
 	int iy = (strip_h - profile_px(9, scale)) / 2;
 	color_t ink = profile_ink(s);
 	gfx_fill(0, 0, w, strip_h, ui_col.strip_bg);
@@ -965,9 +970,9 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 	dual = s->dual.on;
 #endif
 
-	const font_t *mode_font = scale > 4 ? &font_aa_8x16 : &font_aa_6x12;
-	int mode_w = gfx_text_width(mode_font, mode);
 	bool functions = monitor || dual || v->vox_on;
+	if (titled && !functions)
+		f = &font_aa_8x16;
 	int features_w = (monitor ? PROFILE_SPEAKER_W + 3 : 0) +
 		(dual ? PROFILE_DUAL_W + 3 : 0) + (v->vox_on ? PROFILE_VOX_W : 0);
 	int roaming_w = 0;
@@ -975,30 +980,41 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 	if (v->roam.state != RROAM_STATE_OFF && !v->aprs_tx)
 		roaming_w = PROFILE_ORBIT_W + 3;
 #endif
-	int signal_w = profile_px(18, scale);
-	int inline_w = signal_w + 4 + mode_w;
+	int strength = profile_signal_bars(v, s);
+	int signal_w = strength || !titled ? profile_px(18, scale) : 0;
+	int mode_offset = signal_w ? signal_w + 4 : 0;
 	int gap = scale > 4 ? 3 : 5;
 	int x = 5;
-	int next = x + inline_w + gap;
 	bool above_roam = scale > 4 && roaming_w && f == &font_6x12;
 	int activity_w = activity != NULL ?
 		gfx_text_width(scale > 4 && f == &font_6x12 ? &font_5x8 : f, activity) : 0;
 	// Put the mode beside the bars when both rows of the status strip still fit. Crowded combinations
 	// use the two-line badge so the clock and active feature marks have the same space as before.
-	bool side = next + roaming_w + features_w <= rx &&
-		(!activity_w || next + (above_roam ? 0 : roaming_w) + activity_w <= rx);
+	int room = rx - x - gap - roaming_w - features_w;
+	if (activity_w) {
+		int activity_room = rx - x - gap - (above_roam ? 0 : roaming_w) - activity_w;
+		if (activity_room < room)
+			room = activity_room;
+	}
+	const font_t *mode_font = titled ? &font_aa_12x24 : &font_aa_6x12;
+	if (titled && mode_offset + gfx_text_width(mode_font, mode) > room)
+		mode_font = &font_aa_8x16;
+	if (mode_offset + gfx_text_width(mode_font, mode) > room)
+		mode_font = &font_aa_6x12;
+	int mode_w = gfx_text_width(mode_font, mode);
+	int inline_w = mode_offset + mode_w;
+	bool side = inline_w <= room || !signal_w;
 	int badge_w = side ? inline_w : profile_px(24, scale);
 	if (!side && mode_w + 4 > badge_w)
 		badge_w = mode_w + 4;
 	int signal_x = side ? x : x + (badge_w - signal_w) / 2;
 	int signal_y = side ? (strip_h - profile_px(9, scale)) / 2 - profile_px(4, scale) : 0;
 	profile_mark_pos_t signal = { signal_x, signal_y, scale };
-	int strength = profile_signal_bars(v, s);
 	for (int bar = 0; bar < strength; bar++) {
 		int height = 3 + bar * 2;
 		profile_round_block(signal, bar * 5, 13 - height, 3, height, ink);
 	}
-	int mode_x = side ? x + signal_w + 4 : x + (badge_w - mode_w) / 2;
+	int mode_x = side ? x + mode_offset : x + (badge_w - mode_w) / 2;
 	int mode_y = side ? (strip_h - mode_font->h) / 2 : strip_h - mode_font->h - 2;
 	gfx_text(mode_font, mode_x, mode_y, mode, ink);
 

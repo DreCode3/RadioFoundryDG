@@ -772,6 +772,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   and strokes at their final sizes. With antialiasing enabled, the masks blend edges into the display palette.
   Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
   larger left-aligned headings and separated, tinted rows with rounded corners.
+  Menu status bars use a larger mode label and larger battery, power, GPS and lock indicators.
+  The mode label reduces in size when active indicators need the room.
   The profile hub shows three rows of two larger tiles per page. Up and Down follow the numbers down the left
   column and then the right, then turn the page. The hub shows Zones without a current-zone
   value. The Zones list continues to show the current zone.

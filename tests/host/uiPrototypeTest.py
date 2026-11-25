@@ -330,6 +330,18 @@ class PrototypeTest(unittest.TestCase):
             for y in range(198, 240):
                 self.assertEqual(frame[y][450:453] == home[216][450:453], 202 <= y < 236)
 
+    def test_menu_status_uses_larger_mode_and_device_marks(self):
+        for screen in ("ok", "ok 7", "ok 7 2 ok"):
+            frame = self.render_frame("gps:fix " + screen + " expect:layout=0")
+            for x0, x1, height in ((5, 60, 14), (246, 270, 15), (277, 305, 22)):
+                ink = [y for y in range(1, 28) if any(
+                    max(frame[y][x * 3:x * 3 + 3]) < 180 for x in range(x0, x1))]
+                self.assertGreaterEqual(max(ink) - min(ink) + 1, height)
+        self.run_script("gps:fix prototype:bt_connected mon vox:on roam:ready "
+                        "msg:9991234,Hello wait:9000 prototype:crypt_aes ok 7 "
+                        "rx:9991234,3100,g,Morgan_Reed expect:shows=DMR expect:shows=RX "
+                        "expect:shows=AES expect:layout=0")
+
     def test_home_has_four_inset_panes_in_both_themes(self):
         amateur = "ok 7 2 ok down ok long:back "
         night = "ok 7 2 down ok down ok long:back "
