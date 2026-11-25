@@ -19,6 +19,7 @@ the code is laid out, who owns the data behind each screen, and how the UI is te
 |---|---|
 | `gfx.c`, `fonts.c`, `fmt.c` | drawing in a viewport inside the display's safe-area insets, fonts, number / text formatting |
 | `ui_screens.c` | drawing only: status strip, title, hint row, lists, Home, call screens, Quick tiles, banners, emergency |
+| `ui_theme.h` | a look as a `const` descriptor (`ui_theme_t`): its palettes and the drawing ops `ui_screens.c` calls for the status strip, the bottom row, banners, Home and Quick. One is built, `ui_theme_reference` (in `ui_screens.c`), so every op call resolves at build time |
 | `ui_app.c` | behavior without the RTOS: the navigation stack, global keys, Home and Quick keys, filters, Recent, events, banners |
 | `ui_menus.c` | every list screen and the screen table `ui_scr[]`: Hub, Actions, Compose, Contacts, Messages, Recent, Zones, Zone, the zone editor's (2.2), Channels, Channel, Tools, Settings, Picker, Info, Confirm, Scan, Roaming |
 | `ui_find.c` | type-to-find (T9 word starts, numbers, channel positions) |
