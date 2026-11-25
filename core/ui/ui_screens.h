@@ -277,6 +277,8 @@ typedef struct {
 	bool roomy;			// a larger left-aligned heading and taller rows
 	bool menu_icons;		// first-level Menu and Settings only
 	bool two_columns;		// first-level Menu and Settings on a wide profile display
+	bool main_menu;			// larger three-row tiles
+	bool numbered;			// numeric shortcuts select entries
 #endif
 } ui_list_t;
 

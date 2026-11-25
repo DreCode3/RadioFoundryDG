@@ -197,14 +197,14 @@ class PrototypeTest(unittest.TestCase):
 
         for page in (first, second):
             for left in (20, 164):
-                for y in range(87, 180, 46):
+                for y in range(85, 172, 43):
                     self.assertTrue(saturated(page, y, y + 13, left))
         self.assertEqual(first[93][17 * 3:18 * 3], first[93][18 * 3:19 * 3])
         self.assertLess(max(first[93][17 * 3:18 * 3]), 100)
         # Shortcut 3 belongs in the tile center even though Talk & listen wraps.
-        digit_rows = [y for y in range(167, 204) for x in range(36, 46)
+        digit_rows = [y for y in range(159, 198) for x in range(36, 46)
                       if max(first[y][x * 3:x * 3 + 3]) < 150]
-        self.assertLess(abs(sum(digit_rows) / len(digit_rows) - 186), 3)
+        self.assertLess(abs(sum(digit_rows) / len(digit_rows) - 178), 3)
         key_sides = [set(), set()]
         for y in range(85, 103):
             for x in range(164, 177):
@@ -213,7 +213,7 @@ class PrototypeTest(unittest.TestCase):
                     key_sides[x >= 170].add(y)
         self.assertGreater(len(key_sides[0]), len(key_sides[1]))
         self.assertFalse(saturated(display, 77, 202))
-        self.run_script("ok 7 expect:shows=1/2 expect:shows=OK_Open expect:hides=0-9_open "
+        self.run_script("ok 7 expect:shows=1/2 expect:shows=OK expect:hides=OK_Open expect:hides=0-9_open "
                         "expect:shows=Sound expect:shows=Connections "
                         "expect:hides=Advanced expect:layout=0 "
                         "down down down down down expect:focus=Connections "
@@ -240,14 +240,15 @@ class PrototypeTest(unittest.TestCase):
         self.assertTrue(any(max(rgb) - min(rgb) > 70 for y in range(76, 103)
                             for x in range(20, 34) for rgb in [menu[y][x * 3:x * 3 + 3]]))
         # The inset row begins with a curved corner and the unselected fill is distinctly tinted.
-        self.assertEqual(menu[75][15 * 3:15 * 3 + 3], menu[75][:3])
-        tint = menu[113][280 * 3:280 * 3 + 3]
+        self.assertEqual(menu[75][7 * 3:8 * 3], menu[75][:3])
+        self.assertNotEqual(menu[81][7 * 3:8 * 3], menu[81][:3])
+        tint = menu[130][299 * 3:300 * 3]
         self.assertLess(tint[0], 230)
-        self.assertNotEqual(tint, menu[113][:3])
+        self.assertNotEqual(tint, menu[130][:3])
         self.run_script("ok expect:count=7 up expect:focus=Settings 7 expect:screen=settings")
         self.run_script("ok expect:shows=Contacts expect:shows=Messages expect:shows=Recent "
                         "expect:shows=Zones expect:shows=Channels expect:shows=Tools "
-                        "expect:shows=Settings expect:layout=0")
+                        "expect:hides=Settings expect:layout=0")
         self.run_script("scankey wait:5000 msg:9991234,Hello wait:9000 ok "
                         "expect:shows=Messages expect:shows=Tools "
                         "expect:hides=Scanning expect:hides=1_new expect:layout=0")
@@ -257,14 +258,14 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("ok expect:shows=Zones expect:hides=Local_repeaters 4 "
                         "expect:screen=zones expect:shows=Local_repeaters")
         settings = self.render_frame("ok up expect:focus=Settings expect:layout=0")
-        gear = {row[x * 3:x * 3 + 3] for row in settings[148:161] for x in range(164, 177)}
+        gear = {row[x * 3:x * 3 + 3] for row in settings[86:99] for x in range(12, 25)}
         self.assertIn(bytes(3), gear)
         self.assertTrue(any(100 < min(rgb) < 180 and max(rgb) - min(rgb) <= 4 for rgb in gear))
 
     def test_inbox_hints_follow_the_focused_action(self):
-        self.run_script("ok 2 expect:shows=OK_Compose expect:hides=#_reply ok expect:screen=compose")
+        self.run_script("ok 2 expect:shows=OK expect:hides=OK_Compose expect:hides=#_reply ok expect:screen=compose")
         self.run_script("msg:9991234,Hello wait:9000 ok 2 expect:shows=#_reply down "
-                        "expect:shows=OK_Compose expect:hides=#_reply expect:layout=0")
+                        "expect:shows=OK expect:hides=OK_Compose expect:hides=#_reply expect:layout=0")
 
     def test_profile_menu_sections_use_roomy_headings_and_rows(self):
         sections = (
@@ -311,10 +312,23 @@ class PrototypeTest(unittest.TestCase):
 
         self.assertGreater(footer_ink(15, 90), 40)
         self.assertGreater(footer_ink(225, 296), 40)
-        self.assertEqual(footer_ink(155, 205), 0)
+        self.assertEqual(footer_ink(137, 174), 0)
         label_rows = [y for y in range(202, 236)
                       if any(min(frame[y][x * 3:x * 3 + 3]) > 220 for x in range(15, 99))]
-        self.assertGreaterEqual(max(label_rows) - min(label_rows) + 1, 14)
+        self.assertGreaterEqual(max(label_rows) - min(label_rows) + 1, 18)
+
+    def test_menu_pages_and_footer_match_home(self):
+        self.run_script("ok expect:shows=1/2 expect:shows=OK expect:hides=1-7_open "
+                        "expect:hides=Settings down down down down down down "
+                        "expect:shows=2/2 expect:focus=Settings ok expect:screen=settings "
+                        "expect:shows=OK expect:hides=OK_Open 2 expect:screen=group "
+                        "expect:shows=OK expect:hides=OK_change ok expect:screen=display-choice "
+                        "expect:shows=OK expect:hides=OK_pick")
+        home = self.render_frame("")
+        for screen in ("ok", "ok 7", "ok 7 2", "ok 7 2 ok"):
+            frame = self.render_frame(screen + " expect:layout=0")
+            for y in range(198, 240):
+                self.assertEqual(frame[y][450:453] == home[216][450:453], 202 <= y < 236)
 
     def test_home_has_four_inset_panes_in_both_themes(self):
         amateur = "ok 7 2 ok down ok long:back "

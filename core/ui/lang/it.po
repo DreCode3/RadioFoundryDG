@@ -647,11 +647,6 @@ msgctxt "FIND_CHIP_MENU"
 msgid "Menu"
 msgstr "Menu"
 
-#: core/ui/ui_app.c core/ui/ui_menus.c
-msgctxt "HINT_OK_OPEN_BACK"
-msgid "OK Open  Back"
-msgstr "OK Apri  Indietro"
-
 #: core/ui/ui_app.c
 msgctxt "LIST_TITLE_FIND"
 msgid "Find: "
@@ -1791,6 +1786,11 @@ msgstr "Nuovo messaggio APRS"
 msgctxt "MSG_HINT_LIST"
 msgid "OK open  # reply  Back"
 msgstr "OK apri  # rispondi  Indietro"
+
+#: core/ui/ui_menus.c
+msgctxt "HINT_OK_OPEN_BACK"
+msgid "OK Open  Back"
+msgstr "OK Apri  Indietro"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_NEW"

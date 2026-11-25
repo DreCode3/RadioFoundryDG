@@ -649,11 +649,6 @@ msgctxt "FIND_CHIP_MENU"
 msgid "Menu"
 msgstr "菜单"
 
-#: core/ui/ui_app.c core/ui/ui_menus.c
-msgctxt "HINT_OK_OPEN_BACK"
-msgid "OK Open  Back"
-msgstr "OK 打开  返回"
-
 #: core/ui/ui_app.c
 msgctxt "LIST_TITLE_FIND"
 msgid "Find: "
@@ -1793,6 +1788,11 @@ msgstr "新 APRS 消息"
 msgctxt "MSG_HINT_LIST"
 msgid "OK open  # reply  Back"
 msgstr "OK 打开  # 回复  返回"
+
+#: core/ui/ui_menus.c
+msgctxt "HINT_OK_OPEN_BACK"
+msgid "OK Open  Back"
+msgstr "OK 打开  返回"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_NEW"

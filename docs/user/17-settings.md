@@ -54,6 +54,8 @@ Some settings are on the menu before the feature behind them exists, or don't ap
 ### Display (key 2)
 
 On supported wide color displays, status icons and the colored icons in Menu and Settings have antialiased edges.
+Menu and Settings show two columns of three tiles per page. The larger blue soft-key bar keeps the same height
+across profile screens. **OK** selects the highlighted entry, and the numbered shortcuts still work.
 Settings shows six categories per page in two columns. Use **Up** or **Down** to move through the categories
 and turn the page. **OK** opens the marked category, and numbered shortcuts open their categories directly.
 Settings submenus use larger headings and

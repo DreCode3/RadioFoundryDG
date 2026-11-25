@@ -757,7 +757,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   The three choices are saved in the settings store.
   Profile Home puts signal, power, battery, GPS fix, lock, Bluetooth, Dual Watch, recording and VOX in the top strip.
   The device strip, mode row, channel area and soft-key bar are separate rounded panels in both palettes.
-  The soft-key bar uses the 12x24 face where the labels fit. Long labels can use the smaller hint font.
+  The rounded soft-key bar keeps the same height on profile screens. It uses the largest native font that fits
+  the key labels.
   Signal bars show only during reception, using the audible pane during Dual Watch. Idle RSSI samples leave the
   signal slot blank.
   Dual Watch uses larger A/B lettering in two panes, and VOX uses wider lettering. The GPS clock stacks its
@@ -771,12 +772,13 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   and strokes at their final sizes. With antialiasing enabled, the masks blend edges into the display palette.
   Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
   larger left-aligned headings and separated, tinted rows with rounded corners.
-  The profile hub fits its numbered entries into two columns when the display has room, with Up and Down
-  following the numbers down the left column and then the right. The hub shows Zones without a current-zone
+  The profile hub shows three rows of two larger tiles per page. Up and Down follow the numbers down the left
+  column and then the right, then turn the page. The hub shows Zones without a current-zone
   value. The Zones list continues to show the current zone.
   The first level of Settings shows three rows of two tiles per page on the wide profile display.
   Up and Down move in shortcut order across pages, and the page indicator shows the available direction.
   Longer labels can wrap. Submenus use the roomy list layout. Focused rows have a solid leading marker.
+  Menu hints abbreviate the selection key to OK. Numbered shortcuts still open their entries directly.
   The profile hub uses static labels. The status strip shows unread messages and scanning.
   Profile footer hints are split across the two edges. Back takes the right edge when present. Otherwise Quick
   takes the right edge after the first hint, or the last hint goes there.

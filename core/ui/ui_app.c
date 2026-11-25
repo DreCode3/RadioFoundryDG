@@ -1920,10 +1920,10 @@ static void list_draw(const ui_scr_def_t *d)
 	l.roomy = ui_st.gui_profiles;
 	l.menu_icons = l.roomy && (f->scr == SCR_HUB || f->scr == SCR_SETTINGS);
 	l.two_columns = l.menu_icons;
-	if (l.roomy && f->scr == SCR_HUB)
+	l.main_menu = l.roomy && f->scr == SCR_HUB;
+	l.numbered = (d->flags & SF_NUMBERED) && !(d->flags & SF_FILTER);
+	if (l.main_menu)
 		l.prefix = TR(FIND_CHIP_MENU, "Menu");
-	if (l.roomy && f->scr == SCR_SETTINGS)
-		l.hint = TR(HINT_OK_OPEN_BACK, "OK Open  Back");
 #endif
 	if ((d->flags & SF_FILTER) && filter_keys[0]) {
 		sbuf_t b;

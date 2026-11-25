@@ -32,10 +32,11 @@ static bool ui_strip_fill;
 #define PROFILE_COMMERCIAL_STATUS_H 36
 #define PROFILE_HOME_GAP 3
 #define PROFILE_HOME_INSET 4
-#define PROFILE_HOME_FOOTER_H 34
+#define PROFILE_FOOTER_H 34
 static color_t profile_bar_fg;
 static color_t profile_row_bg, profile_row_focus, profile_home_gutter;
 static void layout_regions(void);
+static int profile_footer_top(void);
 
 static bool profile_theme(void)
 {
@@ -240,7 +241,7 @@ static void layout_regions(void)
 #if CONFIG_UI_PROFILES
 	if (profile_theme()) {
 		L->strip_h = PROFILE_BAND_H;
-		L->hint_y = h - PROFILE_BAND_H;
+		L->hint_y = profile_footer_top();
 	}
 #endif
 	int y = L->strip_h;
@@ -511,7 +512,7 @@ static void profile_round_fill(int x, int y, int w, int h, color_t ink)
 	}
 }
 
-static void profile_home_pane(int y, int h, color_t ink)
+static void profile_pane(int y, int h, color_t ink)
 {
 	static const uint8_t corner[] = { 5, 3, 2, 1, 1 };
 	const int x = PROFILE_HOME_INSET, w = gfx_width() - 2 * x;
@@ -528,9 +529,9 @@ static void profile_home_pane(int y, int h, color_t ink)
 	}
 }
 
-static int profile_home_footer_top(void)
+static int profile_footer_top(void)
 {
-	return gfx_height() - PROFILE_HOME_INSET - PROFILE_HOME_FOOTER_H;
+	return gfx_height() - PROFILE_HOME_INSET - PROFILE_FOOTER_H;
 }
 
 static void profile_round_block(profile_mark_pos_t at, int x, int y, int w, int h, color_t ink)
@@ -1383,6 +1384,30 @@ static bool board_has_digits(void)
 	return false;
 }
 
+#if CONFIG_UI_PROFILES
+static void compact_menu_hint(char *left, bool numbered)
+{
+	for (char *group = left; *group;) {
+		char *end = strstr(group, "  ");
+		bool ok = strncmp(group, "OK ", 3) == 0;
+		bool shortcut = numbered && group[0] >= '0' && group[0] <= '9' &&
+			group[1] == '-' && group[2] >= '0' && group[2] <= '9' && group[3] == ' ';
+		if (ok || shortcut) {
+			group[0] = 'O';
+			group[1] = 'K';
+			if (end)
+				memmove(group + 2, end, strlen(end) + 1);
+			else
+				group[2] = 0;
+			return;
+		}
+		if (!end)
+			break;
+		group = end + 2;
+	}
+}
+#endif
+
 // Hints and toasts are written for a keypad: "*" and "#" name the QUICK and CONTEXT keys, and a hint group may start
 // with a digit ("0-9 find"). On a radio without them (ui.md 1) a "*" or "#" standing alone becomes the board's own
 // key name (board.quick_label / context_label: "P1 Quick"), and in a hint (not a toast, whose numbers are values) a
@@ -1423,7 +1448,7 @@ static const char *key_names(const char *text, char *out, size_t cap, bool hint)
 // ("Back", "Back keeps", ...) is pinned to the right edge, under the key, and the others run from the left. A hint may
 // hold text alternates (font.h): the longest form that fits is used. A toast is centered; one too long for the row
 // takes a second line above it, so it is never shortened
-static void draw_hint(const char *text, bool toast, bool profile_home)
+static void draw_hint(const char *text, bool toast, const ui_list_t *list)
 {
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
@@ -1438,21 +1463,17 @@ static void draw_hint(const char *text, bool toast, bool profile_home)
 	color_t fg = toast ? ui_col.bg : ui_col.dim;
 	int text_y = L->hint_y;
 #if CONFIG_UI_PROFILES
-	if (profile_home) {
+	if (profile_theme()) {
 		inset = PROFILE_HOME_INSET;
-		top = profile_home_footer_top();
-		h = PROFILE_HOME_FOOTER_H;
-		f = toast ? L->small : &font_aa_12x24;
+		top = profile_footer_top();
+		h = PROFILE_FOOTER_H;
+		f = toast ? L->small : FONT_AA_LARGEST;
 		text_y = top + (h - f->h) / 2;
-		if (!toast)
-			fg = profile_bar_fg;
-	} else if (profile_theme()) {
-		text_y += (PROFILE_BAND_H - f->h) / 2;
 		if (!toast)
 			fg = profile_bar_fg;
 	}
 #else
-	(void)profile_home;
+	(void)list;
 #endif
 	int w = gfx_width() - 2 * inset;
 	if (gfx_bpp() == 1 && !toast)
@@ -1485,11 +1506,11 @@ static void draw_hint(const char *text, bool toast, bool profile_home)
 			memcpy(second, rest, n);
 			second[n] = 0;
 			y -= f->h;
-			top = overlay_top(y, inset + (profile_home ? 5 : 0), inset + (profile_home ? 5 : 0));
+			top = overlay_top(y, inset ? inset + 5 : 0, inset ? inset + 5 : 0);
 		}
 #if CONFIG_UI_PROFILES
-		if (profile_home)
-			profile_home_pane(top, gfx_height() - PROFILE_HOME_INSET - top, bg);
+		if (inset)
+			profile_pane(top, gfx_height() - PROFILE_HOME_INSET - top, bg);
 		else
 #endif
 			gfx_fill(0, top, w, gfx_height() - top, bg);
@@ -1501,8 +1522,8 @@ static void draw_hint(const char *text, bool toast, bool profile_home)
 		return;
 	}
 #if CONFIG_UI_PROFILES
-	if (profile_home)
-		profile_home_pane(top, h, bg);
+	if (inset)
+		profile_pane(top, h, bg);
 	else
 #endif
 		gfx_fill(0, top, w, h, bg);
@@ -1512,12 +1533,16 @@ static void draw_hint(const char *text, bool toast, bool profile_home)
 	char form[64], left[64], right[24];
 	bool more = true;
 	int lw = 0, rw = 0;
-	int room = w - (profile_home ? 12 : 0);
+	int room = w - (inset ? 12 : 0);
 	for (int level = 0; more; level++) {
 		gfx_text_alt(text, level, form, sizeof form, &more);
+#if CONFIG_UI_PROFILES
+		if (list != NULL && list->roomy)
+			compact_menu_hint(form, list->numbered);
+#endif
 		hint_split(key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
 #if CONFIG_UI_PROFILES
-		if (profile_theme())
+		if (inset)
 			profile_hint_split(left, right, sizeof right);
 #endif
 		lw = gfx_text_width(f, left);
@@ -1525,8 +1550,8 @@ static void draw_hint(const char *text, bool toast, bool profile_home)
 		if (lw + (rw && lw ? f->w : 0) + rw <= room)
 			break;
 #if CONFIG_UI_PROFILES
-		if (!more && profile_home && f != L->small) {
-			f = L->small;
+		if (!more && inset && f != L->small) {
+			f = f == FONT_AA_LARGEST && f != &font_aa_12x24 ? &font_aa_12x24 : L->small;
 			text_y = top + (h - f->h) / 2;
 			level = -1;
 			more = true;
@@ -1547,7 +1572,7 @@ static void draw_hint(const char *text, bool toast, bool profile_home)
 #if CONFIG_UI_PROFILES
 	if (profile_theme() && lw + (rw && lw ? f->w : 0) + rw <= w - 30)
 		margin = 15 - inset;
-	else if (profile_home)
+	else if (inset)
 		margin = 6;
 #endif
 	if (rw > w - 2 * margin)
@@ -1564,7 +1589,7 @@ static void draw_hint(const char *text, bool toast, bool profile_home)
 
 void ui_draw_hint(const char *text, bool toast)
 {
-	draw_hint(text, toast, false);
+	draw_hint(text, toast, NULL);
 }
 
 // --- boot splash ---
@@ -3377,7 +3402,7 @@ static void profile_home_activity(const radio_view_t *v, const ui_state_t *s)
 #endif
 	}
 	if (text != NULL) {
-		int y = profile_home_footer_top() - PROFILE_HOME_GAP - f->h - 5;
+		int y = profile_footer_top() - PROFILE_HOME_GAP - f->h - 5;
 		gfx_hline(15, y - 4, gfx_width() - 30, ui_col.line);
 		profile_center(f, y, text, c);
 	}
@@ -3413,7 +3438,7 @@ static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int
 	int mark_h = tall ? 24 : 22;
 #endif
 	color_t ink = profile_ink(s);
-	profile_home_pane(2, strip_h - 2, ui_col.strip_bg);
+	profile_pane(2, strip_h - 2, ui_col.strip_bg);
 
 	if (!s->no_battery) {
 		int battery_scale = tall ? 6 : 5;
@@ -3570,7 +3595,7 @@ static int draw_home_status(const radio_view_t *v, const ui_state_t *s)
 	int operating_top = strip_h + PROFILE_HOME_GAP;
 	ui_strip_draws++;
 	profile_home_devices(v, s, strip_h);
-	profile_home_pane(operating_top, PROFILE_HOME_OPERATING_H, profile_row_bg);
+	profile_pane(operating_top, PROFILE_HOME_OPERATING_H, profile_row_bg);
 	profile_home_operating_marks(v, s, operating_top);
 	return operating_top + PROFILE_HOME_OPERATING_H + PROFILE_HOME_GAP;
 }
@@ -3579,11 +3604,11 @@ static void draw_banner(const ui_state_t *s, int bottom);
 
 static void profile_home_footer(const ui_state_t *s, const char *hint)
 {
-	draw_banner(s, profile_home_footer_top() - PROFILE_HOME_GAP);
+	draw_banner(s, profile_footer_top() - PROFILE_HOME_GAP);
 	if (s->toast)
-		draw_hint(s->toast, true, true);
+		ui_draw_hint(s->toast, true);
 	else if (s->hints && hint)
-		draw_hint(hint, false, true);
+		ui_draw_hint(hint, false);
 }
 
 static void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
@@ -3591,8 +3616,8 @@ static void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
 	const ui_layout_t *L = &ui_layout;
 	gfx_clear(profile_home_gutter);
 	int channel_top = draw_home_status(v, s);
-	int channel_bottom = profile_home_footer_top() - PROFILE_HOME_GAP;
-	profile_home_pane(channel_top, channel_bottom - channel_top, ui_col.bg);
+	int channel_bottom = profile_footer_top() - PROFILE_HOME_GAP;
+	profile_pane(channel_top, channel_bottom - channel_top, ui_col.bg);
 
 	bool commercial = s->gui_profile == 0;
 	bool amateur = !commercial && !s->large_text;
@@ -4243,8 +4268,8 @@ void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)
 	gfx_clear(s->gui_profiles ? profile_home_gutter : ui_col.bg);
 	int top = draw_home_status(v, s);
 	if (s->gui_profiles) {
-		bottom = profile_home_footer_top() - PROFILE_HOME_GAP;
-		profile_home_pane(top, bottom - top, ui_col.bg);
+		bottom = profile_footer_top() - PROFILE_HOME_GAP;
+		profile_pane(top, bottom - top, ui_col.bg);
 		top += 4;
 		bottom -= 4;
 	}
@@ -4809,13 +4834,17 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		rows = 1;
 	bool two_columns = false;
 	bool paginated = false;
+	bool main_menu = false;
 #if CONFIG_UI_PROFILES
 	two_columns = l->two_columns;
-	paginated = two_columns && l->count > 2 * rows;
-	if (paginated && rows > 3 && (y_end - y) / 3 >= 2 * f->h + 8) {
+	main_menu = l->main_menu;
+	if (two_columns) {
 		rows = 3;
 		pitch = (y_end - y) / rows;
+		if (main_menu)
+			f = &font_aa_12x24;
 	}
+	paginated = two_columns && l->count > 2 * rows;
 #endif
 	int visible = two_columns ? 2 * rows : rows;
 	uint16_t top = l->top != NULL ? *l->top : 0;
@@ -4833,7 +4862,6 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		*l->top = top;
 	if (l->count == 0 && l->empty != NULL)
 		wrap_text(f, l->empty, y + 1, y_end, true, ui_col.dim);
-	int pad = (pitch - f->h) / 2;
 	int inset = 0, gap = 0;
 	color_t disabled = ui_col.line;
 #if CONFIG_UI_PROFILES
@@ -4842,7 +4870,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		gap = 2;
 		disabled = ui_col.dim;
 		if (l->roomy) {
-			inset = 15;
+			inset = main_menu ? 7 : 15;
 			gap = 4;
 		}
 	}
@@ -4869,7 +4897,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 				gfx_pixel(bx - 7 + dx, by + 12 - slope, ui_col.fg);
 		}
 	}
-	if (two_columns) {
+	if (two_columns && !main_menu) {
 		// Give a column extra width for longer translations before shortening a label.
 		int minimum[2] = { 0, 0 };
 		for (uint16_t i = top; i < l->count && i < top + visible; i++) {
@@ -4943,32 +4971,41 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 				x += two_columns ? f->w + 3 : 2 * f->w;
 		}
 #endif
-		if (gfx_bpp() == 1 && !focus)
-			x = gfx_text(f, 0, ry + pad, " ", fg);
 		int right = rx + item_w - (paginated ? 3 : inset ? 5 : 0);
-		int label_room = right - x - (it.num ? f->w + 3 : 0);
+		const font_t *row_font = f;
+		int digit_gap = main_menu ? 5 : 3;
+		if (main_menu && gfx_text_width(f, it.label) + (it.num ? f->w + digit_gap : 0) > right - x) {
+			row_font = L->small;
+			if (gfx_text_width(row_font, it.label) + (it.num ? row_font->w + digit_gap : 0) > right - x &&
+			    gfx_text_width(L->tiny, it.label) + (it.num ? L->tiny->w + digit_gap : 0) <= right - x)
+				row_font = L->tiny;
+		}
+		int pad = (pitch - row_font->h) / 2;
+		if (gfx_bpp() == 1 && !focus)
+			x = gfx_text(row_font, 0, ry + pad, " ", fg);
+		int label_room = right - x - (it.num ? row_font->w + digit_gap : 0);
 		char val[48];
 		const char *rest = NULL;
-		if (paginated && !it.value[0] && pitch >= 2 * f->h &&
-		    gfx_text_width(f, it.label) > label_room)
-			rest = wrap_line(f, it.label, label_room, val, sizeof val);
-		int ty = ry + (rest && *rest ? (pitch - 2 * f->h) / 2 : pad);
+		if (paginated && !it.value[0] && pitch >= 2 * row_font->h &&
+		    gfx_text_width(row_font, it.label) > label_room)
+			rest = wrap_line(row_font, it.label, label_room, val, sizeof val);
+		int ty = ry + (rest && *rest ? (pitch - 2 * row_font->h) / 2 : pad);
 		if (it.num) {
 			char n[3] = { it.num, ' ', 0 };
 			color_t num_ink = focus || gfx_bpp() == 1 ? fg : ui_col.dim;
 #if CONFIG_UI_PROFILES
 			if (two_columns) {
 				n[1] = '\0';
-				int digit_w = f->w + 1;
-				gfx_text_title(f, x + digit_w / 2, ry + pad + f->ascent, digit_w, n, num_ink, 4);
-				x += f->w + 3;
+				int digit_w = row_font->w + 1;
+				gfx_text_title(row_font, x + digit_w / 2, ry + pad + row_font->ascent, digit_w, n, num_ink, 4);
+				x += row_font->w + digit_gap;
 			} else
 #endif
-				x = gfx_text(f, x, ty, n, num_ink);
+				x = gfx_text(row_font, x, ty, n, num_ink);
 		}
 		if (rest && *rest) {
-			row_text(f, x, ty, right, val, "", fg, vfg, false);
-			row_text(f, x, ty + f->h, right, rest, "", fg, vfg, false);
+			row_text(row_font, x, ty, right, val, "", fg, vfg, false);
+			row_text(row_font, x, ty + row_font->h, right, rest, "", fg, vfg, false);
 			continue;
 		}
 		if (it.flags & UI_ITEM_EDIT) {
@@ -4980,7 +5017,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		} else {
 			str_copy(val, sizeof val, it.value);
 		}
-		row_text(f, x, ty, right, it.label, val, fg, vfg,
+		row_text(row_font, x, ty, right, it.label, val, fg, vfg,
 			 (it.flags & UI_ITEM_PREVIEW) != 0);
 	}
 	// Scroll marks: more above / below
@@ -4989,7 +5026,10 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	if (!paginated && top + visible < l->count)
 		gfx_fill(w - 3, y + rows * pitch - 2, 3, 2, ui_col.dim);
 	ui_draw_banner(s);
-	ui_draw_bottom(s, l->hint);
+	if (s->toast)
+		ui_draw_hint(s->toast, true);
+	else if (s->hints && l->hint)
+		draw_hint(l->hint, false, l);
 }
 
 // Received emergency: the whole screen, a word label and the caller (P5: never color alone)
