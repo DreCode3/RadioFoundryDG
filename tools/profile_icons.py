@@ -1,0 +1,147 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 The RadioFoundry Authors
+# /// script
+# dependencies = ["aggdraw==1.4.1", "pillow==13.0.0"]
+# ///
+"""Generate native 2-bit coverage masks for GUI profile icons."""
+
+import math
+from pathlib import Path
+
+import aggdraw
+from PIL import Image
+
+
+OUT = Path(__file__).resolve().parents[1] / "core/ui/ui_profile_icons.h"
+SAMPLES = 8
+
+
+class Mask:
+    def __init__(self, view, size):
+        self.size = size
+        self.image = Image.new("L", tuple(p * SAMPLES for p in size))
+        self.draw = aggdraw.Draw(self.image)
+        self.draw.settransform((size[0] * SAMPLES / view[0], 0, 0, 0,
+                                size[1] * SAMPLES / view[1], 0))
+
+    def path(self, shape, ink=255):
+        self.draw.symbol((0, 0), aggdraw.Symbol(shape), None, aggdraw.Brush(ink))
+
+    def disk(self, x, y, r, ink=255):
+        self.draw.ellipse((x - r, y - r, x + r, y + r), None, aggdraw.Brush(ink))
+
+    def stroke(self, points, width):
+        """Join line segments with circular caps and joins."""
+        for x, y in points:
+            self.disk(x, y, width / 2)
+        for (x, y), (u, v) in zip(points, points[1:]):
+            length = math.hypot(u - x, v - y)
+            dx, dy = (v - y) * width / (2 * length), (x - u) * width / (2 * length)
+            self.draw.polygon((x + dx, y + dy, u + dx, v + dy, u - dx, v - dy, x - dx, y - dy),
+                              None, aggdraw.Brush(255))
+
+    def packed(self):
+        self.draw.flush()
+        width, height = self.size
+        pixels = self.image.resize(self.size, Image.Resampling.BOX).tobytes()
+        for y in range(height):
+            row = [min(3, (a * 3 + 127) // 255) for a in pixels[y * width:(y + 1) * width]]
+            row += [0] * (-width % 4)
+            yield [sum(row[i + j] << (2 * j) for j in range(4)) for i in range(0, len(row), 4)]
+
+
+def pin(mask):
+    mask.path("M 5.5 0.3 C 8.4 0.3 10.3 2.3 10.3 4.9 C 10.3 7.2 8 9.1 5.9 10.8 "
+              "Q 5.5 11.05 5.1 10.8 C 3 9.1 0.7 7.2 0.7 4.9 C 0.7 2.3 2.6 0.3 5.5 0.3 Z")
+    mask.path("M 5.5 1.5 C 7.6 1.5 9.1 2.9 9.1 4.9 C 9.1 6.6 7.2 8.3 5.5 9.6 "
+              "C 3.8 8.3 1.9 6.6 1.9 4.9 C 1.9 2.9 3.4 1.5 5.5 1.5 Z", 0)
+    mask.disk(5.5, 4.65, 1.72)
+    mask.disk(5.5, 4.65, 0.61, 0)
+
+
+def lock(mask):
+    mask.path("M 1.7 5.4 V 3.6 C 1.7 1.7 3.1 0.35 5 0.35 C 6.9 0.35 8.3 1.7 8.3 3.6 V 5.4 "
+              "H 7 V 3.6 C 7 2.45 6.2 1.6 5 1.6 C 3.8 1.6 3 2.45 3 3.6 V 5.4 Z")
+    mask.path("M 1.6 4.6 H 8.4 Q 9.6 4.6 9.6 5.8 V 9.4 Q 9.6 10.65 8.4 10.65 "
+              "H 1.6 Q 0.4 10.65 0.4 9.4 V 5.8 Q 0.4 4.6 1.6 4.6 Z")
+    mask.path("M 1.7 5.85 H 8.3 V 9.4 H 1.7 Z", 0)
+    mask.disk(5, 7.25, 0.72)
+    mask.path("M 4.65 7.2 H 5.35 V 8.75 H 4.65 Z")
+
+
+def key(mask):
+    mask.path("M 7 2.35 H 12.5 Q 13 2.35 13 2.85 V 4.3 H 12.2 V 5.5 H 11.15 V 4.3 "
+              "H 10.35 V 5.65 H 9.25 V 4.3 H 7 Z")
+    mask.disk(4.05, 3.5, 3.25)
+    mask.disk(4.05, 3.5, 1.6, 0)
+
+
+def speaker(mask):
+    mask.path("M 1 5.3 H 5.8 L 11.5 0.65 Q 12.2 0.1 12.2 1.2 V 14.8 Q 12.2 15.9 11.5 15.35 "
+              "L 5.8 10.7 H 1 Q 0.25 10.7 0.25 9.95 V 6.05 Q 0.25 5.3 1 5.3 Z")
+    mask.path("M 14.4 3.45 C 15.4 2.55 18.4 5.4 18.4 8 C 18.4 10.6 15.4 13.45 14.4 12.55 "
+              "C 13.95 12.1 14.55 11.45 15.05 10.95 C 16.05 9.95 16.55 9.0 16.55 8 "
+              "C 16.55 7.0 16.05 6.05 15.05 5.05 C 14.55 4.55 13.95 3.9 14.4 3.45 Z")
+
+
+def envelope(mask):
+    mask.path("M 2.15 0.35 H 20.85 Q 22.65 0.35 22.65 2.15 V 12.85 Q 22.65 14.65 20.85 14.65 "
+              "H 2.15 Q 0.35 14.65 0.35 12.85 V 2.15 Q 0.35 0.35 2.15 0.35 Z")
+    mask.path("M 2.1 2.1 H 20.9 V 12.9 H 2.1 Z", 0)
+    mask.stroke([(1.6, 2.7), (11.5, 9), (21.4, 2.7)], 1.7)
+
+
+def scan(mask):
+    mask.stroke([(1.35, 2.1), (15.2, 2.1), (4.2, 12.35), (17.5, 12.35)], 2.5)
+    mask.path("M 16.1 7.5 L 21.6 11.7 Q 22.2 12.3 21.6 12.9 L 16.1 17 Z")
+
+
+def orbit(mask, frame):
+    angle = frame * math.tau / 8
+    radius = 9.4
+
+    def point(a):
+        return (13.5 + radius * math.cos(a), 12.5 + radius * math.sin(a))
+
+    angles = [angle - 0.2 - 5.1 + i * 5.1 / 32 for i in range(33)]
+    mask.stroke([point(a) for a in angles], 2.2)
+    x, y = point(angles[-1])
+    rx, ry = math.cos(angle), math.sin(angle)
+    dx, dy = -ry, rx
+    mask.draw.polygon((x - rx * 3.6 - dx * 1.7, y - ry * 3.6 - dy * 1.7,
+                       x + rx * 3.6 - dx * 1.7, y + ry * 3.6 - dy * 1.7,
+                       x + dx * 4.4, y + dy * 4.4), None, aggdraw.Brush(255))
+
+
+def array(name, paint, view, size):
+    mask = Mask(view, size)
+    paint(mask)
+    return (f"static const uint8_t {name}[] = {{\n" +
+            "".join("\t" + ", ".join(f"0x{b:02X}" for b in row) + ",\n" for row in mask.packed()) +
+            "};\n")
+
+
+def main():
+    lines = ["// SPDX-License-Identifier: MIT\n// Copyright (c) 2026 The RadioFoundry Authors\n"
+             "// Generated by tools/profile_icons.py. Four native coverage pixels per byte, low bits first.\n"]
+    for name, paint, view, sizes in (
+        ("pin", pin, (11, 11), (11, 13, 22, 24)),
+        ("lock", lock, (10, 11), (10, 12, 20, 22)),
+        ("key", key, (13, 7), (13, 16, 19)),
+        ("speaker", speaker, (19, 16), (19,)),
+        ("mail", envelope, (23, 15), (23,)),
+        ("scan", scan, (22, 17), (22,)),
+    ):
+        for width in sizes:
+            height = round(width * view[1] / view[0])
+            lines.append(array(f"profile_{name}_{width}", paint, view, (width, height)))
+    lines.append("#if CONFIG_DMR_ROAMING")
+    for frame in range(8):
+        lines.append(array(f"profile_orbit_{frame}", lambda mask: orbit(mask, frame), (27, 25), (27, 25)))
+    lines.append("static const uint8_t *const profile_orbit_frames[] = {\n" +
+                 "".join(f"\tprofile_orbit_{n},\n" for n in range(8)) + "};\n#endif")
+    OUT.write_text("\n".join(lines) + "\n", encoding="ascii")
+
+
+if __name__ == "__main__":
+    main()

@@ -61,9 +61,9 @@ spaced, rounded rows.
 
 On these displays, Display Profile and Day/Night appear in place of Theme, Highlight color and Filled status
 bar. Both profiles show the talkgroup name first. The **TG name / number** key setting applies to the original Home
-layout. On profile Home screens, a speaker with one wave indicates Monitor, plain RX indicates a receive-only
-channel, and an R inside a circular arrow indicates roaming. A board GPS adds the GPS clock option to the profile
-displays.
+layout. Signal bars appear during reception and clear when it ends. On profile Home screens, a speaker with one
+wave indicates Monitor, plain RX indicates a receive-only channel, and an R inside a circular arrow indicates
+roaming. A board GPS adds the GPS clock option to the profile displays.
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|

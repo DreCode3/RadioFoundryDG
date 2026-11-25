@@ -468,7 +468,25 @@ static bool strip_fits(const font_t *f, int lx, int rx, const char *word)
 }
 
 #if CONFIG_UI_PROFILES
+#include "ui_profile_icons.h"
+
 typedef struct { int x, y, scale; } profile_mark_pos_t;
+
+static unsigned profile_mask_coverage(const uint8_t *mask, int stride, int x, int y)
+{
+	return (mask[y * stride + x / 4] >> (2 * (x % 4))) & 3u;
+}
+
+static void profile_mask(int x, int y, const uint8_t *mask, int w, int h, color_t ink)
+{
+	int stride = (w + 3) / 4;
+	for (int dy = 0; dy < h; dy++)
+		for (int dx = 0; dx < w; dx++) {
+			unsigned coverage = profile_mask_coverage(mask, stride, dx, dy);
+			if (coverage)
+				gfx_coverage_pixel(x + dx, y + dy, ink, coverage);
+		}
+}
 
 static int profile_px(int n, int scale) { return n * scale / 4; }
 
@@ -554,9 +572,6 @@ static color_t profile_ink(const ui_state_t *s)
 	return s->gui_night ? ui_col.fg : RGB565(0, 0, 0);
 }
 
-static const uint32_t profile_lock[] = { 0x078, 0x0CC, 0x084, 0x084, 0x1FE, 0x303, 0x333, 0x333, 0x313, 0x303, 0x1FE };
-static const uint32_t profile_pin[] = { 0x0F8, 0x18C, 0x306, 0x272, 0x252, 0x272, 0x306, 0x18C, 0x0D8, 0x070, 0x020 };
-static const uint32_t profile_key[] = { 0x0780, 0x0CC0, 0x18C0, 0x18FF, 0x18FF, 0x0CD2, 0x0780 };
 
 enum {
 	PROFILE_VOX_W = 22, PROFILE_DUAL_W = 25, PROFILE_MAIL_W = 23, PROFILE_SPEAKER_W = 19,
@@ -566,14 +581,6 @@ enum {
 static const uint32_t profile_vox_art[] = {
 	0x330C33, 0x330C33, 0x333333, 0x333333, 0x33330C, 0x33330C, 0x333333, 0x333333,
 	0x0C0C33, 0x0C0C33,
-};
-static const uint32_t profile_mail_art[] = {
-	0x3FFFFE, 0x7FFFFF, 0x700007, 0x78000F, 0x7E003F, 0x670073, 0x63C1E3, 0x60E383,
-	0x607F03, 0x601C03, 0x600803, 0x600003, 0x600003, 0x7FFFFF, 0x3FFFFE,
-};
-static const uint32_t profile_speaker_art[] = {
-	0x00080, 0x00180, 0x00380, 0x00F88, 0x01F9C, 0x7FF8E, 0x7FF86, 0x7FF83,
-	0x7FF83, 0x7FF83, 0x7FF86, 0x01F8E, 0x00F9C, 0x00388, 0x00180, 0x00080,
 };
 static const uint32_t profile_rx_art[] = {
 	0xFF0C3, 0xFF842, 0xC1C66, 0xC1C24, 0xFF83C, 0xFF018, 0xCE018, 0xC6018,
@@ -630,86 +637,34 @@ static void profile_bluetooth(int x, int cy, int height, const ui_state_t *s)
 }
 #endif
 
-static const uint32_t profile_scan_art[] = {
-	0x3FFF80, 0x3FFF80, 0x3FFFC0, 0x000F80, 0x001F00, 0x003E00, 0x00FC00, 0x01F800,
-	0x03E020, 0x07C030, 0x0F8038, 0x1FFFFE, 0x0FFFFF, 0x0FFFFE, 0x000038, 0x000030,
-	0x000020,
-};
-static const uint32_t profile_scan_head[] = {
-	0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
-	0x000020, 0x000030, 0x000038, 0x00003E, 0x00003F, 0x00003E, 0x000038, 0x000030,
-	0x000020,
-};
 
 static void profile_scan(int x, int cy, uint32_t frame, color_t ink, color_t step)
 {
 	// The silhouette stays fixed while the highlight walks the three legs, then fills the arrowhead.
-	int h = PROFILE_HEIGHT(profile_scan_art);
-	for (int dy = 0; dy < h; dy++) {
-		profile_subrow_t upper = profile_subrow(profile_scan_art, h, 2 * dy);
-		profile_subrow_t lower = profile_subrow(profile_scan_art, h, 2 * dy + 1);
-		uint32_t head = profile_scan_head[dy];
-		uint32_t fringe = (head << 1) | (head >> 1) |
-			(dy > 0 ? profile_scan_head[dy - 1] : 0) | (dy + 1 < h ? profile_scan_head[dy + 1] : 0);
+	for (int dy = 0; dy < 17; dy++)
 		for (int dx = 0; dx < PROFILE_SCAN_W; dx++) {
-			unsigned coverage = profile_coverage(upper, lower, 2 * dx, 2 * dx + 1, PROFILE_SCAN_W);
+			unsigned coverage = profile_mask_coverage(profile_scan_22, (PROFILE_SCAN_W + 3) / 4, dx, dy);
 			if (!coverage)
 				continue;
-			uint32_t bit = 1u << (PROFILE_SCAN_W - dx - 1);
 			unsigned segment;
-			if ((head | (fringe & ~profile_scan_art[dy])) & bit)
+			if (dx >= 16 && dy >= 7)
 				segment = 12;
-			else if (dy < 3)
+			else if (dy < 4)
 				segment = (unsigned)dx / 4u;
 			else if (dy < 11)
-				segment = 4u + (unsigned)(dy - 3) / 2u;
+				segment = 4u + (unsigned)(dy - 4) / 2u;
 			else
 				segment = 8u + (unsigned)dx / 4u;
 			gfx_coverage_pixel(x + dx, cy - 8 + dy, frame == segment ? step : ink, coverage);
 		}
-	}
 }
 
 #if CONFIG_DMR_ROAMING
-static const uint32_t profile_orbit[8][25] = {
-	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600024, 0x0C001FC,
-	  0x0C000FC, 0x180007C, 0x180001C, 0x180000C, 0x1800004, 0x1800000, 0x1800000, 0x1800000,
-	  0x0C00000, 0x0C00000, 0x0600020, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
-	  0x0000000 },
-	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0C00018,
-	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180004C, 0x180006C, 0x1800070, 0x180007C,
-	  0x0C0003E, 0x0C0003C, 0x0600038, 0x0300030, 0x0380020, 0x00E0000, 0x007F800, 0x001F800,
-	  0x0000000 },
-	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0C00018,
-	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C,
-	  0x0C00018, 0x0C00118, 0x0600330, 0x0300760, 0x03807E0, 0x0000F80, 0x0001F80, 0x0003F80,
-	  0x0000000 },
-	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0C00018,
-	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x000000C, 0x000000C,
-	  0x0000018, 0x0000018, 0x0000030, 0x0002060, 0x03FC0E0, 0x01F8380, 0x00FFF00, 0x007FC00,
-	  0x0020000 },
-	{ 0x0000000, 0x001FC00, 0x007FF00, 0x00E0380, 0x03800E0, 0x0300060, 0x0600030, 0x0000018,
-	  0x0000018, 0x000000C, 0x000000C, 0x000000C, 0x100000C, 0x180000C, 0x1C0000C, 0x1F0000C,
-	  0x1F80018, 0x1FC0018, 0x1600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
-	  0x0000000 },
-	{ 0x0000000, 0x000FC00, 0x000FF00, 0x0000380, 0x02000E0, 0x0600060, 0x0E00030, 0x1E00018,
-	  0x3E00018, 0x1F0000C, 0x070000C, 0x1B0000C, 0x190000C, 0x180000C, 0x180000C, 0x180000C,
-	  0x0C00018, 0x0C00018, 0x0600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
-	  0x0000000 },
-	{ 0x0000000, 0x00FE000, 0x00FC000, 0x00F8000, 0x03F00E0, 0x0370060, 0x0660030, 0x0C40018,
-	  0x0C00018, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C,
-	  0x0C00018, 0x0C00018, 0x0600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
-	  0x0000000 },
-	{ 0x0000200, 0x001FF00, 0x007FF80, 0x00E0FC0, 0x0381FE0, 0x0302000, 0x0600000, 0x0C00000,
-	  0x0C00000, 0x1800000, 0x1800000, 0x180000C, 0x180000C, 0x180000C, 0x180000C, 0x180000C,
-	  0x0C00018, 0x0C00018, 0x0600030, 0x0300060, 0x03800E0, 0x00E0380, 0x007FF00, 0x001FC00,
-	  0x0000000 },
-};
 
 static void profile_roaming(int x, int cy, uint32_t frame, color_t ink)
 {
 	static const uint32_t letter[] = { 0x3C, 0x3C, 0x33, 0x33, 0x3C, 0x3C, 0x33, 0x33, 0x33, 0x33 };
-	PROFILE_PIXELS(x, cy - 12, profile_orbit[frame % 8u], PROFILE_ORBIT_W, ink);
+	profile_mask(x, cy - 12, profile_orbit_frames[frame % 8u], PROFILE_ORBIT_W, 25, ink);
 	PROFILE_MARK(x + 10, cy - 5, letter, 6, ink);
 }
 #endif
@@ -822,7 +777,9 @@ static void profile_status_key(const radio_view_t *v, const ui_state_t *s, int y
 		return;
 	int kx = key_x + (key_w - profile_px(13, scale)) / 2;
 	color_t key_color = !warning ? ui_col.rx : s->gui_night ? RGB565(160, 168, 178) : RGB565(105, 114, 124);
-	PROFILE_STATUS_MARK(kx, algorithm ? y - profile_px(4, scale) : y + 1, profile_key, 13, key_color);
+	profile_mask(kx, algorithm ? y - profile_px(4, scale) : y + 1,
+		scale == 6 ? profile_key_19 : scale == 5 ? profile_key_16 : profile_key_13,
+		profile_px(13, scale), scale == 6 ? 10 : scale == 5 ? 9 : 7, key_color);
 	if (algorithm)
 		gfx_text_title(algo_font, key_x + key_w / 2, y + profile_px(5, scale) + algo_font->ascent,
 			key_w, algorithm, ui_col.rx, 4);
@@ -847,7 +804,7 @@ static int profile_operating_marks(const radio_view_t *v, const ui_state_t *s, i
 	if (s->unread) {
 		int rx = profile_slot(&row, PROFILE_MAIL_W + (row.tight ? 2 : 3));
 		if (!row.measure)
-			PROFILE_PIXELS(rx, y, profile_mail_art, PROFILE_MAIL_W, ink);
+			profile_mask(rx, y, profile_mail_23, PROFILE_MAIL_W, 15, ink);
 	}
 	if (row.reverse)
 		profile_status_key(v, s, y, scale, &row);
@@ -891,11 +848,13 @@ static int profile_status_right(const radio_view_t *v, const ui_state_t *s, int 
 	}
 	if (s->locked) {
 		rx -= 14;
-		PROFILE_STATUS_MARK(rx, y - 1, profile_lock, 10, ink);
+		profile_mask(rx, y - 1, scale > 4 ? profile_lock_12 : profile_lock_10,
+			profile_px(10, scale), profile_px(11, scale), ink);
 	}
 	if (s->gps_fix) {
 		rx -= scale > 4 ? 15 : 14;
-		PROFILE_STATUS_MARK(rx, y - 1, profile_pin, 11, ink);
+		profile_mask(rx, y - 1, scale > 4 ? profile_pin_13 : profile_pin_11,
+			profile_px(11, scale), profile_px(11, scale), ink);
 	}
 	profile_row_cursor_t row = { .x = rx, .reverse = true };
 	return profile_operating_marks(v, s, y, scale, ink, row) - (scale > 4 ? 2 : 3);
@@ -935,6 +894,22 @@ static const char *profile_status_activity(const radio_view_t *v, radio_state_t 
 		activity = clock;
 	}
 	return activity;
+}
+
+static uint8_t profile_signal_bars(const radio_view_t *v, const ui_state_t *s)
+{
+	if (v->state == RS_TX || v->state == RS_TX_DENIED)
+		return 0;
+#if CONFIG_DUAL_WATCH
+	if (s->dual.on && s->dual.rx < 2) {
+		const ui_dual_pane_t *pane = &s->dual.pane[s->dual.rx];
+		return pane->rx && pane->rssi_dbm ? rssi_bars(pane->rssi_dbm) : 0;
+	}
+#else
+	(void)s;
+#endif
+	// The receiver samples background RSSI even after the squelch closes.
+	return v->state == RS_RX && v->rssi_dbm ? rssi_bars(v->rssi_dbm) : 0;
 }
 
 static void draw_profile_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, bool titled, int strip_h)
@@ -991,10 +966,10 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 	int signal_x = side ? x : x + (badge_w - signal_w) / 2;
 	int signal_y = side ? (strip_h - profile_px(9, scale)) / 2 - profile_px(4, scale) : 0;
 	profile_mark_pos_t signal = { signal_x, signal_y, scale };
-	int strength = v->rssi_dbm ? rssi_bars(v->rssi_dbm) : 0;
-	for (int bar = 0; bar < 4; bar++) {
+	int strength = profile_signal_bars(v, s);
+	for (int bar = 0; bar < strength; bar++) {
 		int height = 3 + bar * 2;
-		profile_block(signal, bar * 5, 13 - height, 3, height, bar < strength ? ink : ui_col.line);
+		profile_round_block(signal, bar * 5, 13 - height, 3, height, ink);
 	}
 	int mode_x = side ? x + signal_w + 4 : x + (badge_w - mode_w) / 2;
 	int mode_y = side ? (strip_h - mode_font->h) / 2 : strip_h - mode_font->h - 2;
@@ -1022,7 +997,7 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 		gfx_text(f, activity_x, functions || above_roam ? 0 : (strip_h - f->h) / 2, activity, c);
 	int fy = show_activity && !above_roam ? f->h + 1 : iy;
 	if (monitor && x + PROFILE_SPEAKER_W <= rx) {
-		PROFILE_PIXELS(x, fy, profile_speaker_art, PROFILE_SPEAKER_W, ink);
+		profile_mask(x, fy, profile_speaker_19, PROFILE_SPEAKER_W, 16, ink);
 		x += PROFILE_SPEAKER_W + 3;
 	}
 #if CONFIG_DUAL_WATCH
@@ -3397,11 +3372,13 @@ static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int
 	}
 	if (s->locked) {
 		int x = profile_device_slot(&right, slot_w, profile_px(10, scale));
-		PROFILE_STATUS_MARK(x, cy - profile_px(11, scale) / 2, profile_lock, 10, ink);
+		profile_mask(x, cy - profile_px(11, scale) / 2, tall ? profile_lock_22 : profile_lock_20,
+			profile_px(10, scale), profile_px(11, scale), ink);
 	}
 	if (s->gps_fix) {
 		int x = profile_device_slot(&right, slot_w, profile_px(11, scale));
-		PROFILE_STATUS_MARK(x, cy - profile_px(11, scale) / 2, profile_pin, 11, ink);
+		profile_mask(x, cy - profile_px(11, scale) / 2, tall ? profile_pin_24 : profile_pin_22,
+			profile_px(11, scale), profile_px(11, scale), ink);
 	}
 #if CONFIG_DUAL_WATCH
 	if (s->dual.on) {
@@ -3429,10 +3406,10 @@ static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int
 		int x = profile_device_slot(&right, tx ? 36 : 42, 3 * font->w);
 		profile_native_caps(font, x, cy, "VOX", ink);
 	}
-	int strength = v->rssi_dbm ? rssi_bars(v->rssi_dbm) : 0;
-	for (int bar = 0; bar < 4; bar++) {
+	int strength = profile_signal_bars(v, s);
+	for (int bar = 0; bar < strength; bar++) {
 		int height = (bar + 1) * (strip_h - 8) / 4;
-		profile_round_fill(15 + bar * 6, strip_h - 4 - height, 5, height, bar < strength ? ink : ui_col.line);
+		profile_round_fill(15 + bar * 6, strip_h - 4 - height, 5, height, ink);
 	}
 	if (tx) {
 		char clock[32], fit[32];
@@ -3465,7 +3442,7 @@ static int profile_home_marks(const radio_view_t *v, const ui_state_t *s, int to
 	if ((v->monitor || s->hear_all) && !v->aprs_tx) {
 		int x = profile_slot(&row, PROFILE_SPEAKER_W + (row.tight ? 2 : 3));
 		if (!row.measure)
-			PROFILE_PIXELS(x, y - 1, profile_speaker_art, PROFILE_SPEAKER_W, ink);
+			profile_mask(x, y - 1, profile_speaker_19, PROFILE_SPEAKER_W, 16, ink);
 	}
 	if (v->ch.rx_only || v->am || v->bcast) {
 		int x = profile_slot(&row, 24) + 4;
@@ -4636,7 +4613,7 @@ static void draw_menu_icon(uint8_t icon, int x, int y)
 		return;
 	}
 	if (icon == UI_MENU_ICON_PRIVACY) {
-		PROFILE_MARK(x, y + 3, profile_key, 13, ui_col.warn);
+		profile_mask(x, y + 3, profile_key_13, 13, 7, ui_col.warn);
 		return;
 	}
 

@@ -31,6 +31,30 @@ class PrototypeTest(unittest.TestCase):
         stride = 310 * 3 + 1
         return [pixels[start + 1:start + stride] for start in range(0, len(pixels), stride)]
 
+    def test_home_signal_bars_follow_reception_in_both_profiles(self):
+        for select in ("", "ok 7 2 ok down ok long:back "):
+            with self.subTest(profile=select or "commercial"):
+                def meter(script):
+                    frame = self.render_frame(select + script)
+                    return [row[15 * 3:38 * 3] != row[:3] * 23 for row in frame[:20]]
+
+                self.assertFalse(any(meter("")), "idle RSSI must not draw signal bars")
+                self.assertTrue(any(meter("fmrx")), "an active FM signal must draw bars")
+                self.assertFalse(any(meter("fmrx fmrxend")), "the last RSSI sample must not leave bars behind")
+                self.assertTrue(any(meter("rx:9991234,3100,g,Morgan_Reed")), "a DMR call must draw bars")
+                self.assertFalse(any(meter("rx:9991234,3100,g,Morgan_Reed rxend")))
+
+    def test_gps_pin_has_an_antialiased_tip_in_both_profiles(self):
+        for select, strip_end in (("", 35), ("ok 7 2 ok down ok long:back ", 27)):
+            before = self.render_frame(select)
+            fixed = self.render_frame(select + "gps:fix")
+            rows = [[fixed[y][x * 3:x * 3 + 3] for x in range(215, 250)
+                     if fixed[y][x * 3:x * 3 + 3] != before[y][x * 3:x * 3 + 3]]
+                    for y in range(strip_end)]
+            tip = next(row for row in reversed(rows) if row)
+            self.assertLessEqual(len(tip), 3)
+            self.assertTrue(all(0 < max(pixel) < 230 for pixel in tip))
+
     def test_profile_day_uses_vertical_battery_and_black_receive_only_mark(self):
         frame = self.render_frame("rxonly:on")
         idle = self.render_frame("")
@@ -55,7 +79,7 @@ class PrototypeTest(unittest.TestCase):
                   if monitor[y][x * 3:x * 3 + 3] == bytes(3) and idle[y][x * 3:x * 3 + 3] != bytes(3)}
         left = min(x for x, _ in pixels)
         # A solid cone with a stem on the left and a separate wave on the right.
-        self.assertGreaterEqual(sum(x == left + 11 for x, _ in pixels), 14)
+        self.assertGreaterEqual(sum(x == left + 10 for x, _ in pixels), 10)
         self.assertFalse(any(x == left + 12 for x, _ in pixels))
         self.assertTrue(any(x >= left + 14 for x, _ in pixels))
 
@@ -363,8 +387,8 @@ class PrototypeTest(unittest.TestCase):
         check = " expect:shows=21_Nov expect:shows=14:08 expect:shows=ARC4 expect:layout=0"
 
         def operating_ink(frame):
-            # Compare the ink footprint. Recording can change which edge shade the indexed palette chooses.
-            return [tuple(max(rgb) < 220 for rgb in zip(row[::3], row[1::3], row[2::3]))
+            # Compare the solid strokes. The indexed palette can map an edge to different neighboring shades.
+            return [tuple(max(rgb) < 40 for rgb in zip(row[::3], row[1::3], row[2::3]))
                     for row in frame[36:64]]
 
         crowded = self.render_frame(setup + " vox:on prototype:record_on" + check)

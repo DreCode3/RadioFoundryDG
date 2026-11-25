@@ -756,6 +756,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   GPS clock (default Off) shows the UTC date and minute on idle Home while a recent GPS fix has both date and time.
   The three choices are saved in the settings store.
   Profile Home puts signal, power, battery, GPS fix, lock, Bluetooth, Dual Watch, recording and VOX in the top strip.
+  Signal bars show only during reception, using the audible pane during Dual Watch. Idle RSSI samples leave the
+  signal slot blank.
   Dual Watch uses larger A/B lettering in two panes, and VOX uses wider lettering. The GPS clock stacks its
   date and time at the right end of the operating row. The mode label uses the largest native font that fits
   alongside the clock, roaming, encryption, and other marks. In menus,
@@ -763,8 +765,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   Monitor uses a speaker with one wave, and receive-only channels are marked RX. The scan highlight follows the
   open zigzag stroke and ends on the full arrowhead. Normal status marks use black in
   Day and light ink in Night. The battery uses an upright outline with a top terminal and three fill segments.
-  With antialiasing enabled, status and menu icons blend their corners at native pixel size, including each
-  frame of the scan, roaming, and recording animations.
+  The GPS pin, lock, key, envelope, speaker, scan and roaming artwork use coverage masks generated from curves
+  and strokes at their final sizes. With antialiasing enabled, the masks blend edges into the display palette.
   Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
   larger left-aligned headings and separated, tinted rows with rounded corners.
   The profile hub fits its numbered entries into two columns when the display has room, with Up and Down
