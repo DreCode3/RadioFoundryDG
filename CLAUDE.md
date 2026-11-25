@@ -19,9 +19,27 @@ can go upstream as pull requests, so write every change as if it were one.
 - The GD-88 work sits on upstream's `feature/gd88_bringup` (a maintainer's bring-up branch, not yet in `main`).
   Our GD-88 branches contain it plus upstream `main` merges. An upstream PR from them can only go in after, or on
   top of, that branch: check its state (`git ls-remote upstream feature/gd88_bringup`) before planning one.
-- Fork branches: `feat/gd88-gui` (display profiles, the current focus), `feat/gd88-performance`,
-  `feat/gd88-test-install`, `feat/ui-home-profiles` (older).
+- Fork branches:
+
+  | Branch | State |
+  |---|---|
+  | `feat/gd88-gui` | The working branch. Commit and push here |
+  | `feat/gd88-performance` | Parked; may be revisited. Don't merge it into the GUI branch |
+  | `feat/gd88-test-install` | Contained in `feat/gd88-gui` |
+  | `feat/ui-home-profiles` | Retired. Don't build on it |
+
 - Before starting work, fetch `upstream main` and `upstream feature/gd88_bringup` and say how far behind the branch is.
+
+## Current plan
+
+1. **Finalize the GUI on the GD-88** (310 x 240 drawable, `320x240iR10` in the simulator): visual elements first,
+   then QA. Changes stay generic code in `core/ui`, enabled by board capability, but are judged on the GD-88 only.
+2. **Freeze** the GD-88 version when the user says the layout and quality are ready.
+3. **Port** to other radios and display classes, then fix the CI blockers this leaves (maximal builds that overflow
+   on small panels, flash cost with `CONFIG_UI_PROFILES` off, the settings offset test, the gallery).
+
+Until step 3, don't spend effort on other display classes beyond keeping them building and unchanged. Decisions so
+far: a GD-88 starts in the Commercial layout (`gui_flags` 0).
 
 ## Upstream pull request requirements
 
@@ -74,17 +92,9 @@ From [.github/copilot-instructions.md](.github/copilot-instructions.md). Check t
 
 ## Text a user reads
 
-Maintainer rule from the GD-88 bring-up branch (not yet in `main`'s AGENTS.md); applies to the site, the radio's
-screens, error messages and `docs/user/`:
-
-- Natural, professional English as a native technical writer would write it. "No filler" means no padding, never
-  dropping words. Don't copy the clipped style of older strings.
-- Full sentences with normal connectives (so, then, to, because). Don't join two clauses with a colon to save words.
-- Lead with what the user cares about; put detail in a trailing phrase. Active verbs: the user gets the imperative
-  ("Select Continue"), the site calls itself "this page". Avoid vague passives.
-- An instruction names the action and when it ends. Keep internal terms out (loader, slot, SoC, probe).
-- Say only what the user needs at that point. Don't claim a result before it happens, and don't warn against
-  something the user had no reason to do. Read each string aloud.
+AGENTS.md on this branch has the maintainers' rule for text a user reads (from `feature/gd88_bringup`, not yet in
+upstream `main`). It applies to every on-screen label the GUI adds. Short labels on small screens still follow it:
+pick a shorter word, don't drop words.
 
 ## Fork-only material
 
@@ -105,7 +115,9 @@ copyright header, not a personal one.
 
 - No radio, debug link or SDR bench is attached. HIL and on-air checks are the user's; ask for results, never claim
   them.
-- Host tests run here (`make -C tests/host`). The Arm and C-SKY toolchains are not installed by default, so
-  firmware builds and the flash matrix need them installed (`tools/build-csky-toolchain.sh` for C-SKY) or a run on
-  the user's machine. Say which checks ran and which didn't.
+- Host tests run here (`make -C tests/host`). The container is rebuilt between sessions, so the toolchains may be
+  missing: `tools/install-arm-toolchain.sh` (Arm, minutes) and `tools/build-csky-toolchain.sh` (C-SKY, about
+  45 minutes), plus `git submodule update --init --depth 1`. Say which checks ran and which didn't.
+- The UI preview loop: `make -C tests/host uiSim`, then `tests/host/uiSim --geom 320x240iR10 --scale 2 --script
+  "<keys>" --out <png>` and show the PNG. `python3 tests/host/uiPrototypeTest.py` checks the profiles.
 - Use `tools/worktree.sh` for worktrees, and remove worktrees and `build/` trees when done.
