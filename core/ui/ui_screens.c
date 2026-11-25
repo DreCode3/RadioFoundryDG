@@ -43,29 +43,36 @@ static bool profile_theme(void)
 	return ui_theme == UI_THEME_PROFILE_DAY || ui_theme == UI_THEME_PROFILE_NIGHT;
 }
 
+// The profile look's Day and Night palettes, and its colors outside the shared tokens (index: night)
+typedef struct {
+	color_t row_bg, row_focus, home_gutter, bar_fg;
+} profile_colors_t;
+static const ui_colors_t profile_palettes[2] = {
+	{ .bg = RGB565(220, 234, 244), .fg = RGB565(23, 40, 53), .dim = RGB565(53, 78, 101),
+	  .line = RGB565(171, 195, 216), .tx = RGB565(189, 41, 41), .rx = RGB565(20, 101, 59),
+	  .warn = RGB565(135, 96, 0), .idle = RGB565(53, 78, 101), .pill_fg = RGB565(255, 255, 255),
+	  .pill_dark_fg = RGB565(255, 255, 255), .focus = RGB565(194, 217, 237), .hint_bg = RGB565(36, 79, 136),
+	  .priv = RGB565(29, 97, 165), .idle_fg = RGB565(255, 255, 255), .focus_fg = RGB565(23, 40, 53),
+	  .chnum = RGB565(53, 78, 101), .strip_bg = RGB565(244, 248, 252), .strip_warn = RGB565(135, 96, 0) },
+	{ .bg = RGB565(17, 26, 36), .fg = RGB565(237, 242, 247), .dim = RGB565(180, 194, 209),
+	  .line = RGB565(74, 97, 121), .tx = RGB565(255, 119, 119), .rx = RGB565(116, 216, 153),
+	  .warn = RGB565(245, 198, 104), .idle = RGB565(180, 194, 209), .pill_fg = RGB565(0, 0, 0),
+	  .pill_dark_fg = RGB565(0, 0, 0), .focus = RGB565(38, 61, 85), .hint_bg = RGB565(29, 54, 86),
+	  .priv = RGB565(130, 188, 255), .idle_fg = RGB565(0, 0, 0), .focus_fg = RGB565(237, 242, 247),
+	  .chnum = RGB565(180, 194, 209), .strip_bg = RGB565(25, 38, 52), .strip_warn = RGB565(245, 198, 104) },
+};
+static const profile_colors_t profile_colors[2] = {
+	{ RGB565(205, 223, 237), RGB565(174, 204, 231), RGB565(155, 183, 207), RGB565(255, 255, 255) },
+	{ RGB565(30, 46, 63), RGB565(48, 76, 102), RGB565(8, 15, 23), RGB565(237, 242, 247) },
+};
+
 static void profile_palette(bool night)
 {
-	ui_col.bg = night ? RGB565(17, 26, 36) : RGB565(220, 234, 244);
-	ui_col.fg = night ? RGB565(237, 242, 247) : RGB565(23, 40, 53);
-	ui_col.dim = night ? RGB565(180, 194, 209) : RGB565(53, 78, 101);
-	ui_col.line = night ? RGB565(74, 97, 121) : RGB565(171, 195, 216);
-	ui_col.tx = night ? RGB565(255, 119, 119) : RGB565(189, 41, 41);
-	ui_col.rx = night ? RGB565(116, 216, 153) : RGB565(20, 101, 59);
-	ui_col.warn = night ? RGB565(245, 198, 104) : RGB565(135, 96, 0);
-	ui_col.priv = night ? RGB565(130, 188, 255) : RGB565(29, 97, 165);
-	ui_col.focus = night ? RGB565(38, 61, 85) : RGB565(194, 217, 237);
-	ui_col.hint_bg = night ? RGB565(29, 54, 86) : RGB565(36, 79, 136);
-	ui_col.strip_bg = night ? RGB565(25, 38, 52) : RGB565(244, 248, 252);
-	profile_row_bg = night ? RGB565(30, 46, 63) : RGB565(205, 223, 237);
-	profile_row_focus = night ? RGB565(48, 76, 102) : RGB565(174, 204, 231);
-	profile_home_gutter = night ? RGB565(8, 15, 23) : RGB565(155, 183, 207);
-	profile_bar_fg = night ? ui_col.fg : RGB565(255, 255, 255);
-	ui_col.idle = ui_col.dim;
-	ui_col.focus_fg = ui_col.fg;
-	ui_col.chnum = ui_col.dim;
-	ui_col.strip_warn = ui_col.warn;
-	ui_col.pill_dark_fg = ui_col.pill_fg = night ? RGB565(0, 0, 0) : RGB565(255, 255, 255);
-	ui_col.idle_fg = ui_col.pill_fg;
+	ui_col = profile_palettes[night];
+	profile_row_bg = profile_colors[night].row_bg;
+	profile_row_focus = profile_colors[night].row_focus;
+	profile_home_gutter = profile_colors[night].home_gutter;
+	profile_bar_fg = profile_colors[night].bar_fg;
 }
 #endif
 
@@ -130,6 +137,37 @@ static void accent_apply(void)
 #define NIGHT_R2	RGB565(112, 0, 0)
 #define NIGHT_R1	RGB565(56, 0, 0)
 
+// The palettes (Settings > Display > Theme), by UI_THEME_*: the colors before the highlight color (accent_apply), which
+// sets focus_fg, chnum and on color builds the strip and focus colors. Built without CONFIG_UI_COLOR only Dark is used
+static const ui_colors_t palettes[UI_THEME_COUNT] = {
+	[UI_THEME_DARK] = { .bg = RGB565(0, 0, 0), .fg = RGB565(255, 255, 255), .dim = RGB565(168, 168, 168),
+		.line = RGB565(72, 72, 72), .tx = RGB565(224, 32, 32), .rx = RGB565(40, 184, 72),
+		.warn = RGB565(240, 168, 0), .idle = RGB565(96, 96, 96), .pill_fg = RGB565(255, 255, 255),
+		.pill_dark_fg = RGB565(0, 0, 0), .focus = RGB565(32, 96, 200), .hint_bg = RGB565(32, 32, 32),
+		.priv = RGB565(64, 140, 255), .idle_fg = RGB565(255, 255, 255) },
+#if CONFIG_UI_COLOR
+	// Light: dark text on white; the meaning colors darker so they read on white
+	[UI_THEME_LIGHT] = { .bg = RGB565(255, 255, 255), .fg = RGB565(0, 0, 0), .dim = RGB565(88, 88, 88),
+		.line = RGB565(176, 176, 176), .tx = RGB565(200, 0, 0), .rx = RGB565(0, 136, 40),
+		.warn = RGB565(176, 96, 0), .idle = RGB565(128, 128, 128), .pill_fg = RGB565(255, 255, 255),
+		.pill_dark_fg = RGB565(0, 0, 0), .focus = RGB565(64, 128, 232), .hint_bg = RGB565(224, 224, 224),
+		.priv = RGB565(0, 72, 200), .idle_fg = RGB565(255, 255, 255) },
+	// High contrast: pure black and white, saturated meaning colors, nothing gray
+	[UI_THEME_HIGH_CONTRAST] = { .bg = RGB565(0, 0, 0), .fg = RGB565(255, 255, 255),
+		.dim = RGB565(255, 255, 255), .line = RGB565(255, 255, 255), .tx = RGB565(255, 0, 0),
+		.rx = RGB565(0, 255, 0), .warn = RGB565(255, 255, 0), .idle = RGB565(255, 255, 255),
+		.pill_fg = RGB565(255, 255, 255), .pill_dark_fg = RGB565(0, 0, 0), .focus = RGB565(0, 0, 255),
+		.hint_bg = RGB565(0, 0, 0), .priv = RGB565(0, 255, 255), .idle_fg = RGB565(255, 255, 255) },
+	// Night: the meanings that were hues become brightness and the word (P5): TX and warnings brightest, RX and
+	// privacy one step down, the idle pill dark with a bright word, black words on the brightest red. The highlight
+	// and focus are its brightest red too (accent_apply)
+	[UI_THEME_NIGHT] = { .bg = RGB565(0, 0, 0), .fg = NIGHT_R4, .dim = NIGHT_R3, .line = NIGHT_R2,
+		.tx = NIGHT_R4, .rx = NIGHT_R3, .warn = NIGHT_R4, .idle = NIGHT_R1, .pill_fg = RGB565(0, 0, 0),
+		.pill_dark_fg = RGB565(0, 0, 0), .focus = NIGHT_R4, .hint_bg = NIGHT_R1, .priv = NIGHT_R3,
+		.idle_fg = NIGHT_R4 },
+#endif
+};
+
 void ui_theme_set(uint8_t theme)
 {
 	if (!CONFIG_UI_COLOR || (theme >= UI_THEME_COUNT
@@ -154,61 +192,7 @@ void ui_theme_set(uint8_t theme)
 	if (was_profile && ui_layout.small != NULL)
 		layout_regions();
 #endif
-	ui_col.pill_fg = RGB565(255, 255, 255);
-	ui_col.pill_dark_fg = RGB565(0, 0, 0);
-	if (theme == UI_THEME_NIGHT) {
-		// Night: the meanings that were hues become brightness and the word (P5): TX and warnings brightest, RX
-		// and privacy one step down, the idle pill dark with a bright word. The highlight is its brightest red too
-		// (accent_apply)
-		ui_col.bg = RGB565(0, 0, 0);
-		ui_col.fg = ui_col.tx = ui_col.warn = NIGHT_R4;
-		ui_col.dim = ui_col.rx = ui_col.priv = NIGHT_R3;
-		ui_col.line = NIGHT_R2;
-		ui_col.idle = ui_col.hint_bg = NIGHT_R1;
-		ui_col.pill_fg = RGB565(0, 0, 0);	// on the brightest red
-		ui_col.idle_fg = NIGHT_R4;
-		accent_apply();
-		return;
-	}
-	if (theme == UI_THEME_LIGHT) {
-		// Light: dark text on white; the meaning colors darker so they read on white
-		ui_col.bg = RGB565(255, 255, 255);
-		ui_col.fg = RGB565(0, 0, 0);
-		ui_col.dim = RGB565(88, 88, 88);
-		ui_col.line = RGB565(176, 176, 176);
-		ui_col.tx = RGB565(200, 0, 0);
-		ui_col.rx = RGB565(0, 136, 40);
-		ui_col.warn = RGB565(176, 96, 0);
-		ui_col.idle = RGB565(128, 128, 128);
-		ui_col.focus = RGB565(64, 128, 232);
-		ui_col.hint_bg = RGB565(224, 224, 224);
-		ui_col.priv = RGB565(0, 72, 200);
-	} else if (theme == UI_THEME_HIGH_CONTRAST) {
-		// High contrast: pure black and white, saturated meaning colors, nothing gray
-		ui_col.bg = RGB565(0, 0, 0);
-		ui_col.fg = ui_col.dim = RGB565(255, 255, 255);
-		ui_col.line = RGB565(255, 255, 255);
-		ui_col.tx = RGB565(255, 0, 0);
-		ui_col.rx = RGB565(0, 255, 0);
-		ui_col.warn = RGB565(255, 255, 0);
-		ui_col.idle = RGB565(255, 255, 255);
-		ui_col.focus = RGB565(0, 0, 255);
-		ui_col.hint_bg = RGB565(0, 0, 0);
-		ui_col.priv = RGB565(0, 255, 255);
-	} else {
-		ui_col.bg = RGB565(0, 0, 0);
-		ui_col.fg = RGB565(255, 255, 255);
-		ui_col.dim = RGB565(168, 168, 168);
-		ui_col.line = RGB565(72, 72, 72);
-		ui_col.tx = RGB565(224, 32, 32);
-		ui_col.rx = RGB565(40, 184, 72);
-		ui_col.warn = RGB565(240, 168, 0);
-		ui_col.idle = RGB565(96, 96, 96);
-		ui_col.focus = RGB565(32, 96, 200);
-		ui_col.hint_bg = RGB565(32, 32, 32);
-		ui_col.priv = RGB565(64, 140, 255);
-	}
-	ui_col.idle_fg = ui_col.pill_fg;
+	ui_col = palettes[theme];
 	accent_apply();
 }
 
