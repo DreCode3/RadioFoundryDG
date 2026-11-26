@@ -17,13 +17,16 @@ frequency.
 <img src="../ux/profile-samples/home-commercial.png" width="310" alt="Commercial Home receiving a DMR call">
 <img src="../ux/profile-samples/home-amateur.png" width="310" alt="Amateur Home receiving the same DMR call">
 
+Home's panes sit on a darker background: the status bar at the top, the mode bar (the channel's mode in large
+type), the channel pane and the bottom bar.
+
 | Profile | What you see |
 |---|---|
 | Commercial (default) | The zone and a larger channel name. The talk target appears below it only when it isn't the channel's own: a target chosen for now, the reply window's, or a one-shot call's. In the VFO, where the main line is a frequency, the talk target always shows |
 | Amateur | The zone, the channel name, the talk target (its talkgroup or ID and its name, the name first with **Talkgroup name first**) and a details line with the receive frequency and, on DMR, the timeslot and color code. A dot at the start of the details line marks a temporary change |
 
-With **Large text** on, both profiles show the channel name and the talk target in larger type and leave out the zone
-and the details.
+With **Large text** on, both profiles show the zone, the channel name and the talk target in larger type, and leave
+out the details.
 
 During a DMR call, two lines at the bottom of the channel area show who is calling (the talker alias when the radio
 has it and **Settings > Call settings > Show talker alias** is on, else the contact's name or the ID) and the
@@ -31,7 +34,15 @@ talkgroup. While you transmit, they show where **PTT** talks to and, if a transm
 The same place shows what needs attention when the radio is idle, such as **No TX frequency**. The text above these
 lines stays where it is.
 
-The status bar at the top is the same on every screen. The bottom bar has two labels, one over each soft key.
+The status bar at the top is the same on every screen. When it has more to show than fits, the items at the end of
+this list give way first, and none is drawn over another: battery, TX or NO TX, signal, mode, lock, encryption key,
+scan, monitor, unread message, GPS, IP, power, receive-only, VOX, the GPS clock, Dual Watch, roaming. The mode moves
+to a smaller size before anything gives way.
+
+The bottom bar has two labels, one over each soft key: **OK** and **Back** (on Home, **Menu** and the right soft
+key's function) where they do something. With **Settings > Display > Hint row** on, the line above the bar shows the
+rest of the hint: the other keys (**#**, **\***, the number keys, **PTT**, a key you hold) and what **OK** and **Back**
+do on that screen, such as "OK save  Back cancel".
 
 | Place | Indicator | Meaning |
 |---|---|---|
@@ -53,8 +64,8 @@ The status bar at the top is the same on every screen. The bottom bar has two la
 | Status bar, right | L, M, H | Low, medium, or high transmit power |
 | Status bar, right | Battery | Filled segments show charge. The icon changes color at the low battery threshold |
 
-With **Settings > Display > GPS clock** on, idle Home shows the date and UTC time on a line at the bottom of the
-channel area. The line stays blank until a valid fix supplies date and time, and clears if the fix is lost.
+With **Settings > Display > GPS clock** on, the status bar shows the date and UTC time on every screen, where it has
+room. The clock appears once a valid fix supplies date and time, and goes when the fix is lost.
 **Day/Night** changes the palette on Home and in menus. See [Display settings](17-settings.md#display-key-1) for
 defaults.
 
@@ -85,8 +96,8 @@ The battery percentage turns to the warning color at the low battery warning lev
 The hint row changes with the situation. When the right soft key can be assigned on Home, the left label is
 **Menu** and the right label shows its short-press function from **Settings > Buttons**. **Nothing** leaves the
 right label blank. While entering a frequency or when the keys are locked, the row shows the controls for that state.
-On displays with Commercial and Amateur Home, the bottom bar shows only the labels for the two soft keys, so the hints
-below for other keys (**#**, **\***, the number keys) don't appear there.
+On displays with Commercial and Amateur Home, the bottom bar shows only the labels for the two soft keys, and the
+hints below for other keys (**#**, **\***, the number keys) are on the line above it.
 
 The most common hints:
 

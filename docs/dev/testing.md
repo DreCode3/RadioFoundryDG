@@ -95,9 +95,9 @@ with one of these scripts and filenames. Each run starts in Commercial and Day.
 | File | Script |
 |---|---|
 | `home-commercial.png` | `rx:9991234,3100,g,Morgan_Reed expect:centered=Morgan_Reed` |
-| `home-amateur.png` | `ok 8 1 ok down ok long:back rx:9991234,3100,g,Morgan_Reed expect:centered=Morgan_Reed` |
+| `home-amateur.png` | `ok 8 1 down ok down ok long:back rx:9991234,3100,g,Morgan_Reed expect:centered=Morgan_Reed` |
 | `menu.png` | `ok expect:screen=hub` |
-| `settings-night.png` | `ok 8 1 down ok down ok long:back ok 8 expect:screen=settings` |
+| `settings-night.png` | `ok 8 1 down down ok down ok long:back ok 8 expect:screen=settings` |
 
 After a UI change, run `ui-gallery` and commit the PNGs with the change, so the review shows the difference. The
 gallery target deletes and rewrites `docs/ux/screens/*/`; commit only what you meant to change. Commit the contact

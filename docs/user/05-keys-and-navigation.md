@@ -17,7 +17,8 @@ Each key does the same kind of thing on every screen.
    channel's talk target.
 
 The bottom line of most screens is the hint row. It shows what the nearest keys do there. What **Back** does is at
-its right end, above the **Back** key.
+its right end, above the **Back** key. In the Panels look the bottom bar names the two soft keys, **OK** on the left
+and **Back** on the right, and the line above it shows the hints for the other keys.
 
 Menus initially select the first available item. You can still move to a dimmed item and press **OK** to see why
 it is unavailable. **Back** restores your previous menu selection.
