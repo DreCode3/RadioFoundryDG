@@ -162,7 +162,7 @@ without its label, for the cursor's steps. With 1024 channels a key took 0.34 s 
 | Diagnostics | `diag` | Settings > Programming |
 | Share | `zone_share` | without `CONFIG_ZONE_EDIT`: CONTEXT in a zone's channels (`zone`): Share zone to..., Share channel to... ([zone-share.md](zone-share.md) 7). With the zone editor these are rows of Zone options and Channel actions (2.2) |
 | Share to | `zone_share_to` | a pick in Share, Channel actions, Zone options or the channel editor: the contacts, T9 filtered. Digits that make an ID add "Private ID 9991234" and "TG 9991234" after the contacts ("Not saved"), so a station that isn't a contact can be sent to. OK sends and returns to the zone's list (to the channel editor from there) |
-| Zone offers | `zone_offer` | CONTEXT on the offer's banner, or Messages > Zone offers (the last row) while one waits; titled as that row, for a zone or a channel: the offer's text, then Import, Preview, Reject ([zone-share.md](zone-share.md) 5.2) |
+| Zone offers | `zone_offer` | CONTEXT on the offer's banner, or Messages > Zone offers (the last row, with the offered zone's or channel's name where it fits) while one waits; titled as that row, for a zone or a channel: the offer's text, then Import, Preview, Reject ([zone-share.md](zone-share.md) 5.2) |
 | Offer preview | `zone_offer_preview` | Preview in Zone offers: the offered channels, "Not in band" dimmed |
 | Add to zone | `zone_offer_zone` | Import of a one-channel offer: the zone it goes in |
 | Roaming | `roaming` | Menu > Scan 2: roaming on for this zone, roam now, lock to this site ([dmr-roaming.md](dmr-roaming.md) 6.2) |

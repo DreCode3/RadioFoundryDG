@@ -851,12 +851,24 @@ static bool msg_row(uint16_t row, bool *aprs, uint16_t *index)
 	return true;
 }
 
+// The zone offer's row: the offered zone's name where it fits beside the whole label, else none. A frame of its own,
+// so Messages' item frame (on the UI task's deepest path, through a message row's contact lookup) stays as it is; and
+// ui_svc_zone_offer_name, not ui_svc_zone_offer, whose contact lookup would make this path the deeper one (make
+// stack-check)
+static void __attribute__((noinline)) msgs_offer_item(ui_item_t *it)
+{
+	str_copy(it->label, sizeof it->label, TR(MSG_ROW_ZONE_OFFERS, "Zone offers"));
+	it->value[0] = TEXT_ALT_OPEN[0];
+	if (ui_svc_zone_offer_name(it->value + 1, sizeof it->value - 3))
+		strcat(it->value, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
+	else
+		it->value[0] = 0;
+}
+
 static void msgs_item(uint16_t i, ui_item_t *it)
 {
 	if (msgs_is_offer(i)) {
-		// The label alone: the offer's name would read the codeplug (ui_svc_zone_offer) in this frame, which is on
-		// the UI task's deepest path (make stack-check); the offer's screen has it
-		str_copy(it->label, sizeof it->label, TR(MSG_ROW_ZONE_OFFERS, "Zone offers"));
+		msgs_offer_item(it);
 		return;
 	}
 	uint16_t dmr_count = ui_svc_msg_count();

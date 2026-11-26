@@ -351,6 +351,9 @@ bool ui_svc_zone_offer(ui_zone_offer_t *out);
 void ui_svc_zone_offer_open(uint32_t serial);
 // Cheap, for every UI pass: an offer still waits (the banner about it stays while it does)
 bool ui_svc_zone_offer_pending(void);
+// The waiting offer's zone (or channel) name into out, as ui_svc_zone_offer gives it, without the rest: no contact
+// lookup and no counts, for Messages' row, whose frame is on the UI task's deepest path. false: none waits
+bool ui_svc_zone_offer_name(char *out, size_t len);
 // Row i of the preview: name, receive frequency, DMR or FM, whether the radio can receive it
 typedef struct {
 	char name[17];

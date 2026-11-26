@@ -88,6 +88,19 @@ bool ui_svc_zone_offer_pending(void)
 	return zone_share_offer(NULL, NULL);
 }
 
+bool ui_svc_zone_offer_name(char *out, size_t len)
+{
+	zone_share_offer_t o;
+	if (!offer_record(0, &o, &rec))
+		return false;
+	const char *name = rec.name;
+	zsChannel_t ch;
+	if ((rec.flags & ZS_FLAG_CHANNEL) && zsChannelAt(&rec, 0, &ch))
+		name = ch.name;
+	str_copy(out, len, name);
+	return true;
+}
+
 bool ui_svc_zone_offer(ui_zone_offer_t *out)
 {
 	zone_share_offer_t o;

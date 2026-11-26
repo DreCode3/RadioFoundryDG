@@ -1956,6 +1956,12 @@ bool ui_svc_zone_offer(ui_zone_offer_t *out)
 }
 void ui_svc_zone_offer_open(uint32_t which) { (void)which; }
 bool ui_svc_zone_offer_pending(void) { return zs_sim.pending; }
+bool ui_svc_zone_offer_name(char *out, size_t len)
+{
+	if (zs_sim.pending)
+		snprintf(out, len, "%s", zs_sim.channel ? "Club rpt" : "Club net");
+	return zs_sim.pending;
+}
 bool ui_svc_zone_offer_channel(uint32_t which, uint16_t i, ui_zone_offer_ch_t *out)
 {
 	if (!zs_sim.pending || which != zs_sim.serial || i >= (zs_sim.channel ? 1 : ZS_SIM_CHANNELS))

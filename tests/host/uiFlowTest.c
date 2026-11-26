@@ -137,7 +137,7 @@ static const flow_t flows[] = {
 	{ "Connections: SFR status opens its page", "ok 7 3", "ok", "screen=info shows=SFR_status", 1, false },
 	{ "Connections: PC and network settings", "", "ok 7 5", "screen=group shows=Hotspot_allowed", 3, false },
 	{ "Messages: a zone offer waits there", "zoneoffer:9991234 back", "ok 2 row:Zone_offers",
-	  "screen=messages focus=Zone_offers", 4, false },
+	  "screen=messages focus=Zone_offers shows=Club_net", 4, false },
 	// Settings: groups 1-9, Radio info after them (no digit), 0 is Find
 	{ "Settings: 0 is Find", "ok 8", "0", "screen=find query=", 1, false },
 	{ "Settings: Radio info by Up", "ok 8", "up", "screen=settings focus=Radio_info", 1, false },

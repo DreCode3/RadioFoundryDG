@@ -112,7 +112,7 @@ running scan on Scan.
 | # | Entry | What is inside |
 |---|---|---|
 | 1 | **Contacts** | Search field on top. Talkgroups and people, with New contact first. Item actions: Use, Private call, Message, Radio check, Call alert, Request position, Add to speed dial, Edit |
-| 2 | **Messages** | Messages (unread first), New APRS message, and Zone offers while another radio's zone or channel offer waits |
+| 2 | **Messages** | Messages (unread first), New APRS message, and Zone offers (with the offered name) while another radio's zone or channel offer waits |
 | 3 | **Call log** | Everyone heard and every call made, newest first. Item actions are the same as Contacts, plus "Save as contact" and "Show position" |
 | 4 | **Zones** | The VFO and the zones; a zone's channels. A zone's list is also its editor: "Add channel" first, "Zone options" (Rename, Copy as new zone, Share zone to..., Delete zone) last, and Channel actions on a channel (Move up, Move down, Copy here, Edit channel, Share channel to..., Remove from zone; the Share rows with zone sharing) |
 | 5 | **Scan** | 1 Scan on/off (the zone, or the band in the VFO), 2 Roaming |
