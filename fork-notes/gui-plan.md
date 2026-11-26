@@ -106,6 +106,13 @@ common abbreviations (VFO, SFR, DMR, GPS, APRS, TG, CTCSS, DCS).
   row. Commercial soft keys: Menu | Quick.
 - A GD-88 starts in the Commercial layout (`gui_flags` 0).
 
+## Process (decided)
+
+Each step is QA-clean before the next starts. An implementer subagent does the work; an independent adversarial
+reviewer (QA) reviews it without the implementer's conclusions; findings go back to the implementer and the loop
+repeats until QA approves. Commits are pushed only after QA approval. A disagreement between the implementer, QA or
+Claude goes to the user, with both positions, and the user decides.
+
 ## Order of work
 
 1. Discussion post (draft ready).
