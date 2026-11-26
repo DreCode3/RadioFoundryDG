@@ -80,7 +80,7 @@ void item_num_set(ui_item_t *it, uint16_t n)
 }
 
 // ======================= Menu (the hub) =======================
-// A 3x3 grid that matches the keypad (fork-notes/gui-plan.md, information-architecture.md 4): each entry keeps its
+// A 3x3 grid that matches the keypad (information-architecture.md 4): each entry keeps its
 // digit on every radio and build. 9 is left for a favorite the user picks later, so the list ends at 8
 
 enum { HUB_LAST_CALLER, HUB_CONTACTS, HUB_MESSAGES, HUB_CALL_LOG, HUB_ZONES, HUB_SCAN, HUB_LOCATION, HUB_CONNECTIONS,
@@ -7334,7 +7334,7 @@ static const set_item_t s_programming[] = {
 	// Only on radios with hardware options (hal_hwopt.h)
 	ACTION(TRX(HW_TITLE, "Hardware"), "board revision", SA_HARDWARE),
 #endif
-	ACTION(TRN(SET_ROW_FACTORY_RESET, "Factory reset"), "erase", SA_RESET),	// last (fork-notes/gui-plan.md)
+	ACTION(TRN(SET_ROW_FACTORY_RESET, "Factory reset"), "erase", SA_RESET),	// last (information-architecture.md 6)
 };
 // Settings > Radio info: read only, each row a value; OK opens the page behind a row that has one
 static const set_item_t s_radio_info[] = {

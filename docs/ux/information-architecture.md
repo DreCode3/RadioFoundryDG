@@ -105,7 +105,7 @@ Large-text mode (accessibility, or chosen by the user) shows only the status str
 ## 4. Menu: a 3x3 grid that matches the keypad
 
 `SELECT` on Home opens Menu, titled Menu. Its entries are numbered as the keypad's 3x3 grid; digits pick directly, and
-each entry keeps its digit on every radio and build so muscle memory works (fork-notes/gui-plan.md has the decision).
+each entry keeps its digit on every radio and build so muscle memory works.
 Entries show their values where they fit beside the name: the unread count on Messages, the zone in use on Zones, a
 running scan on Scan.
 

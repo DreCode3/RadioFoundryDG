@@ -317,8 +317,9 @@ In the VFO: `QUICK`, `4` ("Mode") switches the VFO FM / DMR on its frequency, ke
 | TX contact by name ("WCRA": 9 2 7 2) | 11+n | 11+n | 11+n | 9+n+m | 12+n |
 
 Changing the channel in use for now is shorter from quick settings (flow 20). This flow is for saved changes, other
-channels and rows quick settings don't have. Channels is in Settings > Programming (fork-notes/gui-plan.md, the menu
-tree): editing a channel is programming, not operating, so it is no longer two presses from Home.
+channels and rows quick settings don't have. Channels is in Settings > Programming
+([information-architecture.md](information-architecture.md) 6): editing a channel is programming, not operating, so
+it is no longer two presses from Home.
 
 ---
 

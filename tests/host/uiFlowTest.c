@@ -118,7 +118,7 @@ static const flow_t flows[] = {
 	  "screen=satellite-tle-text hides=A_", 19, false },
 #endif
 	{ "menu entry keeps an available first row", "", "ok", "screen=hub focus=Contacts", 1, false },
-	// Menu: a 3x3 grid that matches the keypad (fork-notes/gui-plan.md); 9 is left empty for now, and each entry keeps
+	// Menu: a 3x3 grid that matches the keypad (information-architecture.md 4); 9 is left empty for now, and each entry keeps
 	// its digit. It is titled Menu, and its entries show their values (unread messages, the zone, a scan)
 	{ "Menu is titled Menu and shows the zone", "", "ok", "screen=hub shows=Menu shows=Local_repeaters", 1, false },
 	{ "Menu shows unread messages", "msg:9991234,Hello wait:9000", "ok", "shows=1_new", 1, false },
