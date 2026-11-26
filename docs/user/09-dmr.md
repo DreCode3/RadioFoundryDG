@@ -98,7 +98,7 @@ On an FM channel **Talk target** shows "Talk target: DMR channels only".
 
 ### Typing a talkgroup or ID
 
-On Home, type the number. Find lists "Talk to TG 3100" and "Private call 3100" (with a name when the ID is a contact).
+On Home, type the number. Find lists "Use TG 3100" and "Private call 3100" (with a name when the ID is a contact).
 Focus one and press **PTT** for one call, or **OK** for now.
 
 On a trunked channel, Find also lists "Phone call 5551234" last: **PTT** on it calls that number through the system's
@@ -126,7 +126,7 @@ On Home, **#** opens the actions for the current or last caller. A digit picks a
 
 | # | Action | What it does |
 |---|---|---|
-| 1 | Talk to | Talks to the talkgroup they were heard on, for now. After a private call, talks to them. **PTT** on this row talks once |
+| 1 | Use ("Use TG 91", "Use Joe") | Talks to the talkgroup they were heard on, for now. After a private call, talks to them. **PTT** on this row talks once |
 | 2 | Private call | Calls them privately, for now. **PTT** on this row calls them once |
 | 3 | Message | Opens the message composer ([Messages](10-messages-and-signaling.md)) |
 | 4 | Radio check | Checks that their radio is on and in range |
@@ -137,7 +137,7 @@ On Home, **#** opens the actions for the current or last caller. A digit picks a
 | 9 | Save to channel | Shown only when the channel has temporary changes |
 | last | Poll short data | Shown only on a trunked channel. Asks their radio for its short data; the answer arrives as a message. "Poll: no short data" when none comes |
 
-For a talkgroup the actions are Talk to, Make channel default and Message, and 4 Save as contact when it isn't a contact.
+For a talkgroup the actions are Use, Make channel default and Message, and 4 Save as contact when it isn't a contact.
 
 Without anyone heard yet, **#** shows "No calls heard yet".
 

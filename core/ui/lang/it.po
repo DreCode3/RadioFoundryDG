@@ -1503,9 +1503,9 @@ msgid "{Contact|}"
 msgstr "{Contatto|}"
 
 #: core/ui/ui_find.c
-msgctxt "FIND_ROW_TALK_TO_TG"
-msgid "Talk to TG "
-msgstr "Parla a TG "
+msgctxt "FIND_ROW_USE_TG"
+msgid "Use TG "
+msgstr "Usa TG "
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "CHIP_NOT_SAVED"
@@ -1698,9 +1698,9 @@ msgid "1-8 open  Back"
 msgstr "1-8 apri  Indietro"
 
 #: core/ui/ui_menus.c
-msgctxt "ACT_ROW_TALK_TO"
-msgid "Talk to "
-msgstr "Parla a "
+msgctxt "ACT_ROW_USE"
+msgid "Use "
+msgstr "Usa "
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_RADIO_CHECK"

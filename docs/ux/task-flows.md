@@ -23,7 +23,7 @@ Step-by-step flows for the 26 most frequent or most important tasks, with press 
 
 Numbered, so a digit picks directly:
 
-1. Talk to (their TG, or them privately if the call was private)
+1. Use (their TG, or them privately if the call was private)
 2. Private call
 3. Message
 4. Radio check
@@ -74,7 +74,7 @@ Permanent: step 3 is long `SELECT`. Banner "TG 91 is now the default for County 
 
 Without the side key: `QUICK`, `8` opens the same picker.
 
-TG not in the codeplug: on Home type `3`,`1`,`0`,`0`; Find's first result is "Talk to TG 3100"; `PTT` (one-shot) or `SELECT` (temporary).
+TG not in the codeplug: on Home type `3`,`1`,`0`,`0`; Find's first result is "Use TG 3100"; `PTT` (one-shot) or `SELECT` (temporary).
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|
@@ -89,7 +89,7 @@ During the reply window (default 10 s): just `PTT`. Home already shows "Reply â†
 After the window:
 
 1. `CONTEXT` (`#`): caller actions for the last heard.
-2. `1` (Talk to): sets their TG (or them privately) as the temporary talk target; or `PTT` directly with item 1 focused.
+2. `1` (Use): sets their TG (or them privately) as the temporary talk target; or `PTT` directly with item 1 focused.
 
 Older station: `SELECT`, `3` opens the call log, `NAV_DOWN` to the station, `PTT`. (Long `CONTEXT` was Recent until #18 gave it the talk target picker.)
 
@@ -108,7 +108,7 @@ By name:
 
 Shortcut: in Find, focus the contact and press `PTT`: talk target choice for a person is private call, for a TG group call.
 
-By ID: type the ID (`3`,`1`,`0`,`1`,`2`,`3`,`4`); Find shows "Private call 9991234" (name from the ID database if present) and "Talk to TG 9991234"; focus the private call line and `PTT`.
+By ID: type the ID (`3`,`1`,`0`,`1`,`2`,`3`,`4`); Find shows "Private call 9991234" (name from the ID database if present) and "Use TG 9991234"; focus the private call line and `PTT`.
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|

@@ -248,9 +248,9 @@ static void act_item(uint16_t i, ui_item_t *it)
 	case A_TALK:
 		act_target(i, &t);
 		if (t.group)
-			t.name[0] = 0;	// "Talk to TG 91": the name is in the title
+			t.name[0] = 0;	// "Use TG 91": the name is in the title
 		ui_sb_target(name, sizeof name, &t);
-		sb_str(&b, TR(ACT_ROW_TALK_TO, "Talk to "));
+		sb_str(&b, TR(ACT_ROW_USE, "Use "));
 		sb_str(&b, name);
 		if (!(feats() & UI_FEAT_TALK_TARGET))
 			it->flags |= UI_ITEM_DIM;

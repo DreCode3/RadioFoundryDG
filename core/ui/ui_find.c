@@ -385,7 +385,7 @@ static void find_item(uint16_t i, ui_item_t *it)
 		}
 		break;
 	case FR_TG:
-		sb_str(&b, TR(FIND_ROW_TALK_TO_TG, "Talk to TG "));
+		sb_str(&b, TR(FIND_ROW_USE_TG, "Use TG "));
 		sb_u32(&b, r->ref, 1);
 		sb_str(&vb, TR(CHIP_NOT_SAVED, TEXT_ALT_OPEN "Not saved" TEXT_ALT_NEXT TEXT_ALT_CLOSE));
 		break;

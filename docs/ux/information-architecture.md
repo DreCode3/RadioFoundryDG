@@ -28,7 +28,7 @@ On-the-fly changes are **temporary** (P7). A temporary change shows a dot next t
 The talk target has three lifetimes:
 
 1. **One-shot**: press PTT while a talkgroup or contact is focused in any list. Transmits to it now. It stays the talk target for the reply window (default 10 s after the last transmission or reception on it), then Home reverts to the channel default.
-2. **Temporary**: `SELECT` on a talkgroup or contact ("Talk to"). Stays until the channel changes or `BACK` on Home.
+2. **Temporary**: `SELECT` on a talkgroup or contact ("Use TG 91", "Use Joe"). Stays until the channel changes or `BACK` on Home.
 3. **Permanent**: long `SELECT` on it ("Make channel default"). Writes the channel.
 
 Replying to whoever just spoke is automatic during the reply window: if a station calls on TG 91 while the channel default is TG 3100, Home shows "Reply → TG 91 (8 s)" and PTT goes to TG 91 until the countdown ends. The setting "Reply window" (Talk & listen) allows 0 (off) to 30 s.
@@ -111,7 +111,7 @@ running scan on Scan.
 
 | # | Entry | What is inside |
 |---|---|---|
-| 1 | **Contacts** | Search field on top. Talkgroups and people, with New contact first. Item actions: Talk to, Private call, Message, Radio check, Call alert, Request position, Add to speed dial, Edit |
+| 1 | **Contacts** | Search field on top. Talkgroups and people, with New contact first. Item actions: Use, Private call, Message, Radio check, Call alert, Request position, Add to speed dial, Edit |
 | 2 | **Messages** | Messages (unread first), New APRS message, and Zone offers while another radio's zone or channel offer waits |
 | 3 | **Call log** | Everyone heard and every call made, newest first. Item actions are the same as Contacts, plus "Save as contact" and "Show position" |
 | 4 | **Zones** | The VFO and the zones; a zone's channels. A zone's list is also its editor: "Add channel" first, "Zone options" (Rename, Copy as new zone, Share zone to..., Delete zone) last, and Channel actions on a channel (Move up, Move down, Copy here, Edit channel, Share channel to..., Remove from zone; the Share rows with zone sharing) |

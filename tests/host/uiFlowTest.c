@@ -181,6 +181,8 @@ static const flow_t flows[] = {
 	{ "Find: Diagnostics", "", "3 4 2 4 ok", "screen=group focus=Diagnostics", 5, false },
 	{ "Find: the call log as recent", "", "7 3 2 3 6 8 ok", "screen=recent", 7, false },
 	{ "Find: Connections as tools", "", "8 6 6 5 7 ok", "screen=connections", 6, false },
+	// A typed number: Use TG 91 and Private call 91
+	{ "Find: a number offers Use TG", "", "9 1", "screen=find focus=Use_TG_91 shows=Private_call_91", 2, false },
 	// A row with several values opens a pick list, the value in use checked and focused; OK takes the focused one,
 	// Back leaves it as it was. An on/off row flips on OK
 	{ "Pick list: the value in use", "ok 8 4 row:TX_timeout", "ok", "screen=pick focus=3_min shows=TX_timeout", 1,
