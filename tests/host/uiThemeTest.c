@@ -855,7 +855,7 @@ static int find_text(const char *s)
 	return -1;
 }
 
-// The GD-88's panel: 16 colors, its right edge behind the bezel
+// The panel the theme is for: 320 x 240 in 16 colors, its right edge 10 px behind a bezel
 static hal_display_t panel = { .width = 320, .height = 240, .inset_right = 10, .bpp = 4, .init = d_init,
 	.flush = d_flush, .flush_indexed = d_flush_indexed, .set_backlight = d_backlight };
 
