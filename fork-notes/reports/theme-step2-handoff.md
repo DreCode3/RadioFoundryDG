@@ -40,6 +40,8 @@ Nothing else of step 2 is written. The rest below is the plan I had worked out f
 
 ## Open questions for the user
 
+Answered on Nov 26: the name is "panels", and the theme id goes in its own spare settings byte (`reserved11`), with `gui_flags` unchanged.
+
 - **Theme name.** I planned "panels" (rows and Home regions are rounded panels): neutral, says what it looks like.
 - **Settings byte.** `reserved11` for the theme id, leaving `gui_flags` as it is, or fold it into `gui_flags`?
 - **Behavior differences that must stay until step 4**: is one transitional test in shared code acceptable, or

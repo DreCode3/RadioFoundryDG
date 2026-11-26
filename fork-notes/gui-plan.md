@@ -138,6 +138,9 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
      while receiving (`reference_list_head` passes `v->state`). Then QA's step-2 notes: the palette in use across
      `ui_theme_use`, and the profile palettes bypassing the theme's palettes and `colors` op.
    - The first firmware build with a second theme is checked with `STACK_CHECK_ARGS=-v` for unresolved theme calls.
+   - Decided for step 2: the second theme is named **panels** (`core/ui/themes/panels/`, `CONFIG_UI_THEME_PANELS`).
+     The theme id is stored in its **own spare settings byte** (the remaining `reserved11` byte, offset 407; 0 = the
+     build's default theme), with `gui_flags` left as it is.
 3. Layout fixes in the second theme.
 4. Menu tree, settings row behavior, naming. First: fix the UI simulator's division by zero on an empty zone
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),
