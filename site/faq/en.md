@@ -12,7 +12,7 @@ translated.
 
 ## The radio is in another language after an update
 
-Press Menu, then 7 (Settings), 2 (Display), then Up once to reach Language, the last row. Press OK and pick English. The web installer's Radio language choice sets the language the radio starts in, and a factory reset goes back to it. [More](../../docs/user/17-settings.md#display-key-2)
+Press Menu, then 8 (Settings) and 0 (Find), and type 5 2 6 4 (the keys of "lang"): Language is the first row in any language. Press OK twice and pick English. The web installer's Radio language choice sets the language the radio starts in, and a factory reset goes back to it. [More](../../docs/user/17-settings.md#display-key-1)
 
 ## The installer doesn't find my radio
 
@@ -48,7 +48,7 @@ Three ways: Menu, 4 (Zones), where the VFO is the first row; a side key set to V
 
 ## I have trouble reaching my hotspot or one particular repeater on DMR
 
-RadioFoundry uses your radio's factory frequency calibration, and hotspots are very sensitive to frequency. If your radio is a little off, set Settings > Advanced > Freq trim, on radios that have it. Measure the error first, best with a calibrated SDR, a frequency counter or a hotspot's BER test, and enter it with the sign reversed. [More](../../docs/user/17-settings.md#advanced-last-row)
+RadioFoundry uses your radio's factory frequency calibration, and hotspots are very sensitive to frequency. If your radio is a little off, set Settings > Programming > Frequency trim, on radios that have it. Measure the error first, best with a calibrated SDR, a frequency counter or a hotspot's BER test, and enter it with the sign reversed. [More](../../docs/user/17-settings.md#programming-key-9)
 
 ## Does RadioFoundry do data modes?
 

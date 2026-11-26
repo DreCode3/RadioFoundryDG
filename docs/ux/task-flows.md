@@ -49,7 +49,7 @@ Numbered, so a digit picks directly:
 
 ## 2. Change zone
 
-1. `SELECT` (Hub).
+1. `SELECT` (Menu).
 2. `4` (Zones). The zone list opens with the current zone focused.
 3. `NAV_UP`/`NAV_DOWN` to the zone (or type its first letters).
 4. `SELECT`: the radio switches to that zone (on the knob's channel, or channel 1 on encoder radios) and returns to Home. `CONTEXT` on a zone instead opens its channel list to pick a different channel.
@@ -91,13 +91,13 @@ After the window:
 1. `CONTEXT` (`#`): caller actions for the last heard.
 2. `1` (Talk to): sets their TG (or them privately) as the temporary talk target; or `PTT` directly with item 1 focused.
 
-Older station: `SELECT`, `3` opens Recent, `NAV_DOWN` to the station, `PTT`. (Long `CONTEXT` was Recent until #18 gave it the talk target picker.)
+Older station: `SELECT`, `3` opens the call log, `NAV_DOWN` to the station, `PTT`. (Long `CONTEXT` was Recent until #18 gave it the talk target picker.)
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|
 | Within reply window | 1 | 1 | 1 | 1 | 1 |
-| After window | 2 (`#`,`PTT`) | 2 | 2 | 3 (Hub item 0, `PTT`) | 2 |
-| 3rd station in Recent | 5 (`OK`,`3`,`↓`,`↓`,`PTT`) | 5 | 5 | 5 | 5 |
+| After window | 2 (`#`,`PTT`) | 2 | 2 | 3 (Menu item 0, `PTT`) | 2 |
+| 3rd station in the call log | 5 (`OK`,`3`,`↓`,`↓`,`PTT`) | 5 | 5 | 5 | 5 |
 
 ## 5. Private call a contact by name or ID
 
@@ -172,7 +172,7 @@ Per-contact key: privacy follows the talk target automatically when the contact 
 
 ## 11. Scan
 
-Start: Tools > Scan (`SELECT`, `6`, `1`), or a side key set to Scan. Quick tile 7 and a long `TALK_TARGET` are dual watch instead ([dual-watch.md](dual-watch.md)); if it is running, the scan stops it, staying on the selected channel. Home shows "Scanning: Zone Local" in the status strip and the channel name updating; when a channel stops the scan, Activity shows it.
+Start: Menu > Scan > Scan (`SELECT`, `5`, `1`), or a side key set to Scan. Quick tile 7 and a long `TALK_TARGET` are dual watch instead ([dual-watch.md](dual-watch.md)); if it is running, the scan stops it, staying on the selected channel. Home shows "Scanning: Zone Local" in the status strip and the channel name updating; when a channel stops the scan, Activity shows it.
 
 While scanning (Home keys): `PTT` talks on the channel that last stopped (or the start channel if none, setting); `NAV_UP`/`NAV_DOWN` skip ahead; `CONTEXT` on a stopped channel gives "Skip channel for now" (nuisance delete), "Stay here" (stop scan on this channel), "Always skip" (edit scan list, permanent). `BACK` stops scanning and returns to the start channel.
 
@@ -188,7 +188,7 @@ Two channels, A and B (any channel of any zone, or the VFO); `PTT` talks on the 
 
 Start: `QUICK`, `7` (tile 7, Dual watch; long `TALK_TARGET` does the same). The first time the B picker opens: a channel number, then `SELECT`. For a B in another zone or the VFO: `UP` to the Zone row, `SELECT`, pick the zone (or the VFO), `SELECT`, then the channel. Later starts use the last B (kept across power off) and take two presses. `QUICK`, `7` again stops it.
 
-While it runs (Home keys): `PTT` talks on the selected channel and the watch goes on; `CONTEXT`, `1` talks on the other channel (an `A/B` side key or `NAV_LEFT`/`NAV_RIGHT`: one press); `NAV_UP`/`NAV_DOWN` and the knob move the selected channel; `CONTEXT` also changes A or B and shows the last caller. With Settings > Talk > Dual watch talk back on, a call that ends on the other channel selects it for 10 s so `PTT` answers there; `CONTEXT`, `1` goes back. `BACK` stops, staying on the selected channel.
+While it runs (Home keys): `PTT` talks on the selected channel and the watch goes on; `CONTEXT`, `1` talks on the other channel (an `A/B` side key or `NAV_LEFT`/`NAV_RIGHT`: one press); `NAV_UP`/`NAV_DOWN` and the knob move the selected channel; `CONTEXT` also changes A or B and shows the last caller. With Settings > Receive & VFO > Dual watch talk back on, a call that ends on the other channel selects it for 10 s so `PTT` answers there; `CONTEXT`, `1` goes back. `BACK` stops, staying on the selected channel.
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|
@@ -198,15 +198,15 @@ While it runs (Home keys): `PTT` talks on the selected channel and the watch goe
 | Start, B in another zone | 7 | 7 | 7 | 7 | 7 |
 | Talk on B | 2 (`#`,`1`; 1 with an A/B key) | 2 | 2 | 2 | 2 |
 | Stop | 1 (`BACK`) | 1 | 1 | 1 | 1 |
-| Talk back on (Settings > Talk) | 10 | 10 | 10 | 10 | 10 |
+| Talk back on (Settings > Receive & VFO) | 6 (`SELECT`,`8`,`5`, `NAV_DOWN` to the row, `SELECT`) | 6 | 6 | 6+n | 6 |
 
-The budgets are the ones `tests/host/uiFlowTest.c` checks ("11 dual watch ..."). Zone scan starts in 3 (Tools > Scan: `SELECT`, `6`, `1`).
+The budgets are the ones `tests/host/uiFlowTest.c` checks ("11 dual watch ..."). Zone scan starts in 3 (Menu > Scan: `SELECT`, `5`, `1`).
 
 ## 12. Enter a VFO frequency
 
 Enter VFO: `SELECT`, `4`, VFO is the first row in Zones: `SELECT`. (Or type "VFO" in Find.) Home shows the frequency large.
 
-On Home in VFO, digits enter a frequency directly: `4`,`4`,`6`,`0`,`0`,`0` is 446.000 MHz (the decimal point is implied after the band's MHz digits; `*` inserts it explicitly). Preview shows "446.000 MHz" as you type, out-of-band digits are refused as you type with a hint ("UHF 400-480"). `SELECT` tunes, and so does `CONTEXT` while digits are typed. `NAV_UP`/`NAV_DOWN` step by the step size (Settings › Talk › VFO step; Auto follows the width). Mode and tone are quick tiles 4 and 3. "Save as channel" is in `CONTEXT`.
+On Home in VFO, digits enter a frequency directly: `4`,`4`,`6`,`0`,`0`,`0` is 446.000 MHz (the decimal point is implied after the band's MHz digits; `*` inserts it explicitly). Preview shows "446.000 MHz" as you type, out-of-band digits are refused as you type with a hint ("UHF 400-480"). `SELECT` tunes, and so does `CONTEXT` while digits are typed. `NAV_UP`/`NAV_DOWN` step by the step size (Settings > Receive & VFO > VFO step; Auto follows the width). Mode and tone are quick tiles 4 and 3. "Save as channel" is in `CONTEXT`.
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|
@@ -226,7 +226,7 @@ Lock: long `QUICK` (`*`). Banner "Keys locked. Hold * to unlock." PTT, monitor, 
 
 ## 14. Check GPS
 
-Status strip shows a GPS icon: hollow = searching, solid = fix, crossed = off. Details: `SELECT`, `6`, `2` (Tools > Position): fix state, satellites, lat/long, altitude; Up / Down turn to the sky plot, the signal bars and the grid locator (ui.md 2.3). `CONTEXT` there: Send position now, Turn GPS off. Position of another station: caller actions `6`.
+Status strip shows a GPS icon: hollow = searching, solid = fix, crossed = off. Details: `SELECT`, `6`, `1` (Menu > Location > GPS status): fix state, satellites, lat/long, altitude; Up / Down turn to the sky plot, the signal bars and the grid locator (ui.md 2.3). `CONTEXT` there: Send position now, Turn GPS off. Position of another station: caller actions `6`.
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|
@@ -235,10 +235,10 @@ Status strip shows a GPS icon: hollow = searching, solid = fix, crossed = off. D
 ## 15. Enter hotspot or USB network mode
 
 1. Connect USB.
-2. `SELECT`, `6` (Tools), `3` (Hotspot) or `4` (USB network).
+2. `SELECT`, `7` (Connections), `1` (Hotspot) or `2` (USB network).
 3. `SELECT` = Start. Screen shows link state (host connected, mode, frequency, TS/CC, traffic and the current talker).
 
-Option (Connections): "Start hotspot when a hotspot host connects", default off. When on, a banner says "Hotspot started by host. OK stops it."
+Option (Menu > Connections > PC and network): "Hotspot allowed". When on, a banner says "Hotspot started by host. OK stops it."
 
 While active: `BACK` goes Home; the hotspot keeps running and Home's status strip shows "HOTSPOT" with the traffic. Stop: `SELECT` = Stop on the hotspot screen or `CONTEXT` on Home > "Stop hotspot". PTT on the radio while in hotspot mode explains "Hotspot mode: the radio relays network traffic. Stop hotspot to talk locally."
 
@@ -266,7 +266,7 @@ Hold `EMERGENCY` (top/orange key) 1.5 s. A rising tone during the hold, then "EM
 
 ## 18. Copy a channel to the VFO, switch the VFO's mode
 
-On a channel: `QUICK`, `4` ("To VFO"). What is in effect on the channel now (frequencies and offset, mode, bandwidth, power, tones, color code, timeslot and talk target, temporary changes included) becomes the VFO's own settings, the VFO opens on Home and the toast says "Copied to VFO". The channel is unchanged; the VFO's values are kept like its other settings (no dot). A channel the VFO can't hold (a mode this build's VFO lacks, a frequency outside the radio's bands) is refused with a toast and nothing changes. The same is on a key: Settings > Keys > Copy to VFO, or the VFO/MR key's long press where a radio has one. In the VFO "Already in VFO". The full rules are in `dmr-voice.md` 2.2.
+On a channel: `QUICK`, `4` ("To VFO"). What is in effect on the channel now (frequencies and offset, mode, bandwidth, power, tones, color code, timeslot and talk target, temporary changes included) becomes the VFO's own settings, the VFO opens on Home and the toast says "Copied to VFO". The channel is unchanged; the VFO's values are kept like its other settings (no dot). A channel the VFO can't hold (a mode this build's VFO lacks, a frequency outside the radio's bands) is refused with a toast and nothing changes. The same is on a key: Settings > Buttons > Copy to VFO, or the VFO/MR key's long press where a radio has one. In the VFO "Already in VFO". The full rules are in `dmr-voice.md` 2.2.
 
 In the VFO: `QUICK`, `4` ("Mode") switches the VFO FM / DMR on its frequency, kept (no dot): FM → DMR uses the VFO's color code (1 at first), slot and talk target (talkgroup 9 at first); change them with quick tiles 2, 3 and 8. Home's mode chip changes color and word. A channel has no temporary mode change.
 
@@ -302,7 +302,8 @@ In the VFO: `QUICK`, `4` ("Mode") switches the VFO FM / DMR on its frequency, ke
 
 ## 21. Edit a channel
 
-1. `SELECT`, `5`: Channels opens on the channel in use. `NAV_UP`/`NAV_DOWN` or typing finds another one.
+1. `SELECT`, `8`, `9`, `SELECT` (Settings > Programming > Channels, its first row): Channels opens on the channel in
+   use. `NAV_UP`/`NAV_DOWN` or typing finds another one.
 2. `SELECT`: the channel's settings.
 3. `NAV_DOWN` to the row. Two-value rows (timeslot, mode, bandwidth) flip on `SELECT`; rows with more values (power,
    PL / DCS tone, color code, time-out) open a spinner: turn the knob (or `NAV_UP`/`NAV_DOWN`) to the value, `SELECT`
@@ -312,17 +313,18 @@ In the VFO: `QUICK`, `4` ("Mode") switches the VFO FM / DMR on its frequency, ke
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|
-| Timeslot of the channel in use, saved | 5+n | 5+n | 5+n | 5+n | 6+n |
-| TX contact by name ("WCRA": 9 2 7 2) | 9+n | 9+n | 9+n | 7+n+m | 10+n |
+| Timeslot of the channel in use, saved | 7+n | 7+n | 7+n | 7+n | 8+n |
+| TX contact by name ("WCRA": 9 2 7 2) | 11+n | 11+n | 11+n | 9+n+m | 12+n |
 
 Changing the channel in use for now is shorter from quick settings (flow 20). This flow is for saved changes, other
-channels and rows quick settings don't have.
+channels and rows quick settings don't have. Channels is in Settings > Programming (fork-notes/gui-plan.md, the menu
+tree): editing a channel is programming, not operating, so it is no longer two presses from Home.
 
 ---
 
 ## 22. New channel from current settings
 
-1. `SELECT`, `5`, `NAV_UP` to the first row, "New from current", `SELECT`: an unsaved copy of the channel in
+1. `SELECT`, `8`, `9`, `SELECT`, `NAV_UP` to the first row, "New from current", `SELECT`: an unsaved copy of the channel in
    use (with its temporary changes) or of the VFO, at the lowest free number.
 2. Change what differs (flow 21, step 3), for example the name and the TX contact.
 3. Long `SELECT` saves it. It is in no zone yet: add it from a zone's list (flow 25), or make the copy with Copy here
@@ -330,7 +332,7 @@ channels and rows quick settings don't have.
 
 | | K | M | V | F | Budget |
 |---|---|---|---|---|---|
-| Copy, saved unchanged | 5+n | 5+n | 5+n | 5+n | 6+n |
+| Copy, saved unchanged | 7+n | 7+n | 7+n | 7+n | 8+n |
 
 ---
 
@@ -434,8 +436,8 @@ on a talkgroup: the name (`SELECT`, text entry, `SELECT`), `NAV_DOWN`, the ID (`
 | Emergency | 1 hold | yes |
 | Copy to VFO / VFO mode | 2 | yes |
 | Monitor / hear all | 1 / 2 | yes |
-| Edit a channel (timeslot, saved) | 5+n | yes |
-| New channel from current | 5+n | yes |
+| Edit a channel (timeslot, saved) | 7+n | yes |
+| New channel from current | 7+n | yes |
 | Move a channel in a zone | 5 | yes |
 | Copy here, saved unchanged | 6 | yes |
 | Add a channel to a zone (typed number) | 8 | yes |

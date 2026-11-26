@@ -85,7 +85,7 @@ Targets are for regular DMR users; new users get 2x the time target. "Presses" =
 | T10 | Check whether Joe's radio is on. | Radio check sent, result read aloud by participant | 2-5 | 15 s |
 | T11 | Turn the power down to low. Then the squelch up two steps (FM channel). | Both changed on Home | 3 / 5 | 20 s |
 | T12 | Turn on privacy for this channel. | Privacy icon on Home | 3 | 10 s |
-| T13 | Scan this zone (Tools > Scan); skip the noisy channel; stop. | Scan started, channel skipped, stopped | 3 + 2 + 1 | 30 s |
+| T13 | Scan this zone (Menu > Scan); skip the noisy channel; stop. | Scan started, channel skipped, stopped | 3 + 2 + 1 | 30 s |
 | T14 | Listen on 446.000 MHz. | VFO at 446.000 | 10 | 30 s |
 | T15 | Lock the keys, then unlock them. | Lock and unlock events | 2 | 10 s |
 | T16 | Does the radio have a GPS fix? What is your grid square? | Correct answer | 0-3 | 15 s |

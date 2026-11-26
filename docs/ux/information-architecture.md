@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MIT -->
 # Information architecture
 
-How the UI is organized: the Home screen, the logical input layer, what each key does in each context, quick settings, the six top-level destinations, settings grouped by intent, and the key maps for the four reference radios. Principles referenced as P1 to P10 are in `principles.md`.
+How the UI is organized: the Home screen, the logical input layer, what each key does in each context, quick settings, Menu's eight entries, settings grouped by intent, and the key maps for the four reference radios. Principles referenced as P1 to P10 are in `principles.md`.
 
 Hardware details below (key labels, knob types, display sizes) are the designer's understanding and must be checked against `docs/spec/capabilities.md` and the board descriptors when those exist. The design does not depend on them: a wrong assumption only changes a row in a key map table.
 
@@ -20,7 +20,7 @@ Keep the number of concepts small and name them the same everywhere.
 | **Talkgroup (TG)** | A DMR group number with an optional name | group contact |
 | **Contact** | A person (DMR ID, name, callsign) | private contact, digital contact |
 | **Listen list** | The talkgroups a channel listens to (the codeplug's RX group list) | RX group list (that phrase appears only in "Advanced" and in qdmr) |
-| **Recent** | Stations heard and calls made, newest first | last heard, call log (both are filters inside Recent) |
+| **Call log** | Stations heard and calls made, newest first | recent, last heard (a filter inside the call log) |
 | **Digital monitor** | Promiscuous monitoring: play every talkgroup on this timeslot ("hear all" in the code) | promiscuous, hear all |
 
 On-the-fly changes are **temporary** (P7). A temporary change shows a dot next to the changed field on Home and lasts until the channel changes or `BACK` is pressed on Home. Making it **permanent** writes it to the channel.
@@ -46,8 +46,8 @@ Screens consume only these. Each board maps physical inputs to them (`boards/<ra
 | `SELECT` | Do or open the focused thing. Long: make it permanent (save) | yes |
 | `BACK` | Back one level; on Home clear temporary state. Long: Home | yes |
 | `QUICK` | Quick settings for the current context. Long: key lock (on Home) | strongly recommended; fallback long `SELECT` |
-| `CONTEXT` | Actions for the focused thing; on Home, the last or current caller. Long: Recent | strongly recommended; fallback: first item in Hub |
-| `DIGIT_0` to `DIGIT_9` | Type (numbers, T9 letters). On Home: start Find. In quick settings and Hub: pick item by number. Long on Home: speed-dial slot | optional (keypad radios) |
+| `CONTEXT` | Actions for the focused thing; on Home, the last or current caller. Long: the talk target picker (DMR) | strongly recommended; fallback: first item in Menu |
+| `DIGIT_0` to `DIGIT_9` | Type (numbers, T9 letters). On Home: start Find. In quick settings, Menu and its numbered lists: pick item by number. Long on Home: speed-dial slot | optional (keypad radios) |
 | `PTT` | Transmit to the talk target (or the focused target, one-shot) | yes |
 | `MONITOR` | FM: squelch open while held. DMR: digital monitor (hear all) on / off on each press (#19) | recommended |
 | `TALK_TARGET` | Open the talk target picker | assignable |
@@ -56,7 +56,7 @@ Screens consume only these. Each board maps physical inputs to them (`boards/<ra
 | `ENC_STEP(+/-)` | Encoder detent. Forward (+, clockwise): next channel on Home (as `NAV_UP`), value up in editors, focus **down** in lists and quick tiles (the next row, like a scroll wheel). Back (-): the opposite | from encoder |
 | `USER_1` to `USER_4` | Programmable keys; each has a short and a long function from the assignable list | optional |
 
-Assignable functions for `USER_n` keys (short and long, chosen in Settings > Keys or in qdmr): Monitor, Talk target, Quick, Context, Recent, Power cycle, Scan on/off, Hear all on/off, Privacy on/off, Zone picker, Speak status, Backlight, Mode FM/DMR (in the VFO), Copy to VFO, Lock, Reply, Radio check last caller, Silent (mute tones and prompts), A/B and Dual watch ([dual-watch.md](dual-watch.md)), None.
+Assignable functions for `USER_n` keys (short and long, chosen in Settings > Buttons or in qdmr): Monitor, Talk target, Quick, Context, Call log, Power cycle, Scan on/off, Hear all on/off, Privacy on/off, Zone picker, Speak status, Backlight, Mode FM/DMR (in the VFO), Copy to VFO, Lock, Reply, Radio check last caller, Silent (mute tones and prompts), A/B and Dual watch ([dual-watch.md](dual-watch.md)), None.
 
 Rules for key maps (P3, P10):
 
@@ -82,10 +82,10 @@ Home keys:
 | Input | Short | Long |
 |---|---|---|
 | `NAV_UP` / `NAV_DOWN`, encoder forward / back | Channel +1 / -1 in zone (VFO: frequency step) | repeat |
-| `SELECT` | Open Hub (top-level destinations) | Make temporary changes permanent ("Saved to channel") |
+| `SELECT` | Open Menu (the top-level entries) | Make temporary changes permanent ("Saved to channel") |
 | `BACK` | Clear temporary state: end reply window, revert temporary TG and fields, dismiss banner | Already Home: tick |
 | `QUICK` | Quick settings | Lock keys |
-| `CONTEXT` | Actions for the last/current caller | Recent |
+| `CONTEXT` | Actions for the last/current caller | Talk target picker (DMR) |
 | Digits | Find (channels, TGs, contacts, settings; in VFO, frequency first) | Speed-dial slot 0-9 |
 | `PTT` | Transmit to talk target | - |
 | `MONITOR` | Monitor while held | - |
@@ -97,30 +97,38 @@ Large-text mode (accessibility, or chosen by the user) shows only the status str
 - Group call heard: Activity region shows it; no focus change on any screen. Outside Home, the status strip shows `RX TG 91 · Q1AAA`.
 - Text message: tone, banner "Message from Q1AAA: first words…", `CONTEXT` while the banner is visible opens it; the banner goes away after 8 s and the message waits in Messages with an unread count on the status strip.
 - Private call to me, call alert, radio check request: banner with tone; Home shows the caller with "PTT to reply". A private call does not take over a screen the user is editing; it shows in the status strip and the reply is one `CONTEXT` away.
-- Zone or channel share offered: banner with tone; it has no timer and stays until `CONTEXT` opens the offer, `BACK` hides it (on any screen) or the offer ends. The offer also waits under Tools.
+- Zone or channel share offered: banner with tone; it has no timer and stays until `CONTEXT` opens the offer, `BACK` hides it (on any screen) or the offer ends. The offer also waits in Messages (Zone offers).
 - Emergency received: full-screen, alert tone, repeated until acknowledged with `SELECT` or dismissed with `BACK`.
 
 ---
 
-## 4. Hub: six top-level destinations
+## 4. Menu: a 3x3 grid that matches the keypad
 
-`SELECT` on Home opens the Hub. Items are numbered; digits pick directly. Order is fixed so muscle memory works.
+`SELECT` on Home opens Menu, titled Menu. Its entries are numbered as the keypad's 3x3 grid; digits pick directly, and
+each entry keeps its digit on every radio and build so muscle memory works (fork-notes/gui-plan.md has the decision).
+Entries show their values where they fit beside the name: the unread count on Messages, the zone in use on Zones, a
+running scan on Scan.
 
-| # | Destination | What is inside |
+| # | Entry | What is inside |
 |---|---|---|
-| 1 | **Contacts** | Search field on top. Tabs (or filter chips): Talkgroups, People, Listen lists. Item actions: Talk to, Private call, Message, Radio check, Call alert, Request position, Add to speed dial, Edit |
-| 2 | **Messages** | Inbox (unread first), New message, Canned messages, Sent, Drafts |
-| 3 | **Recent** | Everyone heard and every call made, newest first, filters: All / Calls to me / Missed / Talkgroups. Item actions are the same as Contacts, plus "Save as contact" and "Show position" |
-| 4 | **Zones** | Zone picker, current zone's channels, VFO, Scan lists. A zone's list is also its editor: "Add channel" first, "Zone options" (Rename, Copy as new zone, Share zone to..., Delete zone) last, and Channel actions on a channel (Move up, Move down, Copy here, Edit channel, Share channel to..., Remove from zone; the Share rows with zone sharing) |
-| 5 | **Channels** | Every channel by number; New channel from current settings (first row); a channel's settings, edited in place and saved (ui.md 2.1) |
-| 6 | **Tools** | Scan, Position (GPS), Hotspot, USB network, Single frequency repeater, ID lookup, Signal meter, DTMF, APRS, Registration (ARS), Battery |
-| 7 | **Settings** | Grouped by intent (below), with search |
+| 1 | **Contacts** | Search field on top. Talkgroups and people, with New contact first. Item actions: Talk to, Private call, Message, Radio check, Call alert, Request position, Add to speed dial, Edit |
+| 2 | **Messages** | Messages (unread first), New APRS message, and Zone offers while another radio's zone or channel offer waits |
+| 3 | **Call log** | Everyone heard and every call made, newest first. Item actions are the same as Contacts, plus "Save as contact" and "Show position" |
+| 4 | **Zones** | The VFO and the zones; a zone's channels. A zone's list is also its editor: "Add channel" first, "Zone options" (Rename, Copy as new zone, Share zone to..., Delete zone) last, and Channel actions on a channel (Move up, Move down, Copy here, Edit channel, Share channel to..., Remove from zone; the Share rows with zone sharing) |
+| 5 | **Scan** | 1 Scan on/off (the zone, or the band in the VFO), 2 Roaming |
+| 6 | **Location** | 1 GPS status, 2 APRS, 3 Satellite (where built), 4 Location settings |
+| 7 | **Connections** | 1 Hotspot, 2 USB network, 3 SFR (its status page and settings), 4 Data services (where built), 5 PC and network (its settings) |
+| 8 | **Settings** | Grouped by intent (section 6) |
+| 9 | (empty) | Planned: a favorite the user picks |
 
-Each Tools item keeps its number on every radio and build, so a key path such as `SELECT`, `6`, `7` (Diagnostics) is
-the same everywhere. An item a radio may not have goes last (Battery, 9, on a mobile), so commonly used items have no
-gaps.
+Scan, Location and Connections are numbered lists too, and their entries keep their numbers in every build: an entry a
+build doesn't have is left out, and the others keep their digits. Settings > Programming has Channels (every channel by
+number, New from current first; a channel's settings, edited in place and saved, ui.md 2.1), zone editing, the VFO,
+Diagnostics and Factory reset.
 
-Contacts, Recent and Messages are the "people" side, Zones, Channels and Tools the "radio" side, Settings the preferences. Nothing operational lives only in Settings (P1).
+Contacts, Messages and the call log are the "people" side, Zones, Scan, Location and Connections the "radio" side,
+Settings the preferences and the programming. Nothing operational lives only in Settings (P1); editing channels is
+programming.
 
 ---
 
@@ -136,7 +144,7 @@ Contacts, Recent and Messages are the "people" side, Zones, Channels and Tools t
 | 4 | To VFO (copy the channel to the VFO and open it) | To VFO |
 | 5 | Hear all (promiscuous) on/off | Monitor latch on/off (TX freq in the VFO) |
 | 6 | Privacy on/off (TX freq in the VFO) | VOX on/off |
-| 7 | Dual watch (On / Off; a zone scan is in Tools > Scan) | Dual watch (On / Off; a zone scan is in Tools > Scan) |
+| 7 | Dual watch (On / Off; a zone scan is in Menu > Scan) | Dual watch (On / Off; a zone scan is in Menu > Scan) |
 | 8 | Talk target | Bandwidth 12.5/25 kHz |
 | 9 | Brightness | Brightness |
 | 0 | All settings | All settings |
@@ -155,22 +163,35 @@ DMR channel with no codec installed (any DMR tile, and the VFO's Mode tile switc
 
 ## 6. Settings by intent
 
-Settings has a search field on top (T9). Groups, in this order:
+Settings: groups 1 to 9, then Radio info (no digit; `NAV_UP` from the top reaches it). `0` opens Find, which finds every
+setting by name. Settings > group > item, never deeper, except the two pages of Tones & alerts. A page's title is the
+text of the row that opens it, in sentence case.
 
-| Group | Contents |
-|---|---|
-| **Sound** | Key tones, tone volume, talk permit tone, voice prompts (on/off, speed, verbosity), message tone, call alert tone, vibrate (radios with a motor) |
-| **Display** | Brightness, backlight timeout, theme (light/dark/high contrast/night), highlight color, filled status bar, large text, orientation (240x320 boards), hint row, Home secondary fields |
-| **Talk & listen** | Reply window, TX timeout, default squelch, VOX sensitivity and delay, mic gain, mic AGC, mic noise reduction, hear all default, talker alias show/send, name source (contacts, ID database, alias) |
-| **Privacy** | Basic Privacy keys (per channel and per contact), lock behavior (auto-lock, what stays active when locked: PTT, side keys), PIN for settings |
-| **Location** | GPS on/off, position format, send position (UDT, LRRP, APRS) and interval, reply to position requests |
-| **Connections** | Hotspot defaults, USB network (at power-on, control station: PC answers data, link address; TFTP codeplug write), single frequency repeater role, ARS registration, radio check auto-reply, call alert answer, message format |
-| **Power** | Battery saver, auto power off, low-battery warning level, power level defaults |
-| **Keys** | Programmable key functions (short and long), long-press time, key repeat, Up/Down on Home (channel / zone / talk target), speed dial slots |
-| **My radio** | DMR ID, callsign, name, talker alias text, radio name, region/band limits, time and date |
-| **Advanced** | Calibration view, codeplug info, firmware info, frequency trim, factory reset (confirmed, P7), diagnostics, crash log (send the report, its target, Off/Ask/Auto after a crash) |
+| # | Group | Contents |
+|---|---|---|
+| 1 | **Display** | The theme's appearance rows first (the reference theme: Theme, Highlight color, Filled status bar; the panels theme: Display profile, Day/Night, GPS clock), then Brightness, Backlight, Large text, Hint row, Talkgroup name first, Language, Battery saver, Auto power off, Low battery warning |
+| 2 | **Tones & alerts** | Volume (radios without a knob), Tone volume, Key tones, Voice prompts, Vibrate; pages: Alert tones (each beep on or off) and Signaling tones |
+| 3 | **Audio** | Mic gain, Mic AGC, Mic noise reduction |
+| 4 | **Call settings** | Reply window, TX timeout, Show talker alias, Digital monitor at start, Answer radio checks, Answer call alerts, Message format, Accept zone shares |
+| 5 | **Receive & VFO** | Default squelch, VFO step, FM broadcast step, Dual watch talk back, Dual watch delay |
+| 6 | **Privacy** | Key type, Key |
+| 7 | **Security & keypad lock** | Auto lock, PTT when locked, Knob when locked |
+| 8 | **Buttons** | Long press time, Key repeat, Up/Down on Home, the programmable keys |
+| 9 | **Programming** | Channels, Zones (zone editing), VFO, DMR ID and name, Diagnostics, Backlight tests (where built), Crash log, Frequency trim, RX past bands, Hardware, Factory reset (last; confirmed, P7) |
+| - | **Radio info** | Read only: battery, DMR ID, radio name, About (versions), GPS, codeplug |
 
-Rule: each setting lives in exactly one group, and Find also reaches it by name and synonyms ("promiscuous" finds Hear all; "RX group" finds Listen lists).
+The settings of a feature with its own Menu entry are there: Menu > Location > Location settings (GPS, position
+format, sending and answering positions, the position source), Menu > Connections > SFR (SFR receive, SFR CW ID) and
+Menu > Connections > PC and network (Hotspot allowed, TFTP codeplug write, USB network at start, PC answers data, USB
+address).
+
+Rows: an on/off row flips on `SELECT` and shows the new state; a row with several values opens a pick list with a
+check mark on the value in use; a number opens a value editor, the value between left and right markers in the theme's
+accent color (amber only for warnings).
+
+Rule: each setting lives in exactly one group, and Find also reaches it by name and synonyms ("promiscuous" finds
+Digital monitor at start; "RX group" finds Listen lists). Find opens a setting where it lives, with the screens on the
+way under it, so `BACK` goes up through them.
 
 ---
 
@@ -186,7 +207,7 @@ Notation: `short / long`. "-" means none. All maps also follow the text-field ru
 | Red Back key | `BACK` / Home |
 | Up / Down | `NAV_UP` / `NAV_DOWN` (repeat) |
 | `*` | `QUICK` / lock |
-| `#` | `CONTEXT` / Recent |
+| `#` | `CONTEXT` / talk target picker |
 | 0-9 | digits / speed dial |
 | Channel encoder detent | `ENC_STEP` (Home: channel; editors: value; lists: focus, forward = down) |
 | SK1 (top side key, above PTT; row 2 D5, [hardware-dm1701.md](../spec/hardware-dm1701.md) 20) | `MONITOR` (while held) |
@@ -208,7 +229,7 @@ zones of any size step through it. No `NAV_LEFT`/`NAV_RIGHT`.
 | Encoder detent | `ENC_STEP` (Home: channel; editors: value; lists: focus, forward = down) |
 | Encoder push (if present) | `SELECT` / save |
 | `*` | `QUICK` / lock |
-| `#` | `CONTEXT` / Recent |
+| `#` | `CONTEXT` / talk target picker |
 | 0-9 | digits / speed dial |
 | SK1 | `MONITOR` |
 | SK2 | `AB` / Dual watch |
@@ -228,7 +249,7 @@ scroll wheel does; Home and editors follow the number. (Until 2026-10-10 the kno
 | Up / Down arrows | `NAV_UP` / `NAV_DOWN` |
 | Left / Right arrows (if present on the model) | `NAV_LEFT` / `NAV_RIGHT` |
 | `*` | `QUICK` / lock |
-| `#` | `CONTEXT` / Recent |
+| `#` | `CONTEXT` / talk target picker |
 | 0-9 | digits / speed dial |
 | SK1 | `MONITOR` |
 | SK2 | `AB` / Dual watch |
@@ -250,7 +271,7 @@ a volume knob in the audio path; it has no `*`, `#` or digit keys ([hardware-md9
 | Up / Down | `NAV_UP` / `NAV_DOWN` (repeat) |
 | Channel encoder detent | `ENC_STEP` |
 | P1 | `QUICK` / lock; hints call it "P1" |
-| P2 | `CONTEXT` / Recent; hints call it "P2" |
+| P2 | `CONTEXT` / talk target picker; hints call it "P2" |
 | P3 | `MONITOR` (while held); assignable |
 | P4 | `TALK_TARGET` / `USER_2`; assignable |
 | Orange key | `USER_3`; assignable |
@@ -286,7 +307,7 @@ text entry), offers canned messages only, and enlarges Home. Voice prompts are o
 | VFO/MR | `VFO_TOGGLE` (switch between channel and VFO) / `COPY_VFO` (copy the channel to the VFO) |
 | A/B | `ZONE_UP` |
 | `*` | `QUICK` / lock |
-| `#` | `CONTEXT` / Recent |
+| `#` | `CONTEXT` / talk target picker |
 | 0-9 | digits / speed dial |
 | SK1 | `MONITOR` (while held) |
 | SK2 | `AB` / `USER_2` |
@@ -303,16 +324,19 @@ The layouts are the 128x64 ones of section 7.3. Which matrix position is which k
 |---|---|---|
 | Home | power on, long `BACK` | 0 |
 | Quick settings | `QUICK` | 1 |
-| Talk target picker | `TALK_TARGET`, quick 8, `CONTEXT` > Talk to | 1 |
+| Talk target picker (Talkgroup / Contact) | `TALK_TARGET`, quick 8, long `CONTEXT` on a DMR channel | 1 |
 | Find | digits on Home | 1 |
 | Caller actions | `CONTEXT` | 1 |
-| Hub | `SELECT` | 1 |
-| Contacts / Messages / Recent / Zones / Channels / Tools / Settings | Hub | 2 |
+| Menu | `SELECT` | 1 |
+| Contacts / Messages / Call log / Zones / Scan / Location / Connections / Settings | Menu | 2 |
 | Item actions (contact, message, channel) | from a list | 3 |
 | A zone's list (channels, Add channel, Zone options) | `CONTEXT` in Zones | 3 |
 | Channel actions, Add channel picker, Zone options | a zone's list | 4 |
 | Copy here (the channel editor), Edit channel | Channel actions (replaces it) | 4 |
 | Rename (text entry), Delete zone (confirmation) | Zone options | 5 |
-| Message composer | Contacts/Recent/Messages actions | 3 |
-| Settings group / setting | Settings | 3 (setting editors are inline, not a fourth level) |
-| Hotspot, Network, SFR status | Tools | 2, and shown on Home while active |
+| Message composer | Contacts/Call log/Messages actions | 3 |
+| Setting's value editor | a settings row | inline, not a further level |
+| Hotspot, USB network, SFR status | Connections | 3, and shown on Home while active |
+| Settings group | Settings (Location, SFR, PC and network: their Menu entry) | 3 |
+| Pick list of a setting | a settings row | 4 |
+| Channels, a channel's settings | Settings > Programming | 4, 5 (programming, not field use) |

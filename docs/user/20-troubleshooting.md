@@ -44,12 +44,12 @@ also from the installer's [manual install kit](02-installing.md#install-from-the
 | "Channel busy" | Someone is talking on the timeslot. Wait for the call to end |
 | "No repeater answered" | The repeater didn't respond. Check the frequency, the color code, the timeslot and your distance to the repeater |
 | No audio on FM | The squelch is closed or the channel needs a tone. Hold **Monitor** to open the squelch. Check the tone with **\***, **3** |
-| A key does nothing and the screen says "Keys locked" | Hold **\*** to unlock. Check **Settings > Key lock > Auto lock** |
+| A key does nothing and the screen says "Keys locked" | Hold **\*** to unlock. Check **Settings > Security & keypad lock > Auto lock** |
 | "Not used here" | That key has no function on this screen |
 | "...: not in this build" | The feature is switched off in this build, or isn't built yet |
-| The radio is stuck on the hotspot screen | A host has the serial port open. Press **OK**, or stop the host program. Turn **Settings > Connections > Hotspot allowed** off to prevent it |
+| The radio is stuck on the hotspot screen | A host has the serial port open. Press **OK**, or stop the host program. Turn **Menu > Connections > PC and network > Hotspot allowed** off to prevent it |
 | Zone or channel changed by itself | A scan is running (SCAN in the status line). Press **Back** on Home |
-| qdmr, rfoundry or a hotspot host doesn't find the radio's serial port | USB is in network mode. Switch back in **Tools > USB network**, or turn off **Settings > Connections > USB network at start** and restart. The debug link and MMDVM also answer on UDP port 3334 ([USB network](15-usb-network.md#serial-tools-in-network-mode)) |
+| qdmr, rfoundry or a hotspot host doesn't find the radio's serial port | USB is in network mode. Switch back in **Menu > Connections > USB network**, or turn off **Menu > Connections > PC and network > USB network at start** and restart. The debug link and MMDVM also answer on UDP port 3334 ([USB network](15-usb-network.md#serial-tools-in-network-mode)) |
 | In network mode the computer gets no address | The radio goes back to serial when the computer doesn't set the adapter up within 10 s. Check that the computer shows a new network adapter, then switch again |
 
 ## Settings are not kept
@@ -72,7 +72,7 @@ Some settings are "not kept" by design today: see the Status column in [Settings
 
 ## Diagnostics
 
-**OK**, **6**, **7** (Tools > Diagnostics) shows raw readings for bench checks: keys, receiver levels, the DMR
+**Settings > Programming > Diagnostics** (**OK**, **8**, **9**, then the Diagnostics row) shows raw readings for bench checks: keys, receiver levels, the DMR
 modem's state and counters, battery, the board's own lines. **\*** pages through them. **Back** leaves.
 
 On some radios the firmware reads a marker that tells hardware versions apart. When the marker suggests another
@@ -92,11 +92,11 @@ GitHub issues under every error message.
 
 ## Reporting a problem
 
-Open an issue in the [project repository](https://github.com/radiofoundry/radiofoundry/issues/new/choose). Include the firmware version (**Settings > My radio > About**), the radio
+Open an issue in the [project repository](https://github.com/radiofoundry/radiofoundry/issues/new/choose). Include the firmware version (**Settings > Radio info > About**), the radio
 model, what you did, what you expected and what happened. A screenshot helps: `tools/rfoundry_debug.py screenshot -o
 screen.png` saves one over USB.
 
-If the radio restarted by itself, look at **Settings > Advanced > Crash log** ([Settings](17-settings.md#crash-log))
+If the radio restarted by itself, look at **Settings > Programming > Crash log** ([Settings](17-settings.md#crash-log))
 and copy its lines into the issue. Developers get the whole record with `tools/rfoundry_debug.py crash`.
 
 For gaps in received digital speech, include the mode, signal strength and whether they occur throughout the call or

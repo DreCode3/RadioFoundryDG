@@ -5,19 +5,18 @@
 DMR text messages, call alert and radio check work on DMR channels. APRS text messages can also be sent over FM on
 builds with an AFSK transmit path. The [Radio reference](23-radios.md) says which radios have each path verified.
 None of them needs the codec. DMR sending needs a DMR channel you may transmit on and your DMR ID; APRS sending
-needs a valid callsign in **Settings > My radio**, an amateur APRS frequency and a board with AFSK transmit.
+needs a valid callsign in **Settings > Programming > DMR ID and name**, an amateur APRS frequency and a board with AFSK transmit.
 
 ## Receiving a message
 
 When a message arrives, the radio shows a banner with the sender and the first words for 8 s. Press **#** while the
-banner is up to open the message. The radio plays a short three-note tone with the banner unless **Settings > Sound >
-Message tone** is off. On a radio with a vibration motor it also vibrates twice, unless **Settings > Sound > Vibrate**
+banner is up to open the message. The radio plays a short three-note tone with the banner unless **Settings > Tones & alerts > Alert tones > Message tone** is off. On a radio with a vibration motor it also vibrates twice, unless **Settings > Tones & alerts > Vibrate**
 is off. A call alert or a private call to you gives one long vibration, an emergency four.
 
 <img src="../ux/screens/160x120i5/banner_message.png" width="200" alt="A message banner">
 
 After the banner, the profile display shows an envelope in the status line. On the original display, the status
-line shows "M" and the number of unread messages, and the hub shows "1 new" next to Messages.
+line shows "M" and the number of unread messages, and Menu shows "1 new" next to Messages.
 
 ## Reading messages
 
@@ -89,12 +88,12 @@ or fixed position as decimal coordinates to the message text. It refuses to send
 text plus coordinates exceeds 67 characters. The position is part of the message body, not a separate position beacon.
 
 The APRS destination is a callsign, not a DMR ID. A new outgoing message replaces one still awaiting an acknowledgment.
-Sending is refused if the callsign or text is invalid or the APRS RF path is unavailable. **Tools > APRS** shows the
+Sending is refused if the callsign or text is invalid or the APRS RF path is unavailable. **Menu > Location > APRS** shows the
 configured frequency and any blocking reason. Received APRS messages appear in Messages; replies go over APRS.
 
 ## Message formats
 
-**Settings > Connections > Message format** picks the encoding of new DMR messages. The setting does not affect
+**Settings > Call settings > Message format** picks the encoding of new DMR messages. The setting does not affect
 reception. Canned inbox replies use the received format where available. Text sent from the composer uses the
 selected setting.
 
@@ -117,7 +116,7 @@ A call alert pages another radio. It rings there, even when that radio's user is
 3. The radio tries up to 3 times. The result is a banner: "... answered the alert" or "No answer from ...".
 
 When someone sends you a call alert, the radio shows "Call alert from ..." with "PTT replies". Press **#** while the
-banner is up for the caller's actions. Your radio acknowledges the alert unless **Settings > Connections > Answer call
+banner is up for the caller's actions. Your radio acknowledges the alert unless **Settings > Call settings > Answer call
 alerts** is off.
 
 <img src="../ux/screens/160x120i5/banner_call_alert.png" width="200" alt="A call alert banner">
@@ -134,7 +133,7 @@ range.
 
 <img src="../ux/screens/160x120i5/banner_radio_check.png" width="200" alt="A radio check result">
 
-Your radio answers radio checks from others while **Settings > Connections > Answer radio checks** is on, the default.
+Your radio answers radio checks from others while **Settings > Call settings > Answer radio checks** is on, the default.
 An answer is a short transmission the radio makes without you pressing PTT; turn the setting off if you don't want that.
 
 Radio checks work both ways with commercial DMR portables. Radio checks between a newer and an older RadioFoundry
@@ -143,10 +142,10 @@ build get no answer until both radios are updated.
 ## Registration (ARS) and location (LRRP)
 
 ARS registers the radio with a presence server at power-up and after a channel change. It is off until a server ID is
-set: **Settings > Connections > Data services > ARS server**. Type the server's DMR ID and press **OK**; 0 turns ARS
+set: **Menu > Connections > Data services > ARS server**. Type the server's DMR ID and press **OK**; 0 turns ARS
 off. The screen shows the registration: Registering, Registered, Refused or No answer. The ID is saved in the
 codeplug, so the [Codeplug Editor](04-programming.md) can set it too.
 
 LRRP answers location requests from a dispatcher. A radio without GPS ([Radio reference](23-radios.md)) answers "no
-fix". Periodic reports go 30 s to 1 day apart, whatever the dispatcher asks. **Settings > Location > Answer GPS
+fix". Periodic reports go 30 s to 1 day apart, whatever the dispatcher asks. **Menu > Location > Location settings > Answer GPS
 requests** turns the answers off.

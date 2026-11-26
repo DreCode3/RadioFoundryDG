@@ -8,7 +8,7 @@ screen. None of its users needs another one built in: DMR GPS Info and LRRP work
 works in a build without DMR.
 
 Code: `core/position/position.c` (the service), `nmea.c` (RMC and GGA), `nmea_sky.c` (satellites, `CONFIG_GPS_SKY`),
-the UI in `core/ui/ui_position.c` and Settings > Location, the debug link in `core/debuglink/debuglink_position.c`.
+the UI in `core/ui/ui_position.c` and Menu > Location > Location settings, the debug link in `core/debuglink/debuglink_position.c`.
 
 ## 1. Users and switches
 
@@ -17,11 +17,11 @@ the UI in `core/ui/ui_position.c` and Settings > Location, the debug link in `co
 | DMR GPS Info in voice calls ([dmr-voice.md](dmr-voice.md) 3.1) | `CONFIG_DMR_GPS` | `position_now`: the position, its error, the "Send in DMR calls" setting. A channel's codeplug setting turns it on for that channel too |
 | LRRP answers and triggered reports ([dmr-data.md](dmr-data.md) 6) | `CONFIG_DMR_LRRP` | `position_report` through the data service's `ownPosition` hook |
 | APRS beacons ([aprs.md](aprs.md) 7) | `CONFIG_APRS` | `position_fix` (exact; the AX.25 packet formats its own ambiguity, the DMR report gets `position_blur`) |
-| Tools > Position ([ui.md](ui.md) 2.3) | `CONFIG_GPS` | `position_gps`, `position_gps_sat` |
+| Menu > Location > GPS status ([ui.md](ui.md) 2.3) | `CONFIG_GPS` | `position_gps`, `position_gps_sat` |
 
 | Switch | Set by | Builds |
 |---|---|---|
-| `CONFIG_POSITION` | derived: `GPS`, `APRS`, `DMR_LRRP` or `DMR_GPS` | the service, its settings, the Settings > Location rows, the debug link keys |
+| `CONFIG_POSITION` | derived: `GPS`, `APRS`, `DMR_LRRP` or `DMR_GPS` | the service, its settings, the Menu > Location > Location settings rows, the debug link keys |
 | `CONFIG_GPS` | the build | the board GPS half: the board fix, `position_gps_enable`, the Position screen's data |
 | `CONFIG_POSITION_HOST` | derived: `APRS` | the host half: a fix from NMEA sent by a computer. Its feeders are APRS's host port and the debug link's NMEA command |
 | `CONFIG_GPS_SKY` | the build (needs `GPS`) | the satellite table (section 4) |
@@ -47,12 +47,12 @@ Position source (setting: Auto, GPS, Computer, Fixed):
   fix, so a saved fixed coordinate can be used while the receiver acquires a fix.
 - Host fixes and their UTC are not saved across a restart. The host must send fresh position, altitude and date/time
   sentences again; a fixed position still needs fresh UTC for satellite prediction.
-- **Save GPS position** in Settings > Location copies the current fresh board fix into the fixed-position settings.
+- **Save GPS position** in Menu > Location > Location settings copies the current fresh board fix into the fixed-position settings.
   In Auto, that saved coordinate is used after fresh GPS and host fixes are unavailable, including while GPS acquires
   a fix after startup. Saving requires a current GPS fix and does not change the selected source.
 - GPS, Computer and Fixed take that source only. No position when it has none.
 - The fixed position counts as unset while latitude and longitude are both 0.
-- Settings > Location > GPS off (`position_gps_enable(false)`) drops the board fix at once and ignores later
+- Menu > Location > Location settings > GPS off (`position_gps_enable(false)`) drops the board fix at once and ignores later
   sentences, so the position falls back.
 - The same setting goes to the board (`hal_gps_t.enable`, at start-up and on each change): the module is powered and
   listened to at start-up whatever it says, so the radio knows whether it has one, and once heard its supply and
@@ -83,7 +83,7 @@ the GPS driver's task, readers are the radio, UI and debug link tasks. Each read
 
 ## 4. The board GPS's state and satellites
 
-`position_gps()` gives the UI the board GPS as it is now: false while Settings > Location > GPS is off or no valid
+`position_gps()` gives the UI the board GPS as it is now: false while Menu > Location > Location settings > GPS is off or no valid
 sentence came for 60 s, else the last fix (60 s old at most), satellites used and HDOP (GGA), speed, course and time
 (RMC).
 
@@ -125,7 +125,7 @@ The service owns its settings (`position_cfg_t`): `position_load` at start-up an
 
 ## 6. UI
 
-Settings > Location, with `CONFIG_POSITION`:
+Menu > Location > Location settings, with `CONFIG_POSITION`:
 
 | Row | Does |
 |---|---|
@@ -167,5 +167,5 @@ ambiguity, and its NMEA operation (host half), are answered by the position serv
 |---|---|
 | `tests/host/radioCoreTest.c` `test_position` (a build without APRS) | GPS fix to LRRP and the Position screen; UTC date retained from void RMC through a valid GGA, independent UTC when Fixed is selected; saving a current GPS fix to persistent fixed fallback and using it after the live fix ages out; "Send in DMR calls" saved with its own marker and back after a restart; GPS Info sent with it on, not with it off; the fixed position on a radio without a GPS answers LRRP and goes out in calls after a restart; source GPS excludes the fixed position; a record APRS stored before; defaults |
 | `tests/host/aprsRadioTest.c` | APRS saves its settings without changing the position's; the host NMEA path |
-| `tests/host/uiFlowTest.c` | the Settings > Location rows, the Fixed position page and its editor |
+| `tests/host/uiFlowTest.c` | the Menu > Location > Location settings rows, the Fixed position page and its editor |
 | `tests/hil/test_gps.py` (opt-in) | the position keys and settings on the radio, with and without APRS |

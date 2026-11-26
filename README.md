@@ -20,7 +20,7 @@ and the [manual steps](docs/user/02-installing.md) are for scripting and for bro
 <p>
 <img src="docs/ux/screens/240x320i10x5/boot.png" width="200" alt="Boot screen">
 <img src="docs/ux/screens/240x320i10x5/home_dual_two_rx.png" width="200" alt="Dual watch with both channels receiving">
-<img src="docs/ux/screens/240x320i10x5/tools.png" width="200" alt="Tools: scan, position, hotspot, USB network, repeater, roaming, APRS">
+<img src="docs/ux/screens/240x320i10x5/hub.png" width="200" alt="Menu: a 3x3 grid that matches the keypad">
 <img src="docs/ux/screens/240x320i10x5/zone_offer.png" width="200" alt="A zone shared by another radio, offered for import">
 </p>
 <p>

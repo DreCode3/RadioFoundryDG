@@ -183,7 +183,7 @@ What the records don't hold yet: limits and known problems from the bring-up pag
 | DB25-D PRO | The older FD6818 batches (D64, D66, D6T) are driven by the same image, untested on a radio. Split duplex not built. Standalone and MMDVM SFR checked on the SDR bench (experimental). DMR audio from the speaker, a GPS fix and settings kept across power off not confirmed | [hardware-db25d](spec/hardware-db25d.md) |
 | MD-380 | Fully operational (UHF)¹. DCS, the VHF image, tone deviation and data from a DMR VFO not checked. Split duplex and SFR not available (HR_C5000). The Chinese image builds in ci but is untested on a radio | [md380-bringup](testing/md380-bringup.md) |
 
-¹ Frequency accuracy depends on each radio's factory calibration: confirm it against an external reference (frequency counter, service monitor, or a hotspot's MMDVMCal BER test). Two MD-380s measured 2-2.5 kHz high, outside an MMDVM hotspot's decode window; Settings > Advanced > Freq trim corrects receive and transmit together ([radio-features](spec/radio-features.md) 6.1, [hardware-md380](spec/hardware-md380.md)). The `ref_trim` row above lists the radios that have the trim.
+¹ Frequency accuracy depends on each radio's factory calibration: confirm it against an external reference (frequency counter, service monitor, or a hotspot's MMDVMCal BER test). Two MD-380s measured 2-2.5 kHz high, outside an MMDVM hotspot's decode window; Settings > Programming > Frequency trim corrects receive and transmit together ([radio-features](spec/radio-features.md) 6.1, [hardware-md380](spec/hardware-md380.md)). The `ref_trim` row above lists the radios that have the trim.
 
 ## Built by default on each radio
 
@@ -328,10 +328,10 @@ clock`; ? = not known yet). No driver reads the clock yet ([radio-features.md](s
 | DTMF transmit from the keys | `DTMF` | 916 | — | MD-380: TX tone path not written |
 | FM VOX | `VOX` | 352 | 356 |  |
 | Receiver battery saver | `BATTERY_SAVE` | 272 | 228 |  |
-| Frequency trim, Settings > Advanced | `REF_TRIM` | 2,012 | 2,356 | The hook on each radio, the page and the setting |
+| Frequency trim, Settings > Programming | `REF_TRIM` | 2,012 | 2,356 | The hook on each radio, the page and the setting |
 | Air band AM receive (108-137 MHz) | `AM_RX` | 408* | — | Needs a receiver that does AM; DM-32 board glue not written yet, so nothing runs |
 | Broadcast FM receiver | `BCAST_FM` | ~0* | — | Needs a second receiver chip (DM-32's RDA5807M); glue not written yet |
-| Receive past the rated bands, Settings > Advanced | `RX_EXT` | 560 | — | Receive only, FM, off by default; ranges from each receiver chip's documents. MD-380: no receiver range in its chip documents |
+| Receive past the rated bands, Settings > Programming | `RX_EXT` | 560 | — | Receive only, FM, off by default; ranges from each receiver chip's documents. MD-380: no receiver range in its chip documents |
 | DMR Tier II voice (modem, call stack, AMBE FEC, vocoder) | `DMR` | 377,332 | 275,716 | Includes every DMR feature and everything on IP over DMR |
 | P25 Phase 1 conventional: the air interface (framer, soft modem, shared FEC), the engine, the P25 channel mode and the full-rate voice decoder on the MBE core | `P25` | 40,588 | 24,640* | Needs a board with an air interface provider (`board.air`); without one nothing runs ([air-interface.md](spec/air-interface.md)). Off on the MD-380 until receive is written ([hardware-md380.md](spec/hardware-md380.md) 4.11). Receive and transmit checked on air against the SDR bench on the DM-32UV and the DM-1701, receive, zone scan and dual watch on the MD-9600; the VFO's mode tile, the debug link or a stored P25 channel sets it ([p25.md](spec/p25.md)). RAM: 6,640 B on the DM-1701, 424 B on the MD-380 |
 | NXDN conventional voice, 4800 and 9600 bit/s: the frame codec, receive, the call layer, the engine and the NXDN mode in the radio core | `NXDN` | 10,512 | — | Needs `DMR` (its voice goes through the DMR vocoder path) and a board with an air interface provider (`board.air`); where the provider only receives a rate, PTT is refused at that rate. The VFO's mode tile, the debug link or a stored NXDN channel sets it ([nxdn.md](spec/nxdn.md) 6, [nxdn-codeplug.md](spec/nxdn-codeplug.md)). On the DM-1701 and the DM-32UV transmit is checked off air at both rates and receive with a bench transmitter, speech frames through the vocoder included (DM-1701); on the HR_C6000 radios the speaker plays NXDN speech through the chip's prompt tone FIFO, checked by ear on the DM-1701 and the MD-9600 ([modem-hrc6000.md](spec/modem-hrc6000.md) 10.6). RAM: 2,184 B on the DM-1701; with `P25` also on it shares P25's engine memory (9,464 B flash, 256 B RAM on top of P25) |
@@ -352,18 +352,18 @@ clock`; ? = not known yet). No driver reads the clock yet ([radio-features.md](s
 | VFO (hand-tuned frequency) | `VFO` | 2,424 | 1,344 | Includes the DMR VFO and Copy to VFO ([dmr-voice.md](spec/dmr-voice.md) 2.2), which is about 750 B on the C-SKY radios |
 | FM VFO | `VFO_FM` | 0 | -28 |  |
 | DMR VFO (color code, slot, talk target typed in; mode change FM / DMR) | `VFO_DMR` | 1,072 | 276 | The VFO's mode, color code, slot and talk target are settings of the VFO, kept across power cycles ([dmr-voice.md](spec/dmr-voice.md) 2.1) |
-| Channels list: every channel by number, a channel's settings (hub 5) | `CHANNEL_LIST` | 18,320 | 16,580 |  |
+| Channels list: every channel by number, a channel's settings (Settings > Programming) | `CHANNEL_LIST` | 18,320 | 16,580 |  |
 | Channel editor: edit a channel, New channel from current settings, text entry | `CHANNEL_EDIT` | 14,532 | 13,368 | Needs `CHANNEL_LIST`. Without it a channel's settings are read only |
 | Zone editor: move, add, copy and remove channels in a zone; rename, copy and delete a zone | `ZONE_EDIT` | 5,188 | 5,480 | Needs `CHANNEL_EDIT`. Also about 1.3 KB of RAM |
 | Contact editor: a new contact from Find or a call's actions (name, ID, type, timeslot) | `CONTACT_EDIT` | 1,728 | 1,892 | Needs `CHANNEL_EDIT` and `DMR` |
 | Volume bar when a knob the MCU reads turns (#354) | `VOLUME_BAR` | 520 | 492 | Shows only on a radio with such a knob. Off, the volume screen keeps the segment drawing it now shares (about 90 bytes) |
-| Key assignment (Settings > Keys, codeplug) | `KEY_ASSIGN` | 2,468 | 2,224 | Up to 9 keys |
+| Key assignment (Settings > Buttons, codeplug) | `KEY_ASSIGN` | 2,468 | 2,224 | Up to 9 keys |
 | Scan, band scan, dual watch, nuisance delete | `SCAN` | 25,640 | 24,204 |  |
 | Dual watch: A and B in any zone or the VFO, PTT on the selected one, its screens, talk back | `DUAL_WATCH` | 20,876 | 20,640 | Needs `SCAN`. Without it, only the debug link's dual watch (two channels of one zone). |
 | Beeps and alert tones | `BEEP` | 8,036 | 2,700 |  |
-| Signaling tone chains (Settings > Signaling tones) | `SIG_TONES` | 5,340 | 5,748* | Needs `BEEP` |
-| Vibration alerts (Settings > Sound > Vibrate) | `VIBRATE` | 520* | — | Needs a vibration motor (`hal_power_t.vibrate`): none of these radios has one RadioFoundry drives. On for the DM-1801 Pro. Measured with `CONFIG_SNMP=n`; 236 B with LTO |
-| GPS receiver: the module driver and its NMEA input (Settings > Location > GPS) | `GPS` | 9,568 | 9,556 | Needs a GPS receiver. Off, DMR GPS Info, LRRP and APRS send the fixed position when one is set ([position](spec/position.md)). The DM-1701 has none from the factory but listens for an owner-fitted one |
+| Signaling tone chains (Settings > Tones & alerts > Signaling tones) | `SIG_TONES` | 5,340 | 5,748* | Needs `BEEP` |
+| Vibration alerts (Settings > Tones & alerts > Vibrate) | `VIBRATE` | 520* | — | Needs a vibration motor (`hal_power_t.vibrate`): none of these radios has one RadioFoundry drives. On for the DM-1801 Pro. Measured with `CONFIG_SNMP=n`; 236 B with LTO |
+| GPS receiver: the module driver and its NMEA input (Menu > Location > Location settings > GPS) | `GPS` | 9,568 | 9,556 | Needs a GPS receiver. Off, DMR GPS Info, LRRP and APRS send the fixed position when one is set ([position](spec/position.md)). The DM-1701 has none from the factory but listens for an owner-fitted one |
 
 ## DMR data
 
@@ -382,7 +382,7 @@ clock`; ? = not known yet). No driver reads the clock yet ([radio-features.md](s
 | APRS on FM: AX.25 / AFSK packets, messages, KISS TNC | `APRS_AFSK` | 23,956 | 12,124 | Needs APRS and FM. Includes APRS receive, KISS over TCP and APRS-IS where built. Off, APRS sends positions over DMR only |
 | APRS over DMR: LRRP or UDT positions to a gateway ID | `APRS_DMR` | 728 | 104 | Needs APRS and DMR. Off, APRS is FM only |
 | APRS receive: demodulator, station list, digipeater | `APRS_RX` | 10,012 | — | DM-1701: FM receive audio on the I2S stream, squelch gated ([aprs](spec/aprs.md) 5.3). MD-380: not written |
-| GPS screen: sky plot, signal bars, grid locator (Tools > Position) | `GPS_SKY` | 6,200 | 5,332 | Needs GPS. 176 B of RAM |
+| GPS screen: sky plot, signal bars, grid locator (Menu > Location > GPS status) | `GPS_SKY` | 6,200 | 5,332 | Needs GPS. 176 B of RAM |
 | APRS iGate rules (with tools/aprs_gate.py) | `APRS_IGATE` | 1,420* | — | Needs APRS receive. DM-1701: off by default |
 
 ## Host link and USB
@@ -402,7 +402,7 @@ clock`; ? = not known yet). No driver reads the clock yet ([radio-features.md](s
 | Crash log | `CRASH_LOG` | 6,240 | 5,928 | A fault, stack overflow, heap exhaustion or failed assertion keeps a record across the restart; the debug link shows it ([crash-log.md](spec/crash-log.md)) |
 | Hardware watchdog | `WATCHDOG` | 1,248 | 572 | Fed by the idle task; a hang or a starved system resets the radio. Timeout about 5 s on the STM32 radios, 4 s on the HR_C7000 radios ([watchdog.md](spec/watchdog.md)) |
 | Fault trace on the host UART | `FAULT_TRACE` | — | — | A CPU fault's registers in three framed lines before the restart, about 600 B ([crash-log.md](spec/crash-log.md) 2.3). The STM32 radios' host port is USB |
-| Crash log screen | `CRASH_SCREEN` | 3,384 | 3,176 | Settings > Advanced > Crash log: the record's summary and Clear |
+| Crash log screen | `CRASH_SCREEN` | 3,384 | 3,176 | Settings > Programming > Crash log: the record's summary and Clear |
 | Crash report over DMR | `CRASH_REPORT` | 1,564 | 1,268 | Sends the crash record as one UDP datagram to a codeplug contact, from the menu or after the restart (Off, Ask, Auto) ([crash-log.md](spec/crash-log.md) 5). Needs the screen |
 
 ## Network (USB network adapter and IP over DMR)

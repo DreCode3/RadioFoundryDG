@@ -4,7 +4,7 @@
 
 ## La radio está en otro idioma tras una actualización
 
-Pulsa Menú, luego 7 (Ajustes), 2 (Pantalla) y Arriba una vez para llegar a Idioma, la última fila. Pulsa OK y elige Español. La opción Idioma de la radio del instalador web fija el idioma con el que arranca la radio, y un restablecimiento de fábrica vuelve a él. [Más](../../docs/user/17-settings.md#display-key-2)
+Pulsa Menú, luego 8 (Ajustes) y 0 (Buscar), y escribe 5 2 6 4 (las teclas de "lang"): Idioma es la primera fila en cualquier idioma. Pulsa OK dos veces y elige Español. La opción Idioma de la radio del instalador web fija el idioma con el que arranca la radio, y un restablecimiento de fábrica vuelve a él. [Más](../../docs/user/17-settings.md#display-key-1)
 
 ## El instalador no encuentra mi radio
 
@@ -32,7 +32,7 @@ De tres formas: Menú, 4 (Zonas), donde el VFO es la primera fila; una tecla lat
 
 ## Me cuesta acceder a mi hotspot o a un repetidor concreto en DMR
 
-RadioFoundry usa la calibración de frecuencia de fábrica de tu radio, y los hotspots son muy sensibles a la frecuencia. Si tu radio está un poco desviada, ajusta Ajustes > Avanzado > Ajuste frec, en las radios que lo tienen. Mide antes el error, mejor con un SDR calibrado, un frecuencímetro o la prueba BER de un hotspot, e introdúcelo con el signo cambiado. [Más](../../docs/user/17-settings.md#advanced-last-row)
+RadioFoundry usa la calibración de frecuencia de fábrica de tu radio, y los hotspots son muy sensibles a la frecuencia. Si tu radio está un poco desviada, ajusta Ajustes > Programación > Ajuste de frecuencia, en las radios que lo tienen. Mide antes el error, mejor con un SDR calibrado, un frecuencímetro o la prueba BER de un hotspot, e introdúcelo con el signo cambiado. [Más](../../docs/user/17-settings.md#programming-key-9)
 
 ## ¿RadioFoundry hace modos de datos?
 

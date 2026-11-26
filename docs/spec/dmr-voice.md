@@ -52,7 +52,7 @@ PTT sends to, in order:
 1. the reply target while the reply window runs: after a call we played, its talkgroup (group call) or its caller
    (private call to us); after our own call, its target again. The window is the codeplug's group or private call
    hang time (rounded up to whole seconds, at most 30 s), or 10 s when the codeplug has none; the reply time setting
-   (`reply_s`, 0 to 30 s, Settings > Talk & listen) replaces the codeplug's for both. BACK on Home ends it.
+   (`reply_s`, 0 to 30 s, Settings > Call settings) replaces the codeplug's for both. BACK on Home ends it.
 2. a talk target chosen for now: a typed ID or talkgroup, a codeplug contact (with its timeslot override), or "call
    back", which takes the last call heard (its caller for a private call, its talkgroup for a group call). It lasts
    until the channel changes or it is cleared.
@@ -178,14 +178,14 @@ not a position.
 Receive: `dmr_call` decodes every GPS Info LC on the call into `dmr_caller_t.gps` / `gps_valid` (counter `rx_gps`);
 a new talker clears it, and `last_heard` keeps it after the call. The radio core adds the distance and bearing from
 our own position (the position service, [position.md](position.md)) in `radio_dmr_call_t`, the receive screen shows "12.3 km NE"
-(or the coordinates when we have no position of our own), Recent keeps the distance with the entry, and in
+(or the coordinates when we have no position of our own), the call log keeps the distance with the entry, and in
 `CONFIG_APRS_RX` builds the caller goes into the APRS station list (named by its alias's callsign, else its DMR ID).
 
 Transmit, when either asks for it:
 
 | Setting | Where | Scope |
 |---|---|---|
-| "Send in DMR calls" | Settings > Location (`position_cfg_t.dmr_gps`, off by default, P7) | every DMR call |
+| "Send in DMR calls" | Menu > Location > Location settings (`position_cfg_t.dmr_gps`, off by default, P7) | every DMR call |
 | The channel's talker alias field for its timeslot: APRS or Both | the codeplug (`open-firmware-cps.md` 7.3.3, offset 0x30; `channel_t.alias_tx` `CODEPLUG_ALIAS_TS1_GPS` / `_TS2_GPS`), so a CPS sets it | calls on that channel; not the VFO |
 
 At
@@ -325,15 +325,15 @@ privacy is recognized from the service options and PI headers only.
 ## 6. Encoding the microphone
 
 The vocoder encodes each 20 ms of microphone audio (`core/dmr/ambe/ambeVoice.c`, in the audio task). Before that the
-samples are scaled by the mic gain (Settings > Talk & listen, 2 dB a step). The codec itself can also clean up the
+samples are scaled by the mic gain (Settings > Audio, 2 dB a step). The codec itself can also clean up the
 input. These are generic encode options in `hal_vocoder_t`; the board maps them to its codec, and `core/` never sees
 codec bits.
 
 | Option | Effect | Default | Setting |
 |---|---|---|---|
-| `VOCODER_OPT_NOISE_REDUCTION` | Suppresses steady background noise, also between words. It also lowers a steady tone held into the mic | on | Settings > Talk & listen > Mic noise reduction |
+| `VOCODER_OPT_NOISE_REDUCTION` | Suppresses steady background noise, also between words. It also lowers a steady tone held into the mic | on | Settings > Audio > Mic noise reduction |
 | `VOCODER_OPT_TONE_FRAMES` | A steady tone or tone pair (DTMF) is sent as a tone frame and comes out at its frequency on the other side. Speech is not affected | on | none |
-| `VOCODER_OPT_AGC` | Input level control: quiet speech raised (about 4x), loud speech lowered. The codec's own parameters; not yet checked on air | off | Settings > Talk & listen > Mic AGC |
+| `VOCODER_OPT_AGC` | Input level control: quiet speech raised (about 4x), loud speech lowered. The codec's own parameters; not yet checked on air | off | Settings > Audio > Mic AGC |
 
 * `options()` says which options the board's codec takes. A board without them leaves `options`, `set_options` and
   `encode_flags` NULL. Then the settings are shown dimmed ("Not on this radio") and nothing changes.
@@ -417,4 +417,4 @@ last one's slot timing can be decoded at that timing to its end.
 - A codeplug TOT of 0 means "off" in the vendor layout; here it falls back to the radio's TOT.
 - Emergency alarm and emergency call TX are in `dmr-emergency.md`. No enhanced privacy. GPS Info is host-tested
   (`dmrCallTest`) and on air both ways against the SDR bench (`docs/testing/on-air-coverage.md`). Not done: GPS Info in the hotspot's own
-  transmissions (it relays the host's), a separate Settings > Location toggle for it (it lives on the APRS page).
+  transmissions (it relays the host's), a separate Menu > Location > Location settings toggle for it (it lives on the APRS page).

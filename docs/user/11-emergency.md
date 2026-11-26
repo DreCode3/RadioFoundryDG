@@ -8,7 +8,7 @@ Don't rely on the alarm and emergency calls for safety. The [Radio reference](23
 
 When the radio hears an emergency alarm, or plays a call marked as an emergency, to you or to a talkgroup you listen
 to, it opens the emergency screen and plays an alert tone (a warble of about 1 s). A radio with a vibration motor also
-vibrates four times, unless **Settings > Sound > Vibrate** is off. The screen shows EMERGENCY and the station's name or
+vibrates four times, unless **Settings > Tones & alerts > Vibrate** is off. The screen shows EMERGENCY and the station's name or
 ID.
 
 <img src="../ux/screens/160x120i5/emergency.png" width="200" alt="An emergency received">

@@ -66,7 +66,7 @@ Why this one:
 ## 4. Writing codeplug.bin
 
 The CPS writes over USB without asking, so TFTP over USB does too: writes are **allowed by default**, under the same
-rules as the CPS shim (`cps-protocol.md` 2.3), plus a setting to turn them off: **Settings > Connections > TFTP
+rules as the CPS shim (`cps-protocol.md` 2.3), plus a setting to turn them off: **Menu > Connections > PC and network > TFTP
 codeplug write** (`settings_t.net_flags` bit 0 set = off; read at boot and when changed). Refused (error 2) while off,
 while the flash region is foreign (`settings-store.md` 5), or without a staging area.
 

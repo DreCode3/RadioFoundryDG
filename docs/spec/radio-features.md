@@ -329,7 +329,7 @@ speaker.
 
 ### 3.6 Mic gain
 
-Settings > Talk & listen > Mic gain: a step 0-10, 2 dB a step, 5 = the board's own levels (`core/radio/mic_gain.c`).
+Settings > Audio > Mic gain: a step 0-10, 2 dB a step, 5 = the board's own levels (`core/radio/mic_gain.c`).
 The UI stores it (`settings_t.mic_gain`) and applies it at start-up and on each change with `radio_set_mic_gain()`;
 the debug link's SETTING op 29 sets it in RAM only.
 
@@ -429,17 +429,17 @@ None of them needs a correction in the driver. The HIL test (`test_fm_tx_dtmf`) 
 |---|---|---|
 | key | 1000 Hz 25 ms | `radio_req_beep(BEEP_KEY)` from the UI, if `key_beep` |
 | error | 400 Hz 150 ms | UI errors |
-| TX permit | 1600 Hz 50 ms twice | DMR: the channel is granted (unless the codeplug channel has "no beep", or `talk_permit` is off: Settings > Sound > Talk permit tone) |
+| TX permit | 1600 Hz 50 ms twice | DMR: the channel is granted (unless the codeplug channel has "no beep", or `talk_permit` is off: Settings > Tones & alerts > Alert tones > Talk permit tone) |
 | TX permit, before keying | 1600 Hz 80 ms | The TX permit on boards with `CAP_BEEP_NOT_ON_AIR`, whose beeps can't sound while DMR transmits: once the call is admitted, the stack holds the key-up (`dmr_call_config_t.permit_hold_ms`, `permit_busy`) while the radio still receives and this tone plays. It keys once the tone and the driver's buffers have played out (`hal_audio_t.spk_pending`): at least 40 ms, at most 400 ms (`DMR_CALL_PERMIT_MAX_MS`). The same conditions as the TX permit |
-| TX deny | 300 Hz 400 ms | any TX refusal but a busy channel (3.1), unless Settings > Sound > TX denied tone is off (settings area key 0x0006) |
-| call end | 1200 Hz 50 ms, 900 Hz 70 ms | DMR: a played call ended (unless "no beep", or Settings > Sound > Call end tone is off: settings area key 0x0003) |
-| TOT warning | 1000 Hz 100 ms twice | 3.2, unless Settings > Sound > TOT warning tone is off (settings area key 0x0004) |
-| battery low | 800 Hz, 600 Hz | entering low, then every 2 min, unless Settings > Sound > Battery tone is off (settings area key 0x0005) |
+| TX deny | 300 Hz 400 ms | any TX refusal but a busy channel (3.1), unless Settings > Tones & alerts > Alert tones > TX denied tone is off (settings area key 0x0006) |
+| call end | 1200 Hz 50 ms, 900 Hz 70 ms | DMR: a played call ended (unless "no beep", or Settings > Tones & alerts > Alert tones > Call end tone is off: settings area key 0x0003) |
+| TOT warning | 1000 Hz 100 ms twice | 3.2, unless Settings > Tones & alerts > Alert tones > Timeout warning tone is off (settings area key 0x0004) |
+| battery low | 800 Hz, 600 Hz | entering low, then every 2 min, unless Settings > Tones & alerts > Alert tones > Battery tone is off (settings area key 0x0005) |
 | battery critical | 600 Hz three times | entering critical, then every 30 s; the same setting as battery low |
 | custom | up to 10 steps, 900 ms | a signaling tone on the speaker (4.3); not a fixed pattern: it has no entry in the pattern table or the beep reel |
-| scan hold | 1400 Hz 40 ms | the scan stops on a signal, if `scan_beep` (Settings > Sound > Scan stop tone, off by default) |
-| emergency | 1500 / 900 Hz warble, 6 x 160 ms | someone's emergency heard (alarm or emergency call), if the emergency setting's tone is on (Settings > Sound > Emergency tone, `dmr-emergency.md`) |
-| message | 1000, 1300, 1700 Hz rising, 60-90 ms each | a text message arrived: the UI asks for it (`radio_req_beep(BEEP_MESSAGE)`) when Settings > Sound > Message tone is on |
+| scan hold | 1400 Hz 40 ms | the scan stops on a signal, if `scan_beep` (Settings > Tones & alerts > Alert tones > Scan stop tone, off by default) |
+| emergency | 1500 / 900 Hz warble, 6 x 160 ms | someone's emergency heard (alarm or emergency call), if the emergency setting's tone is on (Settings > Tones & alerts > Alert tones > Emergency tone, `dmr-emergency.md`) |
+| message | 1000, 1300, 1700 Hz rising, 60-90 ms each | a text message arrived: the UI asks for it (`radio_req_beep(BEEP_MESSAGE)`) when Settings > Tones & alerts > Alert tones > Message tone is on |
 | system back | 1000 Hz, 1400 Hz, 60 ms each | a trunked system found again from its fallback channel ([dmr-trunking.md](dmr-trunking.md) 12.5) |
 | sweep | 400 ms silence, then 150 Hz to 3.8 kHz over 4 s, phase continuous | the speaker test, from the debug link only (op 22, which can delay it); `test_speaker_sweep` measures the speaker's response and whether the audio path plays it whole |
 
@@ -511,7 +511,7 @@ that changes the beeps gets the reel before and after (`beep-reel.yml`, [ci.md](
 
 On a radio with a vibration motor (`hal_power_t.vibrate` not NULL), the alerts that already reach the user also
 vibrate. The UI decides, as it does for the message tone: `handle_event` (`core/ui/ui_app.c`) calls
-`ui_svc_vibrate()` for each event below when Settings > Sound > Vibrate is on, and `ui_svc_radio.c` passes it to the
+`ui_svc_vibrate()` for each event below when Settings > Tones & alerts > Vibrate is on, and `ui_svc_radio.c` passes it to the
 radio core as `radio_req_vibrate()` (`RREQ_VIBRATE`).
 
 | Pattern | Pulses | When (UI event) |
@@ -544,18 +544,18 @@ hook; `hal_power_t.volume()` says where the level comes from (`radio_volume_src_
 | `knob` | A hook and a knob the MCU reads | The knob's 0..100 % |
 | `soft` | A hook and no knob (`hal_power_t.volume()` = -1); `radio_volume_soft()`, reported to the UI as `UI_FEAT_VOLUME` | The stored step |
 | `override` | As `knob`, with the debug link's level in force | The step the debug link set, whatever the knob does |
-| `hold` | As `knob`, with the keys locked and Settings > Key lock > Knob when locked Off | The level in force when the hold began, whatever the knob does |
+| `hold` | As `knob`, with the keys locked and Settings > Security & keypad lock > Knob when locked Off | The level in force when the hold began, whatever the knob does |
 
 | Item | Value |
 |---|---|
 | Steps | 0 (mute) to `RADIO_VOLUME_MAX` (16), default `RADIO_VOLUME_DEFAULT` (8). The step count is that one constant: the stored form, the screen bar, Settings, the debug link, and the boards' maps follow it |
 | Percent | The hook gets round(step * 100 / `RADIO_VOLUME_MAX`) (`radio_volume_percent`): step 1 is 6 %, step 8 is 50 %, step 16 is 100 %. The board decides what a percent means; step 0 must be silent |
-| Stored | `settings_t.volume` (`settings-store.md` 3): 0 = the default, else `0x80 \| (step + 1)`; a byte 1..11 from the first version (steps 0..10) reads as round(step * 16 / 10). Settings > Sound > Volume (`UI_SET_VOLUME`) and the volume screen write it, `soft` radios only |
+| Stored | `settings_t.volume` (`settings-store.md` 3): 0 = the default, else `0x80 \| (step + 1)`; a byte 1..11 from the first version (steps 0..10) reads as round(step * 16 / 10). Settings > Tones & alerts > Volume (`UI_SET_VOLUME`) and the volume screen write it, `soft` radios only |
 | To the board | `follow_volume` (radio poll) calls `hal_radio_t.volume(percent)` at start-up and after each change (the knob's changes of 2 % or more, and its ends); the same level twice calls nothing |
 | A change | `ui_svc_setting_set(UI_SET_VOLUME)` saves the step and posts `RREQ_VOLUME` (`radio_req_volume`), so it is in force at once. The request counts as neither user activity nor an interruption: a transmission or a roaming search goes on |
 | Override | `radio_req_volume_override(step)` (`RREQ_VOLUME_OVERRIDE`) holds a level over the knob until `-1`; RAM only, so a restart gives the knob back. Without a knob there is nothing to override, and the request changes nothing |
 | Hold | `radio_req_volume_hold(true)` (`RREQ_VOLUME_HOLD`, from the UI's key lock through `ui_svc_volume_hold`) keeps the level in force and ignores the knob; `false` follows the knob again, and its level goes out at once. RAM only; ignored without a knob or under an override |
-| Knob position | `radio_view_t.volume_knob`: the knob's 0..100 % with the same 2 % filter, in force or not (also while held), -1 without a knob the MCU reads. While held, a change shows the unlock hint, as a key does. `radio_volume_knob()` (`UI_FEAT_VOLUME_KNOB`) says whether the board has such a knob; Settings > Key lock > Knob when locked (`UI_SET_KNOB_WHEN_LOCKED`) is shown only then |
+| Knob position | `radio_view_t.volume_knob`: the knob's 0..100 % with the same 2 % filter, in force or not (also while held), -1 without a knob the MCU reads. While held, a change shows the unlock hint, as a key does. `radio_volume_knob()` (`UI_FEAT_VOLUME_KNOB`) says whether the board has such a knob; Settings > Security & keypad lock > Knob when locked (`UI_SET_KNOB_WHEN_LOCKED`) is shown only then |
 | Beeps | Key and status tones keep their own level (Tone volume, 4) and are mixed at the board's speaker path as before |
 
 **Debug link.** RADIO op 30 (`debuglink.md` 3.8) sets a step 0..16, or `0xFF` for "back to the knob". On a `soft` radio
@@ -584,7 +584,7 @@ the radio. No new view field: `follow_volume` already filters the knob (2 %, the
 ### 4.3 Signaling tones (CONFIG_SIG_TONES)
 
 Short tone sequences at three events, on the speaker, on air or both, set separately for DMR and for FM
-(`core/radio/sigtone.h`, Settings > Sound). Each sequence is up to 10 steps of `{Hz, ms}` (`SIG_STEPS`), at most 900 ms in
+(`core/radio/sigtone.h`, Settings > Tones & alerts). Each sequence is up to 10 steps of `{Hz, ms}` (`SIG_STEPS`), at most 900 ms in
 all (`SIG_MAX_MS`), a pause being a step of 0 Hz: the shape of the rows of a CPS alert tone page.
 
 | Event | Where it fires | Default (the output setting 0) |
@@ -600,10 +600,10 @@ on air plays right after the transmitter keys (`fm_lead_start`, on the `roger_se
 microphone goes live when it ends; releasing the PTT during it cancels it. A board without `tx_tone` sends none. A channel with "no beep" has none of
 the speaker or on air copies. The tones on the speaker are the `BEEP_CUSTOM` pattern of `beep.c` (`beep_play_custom`:
 two copies of the steps alternate, so a pattern still playing is not rewritten), and a *default* output keeps the fixed
-beeps and their Settings > Sound switches (the FM roger beep has none: `roger_beep` is set over the debug link). The sound is the event's chain (`sig_chain`): up to `SIG_STEPS` (10) steps, each a frequency (0 = a pause, up to
+beeps and their Settings > Tones & alerts switches (the FM roger beep has none: `roger_beep` is set over the debug link). The sound is the event's chain (`sig_chain`): up to `SIG_STEPS` (10) steps, each a frequency (0 = a pause, up to
 `SIG_HZ_MAX`, 3400 Hz, a multiple of `SIG_HZ_UNIT`, 10 Hz) and a length (multiples of 10 ms), the same shape as the Frequency / Period rows of a CPS alert
 tone page. A step of length 0 ends the chain, and the whole chain is cut to `SIG_MAX_MS` (900 ms: on air the call stack holds the over open for three superframes, about 1.08 s). A chain with no step
-is the event's standard sound (the permit beep at the start, the call end beep otherwise). Settings > Signaling tones
+is the event's standard sound (the permit beep at the start, the call end beep otherwise). Settings > Tones & alerts > Signaling tones
 edits the three chains in `settings_t` (the `sig-chain` screen, [ui.md](ui.md) 2): nothing is built in beyond that standard
 sound.
 
@@ -770,7 +770,7 @@ pending, else `tx_deny=refused` ("Radio refused to send"); never `band`.
 
 ### 6.1 Reference trim
 
-Settings > Advanced > Freq trim: a fraction of the reference, -10.0 to +10.0 ppm in 0.1 ppm steps, 0 by default
+Settings > Programming > Frequency trim: a fraction of the reference, -10.0 to +10.0 ppm in 0.1 ppm steps, 0 by default
 (`core/radio/ref_trim.c`). It is for a radio whose reference oscillator is off even with its calibration: it moves
 receive and transmit together, FM and DMR. A fraction of the reference moves every carrier by the same fraction, so
 one value holds on every band; the Hz it comes to grows with the frequency.
@@ -810,7 +810,7 @@ A board may list receive-only ranges past its rated bands: the last `board_t.rx_
 
 | Rule | Detail |
 |---|---|
-| Setting | Settings > Advanced > RX past bands, off by default. Stored in `settings_t.cp_flags`, cleared by a factory reset. Hidden on a board with no range. |
+| Setting | Settings > Programming > RX past bands, off by default. Stored in `settings_t.cp_flags`, cleared by a factory reset. Hidden on a board with no range. |
 | Table | Everything that reads the bands uses `board_band_count()`: the VFO's tuning and wrap, the keypad entry, VFO scan, the channel editor, `rigctld` and the debug link's `bands=`. |
 | Transmit | Never: `board_in_band(hz, true)` skips the entries, so PTT gives `TXDENY_BAND`. |
 | Modes | FM only, as in any receive-only band: the channel editor refuses DMR there. |

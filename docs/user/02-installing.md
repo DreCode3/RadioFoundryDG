@@ -70,7 +70,7 @@ that runs RadioFoundry already: [Updating RadioFoundry](#updating-radiofoundry))
    firmware does. On such a radio, **Original firmware** and **Other / Not sure** offer **Read Firmware Version**:
    connect the radio switched on normally (not in its bootloader) and select it. Reading changes nothing on the radio.
    After the installation the installer stores the revision on the radio, so you don't have to pick it. If the radio
-   already holds a different one, the installer shows both and keeps yours (Settings > Advanced > Hardware). The step
+   already holds a different one, the installer shows both and keeps yours (Settings > Programming > Hardware). The step
    is optional: when the radio can't detect the revision itself, the installer asks for it right after the
    installation, and the radio reminds you on its home screen until it is set. It won't transmit before that.
 4. **Back up.** The installer saves a backup file (a `.zip`) on your computer: the firmware, the channels and settings

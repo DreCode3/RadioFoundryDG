@@ -17,10 +17,10 @@ composite ACM + NCM device does not fit: the radio is either a serial port (`boa
 adapter (`pid_network`), with their own descriptors. Switching drops the D+ pull-up for
 100 ms, so the host sees an unplug and enumerates the other personality.
 
-- Boot is serial unless the stored setting `usb_mode` is 1 (Settings > Connections > USB network at start, debug link
+- Boot is serial unless the stored setting `usb_mode` is 1 (Menu > Connections > PC and network > USB network at start, debug link
   radio op 27, view key `usb.boot_network`): then the personality is chosen before the USB stack starts, and the radio
   enumerates as the adapter straight away. At run time the switch is a request: debug link radio op 25
-  (`rfoundry_debug.py radio usb network`) or Tools > USB network, carried out after its reply has gone out; it doesn't
+  (`rfoundry_debug.py radio usb network`) or Menu > Connections > USB network, carried out after its reply has gone out; it doesn't
   change the stored setting.
 - In network mode the serial protocols stay reachable over UDP: datagrams to the radio's own address, port 3334,
   carry the same byte stream as the serial port (debug link, MMDVM, CPS), and the replies go back to the address and
@@ -71,7 +71,7 @@ adapter (`pid_network`), with their own descriptors. Switching drops the D+ pull
   to network mode, at run time or by the power-on setting, the radio goes back to serial when the host hasn't
   configured it within 10 s of its bus reset (`usb_ncm.c`, `switch_fallbacks`). The time counts only while a host is
   on the bus (`tud_connected`), so a radio switched on away from a computer still comes up as the adapter when it is
-  plugged in later. The fallback lasts for that boot only: the setting stays, and the UI (Settings > Connections) or
+  plugged in later. The fallback lasts for that boot only: the setting stays, and the UI (Menu > Connections > PC and network) or
   the debug link over the serial port it fell back to turns it off.
 
 ## 2. Frames
@@ -189,7 +189,7 @@ Host to air, by the IPv4 destination, first match:
   radio's address). DHCP option 121 routes only the gateway's ranges.
 - The gateway ID is the data setting `ipGatewayId` ([dmr-data.md](dmr-data.md) 8), 0 by default: off-net packets are
   dropped, as before it existed. The codeplug's settings area can hold it (key 0x0002,
-  [codeplug-settings.md](codeplug-settings.md)); Settings > Connections > Data services sets it.
+  [codeplug-settings.md](codeplug-settings.md)); Menu > Connections > Data services sets it.
 
 Air to host: the IP addresses come from the header (SAP 4) or from the IDs (SAP 3).
 
@@ -279,7 +279,7 @@ without anyone switching it, with the 10 s fallback to serial for a host that do
 
 ### 5.2 The PC is the endpoint (passthrough)
 
-Stored setting `net_flags` bit `SETTINGS_NET_PASSTHROUGH` (Settings > Connections > PC answers data). In force while
+Stored setting `net_flags` bit `SETTINGS_NET_PASSTHROUGH` (Menu > Connections > PC and network > PC answers data). In force while
 it is set **and** the network link is up (host configured: `hostlink_net_passthrough_active()`, view key
 `net.passthrough_active`); with the PC unplugged the radio's own services answer again, so a radio left in this mode
 is never deaf.
@@ -312,7 +312,7 @@ PC in `data.pt_yielded` and shows `data.pt_active` (debug link section `dmr_ext`
 
 ### 5.3 Link addressing
 
-Stored setting `net_flags` bit `SETTINGS_NET_FIXED_LINK` with `net_link_ip` (Settings > Connections > USB link
+Stored setting `net_flags` bit `SETTINGS_NET_FIXED_LINK` with `net_link_ip` (Menu > Connections > PC and network > USB link
 address: "By DMR ID" / "192.168.10.x"). It fits the gateway's design because the gateway's addressing has only two
 link-local facts, the radio's address and the host's, and the rest (the 12/8 and 225/8 ranges, the air side) doesn't
 depend on them:
@@ -346,7 +346,7 @@ vendor control head.
 
 ### 5.4 Settings and the debug link
 
-| Setting (`settings_t`) | Values | UI (Settings > Connections) | Debug link |
+| Setting (`settings_t`) | Values | UI (Menu > Connections > PC and network) | Debug link |
 |---|---|---|---|
 | `usb_mode` | 0 serial (default), 1 network at power-on | USB network at start | radio op 27 bit 0, `usb.boot_network` |
 | `net_flags` & `SETTINGS_NET_PASSTHROUGH` | off (default) / on | PC answers data | op 27 bit 1, `net.passthrough`, `net.passthrough_active` |

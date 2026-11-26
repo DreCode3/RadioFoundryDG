@@ -13,7 +13,7 @@ The [Radio reference](23-radios.md) says which radios have DMR verified. DMR voi
 | Contact | A person: DMR ID, name, callsign |
 | Talk target | Where **PTT** goes now: a talkgroup, a person, or all call |
 | Listen list | The talkgroups a channel listens to (the codeplug's RX group list) |
-| Recent | Stations heard and calls made, newest first |
+| Call log | Stations heard and calls made, newest first |
 | Digital monitor | Play every call on this frequency: any talkgroup, timeslot or color code (promiscuous mode) |
 | Timeslot (TS) | One of the two time slots of a DMR channel |
 | Color code (CC) | A number from 0 to 15 that a DMR channel uses, like a tone on FM |
@@ -57,7 +57,7 @@ A talk target has three lifetimes.
 
 | Lifetime | How | Lasts |
 |---|---|---|
-| Once | Focus a talkgroup or person in any list (Contacts, Recent, Find, the picker, actions) and press **PTT** | This call and its reply window |
+| Once | Focus a talkgroup or person in any list (Contacts, the call log, Find, the picker, actions) and press **PTT** | This call and its reply window |
 | For now | Focus it and press **OK**. The radio shows "Talking to ..." | Until you change the channel or press **Back** on Home |
 | Permanent | Focus it and hold **OK**. The radio shows "... is the default now" | Written to the channel |
 
@@ -73,7 +73,7 @@ Press **Talk target** on a DMR channel (or **\***, **8**). The picker lists, in 
 | The channel's talk target | default |
 | The last call heard: its talkgroup, or the caller for a private call | reply |
 | The talkgroups of the channel's listen list | listen |
-| Talkgroups from Recent | recent |
+| Talkgroups from the call log | recent |
 | Type a number... | |
 | Select contact... | |
 
@@ -113,7 +113,7 @@ the target and a countdown.
 
 <img src="../ux/screens/160x120i5/home_reply.png" width="200" alt="Home during the reply window">
 
-The window lasts as long as **Settings > Talk & listen > Reply window** says (0 to 30 s). 0 turns it off. When that
+The window lasts as long as **Settings > Call settings > Reply window** says (0 to 30 s). 0 turns it off. When that
 setting is left at its start value, the codeplug's hang time applies. Without a hang time in the codeplug, the window
 lasts 10 s. **Back** on Home ends the
 window ("Reply ended").
@@ -141,13 +141,13 @@ For a talkgroup the actions are Talk to, Make channel default and Message, and 4
 
 Without anyone heard yet, **#** shows "No calls heard yet".
 
-## Recent
+## Call log
 
-**OK**, **3**. Recent lists the last 12 stations heard and calls made, newest first. Calls you made
-start with an arrow. Calls to you are highlighted, and private calls show "you" or "priv". Recent is kept in memory
+**OK**, **3**. The call log lists the last 12 stations heard and calls made, newest first. Calls you made
+start with an arrow. Calls to you are highlighted, and private calls show "you" or "priv". The call log is kept in memory
 and starts empty after a restart.
 
-<img src="../ux/screens/160x120i5/recent.png" width="200" alt="Recent">
+<img src="../ux/screens/160x120i5/recent.png" width="200" alt="Call log">
 
 **PTT** talks to the focused entry (the talkgroup a station was heard on). **OK** uses it for now. Holding **OK** makes
 it permanent. **#** opens its actions.
@@ -212,7 +212,7 @@ On a DMR channel, **\*** opens these tiles:
 | **5** | DMon | Digital monitor on or off |
 | **6** | Privacy | Privacy on or off. In the VFO this tile is TX freq ([Split](07-channels-zones-vfo.md#split-repeater-offset)) |
 | **7** | Dual | Dual watch on or off |
-| **8** | Talk to | Opens the talk target picker |
+| **8** | Talkgroup / Contact | Opens the talk target picker |
 | **9** | Bright | Opens the brightness editor |
 | **0** | | Opens Settings |
 
@@ -239,7 +239,7 @@ enough: let go of **PTT** and the radio keeps trying, up to the usual number of 
 ## The talk permit tone
 
 The talk permit tone tells you the radio has the channel and you can talk. Turn it off for every channel in
-**Settings > Sound > Talk permit tone**, or for one channel with the channel's **Talk permit beeps** field.
+**Settings > Tones & alerts > Alert tones > Talk permit tone**, or for one channel with the channel's **Talk permit beeps** field.
 
 Most radios play two short beeps as your voice goes on air. The radio mutes the microphone while the beeps play, so
 other stations don't hear them. Start talking after the beeps. A radio whose beeps would be transmitted plays one short
@@ -265,7 +265,7 @@ when it differs from the channel's ("TS2 CC7"). To talk to them, set the channel
 - Press **Monitor** on a DMR channel (a short press; it acts when you let go). The radio shows "Digital monitor on" and
   the chips show "DMon". Press it again to turn it off. On an FM channel the same key opens the squelch while you hold it.
 - Or **\***, **5**.
-- Or a key set to **Monitor toggle** in [Settings > Keys](17-settings.md), which does what **\***, **5** does.
+- Or a key set to **Monitor toggle** in [Settings > Buttons](17-settings.md), which does what **\***, **5** does.
 
 Digital monitor stays on until you turn it off, change the channel or the mode, or press **Back** on Home. A
 [scan](12-scan.md) started with it on keeps it on at every channel. While it
@@ -330,7 +330,7 @@ What AES does not do:
   settings were restored while the radio was off or you're unsure the repair was saved.
 - Change a key that has carried a lot of traffic, for example once a year on a busy channel.
 
-To set a basic privacy key on the radio, open **Settings > Privacy** (**OK**, **7**, **4**).
+To set a basic privacy key on the radio, open **Settings > Privacy** (**OK**, **8**, **6**).
 
 1. On **Key type**, press **OK** until the screen shows **8-bit (1-255)** or **16-bit (0-65535)**.
 2. On **Key**, press **OK**. Type the key in decimal with the number keys (8-bit 1 to 255, 16-bit 0 to 65535).
@@ -352,14 +352,14 @@ protection in the radio's flash.
 
 Some DMR radios send their position inside a voice call (ETSI GPS Info). When a caller does, the receive screen shows
 how far away it is and in which direction, for example "12.3 km NE". When the radio doesn't know your own position,
-it shows the caller's coordinates. Recent keeps the distance with the call.
+it shows the caller's coordinates. The call log keeps the distance with the call.
 
 Your own position goes into your calls when the radio knows where it is (see [Position](17-settings.md#position))
 and one of these asks for it:
 
 | Where | Applies to |
 |---|---|
-| **Settings > Location > Send in DMR calls** (off by default) | every DMR call |
+| **Menu > Location > Location settings > Send in DMR calls** (off by default) | every DMR call |
 | The codeplug: a channel's talker alias setting for its timeslot set to APRS or Both | calls on that channel |
 
 The codeplug setting is the one to use when radios are programmed from a computer: nothing has to be set on the radio. This works on a radio without APRS, and on a radio
@@ -368,7 +368,7 @@ talker alias.
 
 ## Talker alias
 
-The receive screen shows the talker alias other radios send, as it arrives. **Settings > Talk & listen > Show talker
+The receive screen shows the talker alias other radios send, as it arrives. **Settings > Call settings > Show talker
 alias** turns this off. The radio sends your callsign from the codeplug (8 characters) as your own alias when the
 channel's talker alias setting in the codeplug asks for it.
 
@@ -378,7 +378,7 @@ On a system of DMR repeaters that carry the same talkgroups at different sites, 
 repeater by itself when the one it's on gets weak. You turn roaming on per zone.
 
 1. Put the repeater channels of one system in a zone, each set to the same contact.
-2. Pick one of them, then open **Tools > Roaming** and turn on **Roam in this zone**.
+2. Pick one of them, then open **Menu > Scan > Roaming** and turn on **Roam in this zone**.
 
 While idle, the radio watches the signal of the repeater it's on. When the signal stays below the threshold, the radio
 listens to the zone's other sites and moves to the strongest one it can hear. It never moves during a call, a scan or

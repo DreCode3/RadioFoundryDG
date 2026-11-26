@@ -32,7 +32,7 @@ The manual names keys by the job they do. Each radio puts those jobs on its own 
 | **Back** | Back one level / Home | Red Back key | Red Back key | Red Back key | Red Back key | B/E key | Back key |
 | **Up**, **Down** | Move the focus / repeat | Arrow keys | Arrow keys | Arrow keys | Up and Down keys | None: turn the knob | Up and Down keys |
 | **\*** | Quick settings / lock or unlock the keys | **\*** | **\*** | **\*** | **\*** | P1 | **\*** |
-| **#** | Actions / Recent | **#** | **#** | **#** | **#** | P2 | **#** |
+| **#** | Actions / talk target picker | **#** | **#** | **#** | **#** | P2 | **#** |
 | **0** to **9** | Number keys | Number keys | Number keys | Number keys | Number keys | None | Number keys |
 | **Monitor** | FM: squelch open while held. DMR: digital monitor on / off | SK1 | SK1 | SK1 | SK1 | P3 | SK1 |
 | **Talk target** | Talk target picker | Hold **#** | Hold **#** | Hold **#** | Hold **#** | Hold **P2** | Hold **#** |
@@ -44,8 +44,8 @@ The manual names keys by the job they do. Each radio puts those jobs on its own 
 | **PTT** | Transmit | PTT | PTT | PTT | PTT | PTT on the microphone | PTT |
 | Channel knob | One step per click | Channel knob | Channel switch (16 positions) | Channel knob | Channel knob | Front knob | None: Up and Down |
 
-These are the defaults. **Settings > Keys** can give other jobs to every key the menus don't need
-([Settings](17-settings.md#keys-key-8)):
+These are the defaults. **Settings > Buttons** can give other jobs to every key the menus don't need
+([Settings](17-settings.md#buttons-key-8)):
 
 | Radio | Keys you can set |
 |---|---|
@@ -237,10 +237,10 @@ layout.
 - No GPS from the factory. LRRP location requests get "no fix". APRS positions come from a computer or a fixed
   position. If you fit a GPS module yourself, wire its NMEA output to PA10 (STM32 pin 69) and its power enable, if it
   has one, to PA9. The radio finds it at start-up ([hardware-dm1701.md 14.2](../spec/hardware-dm1701.md#142-gps-module))
-  and powers it only while **Settings > Location > GPS** is on.
+  and powers it only while **Menu > Location > Location settings > GPS** is on.
 - APRS receive needs the squelch open: the radio hears packets strong enough to open the squelch, not weaker ones.
 - No APRS iGate (passing heard packets to APRS-IS) in the default image: `CONFIG_APRS_IGATE` is off by default.
-- No vibration motor: **Settings > Sound > Vibrate** isn't in the image.
+- No vibration motor: **Settings > Tones & alerts > Vibrate** isn't in the image.
 
 ### Verified on the DM-1701
 
@@ -272,7 +272,7 @@ repeater or duplex hotspot, and programming. The VHF image is untested. Installi
 
 > **Check your frequency.** Two MD-380s measured 2 to 2.5 kHz high on receive and transmit, enough that an MMDVM
 > hotspot never decoded them. Confirm yours against an external reference (a frequency counter, a service monitor, or a
-> hotspot's MMDVMCal BER test), then correct it with **Settings > Advanced > Freq trim**: enter the error with the
+> hotspot's MMDVMCal BER test), then correct it with **Settings > Programming > Frequency trim**: enter the error with the
 > sign reversed (2 kHz high at 448.7 MHz: -4.5 ppm). With that the first radio decodes on the hotspot at BER under 0.1 %.
 
 ### Installing on the MD-380
@@ -338,9 +338,9 @@ A 160 x 128 color screen, every row visible. The controller type is unconfirmed.
 - Audio linking (USRP, [USB network](15-usb-network.md#linking-audio-allstarlink-and-dvswitch)) carries DMR only: the
   FM transmit path from the processor isn't written.
 - GPS only on the "G" models. The radio listens for the GPS module for 5 s at start-up and hides the GPS features if
-  it hears nothing. Once heard, the module is powered only while **Settings > Location > GPS** is on, which takes
+  it hears nothing. Once heard, the module is powered only while **Menu > Location > Location settings > GPS** is on, which takes
   effect at once.
-- No vibration motor: **Settings > Sound > Vibrate** isn't in the image.
+- No vibration motor: **Settings > Tones & alerts > Vibrate** isn't in the image.
 - Some early VHF radios have a 1 MB memory chip instead of 16 MB. RadioFoundry keeps settings and the codeplug on it
   as on other radios; the DMR ID database is limited to what fits.
 
@@ -358,7 +358,7 @@ Follow [Installing](02-installing.md) with these values.
 |---|---|
 | Stock firmware file | Any supported TYT or Retevis file: 18.11, 18.16, 19.06, 19.26, 19.74, 219.60 or 219.74 ([the list](../spec/codec-mduv380.md#stock-files)). It gives the bootloader key and the voice codec; the codec is the same in all of them, so any of them works on any of these radios |
 | Bootloader keys | Hold **PTT** and the side key just above it (SK1) while you turn the radio on |
-| Images | Two: 5 W (the MD-UV380, MD-UV390 and RT3S) and 10 W (the MD-UV390 Plus). rfoundry takes `--option POWER=10w`. **Pick by the label on the radio or its box**: the two versions swap the transmitter's band select and the backlight pins, and the radio can't yet tell them apart reliably, so a wrong image isn't caught. Tools > Diagnostics may show "This firmware may be for another version of this radio" when a byte in the radio's flash suggests the other version. That byte is wrong on some 5 W radios, so the radio still transmits: check the label |
+| Images | Two: 5 W (the MD-UV380, MD-UV390 and RT3S) and 10 W (the MD-UV390 Plus). rfoundry takes `--option POWER=10w`. **Pick by the label on the radio or its box**: the two versions swap the transmitter's band select and the backlight pins, and the radio can't yet tell them apart reliably, so a wrong image isn't caught. Settings > Programming > Diagnostics may show "This firmware may be for another version of this radio" when a byte in the radio's flash suggests the other version. That byte is wrong on some 5 W radios, so the radio still transmits: check the label |
 | Bootloader USB device (Zadig) | "Digital Radio in USB mode" (0483:DF11), [driver steps](02-installing.md#windows-the-bootloader-driver) (assumed the same as the DM-1701's) |
 | Board name | `mduv380` |
 
@@ -397,9 +397,9 @@ A 160 x 128 color screen, every row visible.
 
 ### What the MD-UV380 lacks
 
-- No vibration motor: **Settings > Sound > Vibrate** isn't in the image.
+- No vibration motor: **Settings > Tones & alerts > Vibrate** isn't in the image.
 - GPS only on the G models. The radio powers the module for 5 s at start-up and hides the GPS features if it hears
-  nothing; then the module is switched off again. Once heard, the module is powered only while **Settings > Location >
+  nothing; then the module is switched off again. Once heard, the module is powered only while **Menu > Location > Location settings >
   GPS** is on, which takes effect at once.
 - Nothing is checked on a radio yet: treat every function as untested.
 
@@ -430,13 +430,13 @@ Follow [Installing](02-installing.md) with these values. To keep the stock codep
 | Green Menu / OK key | **OK** |
 | Red Back key | **Back** |
 | Up, Down | **Up**, **Down** |
-| P1, P2 (left and right on the 4-way key) | On Home, press or hold: **Previous zone**, **Next zone**, or what Settings > Keys sets for them. Left and right in the menus |
+| P1, P2 (left and right on the 4-way key) | On Home, press or hold: **Previous zone**, **Next zone**, or what Settings > Buttons sets for them. Left and right in the menus |
 | SK1 (the side key below **PTT**) | **Monitor**. Held with **PTT** at power-on, it starts the bootloader |
 | SK2 | **A/B** |
 | **PTT** | **PTT** |
 | Channel knob | Channel knob |
 
-No **Power level** key and no emergency key by default. Give them to P1 or P2 in Settings > Keys (emergency on a
+No **Power level** key and no emergency key by default. Give them to P1 or P2 in Settings > Buttons (emergency on a
 hold), or change the power with **\***, **1**.
 
 ### DM-32UV power levels
@@ -448,7 +448,7 @@ Five levels, L-, L, M, M+, H, from the radio's factory calibration. The radio is
 ### DM-32UV battery
 
 The percentage is linear from 6.4 V (0 %) to 8.2 V (100 %). There are no voltage thresholds: only the percentage
-warning (**Settings > Power > Low battery warning**) applies, and a low battery never stops a transmission.
+warning (**Settings > Display > Low battery warning**) applies, and a low battery never stops a transmission.
 
 ### DM-32UV power switch
 
@@ -487,7 +487,7 @@ A 240 x 320 color screen. RadioFoundry uses its full resolution, with smooth (an
   transmission ends is heard from then on. The DMR talk permit tone is a single short beep played just before the
   radio transmits, while the screen shows ADMITTED ([DMR](09-dmr.md#the-talk-permit-tone)).
 - The signal strength in dBm is uncalibrated: strong signals read high.
-- No vibration alerts: RadioFoundry doesn't drive a vibration motor on it, and **Settings > Sound > Vibrate** isn't in the
+- No vibration alerts: RadioFoundry doesn't drive a vibration motor on it, and **Settings > Tones & alerts > Vibrate** isn't in the
   image.
 
 ## Radioddity DB25-D PRO
@@ -506,7 +506,7 @@ after `909E.` name the hardware.
 | D66 | FD6818 transceiver and LO (2021 to 2023) | Testing: the same image, untested on this hardware |
 | D6T | FD6818 transceiver, AT1141 LO (2021 to 2023) | Testing: the same image, untested on this hardware |
 
-One image runs on every batch: it reads which RF chips the radio has when it starts. Tools > Diagnostics shows them
+One image runs on every batch: it reads which RF chips the radio has when it starts. Settings > Programming > Diagnostics shows them
 (`rf` line). If you install it on a D64, D66 or D6T, a report of what works and what doesn't helps the project.
 
 The radio programming utility reads the code from the radio before it writes, and asks for it when only the factory
@@ -568,8 +568,8 @@ Five levels: L--, L-, L, M, H. L and H (nominal 20 W) are the factory calibratio
 haven't been measured. A channel without a power in the codeplug uses L. The radio refuses to transmit until
 RadioFoundry can read its power calibration.
 
-The radio runs from a 13.8 V supply and has no battery. The status line shows no battery icon or percentage, Tools has
-no Battery page, and Settings > Power has no Battery saver or Low battery warning. RadioFoundry doesn't read the supply
+The radio runs from a 13.8 V supply and has no battery. The status line shows no battery icon or percentage, Settings > Radio info
+has no Battery row, and Settings > Display has no Battery saver or Low battery warning. RadioFoundry doesn't read the supply
 voltage, so nothing warns about it.
 
 ### DB25-D PRO display
@@ -578,7 +578,7 @@ A 1.77" color screen, 160 x 128.
 
 There is no volume knob. Press **VOL/SQL**, turn the front knob (or press Up and Down) to set the volume from 0 (mute)
 to 16, and press OK or Back, or wait 3 seconds, to close it. The screen shows the step as a large number over a bar of
-16 segments. The level is also in Settings > Sound > Volume. RadioFoundry sets it at the receiver chip's audio output and
+16 segments. The level is also in Settings > Tones & alerts > Volume. RadioFoundry sets it at the receiver chip's audio output and
 keeps it. A value saved by an earlier build that had 10 steps is carried over (step 5 becomes 8, step 10 becomes 16).
 The steps are not calibrated yet: how loud each one is has not been measured, so expect to tune it.
 
@@ -617,7 +617,7 @@ storage holds another firmware's data (`nst foreign` on the diagnostics page, be
 
 ### What the DB25-D PRO lacks today
 
-The GPS module is checked at start-up: if it answers within 5 s the radio has GPS (the APRS position source and the Location settings), if not the GPS features are hidden. It stays powered only while **Settings > Location > GPS** is on. The module is heard on the radio (valid NMEA sentences); a fix outdoors hasn't been checked yet.
+The GPS module is checked at start-up: if it answers within 5 s the radio has GPS (the APRS position source and the Location settings), if not the GPS features are hidden. It stays powered only while **Menu > Location > Location settings > GPS** is on. The module is heard on the radio (valid NMEA sentences); a fix outdoors hasn't been checked yet.
 
 The build has the MMDVM hotspot (simplex, over the programming cable) and the IP network over PPP with its services, as the DM-32UV does, both checked on this radio. The DMR VFO works on this radio too (receive and transmit checked). There is no single frequency repeater and no split-duplex hotspot role, and no APRS receive or iGate (the radio gives the core no FM receive audio). There is no VOX yet: the board code that reads the microphone level isn't written. DMR voice needs the codec from a supported stock file (8 in the hardware notes), and DMR
 audio from the speaker hasn't been listened to yet. Programming over the cable has been run on one radio. Settings are kept across power off, in a part of the radio's memory that is otherwise unused.
@@ -635,7 +635,7 @@ the same way: switch off, hold **PTT** and **SK1**, switch on, then `tools/seria
 the programming cable. The cable's plug switches the internal speaker and the microphone off; unplug it to hear the
 radio or to talk.
 
-Settings > Talk & listen > Mic gain sets the microphone level for FM and DMR on this radio.
+Settings > Audio > Mic gain sets the microphone level for FM and DMR on this radio.
 
 `rfoundry flash IMAGE --board dm1801pro` does the same over the cable, and picks the way in by itself:
 
@@ -675,7 +675,7 @@ Five power levels: L--, L-, L, M, H. L, M and H are the factory calibration's Lo
 set from L and haven't been measured. A channel without a power in the codeplug uses L. The radio refuses to transmit
 until RadioFoundry can read its factory calibration. The battery
 reading is scaled from a measurement on one radio. The screen is monochrome; the backlight is on or off.
-The radio vibrates for messages, call alerts and emergencies (**Settings > Sound > Vibrate**).
+The radio vibrates for messages, call alerts and emergencies (**Settings > Tones & alerts > Vibrate**).
 
 ### What the DM-1801 Pro lacks today
 
@@ -744,7 +744,7 @@ boards have not. On one V4A/V5 (V26.xx) radio DMR transmit drops out ([#750](htt
 so receive or transmit may not work on these boards. SFR is not supported yet.
 
 The radio detects a V4A/V5 board by itself. It can't tell a V1-V3 board from a V4, so on those it asks once: the home
-screen says "Set: Board revision" and the radio won't transmit until you set it under Settings > Advanced > Hardware >
+screen says "Set: Board revision" and the radio won't transmit until you set it under Settings > Programming > Hardware >
 Board revision. Receiving works meanwhile. The installers do it for you when they can read the original firmware's
 version (V06.xx is V1-V3, V16.xx is V4), and otherwise ask for it right after the installation. Not sure? Pick V1-V3:
 if the radio then hears nothing on a channel it should hear, pick V4. A revision other than the one the radio runs
@@ -838,7 +838,7 @@ first chip the installer pauses and asks you to hold **SK1** until the top line 
 | Key | Role |
 |---|---|
 | Left soft key (under the display) | **OK** |
-| Right soft key (under the display) | **Back** by default. Assign its Home press and hold under [Settings > Keys](17-settings.md#keys-key-8). In menus it acts as **Back** |
+| Right soft key (under the display) | **Back** by default. Assign its Home press and hold under [Settings > Buttons](17-settings.md#buttons-key-8). In menus it acts as **Back** |
 | Green | **A/B** |
 | Red | **VFO** |
 | Up, Down | **Up**, **Down** |
@@ -850,7 +850,7 @@ first chip the installer pauses and asks you to hold **SK1** until the top line 
 
 ### GD-88 beeps
 
-Beeps don't follow the volume knob. They play at the level set in **Settings > Sound > Tone volume** at any knob
+Beeps don't follow the volume knob. They play at the level set in **Settings > Tones & alerts > Tone volume** at any knob
 position except all the way down, which silences them too. Tone volume 1 is quiet, about as loud as volume 6 of 16 on
 the knob, and tone volume 10 is about 20 dB louder. Tone volume 0 turns beeps off.
 

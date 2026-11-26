@@ -143,7 +143,7 @@
 
 <img src="../ux/screens/160x120i5/about.png" width="200" alt="设置 > 高级 > 关于">
 
-<img src="../ux/screens/160x120i5/settings_advanced.png" width="200" alt="设置，高级">
+<img src="../ux/screens/160x120i5/settings_programming.png" width="200" alt="设置，高级">
 
 ## 恢复出厂设置
 

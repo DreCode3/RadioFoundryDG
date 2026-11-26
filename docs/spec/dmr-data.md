@@ -138,7 +138,7 @@ Formats (10 octets before the CRC; octets 4-6 and 7-9 are 24-bit radio IDs):
 
 Three formats. Which one a message goes in: per message (`sms_send(..., DMR_SMS_FORMAT_ETSI_IP / _ETSI / _TMS)`,
 `dmrDataServiceSendSMSFormat`) or the radio's default (`DMR_SMS_FORMAT_DEFAULT`: the setting `smsFormat`, used by
-the UI, Settings > Connections > Message format). Automatic selects UTF-16BE Tier III control-channel short data
+the UI, Settings > Call settings > Message format). Automatic selects UTF-16BE Tier III control-channel short data
 for up to 23 characters on a clear trunked channel when the UDT sender is available. It uses ETSI IP text otherwise.
 Canned replies use the received message's format (`dmrDataMessage_t.format`) where available; a UDT reply that exceeds
 the short-data limit or is sent on a conventional channel uses ETSI IP text. The message composer uses the selected
@@ -366,7 +366,7 @@ The default for messages the radio sends is ETSI IP text. Why this one of the tw
 - Individual messages go as confirmed data, so the standard's ETSI response confirms delivery (5.3); group messages
   are sent once and nothing waits for an answer.
 
-Defined short data stays available (Settings > Connections > Message format: "ETSI short") for radios that only show
+Defined short data stays available (Settings > Call settings > Message format: "ETSI short") for radios that only show
 that form, and it confirms delivery. TMS ("TMS" in the list) is the format for commercial fleets that use TMS.
 
 ## 6. ARS

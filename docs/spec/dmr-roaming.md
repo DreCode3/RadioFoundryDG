@@ -180,7 +180,7 @@ measures. Probes are only sent when the radio could transmit on that channel any
 off, the battery is not critical, the TX frequency is in a TX band. They are counted (`roam.probes`).
 
 Because the probe transmits and keys up every repeater in range, it is **off by default** (P7: no automatic
-transmission until the user turns it on). Tools > Roaming row 7 and debug link setting 23 set it. With probing off,
+transmission until the user turns it on). Menu > Scan > Roaming row 7 and debug link setting 23 set it. With probing off,
 roaming relies on beacons (sections 4.8 - 4.10) and traffic: on a system without beacons a repeater nobody uses is
 not found until it carries a call, but a failed transmission (`tx_fail`) still starts a search, and "Roam now"
 while the network is busy finds the others.
@@ -306,7 +306,7 @@ system would hear nothing.
 
 ### 4.11 Defaults: what turning roaming on for a zone does
 
-Roaming for a zone (Tools > Roaming row 1) turns on: watching the site, the weak trigger, and the synced survey
+Roaming for a zone (Menu > Scan > Roaming row 1) turns on: watching the site, the weak trigger, and the synced survey
 with 60 s / 4 s beacons. The survey only listens, so P7 allows it on by default; 60 s / 4 s is what networked
 systems commonly use. On a system without beacons it costs nothing: no beacon is learned, so no round runs (a
 discovery visit happens only when the own site is weak or not heard). The wake probe stays off: it transmits and
@@ -369,7 +369,7 @@ zone has it, only those channels are sites. Whether qdmr exposes this bit for th
 - **Home**: in DMR chips, `Roam` after the repeater chip when roaming is active (`Lock` when locked, amber `Roam?`
   when the current site is below the threshold). The status strip shows `ROAM` (amber) during a search, as it shows
   `SCAN`.
-- **Tools > Roaming** (Hub 6, last row: 8, or 7 in a build without diagnostics, which keeps 7): 1 "Roam in this
+- **Menu > Scan > Roaming** (Menu 5, then 2): 1 "Roam in this
   zone" On/Off (the zone flag), 2 "Roam now" (goes Home, where `ROAM` shows the search), 3 "Lock to this site"
   On/Off, and a body with the state: the site (its position in the list and the channel name), its signal, or why
   roaming is not available here ("Turn it on for this zone", "This channel is not a repeater site", "Needs two sites
@@ -455,7 +455,7 @@ later. MMDVM duplex hosts send their own beacons (the host's setting), not throu
   (radio core, fake repeaters with a beacon period, length and phase): defaults and the stored fields, rounds in the
   window and the shown view, PTT during a visit transmits on the own site without a wake-up, own-site traffic holds
   the survey off. SFR (`tests/host/hotspotSfrTest.c`): the runner's idle beacon.
-- UI flow (`tests/host/uiFlowTest.c`): Tools > Roaming toggles the zone flag in the press budget; "Roam now" asks the
+- UI flow (`tests/host/uiFlowTest.c`): Menu > Scan > Roaming toggles the zone flag in the press budget; "Roam now" asks the
   radio core.
 - HIL (`tests/hil/test_roaming.py`, listed in `tests/hil/README.md`): radio only: the `roam` section, the settings
   round trip, the zone toggle and back, a passive roam now on the current zone (ends on one of its sites, nothing
@@ -473,7 +473,7 @@ later. MMDVM duplex hosts send their own beacons (the host's setting), not throu
    of radio-wide settings plus zone index bits.
 2. Zone bits keyed by index break when a CPS reorders zones. A name hash would survive reordering but not renaming.
 3. Whether qdmr exposes the open-firmware Roaming bit; if not, a qdmr extension or a radio-side channel editor field.
-4. Wake probing in the UI (Settings > Talk & listen) and whether a probe should use the lowest power level.
+4. Wake probing in the UI (Menu > Scan > Roaming) and whether a probe should use the lowest power level.
 5. Whether a move should be announced by a beep, a voice prompt or nothing (today a short beep with key beeps on).
 6. Talk target matching: by resolved contact ID (today) or also by listen list, for systems where sites carry the
    same talkgroups on different timeslots.

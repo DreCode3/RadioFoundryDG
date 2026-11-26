@@ -23,7 +23,7 @@ amateur use.
 Any way you can:
 
 - **Test and report.** Run RadioFoundry on your radio and [report what breaks](https://github.com/radiofoundry/radiofoundry/issues/new?template=bug_report.yml). If the radio restarted,
-  include the crash log from **Settings > Advanced > Crash log** ([settings](17-settings.md#crash-log)).
+  include the crash log from **Settings > Programming > Crash log** ([settings](17-settings.md#crash-log)).
 - **Help others.** Answer questions and share what works in the
   [community group](https://www.facebook.com/groups/radiofoundry/) on Facebook.
 - **Ask.** [Request a feature](https://github.com/radiofoundry/radiofoundry/issues/new?template=feature_request.yml) or [a radio](https://github.com/radiofoundry/radiofoundry/issues/new?template=radio_request.yml) you'd like supported.

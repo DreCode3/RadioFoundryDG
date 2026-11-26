@@ -78,7 +78,7 @@ Look at the boards on your platform for a model (`tools/boards.py list --platfor
 | `battery_low_mv`, `battery_critical_mv` | Battery warning levels; 0 for none |
 | `audio_tap`, `bcast`, `afsk` | Optional: audio path taps, a broadcast FM receiver, APRS AFSK transmit and receive audio |
 | `air`, `baseband` | Optional: the modem chip's air interface provider for the modes the core frames itself (P25, NXDN; [air-interface.md](../spec/air-interface.md) 3), and the sample taps the soft modem receives through (section 6). The platform's DMR glue exports both (`stm32_hrc_air` and `stm32_hrc_baseband`, `hrc_air` and `hrc_baseband`); point the board at them. Without `air`, list `P25`, `P25_TRUNK` and `NXDN` in `BOARD_NOT_WRITTEN` |
-| `gps` | With `CAP_GPS`: the GPS receiver ([hal_gps.h](../../hal/hal_gps.h)): whether the module was heard, and its power for Settings > Location > GPS. The platform drivers export one (`stm32_gps`, `hrc_gps`); the board gives them its UART and a power hook |
+| `gps` | With `CAP_GPS`: the GPS receiver ([hal_gps.h](../../hal/hal_gps.h)): whether the module was heard, and its power for Menu > Location > Location settings > GPS. The platform drivers export one (`stm32_gps`, `hrc_gps`); the board gives them its UART and a power hook |
 
 Optional hooks may be NULL; the core checks them.
 

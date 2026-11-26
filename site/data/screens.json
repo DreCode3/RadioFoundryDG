@@ -344,7 +344,7 @@
     "ZONE_SHARE"
    ]
   },
-  "tools_zone_offer": {
+  "messages_zone_offer": {
    "group": "messages",
    "needs": [
     "ZONE_SHARE"
@@ -701,7 +701,15 @@
    "group": "tools",
    "needs": []
   },
-  "tools": {
+  "scan_menu": {
+   "group": "tools",
+   "needs": []
+  },
+  "location": {
+   "group": "tools",
+   "needs": []
+  },
+  "connections": {
    "group": "tools",
    "needs": []
   },
@@ -747,30 +755,30 @@
     "APRS_RX"
    ]
   },
-    "satellite": {
-     "group": "tools",
-     "needs": [
-        "SATELLITE_TLE"
-     ]
-    },
-    "satellite_passes": {
-     "group": "tools",
-     "needs": [
-        "SATELLITE_TLE"
-     ]
-    },
-    "satellite_passes_predicting": {
-     "group": "tools",
-     "needs": [
-        "SATELLITE_TLE"
-     ]
-    },
-    "satellite_tle_text": {
-     "group": "tools",
-     "needs": [
-        "SATELLITE_TLE"
-     ]
-    },
+  "satellite": {
+   "group": "tools",
+   "needs": [
+    "SATELLITE_TLE"
+   ]
+  },
+  "satellite_passes": {
+   "group": "tools",
+   "needs": [
+    "SATELLITE_TLE"
+   ]
+  },
+  "satellite_passes_predicting": {
+   "group": "tools",
+   "needs": [
+    "SATELLITE_TLE"
+   ]
+  },
+  "satellite_tle_text": {
+   "group": "tools",
+   "needs": [
+    "SATELLITE_TLE"
+   ]
+  },
   "gps_sky": {
    "group": "tools",
    "needs": [
@@ -801,13 +809,13 @@
     "UI_SETTINGS"
    ]
   },
-  "settings_sound": {
+  "settings_tones": {
    "group": "settings",
    "needs": [
     "UI_SETTINGS"
    ]
   },
-  "settings_sound_tones": {
+  "settings_alert_tones": {
    "group": "settings",
    "needs": [
     "UI_SETTINGS"
@@ -819,13 +827,31 @@
     "UI_SETTINGS"
    ]
   },
-  "settings_advanced": {
+  "settings_programming": {
+   "group": "settings",
+   "needs": [
+    "UI_SETTINGS"
+   ]
+  },
+  "settings_radio_info": {
    "group": "settings",
    "needs": [
     "UI_SETTINGS"
    ]
   },
   "settings_editor": {
+   "group": "settings",
+   "needs": [
+    "UI_SETTINGS"
+   ]
+  },
+  "settings_pick": {
+   "group": "settings",
+   "needs": [
+    "UI_SETTINGS"
+   ]
+  },
+  "settings_call": {
    "group": "settings",
    "needs": [
     "UI_SETTINGS"

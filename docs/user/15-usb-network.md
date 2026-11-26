@@ -6,18 +6,18 @@ In USB network mode the radio is a USB network adapter for the computer. It rout
 DMR packet data. It serves a status page, rig control, KISS, TFTP and SNMP to the computer. It is in the images for
 radios with USB. IP over DMR to another radio is host-tested only. Which services have been checked on each radio is
 in the [Radio reference](23-radios.md). A build made without it (`CONFIG_DMR_IP_GATEWAY=n`) says "USB network: not in
-this build" in **Tools > USB network**.
+this build" in **Menu > Connections > USB network**.
 
 ## Switching the radio to network mode
 
-The radio starts as a USB serial port unless **USB network at start** is on (below). To switch it, open **Tools > USB
-network** (**OK**, **6**, **4**). The page says which mode USB is in and what changes. Focus "Switch USB to network"
+The radio starts as a USB serial port unless **USB network at start** is on (below). To switch it, open **Menu > Connections > USB network**
+(**OK**, **7**, **2**). The page says which mode USB is in and what changes. Focus "Switch USB to network"
 and press **OK**. The radio says "USB is a network adapter now" and returns to Home, where the status line shows IP.
 An up and a down arrow appear beside it once the computer has set the adapter up and IP can flow. While USB is a network adapter,
 qdmr, hotspot hosts and the debug link over serial don't reach the radio.
 
-To get back to serial, open **Tools > USB network** again and choose "Switch USB to serial" ("USB is a serial port
-again"), or restart the radio. The Tools row shows the current mode (serial or network).
+To get back to serial, open **Menu > Connections > USB network** again and choose "Switch USB to serial" ("USB is a serial port
+again"), or restart the radio. The USB network row of Connections shows the current mode (serial or network).
 
 Developers can also switch over the debug link:
 
@@ -31,7 +31,7 @@ serial.
 
 ## Starting in network mode
 
-**Settings > Connections > USB network at start** makes the radio start as a network adapter. If the computer doesn't
+**Menu > Connections > PC and network > USB network at start** makes the radio start as a network adapter. If the computer doesn't
 set the adapter up within 10 s of plugging in, the radio becomes a serial port again until it is restarted. This way
 you can always reach it to turn the setting off. The radio waits for a computer. A radio switched on away from a
 computer is still a network adapter when you plug it in later.
@@ -75,7 +75,7 @@ The project's own tools need no address and no change on the radio:
 | The web installer and the codeplug editor | They ask the radio to become a serial port for the job. Some browsers do it unseen. Otherwise press **Switch the radio to USB serial**: a tab opens on the radio's own page (`http://12.255.255.254/`, every radio's address on its own USB link) and closes again. Then connect. The radio returns to network mode when it restarts |
 
 If the button can't reach the radio (the tab shows an error: the computer hasn't set the adapter up, or sends 12.x
-addresses elsewhere), switch on the radio: **Tools > USB network**.
+addresses elsewhere), switch on the radio: **Menu > Connections > USB network**.
 
 ## Finding the radio by name
 
@@ -108,7 +108,7 @@ The radio answers at its own address on these TCP ports, over the USB cable only
 | Port | Service |
 |---|---|
 | 80 | The radio's front panel. Open `http://<radio address>/` in a browser. It shows the radio with its live screen and LEDs, and the channel, frequency, signal and battery. On a mobile radio its hand microphone is drawn too. Click a key or use the keyboard. Side and top keys also have a labeled button outside the radio's edge, and the arrows over the channel knob turn it one step per click (hold to keep turning). Keyboard keys: digits, `*` and `#`; the arrows; Enter for select (green key or MENU); Esc or Backspace for back (red key or BACK); `[` and `]` (or Page Up and Page Down) turn the channel knob; hold Space to talk. The page lists the keyboard keys your radio has beside the picture. **Listen** plays what the radio receives (on radios with network audio, [Linking audio](#linking-audio-allstarlink-and-dvswitch)); over the programming cable (PPP, below) the page has no Listen, since the cable is too slow for audio. Keys work only from the computer the radio is plugged into; one page at a time controls the radio, and others show the status only. Programs can read `/status` (JSON) and the debug link's sections at `/api/view?section=core`. Open the page at the radio's address or its `.local` name: at a name of your own (a hosts file entry) the page loads but gets no data. Besides the radio's own page, only pages on radiofoundry.org and pages served on your own computer (`localhost`) can use the radio from a browser |
-| 8001 | KISS over TCP for APRS programs (APRSdroid, Xastir, YAAC). Set the program's TNC to "KISS over TCP", the radio's address, port 8001. Turn on **KISS on USB** in Tools > APRS first. The radio sends only packets from your own callsign, and takes them only from your computer. On a radio that can't receive APRS ([Radio reference](23-radios.md)), programs see only what they send |
+| 8001 | KISS over TCP for APRS programs (APRSdroid, Xastir, YAAC). Set the program's TNC to "KISS over TCP", the radio's address, port 8001. Turn on **KISS on USB** in Menu > Location > APRS first. The radio sends only packets from your own callsign, and takes them only from your computer. On a radio that can't receive APRS ([Radio reference](23-radios.md)), programs see only what they send |
 | 4532 | Hamlib rig control for loggers, SDR and satellite programs. Choose "Hamlib NET rigctl" with the radio's address and port 4532, or run `rigctl -m 2 -r <radio address>:4532 f`. Programs can read and set the frequency, read the mode and the S meter, and key the transmitter. Setting the frequency of a channel switches to the VFO. Transmit works only from your computer, at most 3 minutes per keying |
 
 ### APRS-IS from the radio
@@ -219,7 +219,7 @@ codeplug has one. The radio takes the database from it only when the client send
 Otherwise, and with any older `codeplug.bin`, the radio keeps the database it has. The codeplug part is written as
 above.
 
-To stop writes over the network (`codeplug.bin` and `iddb.bin`), turn off **Settings > Connections > TFTP codeplug
+To stop writes over the network (`codeplug.bin` and `iddb.bin`), turn off **Menu > Connections > PC and network > TFTP codeplug
 write**. Reading stays possible.
 
 ## Monitoring the radio with SNMP
@@ -271,7 +271,7 @@ up, and the cable goes back to programming and the debug link. The details are i
 Dispatch software (TRBOnet, SmartPTT and similar) can use the radio as its control station. The computer then sends
 and receives the fleet's messages, locations and registrations through the radio.
 
-1. Turn on **USB network at start** and restart the radio, or switch it in **Tools > USB network**.
+1. Turn on **USB network at start** and restart the radio, or switch it in **Menu > Connections > USB network**.
 2. Turn on **PC answers data**. While the computer is connected, text messages, location requests and registration
    answers sent to your radio's DMR ID go to the computer only. The radio no longer answers them itself, doesn't put
    messages in its inbox and doesn't register with a presence server. It still confirms data packets that ask for a
@@ -331,7 +331,7 @@ By default the radio carries only addresses that stand for a DMR ID: 12.x.y.z fo
 talkgroup. A packet from the computer to any other address is dropped.
 
 If another radio in your fleet is a gateway to a network (for example a MOTOTRBO control station on a dispatch PC),
-give the radio that radio's DMR ID in **Settings > Connections > Data services > IP gateway** (0 is off), in the
+give the radio that radio's DMR ID in **Menu > Connections > Data services > IP gateway** (0 is off), in the
 [Codeplug Editor](04-programming.md), or over the debug link:
 
 ```

@@ -93,12 +93,12 @@ radio; sending a whole zone and receiving are tested only in the host tests so f
 A zone too big for one send goes in part, and the radio says how much ("Sending 40 of 60 channels"). Scan lists,
 group lists and privacy keys are never sent.
 
-**Receive:** **Settings > Connections > Accept zone shares** is **On** at first. Nothing is imported until you
+**Receive:** **Settings > Call settings > Accept zone shares** is **On** at first. Nothing is imported until you
 say so. Set it to **Off** to ignore what others send.
 
 <img src="../ux/screens/160x120i5/zone_offer.png" width="200" alt="Zone Share Received: Import, Preview, Reject">
 
-1. A banner says "Zone from ...". It stays until you press **#** to open it or **Back** to hide it. The offer also waits under **Tools > Zones/Chs Received** for 10 minutes. The screen is titled **Zone Share Received**, or **Channel Share Received** for one channel.
+1. A banner says "Zone from ...". It stays until you press **#** to open it or **Back** to hide it. The offer also waits under **Messages > Zone offers** for 10 minutes. The screen is titled **Zone Share Received**, or **Channel Share Received** for one channel.
 2. The offer shows the zone's name, its channels, the sender and how many channels are outside your radio's bands.
 3. Pick **Preview** to see the channels, **Import** to add them, or **Reject**.
 
@@ -120,7 +120,7 @@ At most 6 offers an hour are shown, one at a time. The format is in [zone-share.
 
 ## Every channel
 
-**OK**, **5** (Channels) lists every channel in the codeplug by number and name, whichever zones hold it. Each
+**Settings > Programming > Channels** (**OK**, **8**, **9**, **OK**) lists every channel in the codeplug by number and name, whichever zones hold it. Each
 row ends with the RX frequency and the talkgroup (DMR) or FM. A long name stays whole and the row shortens the rest:
 "TG" goes first, then the frequency. The channel you are on is marked. Type letters to filter the list.
 
@@ -187,7 +187,7 @@ name.
 
 ### New channel from current settings
 
-**OK**, **5**, then the first row, **New from current**. It opens an unsaved copy of the channel you are on, with any
+**Settings > Programming > Channels**, then the first row, **New from current**. It opens an unsaved copy of the channel you are on, with any
 quick-settings changes, or of the VFO, at the lowest free channel number. The name gets " 2" added (from the VFO, the
 frequency). Change what differs, then hold **OK** to save it. A new channel is in no zone yet: add it to one with **Add channel** in the
 zone's list ([Editing a zone](#editing-a-zone)), or use **Copy here** there to make the copy and add it in one step.
@@ -209,7 +209,7 @@ restart.
 1. **OK**, **4** (Zones). The VFO is the first row.
 2. Press **OK**. Home shows the frequency large, and the radio says "VFO: type a frequency".
 
-On a radio with a **VFO/MR** key, press it instead: it goes between the channel and the VFO. **Settings > Keys** can
+On a radio with a **VFO/MR** key, press it instead: it goes between the channel and the VFO. **Settings > Buttons** can
 give any side key the same job, "VFO/Channel", on a press or a hold.
 
 <img src="../ux/screens/160x120i5/home_vfo.png" width="200" alt="Home in the VFO">
@@ -217,7 +217,7 @@ give any side key the same job, "VFO/Channel", on a press or a hold.
 ### Copy a channel to the VFO
 
 To start from a channel, press **\***, **4** ("To VFO") on it. The channel's settings become the VFO's and Home shows
-the VFO ("Copied to VFO"). On a radio with a **VFO/MR** key, hold it instead. **Settings > Keys** can give any side
+the VFO ("Copied to VFO"). On a radio with a **VFO/MR** key, hold it instead. **Settings > Buttons** can give any side
 key "Copy to VFO", on a press or a hold.
 
 | Copied | Notes |
@@ -258,7 +258,7 @@ what you typed as you go.
 
 ### Stepping
 
-**Up**, **Down** and the channel knob change the VFO frequency by its step. The step is **Settings > Talk > VFO step**. Its
+**Up**, **Down** and the channel knob change the VFO frequency by its step. The step is **Settings > Receive & VFO > VFO step**. Its
 default, **Auto**, follows the width: 25 kHz at 25K (and in AM) and 12.5 kHz at 12.5K. In the broadcast band the step
 is always the FM broadcast step, whatever the VFO step. The step is in the status strip.
 
@@ -300,7 +300,7 @@ radio that runs them ([P25 in the VFO](#p25-in-the-vfo), [NXDN in the VFO](#nxdn
 |---|---|---|
 | **2** | Slot | Switches the timeslot, 1 or 2 |
 | **3** | Color | Sets the color code, 0 to 15 (1 at first). Type it or use **Up** and **Down**, then **OK** |
-| **8** | Talk to | Picks or types the talk target, a talkgroup or a person. Both **OK** and holding **OK** keep it for the VFO |
+| **8** | Talkgroup / Contact | Picks or types the talk target, a talkgroup or a person. Both **OK** and holding **OK** keep it for the VFO |
 
 <img src="../ux/screens/160x120i5/quick_vfo_dmr.png" width="200" alt="Quick settings in the DMR VFO">
 
@@ -459,7 +459,7 @@ fading station isn't cut, and the screen shows it is receiving. The LED stays of
 while a scan runs, the broadcast band is quiet between stations.
 
 In the broadcast band the knob and **Up** / **Down** step 200 kHz, landing on the odd tenths (88.1, 88.3 ... 107.9)
-where stations are in the Americas. For 100 kHz steps set **Settings > Talk & listen > FM broadcast step** to 100 kHz.
+where stations are in the Americas. For 100 kHz steps set **Settings > Receive & VFO > FM broadcast step** to 100 kHz.
 Either way you can type any frequency, 90.2 for example. In the air band **Auto** steps 25 kHz; set the VFO step to
 8.33 kHz for the narrow channels.
 

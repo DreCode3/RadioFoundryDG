@@ -93,9 +93,9 @@ with the DMR backend alone.
 
 ## 3. Rules
 
-- Transmit is off by default. Automatic beacons need Tools > APRS > Automatic beacons; "Send position now" works
+- Transmit is off by default. Automatic beacons need Menu > Location > APRS > Automatic beacons; "Send position now" works
   without it.
-- A callsign is required: the debug link's test call, else Settings > My radio's radio name, else the codeplug's
+- A callsign is required: the debug link's test call, else the radio name (Settings > Programming > DMR ID and name), else the codeplug's
   radio name; its first word, upper case, 3-6 letters and digits with a digit after the first character, not N0CALL.
   Our SSID comes from the APRS settings (7 by default). No callsign: nothing goes out, the page says why.
 - RF only on amateur frequencies: the APRS frequency must be in 144-148, 222-225, 420-450 or 902-928 MHz and in a
@@ -128,7 +128,7 @@ with the DMR backend alone.
   localized preset or typed text through `aprs_send_message`. Presets fold accented letters to printable ASCII; typed
   text holds at most 67 characters. The callsign editor holds at most nine characters (six for the call, a hyphen and
   up to two for the SSID). Received APRS messages appear in Messages; replies use APRS. DMR replies use DMR, and
-  Settings > Connections > Message format selects only a DMR encoding. A new outgoing APRS message replaces one still
+  Settings > Call settings > Message format selects only a DMR encoding. A new outgoing APRS message replaces one still
   awaiting acknowledgment. `aprs_send_message` refuses a message when the RF path is blocked.
 - Path: none, WIDE1-1, WIDE1-1,WIDE2-1 (the default), WIDE2-1, WIDE2-2. Set on the APRS page (section 10), over the
   debug link, or in the codeplug's APRS record (section 11).
@@ -291,7 +291,7 @@ retried after 15 s, 3 tries). A failure counts in `rf_failed` and names its step
 ## 7. Position and triggers
 
 The position is the position service's ([position.md](position.md)): its source setting and the fixed position
-are in Settings > Location and serve DMR GPS Info and LRRP as well. The engine reads
+are in Menu > Location > Location settings and serve DMR GPS Info and LRRP as well. The engine reads
 `position_fix` every tick; GPS and host fixes carry speed and course. Host NMEA (`$GPRMC`, `$GPGGA` with valid
 checksums) comes from KISS SetHardware 'N' or a bare `$` line on the host port.
 
@@ -359,7 +359,7 @@ radio core into the station list).
 
 ## 9. Host port: KISS TNC
 
-With Tools > APRS > KISS on USB, the host link claims KISS frames (0xC0) and `$` lines on the USB serial port (and on
+With Menu > Location > APRS > KISS on USB, the host link claims KISS frames (0xC0) and `$` lines on the USB serial port (and on
 UDP port 3334 in USB network mode, where the host port runs over the network). The host link's TNC mode
 (`HOSTLINK_TNC`) holds while frames flow and ends after 30 s idle, like the hotspot and CPS modes.
 
@@ -386,7 +386,7 @@ in the radio's own APRS-IS client (`CONFIG_NET_APRSIS`, `tcp-services.md` 7), wh
 
 ## 10. UI
 
-Tools > APRS (`ui_aprs.c`): the body shows the callsign and frequency, why nothing can be sent (no callsign, no
+Menu > Location > APRS (`ui_aprs.c`): the body shows the callsign and frequency, why nothing can be sent (no callsign, no
 frequency, not amateur, no AFSK), the position and its source, the next beacon and the count sent. Rows: Send
 position now, Automatic beacons, Frequency (region: N America 144.390, Europe 144.800, Australia 145.175, New Zealand
 144.575, Japan 144.660, China 144.640, Custom), Power (As channel, then each of the board's levels), Path (the
@@ -409,7 +409,7 @@ The page shows the rows the build has:
 | No `CONFIG_APRS_AFSK` | Frequency, Power, Path, Send via, Stations heard, SSID; "KISS on USB" reads "NMEA on USB" | position, next beacon, count |
 
 The digit keys follow the rows shown. Where the position comes from, the fixed position and "Send in DMR calls" are
-in Settings > Location ([position.md](position.md) 6).
+in Menu > Location > Location settings ([position.md](position.md) 6).
 
 Selecting a heard station opens `aprs-station`, a scrollable detail list. The UI keeps its callsign,
 not its row index, and resolves the current station through `ui_svc_aprs_station_find` on each draw. New packets
@@ -521,7 +521,7 @@ is still to run on the HR_C7000 boards. Per-radio levels and results are in the 
 
 - Default triggers: SmartBeaconing on with a 10 min interval fallback, after-PTT and boot off.
 - The LRRP request ID and token for unsolicited reports to BrandMeister; whether LRRP answers should use the APRS
-  position when there is no GPS; whether Settings > Location > Send position should drive APRS.
+  position when there is no GPS; whether Menu > Location > Location settings > Send position should drive APRS.
 - The codeplug APRS record's fixed position and frequency encodings.
 - Receive from the HR_C6000's ungated RX RAM (5.3).
 - Settings and debug link section / command numbers may need renumbering when merged with other branches.
@@ -530,4 +530,4 @@ Future, not done:
 
 - 9600 baud APRS (G3RUH FSK, scrambled NRZI direct FM): needs a flat (discriminator / modulator direct) audio path
   and an FSK modem; a tone generator path can't do it. Not planned for now.
-- Settings > Location tied to APRS; GPS Info in the hotspot's own transmissions.
+- Menu > Location > Location settings tied to APRS; GPS Info in the hotspot's own transmissions.

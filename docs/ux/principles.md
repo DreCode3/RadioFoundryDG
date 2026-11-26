@@ -17,7 +17,7 @@ Words used below:
 The top 20 tasks (`task-flows.md`) each show their first useful result within two presses from Home, and finish within their budget (most within four, none above six).
 
 - Home has direct keys for: change channel, quick settings, actions on the last caller, find anything (type), monitor.
-- Top-level destinations are few (seven) and each is a noun the user already knows: Contacts, Messages, Recent, Zones, Channels, Tools, Settings.
+- Top-level destinations are few (eight, a 3x3 grid that matches the keypad) and each is a noun the user already knows: Contacts, Messages, Call log, Zones, Scan, Location, Connections, Settings.
 - No task requires going through Settings. Settings is for preferences, not for operating the radio.
 
 **Test:** scripted flows in the simulator count presses per task and fail the build if a flow exceeds its budget.
@@ -36,7 +36,7 @@ The top 20 tasks (`task-flows.md`) each show their first useful result within tw
 
 - Inputs go through a **logical action layer**. Screens only see logical actions, never physical keys.
 - `SELECT` = do/open the focused thing. `BACK` = go to where I was. `NAV_UP`/`NAV_DOWN` = move focus or change the value that Home is tuned to. `QUICK` = quick settings for the current context. `CONTEXT` = actions for the thing in focus (on Home: the last caller). Digits = type (numbers and T9 letters).
-- **Long press has one fixed meaning per key across all screens**: long `BACK` = Home, long `SELECT` = save/confirm the focused change (where a key for `QUICK` is missing, long `SELECT` = `QUICK`), long `QUICK` (`*`) = key lock (from Home only: in a menu it doesn't lock mid-task; it unlocks from anywhere), long `CONTEXT` (`#`) = the talk target picker on a DMR channel (TG pick or a typed ID, the `#` keycap's legend and the AnyTone 868/878/578 convention), long digit on Home = speed-dial slot. Inside a text field the keypad is a typewriter: long digit types the digit itself and long `*` deletes like a short one; those are the only exceptions. Navigation keys repeat when held. The `USER_n` keys and the side keys listed in Settings > Keys are the assignable exception: they carry one function per gesture from the assignable list, and a board's VFO/MR key has fixed ones (short: channel / VFO, long: Copy to VFO).
+- **Long press has one fixed meaning per key across all screens**: long `BACK` = Home, long `SELECT` = save/confirm the focused change (where a key for `QUICK` is missing, long `SELECT` = `QUICK`), long `QUICK` (`*`) = key lock (from Home only: in a menu it doesn't lock mid-task; it unlocks from anywhere), long `CONTEXT` (`#`) = the talk target picker on a DMR channel (TG pick or a typed ID, the `#` keycap's legend and the AnyTone 868/878/578 convention), long digit on Home = speed-dial slot. Inside a text field the keypad is a typewriter: long digit types the digit itself and long `*` deletes like a short one; those are the only exceptions. Navigation keys repeat when held. The `USER_n` keys and the side keys listed in Settings > Buttons are the assignable exception: they carry one function per gesture from the assignable list, and a board's VFO/MR key has fixed ones (short: channel / VFO, long: Copy to VFO).
 - Long press never transmits, never deletes, never resets. Long-press threshold is one value (default 600 ms, settable), and a short tick confirms the threshold was reached.
 - No double presses, no triple presses, no chords (two keys at once) are required for anything. Chords may exist as optional shortcuts only.
 
@@ -69,7 +69,7 @@ The top 20 tasks (`task-flows.md`) each show their first useful result within tw
 
 - On Home, digits start **Find**: one list that matches channels (by number and name), contacts and talkgroups (by ID and name via T9), recent callers, and settings. Typing `3100` offers TG 3100, contact 3100xxx and channel 31; typing `7476` offers "PIRATE" style T9 name matches.
 - A number that isn't in the codeplug is still usable: typing a TG or ID and pressing PTT (or `SELECT`) talks to it temporarily.
-- Settings are grouped by what the user wants (Sound, Display, Talk & listen, Privacy, Location, Connections, Power, Keys, My radio), never by chip or protocol layer. Settings are also searchable from Find.
+- Settings are grouped by what the user wants (Display, Tones & alerts, Audio, Call settings, Receive & VFO, Privacy, Security & keypad lock, Buttons, Programming, Radio info), never by chip or protocol layer. Settings are also searchable from Find (`0` in Settings).
 - Quick settings hold the handful of settings people change in the field, in fixed positions that map to the keypad (1-9 as a 3x3 grid).
 
 **Test:** for each of 30 named settings, a participant finds it in under 15 s without help; Find returns the intended item in the top 3 for 95% of a test corpus of queries.

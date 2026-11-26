@@ -10,7 +10,7 @@ is OK.
 
 ## Commercial and Amateur Home
 
-On supported color displays, **Settings > Display > Display Profile** selects **Commercial** or **Amateur**.
+On supported color displays, **Settings > Display > Display profile** selects **Commercial** or **Amateur**.
 Both show the zone and, as the main line, the channel's name from the codeplug. In the VFO the main line is the
 frequency.
 
@@ -20,13 +20,13 @@ frequency.
 | Profile | What you see |
 |---|---|
 | Commercial (default) | The zone and a larger channel name. The talk target appears below it only when it isn't the channel's own: a target chosen for now, the reply window's, or a one-shot call's. In the VFO, where the main line is a frequency, the talk target always shows |
-| Amateur | The zone, the channel name, the talk target (its name and its talkgroup or ID) and a details line with the receive frequency and, on DMR, the timeslot and color code. A dot at the start of the details line marks a temporary change |
+| Amateur | The zone, the channel name, the talk target (its talkgroup or ID and its name, the name first with **Talkgroup name first**) and a details line with the receive frequency and, on DMR, the timeslot and color code. A dot at the start of the details line marks a temporary change |
 
 With **Large text** on, both profiles show the channel name and the talk target in larger type and leave out the zone
 and the details.
 
 During a DMR call, two lines at the bottom of the channel area show who is calling (the talker alias when the radio
-has it and **Settings > Talk & listen > Show talker alias** is on, else the contact's name or the ID) and the
+has it and **Settings > Call settings > Show talker alias** is on, else the contact's name or the ID) and the
 talkgroup. While you transmit, they show where **PTT** talks to and, if a transmit timeout is set, the time remaining.
 The same place shows what needs attention when the radio is idle, such as **No TX frequency**. The text above these
 lines stays where it is.
@@ -55,7 +55,7 @@ The status bar at the top is the same on every screen. The bottom bar has two la
 
 With **Settings > Display > GPS clock** on, idle Home shows the date and UTC time on a line at the bottom of the
 channel area. The line stays blank until a valid fix supplies date and time, and clears if the fix is lost.
-**Day/Night** changes the palette on Home and in menus. See [Display settings](17-settings.md#display-key-2) for
+**Day/Night** changes the palette on Home and in menus. See [Display settings](17-settings.md#display-key-1) for
 defaults.
 
 The screenshots above show the channel view. Dual Watch has its own two-channel view, and trunked channels have their
@@ -68,7 +68,7 @@ own operating display. The tables below describe the standard Home layout also u
 | Status line | Left: the state (IDLE, RX, TX, or NO TX when a transmission is refused; RX whenever the squelch is open, monitor included), the mode (DMR or FM), SCAN or MON when scan or monitor is on, and IP while USB is a network adapter, with an up and a down arrow after it once the computer has connected to it. Right: "L" when the keys are locked, "M" and a number for unread messages, a satellite dish on a radio with GPS (hollow while GPS is off, solid while it searches, with its feed arm and waves once it has a fix), the signal bars, the battery icon and the battery percentage. On a color screen the line is filled with the highlight color, its text black (Settings > Display > Filled status bar) |
 | Place | The zone name and the channel's position in the zone ("3/16"). In the VFO: "VFO" |
 | Channel | The channel number and name, as large as they fit. In the VFO: the frequency |
-| Talk target | DMR: an arrow and where **PTT** goes, a talkgroup or person, as "TG 91 World"; a name too long to fit is cut ("TG 201 Main O…") before the name is dropped. FM channel: the frequency the channel listens on, then a repeater's offset when the row has room ("147.060 MHz +600k"), with no arrow. On FM, while you hold **PTT**, and in the VFO (where the large frequency is the receive frequency), an arrow and the transmit frequency. Trunked P25 channel: what the radio is doing ([P25 trunked channels](07-channels-zones-vfo.md#p25-trunked-channels)), and "RX only", in the warning color, while it waits on a system it can't transmit on. During the reply window: a return arrow in a filled box, and a countdown. To read the talkgroup's name first ("World TG 91"), turn on **Settings > Display > Talkgroup name first**, or give a side key **TG name / number** (Settings > Keys) |
+| Talk target | DMR: an arrow and where **PTT** goes, a talkgroup or person, as "TG 91 World"; a name too long to fit is cut ("TG 201 Main O…") before the name is dropped. FM channel: the frequency the channel listens on, then a repeater's offset when the row has room ("147.060 MHz +600k"), with no arrow. On FM, while you hold **PTT**, and in the VFO (where the large frequency is the receive frequency), an arrow and the transmit frequency. Trunked P25 channel: what the radio is doing ([P25 trunked channels](07-channels-zones-vfo.md#p25-trunked-channels)), and "RX only", in the warning color, while it waits on a system it can't transmit on. During the reply window: a return arrow in a filled box, and a countdown. To read the talkgroup's name first ("World TG 91"), turn on **Settings > Display > Talkgroup name first**, or give a side key **TG name / number** (Settings > Buttons) |
 | Chips | DMR: timeslot, color code, "Rpt" on a repeater channel, power (the signal bars show when the repeater is heard). FM: tone, bandwidth, power, squelch level |
 | Activity | Idle: the last station heard and how long ago, or "No calls heard yet". A setting the radio needs before it can transmit comes first, in the warning color ("Set: Board revision", or "Restart to apply"), with the hint row saying where to set it. Receiving or transmitting: see below |
 | Hint row | What the nearest keys do now |
@@ -83,7 +83,7 @@ The battery percentage turns to the warning color at the low battery warning lev
 ## Hint row messages
 
 The hint row changes with the situation. When the right soft key can be assigned on Home, the left label is
-**Menu** and the right label shows its short-press function from **Settings > Keys**. **Nothing** leaves the
+**Menu** and the right label shows its short-press function from **Settings > Buttons**. **Nothing** leaves the
 right label blank. While entering a frequency or when the keys are locked, the row shows the controls for that state.
 On displays with Commercial and Amateur Home, the bottom bar shows only the labels for the two soft keys, so the hints
 below for other keys (**#**, **\***, the number keys) don't appear there.
@@ -108,7 +108,7 @@ During a DMR call, Home shows the caller:
 
 - the name, from your contacts or else from the DMR ID database in the codeplug;
 - the DMR ID and the timeslot;
-- the talker alias as it arrives, unless **Settings > Talk & listen > Show talker alias** is off;
+- the talker alias as it arrives, unless **Settings > Call settings > Show talker alias** is off;
 - the talkgroup, or "Private to you";
 - the signal strength (in DMR, the peak of the last 120 ms, so the empty timeslot doesn't show as a drop).
 
@@ -155,7 +155,7 @@ once with the deny tone. On a busy channel there is no tone, and the call you ar
 | Hotspot mode: PTT off | The radio is a hotspot | Press **OK** to leave hotspot mode |
 | No DMR ID in codeplug | The codeplug has no DMR ID | Set your ID in the codeplug |
 | DMR modem not running | The DMR chip didn't start | Restart the radio. See [Troubleshooting](20-troubleshooting.md) |
-| Set: Board revision (or another hardware option) | The radio can't detect it and won't transmit until it knows | Settings > Advanced > Hardware ([Radios](23-radios.md) says what to pick) |
+| Set: Board revision (or another hardware option) | The radio can't detect it and won't transmit until it knows | Settings > Programming > Hardware ([Radios](23-radios.md) says what to pick) |
 | Restart to apply | A hardware option was changed and applies from the next start | Switch the radio off and on |
 | Radio refused to send | The radio's transmitter refused this transmission | "Release PTT, try again". If it repeats, restart the radio |
 | Modem refused to send | The DMR chip refused the call, or took it and sent nothing for 1.5 s | "Release PTT, try again". If it repeats, restart the radio |

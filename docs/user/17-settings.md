@@ -2,24 +2,27 @@
 
 # Settings
 
-Open Settings with **OK**, **7**, or with **\***, **0**. Settings are grouped by what they are for. A number key opens
-a group directly. Find also reaches each setting by name: type its first letters on Home.
+Open Settings with **OK**, **8**, or with **\***, **0**. Settings are grouped by what they are for. A number key opens
+a group directly; **Radio info**, after group 9, has no number and **Up** reaches it from the top. **0** opens Find,
+which also reaches each setting by name (the same as typing its first letters on Home).
 
 <img src="../ux/screens/160x120i5/settings.png" width="200" alt="Settings">
 <img src="../ux/screens/160x120i5/settings_display.png" width="200" alt="Settings, Display">
 
 ## Changing a setting
 
-Each row shows its current value.
+Each row shows its current value. A page's title is the row that opened it.
 
-- On/off and list settings change with **OK**: each press goes to the next value.
-- Display Profile, Day/Night and GPS clock open a choice list. Use **Up** or **Down** to choose, then **OK** to save or
-  **Back** to cancel.
-- Number settings open an editor on **OK**. Change the value with **Up** and **Down** (or the channel knob), or type
-  it with the number keys, press **OK** to keep it, **Back** to leave it unchanged. A typed value outside the range,
-  or between steps, isn't taken: the radio says "Not changed" with the range.
+- An on/off setting changes with **OK**, and the row shows the new state.
+- A setting with several values opens a pick list on **OK**, with a check mark on the value in use. Choose with **Up**
+  or **Down** (or the channel knob), then **OK** to take it or **Back** to leave it as it was.
+- A number setting opens a value editor on **OK**: the value between two markers, in the look's highlight color.
+  Change the value with **Up** and **Down** (or the channel knob), or type it with the number keys, press **OK** to
+  keep it, **Back** to leave it unchanged. A typed value outside the range, or between steps, isn't taken: the radio
+  says "Not changed" with the range.
 - A setting takes effect and is saved as soon as you change it. There is no separate save step.
 
+<img src="../ux/screens/160x120i5/settings_pick.png" width="200" alt="A pick list">
 <img src="../ux/screens/160x120i5/settings_editor.png" width="200" alt="Editing a number setting">
 
 Some settings are on the menu before the feature behind them exists, or don't apply to this radio. They are dimmed.
@@ -33,66 +36,97 @@ Some settings are on the menu before the feature behind them exists, or don't ap
 
 ## Reference
 
-### Sound (key 1)
+Settings has nine numbered groups, then **Radio info**. Some groups have a page of their own for a set of related rows:
+**Tones & alerts** has **Alert tones** and **Signaling tones**. The location, repeater and computer link settings are
+where those features are: **Menu > Location > Location settings**, **Menu > Connections > SFR** and **Menu >
+Connections > PC and network** (below).
+
+### Display (key 1)
+
+The first rows are the look's own: each look (theme) has its own appearance settings, and Display shows those of the
+one in use. The standard look has **Theme**, **Highlight color** and **Filled status bar**. The panels look, on displays
+that have it, has **Display profile**, **Day/Night** and, on a radio with a GPS, **GPS clock**.
+[Commercial and Amateur Home](06-home-screen.md#commercial-and-amateur-home) shows what changes on Home.
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
-| Key tones | On, Off | On | A short beep on each key press | Works |
+| Display profile | Commercial, Amateur | Commercial | Home's layout. Both show the zone and the channel name, with a call's caller and talkgroup below. Commercial uses a larger channel name and shows the talk target only when it isn't the channel's own. Amateur always shows the talk target and the frequency, timeslot and color code | Works |
+| Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
+| GPS clock | Off, On | Off | Shows the date and UTC time on a line at the bottom of idle Home when a valid GPS fix supplies both | Works |
+| Theme | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
+| Highlight color | Default, Red, Orange, Yellow, Teal, Light blue, Purple, Pink | Default | The color of the selected row or tile and of the channel number on Home. Not in the Night theme, which is always red. Not on radios with a monochrome screen | Works |
+| Filled status bar | On, Off | On | Fills the top status line with the highlight color (light gray with Default, white in the high-contrast theme, bright red in Night) and draws its text black. Not on radios with a monochrome screen | Works |
+| Brightness | 10 to 100 %, steps of 10 | 100 % | Backlight brightness. Also in quick settings, tile 9 | Works |
+| Backlight | 5s/20s, 10s/40s, 30s/2m, 1m/4m, 2m/8m, 10s/dim, 30s/dim, 1m/dim, 2m/dim, Never | 30s/2m | Without a key press, the backlight dims to a fifth after the first time and goes off after the second. The "dim" choices dim and never go off | Works |
+| Large text | On, Off | Off | On standard Home, shows just the status line, channel, and talk target in large text. On Commercial and Amateur Home, shows the channel name and the talk target larger and hides the zone and the details | Works |
+| Hint row | On, Off | On | The bottom line with key hints | Works |
+| Talkgroup name first | On, Off | Off | Home's talk line leads with the talkgroup's name ("World TG 91") instead of its number ("TG 91 World"): on a small screen the name is what fits. In every look. A side key set to **TG name / number** switches it too. On radios with DMR | Works |
+| Language | English, Español, Italiano, 中文 | English, or the Radio language picked in the web installer | The language of the menus and messages. A factory reset goes back to that default. The list shows every language RadioFoundry has; one that isn't in your firmware is dimmed. Pick it when you install with the web flasher to get it ([Installing](02-installing.md)). Chinese is off by default and needs a 16 px line ([Radio Reference](23-radios.md)). Names, callsigns and the standard radio abbreviations (TG, CC, VFO) stay as they are | Works |
+| Battery saver | On, Off | Off | On an idle FM channel the receiver sleeps between short listening windows ([Battery and power](16-battery-and-power.md)) | Works |
+| Auto power off | Off, 30 min, 1 h, 2 h | Off | Switch off after this time without use ([Battery and power](16-battery-and-power.md#auto-power-off)) | Works |
+| Low battery warning | 5 to 30 %, steps of 5 | 15 % | Warn when the battery falls to this level ([Battery and power](16-battery-and-power.md)) | Works |
+
+### Tones & alerts (key 2)
+
+| Setting | Values | Default | What it does | Status |
+|---|---|---|---|---|
 | Volume | 0 to 16 | 8 | The speaker volume, on radios without a volume knob only (the row is not shown on the others). 0 is mute. The **Volume** key opens a screen that changes it faster ([Radio reference](23-radios.md#key-roles)) | Works |
 | Tone volume | 0 to 10 | 5 | The loudest the radio's beeps get. Beeps follow the speaker volume up to this level, so turning the volume down makes them quieter too. On some radios beeps stop getting louder above volume step 7, so voice can be turned up without louder beeps. On others, beeps always play at this level unless the volume is all the way down ([Radios](23-radios.md)) | Works |
+| Key tones | On, Off | On | A short beep on each key press | Works |
+| Voice prompts | On, Off | Off | Spoken prompts. There is no recorded speech yet | Dimmed |
+| Vibrate | On, Off | On | The radio vibrates for a text message, a call alert, a private call to you and an emergency it hears. Only on radios with a vibration motor ([Radio reference](23-radios.md)) | Works |
+| Alert tones | A page | | Opens **Alert tones** (below): each of the radio's own beeps on or off | Works |
+| Signaling tones | A page | | Opens **Signaling tones** ([below](#signaling-tones)) | Works |
+
+#### Alert tones
+
+**Settings > Tones & alerts > Alert tones**: the radio's own beeps, each on or off.
+
+| Setting | Values | Default | What it does | Status |
+|---|---|---|---|---|
 | Talk permit tone | On, Off | On | The beep when a DMR transmission starts ([DMR](09-dmr.md)) | Works |
 | Call end tone | On, Off | On | The two-note beep when a DMR call you heard ends | Works |
-| TOT warning tone | On, Off | On | The beep a few seconds before the transmit time-out cuts a transmission | Works |
+| Timeout warning tone | On, Off | On | The beep a few seconds before the transmit time-out cuts a transmission | Works |
 | Battery tone | On, Off | On | The beeps for a low and a critical battery | Works |
 | TX denied tone | On, Off | On | The low tone when the radio refuses PTT or the time-out cuts a transmission | Works |
 | Scan stop tone | On, Off | Off | A short beep when a scan stops on a signal | Works |
 | Emergency tone | On, Off | On | The warble when the radio hears someone's emergency. Dimmed in a build without DMR emergency | Works |
-| Voice prompts | On, Off | Off | Spoken prompts. There is no recorded speech yet | Dimmed |
 | Message tone | On, Off | On | A three-note tone when a text message arrives | Works |
-| Vibrate | On, Off | On | The radio vibrates for a text message, a call alert, a private call to you and an emergency it hears. Only on radios with a vibration motor ([Radio reference](23-radios.md)) | Works |
 
-### Display (key 2)
-
-On displays that support profiles, **Display Profile** and **Day/Night** replace **Theme**,
-**Highlight color**, and **Filled status bar**. A board GPS adds **GPS clock**.
-[Commercial and Amateur Home](06-home-screen.md#commercial-and-amateur-home) shows what changes on Home.
-[Menu navigation](05-keys-and-navigation.md#moving-around) describes the profile menus.
+### Audio (key 3)
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
-| Display Profile | Commercial, Amateur | Commercial | Home's layout. Both show the zone and the channel name, with a call's caller and talkgroup below. Commercial uses a larger channel name and shows the talk target only when it isn't the channel's own. Amateur always shows the talk target and the frequency, timeslot and color code | Works |
-| Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
-| GPS clock | Off, On | Off | Shows the date and UTC time on a line at the bottom of idle Home when a valid GPS fix supplies both | Works |
-| Brightness | 10 to 100 %, steps of 10 | 100 % | Backlight brightness. Also in quick settings, tile 9 | Works |
-| Backlight Dim/Off | 5s/20s, 10s/40s, 30s/2m, 1m/4m, 2m/8m, 10s/dim, 30s/dim, 1m/dim, 2m/dim, Never | 30s/2m | Without a key press, the backlight dims to a fifth after the first time and goes off after the second. The "dim" choices dim and never go off | Works |
-| Theme | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
-| Highlight color | Default, Red, Orange, Yellow, Teal, Light blue, Purple, Pink | Default | The color of the selected row or tile and of the channel number on Home. Not in the Night theme, which is always red. Not on radios with a monochrome screen | Works |
-| Filled status bar | On, Off | On | Fills the top status line with the highlight color (light gray with Default, white in the high-contrast theme, bright red in Night) and draws its text black. Not on radios with a monochrome screen | Works |
-| Large text | On, Off | Off | On standard Home, shows just the status line, channel, and talk target in large text. On Commercial and Amateur Home, shows the channel name and the talk target larger and hides the zone and the details | Works |
-| Hint row | On, Off | On | The bottom line with key hints | Works |
-| Talkgroup name first | On, Off | Off | Home's talk line reads "World TG 91" instead of "TG 91 World": on a small screen the name is what fits. A side key set to **TG name / number** switches it too. On radios with DMR | Works |
-| Language | English, Español, Italiano, 中文 | English, or the Radio language picked in the web installer | The language of the menus and messages. A factory reset goes back to that default. The list shows every language RadioFoundry has; one that isn't in your firmware is dimmed. Pick it when you install with the web flasher to get it ([Installing](02-installing.md)). Chinese is off by default and needs a 16 px line ([Radio Reference](23-radios.md)). Names, callsigns and the standard radio abbreviations (TG, CC, VFO) stay as they are | Works |
+| Mic gain | 0 to 10 | 5 | Microphone level, 2 dB a step. 5 is the radio's normal level. Sets DMR, and FM on the radios that set the level in their microphone path ([Radio reference](23-radios.md)). A loud voice is held back rather than distorted. A change counts from the next transmission. Shows "AGC" and can't be changed while Mic AGC is on | Works (DMR); FM not checked on air |
+| Mic AGC | On, Off | Off | Evens out your level on DMR: a quiet voice is raised and a loud one lowered, so you don't need to set Mic gain. While it's on, Mic gain stays at 5. Dimmed on radios whose voice codec can't do it | Needs an on-air check (DMR) |
+| Mic noise reduction | On, Off | On | Reduces steady background noise (fans, engines, wind) in what you send on DMR, also between words. Turn it off if a steady sound you want heard is cut. Dimmed on radios whose voice codec can't do it | Needs an on-air check (DMR) |
 
-### Talk & listen (key 3)
+### Call settings (key 4)
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
 | Reply window | 0 to 30 s | The codeplug's hang time, else 10 s | How long **PTT** answers the last call ([DMR](09-dmr.md#replying)). 0 turns it off | Works |
 | TX timeout | Off, 30 s, 1, 2, 3, 5, 10 min | 3 min | Longest transmission, for channels without their own timeout in the codeplug | Works |
+| Show talker alias | On, Off | On | Show received talker aliases (names) under the caller's ID | Works |
+| Digital monitor at start | On, Off | Off | Digital monitor (DMR: every talkgroup, promiscuous; Tier III: every talkgroup's call on the system) goes on each time you select a DMR channel, and a scan started from it keeps it on at every channel. **Back** on Home turns it off until the next channel | Works |
+| Answer radio checks | On, Off | On | Answer radio checks from other radios ([Radio check](10-messages-and-signaling.md#radio-check)) | Works |
+| Answer call alerts | On, Off | On | Acknowledge call alerts, so the caller knows the page arrived | Works |
+| Message format | Automatic, ETSI, ETSI short, TMS (where built) | Automatic | The encoding of new DMR text messages ([Messages](10-messages-and-signaling.md#message-formats)) | Works |
+| Accept zone shares | On, Off | On | On shows a zone or channel another radio sends you, to import or reject ([Sharing a zone](07-channels-zones-vfo.md#sharing-a-zone)). Off ignores them | Works |
+
+On a small screen **Digital monitor at start** reads **DMR monitor at start**.
+
+### Receive & VFO (key 5)
+
+| Setting | Values | Default | What it does | Status |
+|---|---|---|---|---|
 | Default squelch | 0 to 9 | 5 | The FM squelch level when a channel doesn't set one | Works |
 | VFO step | Auto, 2.5, 5, 6.25, 8.33, 10, 12.5, 20, 25, 50, 100 kHz | Auto | The step of Up, Down and the knob in the VFO. Auto is 25 kHz at width 25K and in AM, else 12.5 kHz. Only on radios with a VFO | Works |
 | FM broadcast step | 200 kHz, 100 kHz | 200 kHz | The VFO step in the broadcast band. 200 kHz lands on the odd tenths (88.1, 88.3), the stations in the Americas. You can still type any frequency. Only on radios with a broadcast receiver ([Air band and FM broadcast](07-channels-zones-vfo.md#air-band-and-fm-broadcast)) | Works |
-| Mic gain | 0 to 10 | 5 | Microphone level, 2 dB a step. 5 is the radio's normal level. Sets DMR, and FM on the radios that set the level in their microphone path ([Radio reference](23-radios.md)). A loud voice is held back rather than distorted. A change counts from the next transmission. Shows "AGC" and can't be changed while Mic AGC is on | Works (DMR); FM not checked on air |
-| Mic AGC | On, Off | Off | Evens out your level on DMR: a quiet voice is raised and a loud one lowered, so you don't need to set Mic gain. While it's on, Mic gain stays at 5. Dimmed on radios whose voice codec can't do it | Needs an on-air check (DMR) |
-| Mic noise reduction | On, Off | On | Reduces steady background noise (fans, engines, wind) in what you send on DMR, also between words. Turn it off if a steady sound you want heard is cut. Dimmed on radios whose voice codec can't do it | Needs an on-air check (DMR) |
-| Monitor by default | On, Off | Off | Digital monitor (DMR: every talkgroup, promiscuous; Tier III: every talkgroup's call on the system) goes on each time you select a DMR channel, and a scan started from it keeps it on at every channel. **Back** on Home turns it off until the next channel | Works |
-| Show talker alias | On, Off | On | Show received talker aliases (names) under the caller's ID | Works |
 | Dual watch talk back | On, Off | Off | Off: a call on the other channel never moves **PTT**. On: when a call ends on the other channel, that channel becomes the selected one for 10 s (restarting with each reply and call there), so **PTT** answers there ([Dual watch](12-scan.md#talk-back)) | Works |
 | Dual watch delay | 0.5 s, 1 s, 1.5 s, 2 s, 3 s, 5 s | 1 s | How long dual watch stays on a channel after a call ends, for the reply. It looks at the other channel meanwhile and shows **Busy** there ([Dual watch](12-scan.md#the-wait-after-a-call)) | Works |
-| SFR receive | Repeater, First copy, Dual-path RX | Repeater | Experimental. What a single frequency repeater user plays ([Standalone SFR](14-hotspot.md#standalone-sfr)). Repeater: only the repeater's copy. First copy: the talker's or the repeater's copy, whichever arrives first. Dual-path RX: both copies, with each damaged voice frame taken from the other copy. Dual-path RX is missing from builds without it | Works (Repeater). First copy and Dual-path RX depend on the radio: some hear only one copy at a time ([Radio reference](23-radios.md)) |
-| SFR CW ID | Off, 5, 10, 15, 30 min | Off | Experimental. How often a single frequency repeater channel sends its callsign in Morse ([Standalone SFR](14-hotspot.md#standalone-sfr)). The callsign is the radio name's first word (before a space, `-` or `/`), and only if it looks like one: 4 to 7 letters and digits, at least one of each. Otherwise nothing is sent. The ID goes out in FM on the channel once the repeater has carried traffic and has been quiet for 2 s, at most once per interval. Missing from builds without it | Works |
 
-### Privacy (key 4)
+### Privacy (key 6)
 
 If the firmware was built without privacy, the Privacy row is dimmed and OK on it shows "Privacy: not in this build".
 
@@ -101,7 +135,89 @@ If the firmware was built without privacy, the Privacy row is dimmed and OK on i
 | Key type | Off, 8-bit (1-255), 16-bit (0-65535) | Off | The kind of basic privacy key ([DMR](09-dmr.md#privacy)). Off removes the key | Works |
 | Key | 8-bit 1 to 255, 16-bit 0 to 65535 | | The key value, typed with the number keys. Dimmed until a type is chosen | Works |
 
-### Location (key 5)
+### Security & keypad lock (key 7)
+
+When the keys lock by themselves and what still works while they are locked ([Key lock](05-keys-and-navigation.md#key-lock)).
+
+| Setting | Values | Default | What it does | Status |
+|---|---|---|---|---|
+| Auto lock | Off, 30 s, 1 min, 5 min | Off | Locks the keys after this time without a key press | Works |
+| PTT when locked | On, Off | On | Whether **PTT** works while the keys are locked. Off: **PTT** does nothing until you unlock | Works |
+| Knob when locked | On, Off | On | On radios whose firmware reads the volume knob only (the row is not shown on the others; see the [feature matrix](../feature-matrix.md)). Whether the volume knob works while the keys are locked. Off: turning it does nothing and shows the unlock hint, and when you unlock, the volume goes straight to where the knob is | Works |
+
+### Buttons (key 8)
+
+On radios with an assignable right soft key, open **Settings > Buttons > Right soft key** for its short press.
+Choose **Quick** to open Quick settings, for example. The key is **Back** by default and acts as **Back** in menus
+regardless of its Home assignment. The profile Home footer shows **Menu** at left and the short-press function at
+right. With **Nothing** selected, the short press has no action and the right label is blank. Choose
+**Right soft key hold** to set the hold separately. The available functions depend on the radio and firmware build.
+
+**Tone burst** opens FM repeaters that need a 1750 Hz access tone. Assign it to a side key's press slot: tap for
+1 second, or hold for longer. It uses the whole key, so its long-press assignment does not run. During PTT the tone
+replaces the microphone temporarily; releasing PTT stops it. The usual transmit restrictions apply. It gives an
+error beep on DMR channels or hardware without transmit tones. Availability is in the
+[feature matrix](../feature-matrix.md).
+PTT when locked also controls the Tone burst key; power-off ends the burst immediately without a roger beep.
+During VOX, the burst runs to completion before the full VOX quiet tail begins.
+Pressing and releasing the key during a debug-link burst leaves that burst running until its own limit or stop.
+For a repeater that always needs the tone, turn on **Tone burst** in the channel's settings instead
+([Editing a channel](07-channels-zones-vfo.md#editing-a-channel)): every PTT on that channel then starts with 1 s of
+1750 Hz, no key needed.
+
+| Setting | Values | Default | What it does | Status |
+|---|---|---|---|---|
+| Long press time | 400 to 1200 ms, steps of 100 | 600 ms | How long you hold a key for a long press | Works |
+| Key repeat | 60 to 300 ms, steps of 20 | 120 ms | The repeat rate of **Up** and **Down** while held | Works |
+| Up/Down on Home | Channel, Zone, Talk target | Channel | What **Up** and **Down** change on Home. Talk target steps through the channel's contact and its listen list on DMR channels. On FM channels they change the channel | Works |
+| One row per key, named as on the radio (SK1, SK2, ...) | Default, Nothing, Monitor, Talk target, Power level, Next zone, Previous zone, Scan, Scan skip, Monitor toggle, Keypad lock, Home zone, Tone burst, Copy to VFO, VFO/Channel, Call back, TG name / number | Default | What a press of the key does. Default is what the [key roles](23-radios.md#key-roles) say. Monitor opens the squelch while you hold the key on FM, and turns digital monitor on or off on DMR. Scan skip skips the channel that stopped the scan until the scan stops, as **Skip channel for now** does ([scanning](12-scan.md#while-scanning)); it does nothing when no scan is running. Monitor toggle does what **\***, **5** does: on FM it latches the squelch open or closes it again, on DMR it turns digital monitor on or off ([FM](08-fm.md#monitor), [DMR](09-dmr.md#digital-monitor)); unlike Monitor, it needs no held key. Keypad lock locks and unlocks the keys. Call back talks to the last call heard. Home zone goes to the codeplug's first zone: put your home zone first in the CPS. Copy to VFO copies the channel to the VFO and opens it ([the VFO](07-channels-zones-vfo.md#copy-a-channel-to-the-vfo)); in the VFO it says "Already in VFO". VFO/Channel goes between the channel and the VFO, as a **VFO/MR** key does ([the VFO](07-channels-zones-vfo.md#the-vfo)). TG name / number switches Home's talk line, in every theme, between the talkgroup's name first and its number first (Settings > Display > Talkgroup name first). The list offers both on radios with a VFO | Works |
+| Right soft key (where available) | Default, Nothing, Quick, and supported Home key functions | Default (Back) | Sets the short press on Home. **Quick** opens Quick settings | Works |
+| The key's name and "hold" (SK1 hold, ...) | Default, Nothing, Talk target, Power level, Next zone, Previous zone, Scan, Scan skip, Monitor toggle, Emergency, Keypad lock, Home zone, Copy to VFO, VFO/Channel, Call back, TG name / number | Default | What holding the key does. Emergency needs a 1.5 s hold. With Monitor as the press, the hold works on DMR channels; on FM holding the key keeps the squelch open (for an open squelch that stays, use **\***, **5**) | Works |
+
+The list has a row pair for each key the menus don't need; [the radio's list](23-radios.md#key-roles) says which. On a
+radio whose arrows are printed P1 and P2, they have rows too: what you set works on Home, and in the menus they stay
+arrows. They can't take Monitor or Tone burst, which need the key held, or Emergency, which needs a 1.5 s hold. Left at
+Default they show what they do on Home (Previous zone, Next zone). The key settings are also in the codeplug, so a codeplug
+written to the radio can set them, and a change here is written to the codeplug.
+
+### Programming (key 9)
+
+What changes the codeplug or the radio itself. **Factory reset** is the last row.
+
+| Item | What it does |
+|---|---|
+| Channels | Every channel by number, with **New from current** first ([Channels](07-channels-zones-vfo.md#every-channel)) |
+| Zones | The zone list, where zones are created, renamed, copied and deleted ([Zones](07-channels-zones-vfo.md)); the same list as **Menu > Zones**. Only in builds with zone editing |
+| VFO | To the VFO, or back to the channels: the same as the VFO row of **Menu > Zones** ([the VFO](07-channels-zones-vfo.md#the-vfo)). Only on radios with a VFO |
+| DMR ID and name | The radio model, then your DMR ID, the radio name and the two boot screen lines, as stored in the codeplug. On **DMR ID**, type a new ID with the digit keys (up to 16776415; the IDs above it are reserved for the network) and press **OK**: the radio writes it into the codeplug and uses it at once, and the Codeplug Editor or qdmr shows it on the next read. **Back** takes back the last digit, and with none left leaves the ID unchanged. On **Radio name**, **Boot 1** or **Boot 2**, **OK** opens text entry ([Text entry](07-channels-zones-vfo.md#text-entry)); **OK** there saves it, up to 16 characters |
+| Diagnostics | The diagnostics page  |
+| Backlight tests | Only in builds with `CONFIG_BACKLIGHT_TEST` ([Build configuration](../build-config.md)): a bench tool for measuring the backlight, in English only. **OK** steps through the pages the radio supports. **Compare value**: the knob steps 1, **Up** / **Down** 50 (1 on a radio whose channel knob has end stops), digits type a value (it applies when it has as many digits as the maximum; **#** applies a shorter one, **Back** deletes a digit), **\*** changes the PWM rate, holding **OK** switches to full and back; it shows the duty and the on and off time each period. **Brightness**: 0 to 100 % in steps of 10, kept as the Brightness setting (10 % for 0). **PWM rate**: the rates the radio has, at that brightness; the standard rate again on leaving. How to use them: [Backlight curve](../testing/backlight-curve.md) |
+| Crash log | What the last crash left, and sending it to the developers ([below](#crash-log)) |
+| Frequency trim | Moves the radio's receive and transmit frequency together, for a radio that is off frequency. Measure the error (a frequency counter, a service monitor, or a hotspot's BER test) and enter it with the sign reversed. The page shows what the trim comes to in Hz at 440 MHz and 144 MHz: a radio 2 kHz high at 440 MHz takes about -4.5 ppm (-1980 Hz). The page shows the trim in large type over a slider from -10 to +10, with "+ to increase frequency" under it where the display has room. Up and Down (or the knob) step 0.1 ppm, # flips the sign, digits type it (# 4 5 OK is -4.5 ppm). Takes effect once you stop changing it. Only on radios that have it ([which radios](../feature-matrix.md)). Range -10.0 to +10.0 ppm in 0.1 ppm steps, default 0 |
+| RX past bands | Only on radios with a range for it: receive above the radio's rated bands, FM only. Off by default. Sensitivity isn't rated there, and the radio never transmits there |
+| Hardware | Only on radios that need it: facts about the radio the firmware can't detect, such as a board revision (one the radio detects isn't listed). **OK** steps through the choices, holding **OK** stores the one shown. "Not set" shows in the warning color until one is stored, and the radio won't transmit until then. A choice other than the one the radio runs applies from the next start-up |
+| Factory reset | Puts every setting back to its default ([below](#factory-reset)) |
+
+<img src="../ux/screens/160x120i5/settings_programming.png" width="200" alt="Settings, Programming">
+
+### Radio info (after 9, no key)
+
+Read only: each row shows a value, and **OK** opens the page behind a row that has one. Reach it with **Up** from the
+top of Settings.
+
+| Row | Shows | OK opens |
+|---|---|---|
+| Battery | The charge in percent and the voltage. Not on radios without a battery | |
+| DMR ID | Your DMR ID, or "Not set". Change it in **Settings > Programming > DMR ID and name** | |
+| Radio name | The radio name in the codeplug | |
+| About | The firmware version | One line each: Firmware ("RadioFoundry"), Release (the release name, such as v26.11; not shown for a build between releases), Build (the commit it was built from), Date (the commit's date, or the build's for a build with local changes) and Radio (the radio model). Then the support info a bug report needs ([Support info](../spec/support-info.md)): Source (where the firmware was built: CI build for RadioFoundry's own builds, Build service, Pull request, a local build or a fork), Image (the start of the firmware's fingerprint, which shows whether it is one of our release images; it reads "checking" for a second or two after the page opens), and the radio's chips: MCU, Flash, Display, DMR chip, RF chip, Hardware and any hardware options. A photo of these lines, or the web site's **Download support info** on the Support page, goes with a bug report. Then RadioFoundry's license (MIT), its maintainers, where its contributors are listed, and the license of each other part: the third-party libraries and the AMBE+2 codec. The codec shows as "stock": it comes from your radio's own firmware and isn't part of RadioFoundry. The page is text in small print, with nothing cut short and no status bar. The status bar comes back during a call. **Up**, **Down** or the knob scroll a page longer than the screen |
+| GPS | None (no GPS on this radio), Off, Searching or Fix | **Menu > Location > GPS status** |
+| Codeplug | | Where the channels come from (built-in or from the CPS), the number of zones and channels |
+
+<img src="../ux/screens/160x120i5/settings_radio_info.png" width="200" alt="Settings, Radio info">
+<img src="../ux/screens/160x120i5/about.png" width="200" alt="Settings > Radio info > About">
+
+### Location settings (Menu > Location, key 4)
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
@@ -125,102 +241,32 @@ and by APRS. None of them needs the others: a radio without APRS still reports i
 - Computer is offered on firmware with APRS, which reads the computer's GPS over USB ([APRS](13-aprs.md#position)).
 - The settings are saved and are back after the radio restarts.
 
-### Connections (key 6)
+### SFR (Menu > Connections, key 3)
+
+The single frequency repeater's status page and its settings ([Standalone SFR](14-hotspot.md#standalone-sfr)).
+
+| Setting | Values | Default | What it does | Status |
+|---|---|---|---|---|
+| SFR status | A page | | The repeater's status; in the VFO it sets the VFO's own role and inbound slot | Works |
+| SFR receive | Repeater, First copy, Dual-path RX | Repeater | Experimental. What a single frequency repeater user plays ([Standalone SFR](14-hotspot.md#standalone-sfr)). Repeater: only the repeater's copy. First copy: the talker's or the repeater's copy, whichever arrives first. Dual-path RX: both copies, with each damaged voice frame taken from the other copy. Dual-path RX is missing from builds without it | Works (Repeater). First copy and Dual-path RX depend on the radio: some hear only one copy at a time ([Radio reference](23-radios.md)) |
+| SFR CW ID | Off, 5, 10, 15, 30 min | Off | Experimental. How often a single frequency repeater channel sends its callsign in Morse ([Standalone SFR](14-hotspot.md#standalone-sfr)). The callsign is the radio name's first word (before a space, `-` or `/`), and only if it looks like one: 4 to 7 letters and digits, at least one of each. Otherwise nothing is sent. The ID goes out in FM on the channel once the repeater has carried traffic and has been quiet for 2 s, at most once per interval. Missing from builds without it | Works |
+
+### PC and network (Menu > Connections, key 5)
+
+What the radio does on a computer's link. **Data services** is **Menu > Connections**, key 4.
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
 | Hotspot allowed | On, Off | On | Lets a hotspot host on USB put the radio in hotspot mode ([Hotspot](14-hotspot.md)) | Works |
-| Answer radio checks | On, Off | On | Answer radio checks from other radios ([Radio check](10-messages-and-signaling.md#radio-check)) | Works |
-| Answer call alerts | On, Off | On | Acknowledge call alerts, so the caller knows the page arrived | Works |
 | TFTP codeplug write | On, Off | On | Lets a computer write the codeplug over TFTP in USB network mode ([USB network](15-usb-network.md#programming-over-the-network)). Reading is always possible | Works |
-| Message format | Automatic, ETSI, ETSI short, TMS (where built) | Automatic | The encoding of new DMR text messages ([Messages](10-messages-and-signaling.md#message-formats)) | Works |
-| Accept zone shares | On, Off | On | On shows a zone or channel another radio sends you, to import or reject ([Sharing a zone](07-channels-zones-vfo.md#sharing-a-zone)). Off ignores them | Works |
 | USB network at start | On, Off | Off | The radio starts as a USB network adapter instead of a serial port ([USB network](15-usb-network.md#starting-in-network-mode)) | Works |
 | PC answers data | On, Off | Off | Control station mode: while the computer is connected in USB network mode, it answers the data sent to your radio instead of the radio ([USB network](15-usb-network.md#control-station-for-dispatch-software)) | Works |
 | USB address | By DMR ID, 192.168.10.x | By DMR ID | The addresses of the USB network link: from your DMR ID, or the fixed pair 192.168.10.1 (radio) and 192.168.10.2 (computer) | Works |
 | Data services | ARS server, IP gateway: a DMR ID or Off | Off | Opens a screen with the ARS presence server ([ARS](10-messages-and-signaling.md#registration-ars-and-location-lrrp)) and the gateway radio for other networks ([USB network](15-usb-network.md#other-networks-through-a-gateway-radio)). Type an ID and press **OK**; 0 is Off. Both are saved in the codeplug | Works |
 
-### Power (key 7)
-
-| Setting | Values | Default | What it does | Status |
-|---|---|---|---|---|
-| Battery saver | On, Off | Off | On an idle FM channel the receiver sleeps between short listening windows ([Battery and power](16-battery-and-power.md)) | Works |
-| Auto power off | Off, 30 min, 1 h, 2 h | Off | Switch off after this time without use ([Battery and power](16-battery-and-power.md#auto-power-off)) | Works |
-| Low battery warning | 5 to 30 %, steps of 5 | 15 % | Warn when the battery falls to this level ([Battery and power](16-battery-and-power.md)) | Works |
-
-### Keys (key 8)
-
-On radios with an assignable right soft key, open **Settings > Keys > Right soft key** for its short press.
-Choose **Quick** to open Quick settings, for example. The key is **Back** by default and acts as **Back** in menus
-regardless of its Home assignment. The profile Home footer shows **Menu** at left and the short-press function at
-right. With **Nothing** selected, the short press has no action and the right label is blank. Choose
-**Right soft key hold** to set the hold separately. The available functions depend on the radio and firmware build.
-
-**Tone burst** opens FM repeaters that need a 1750 Hz access tone. Assign it to a side key's press slot: tap for
-1 second, or hold for longer. It uses the whole key, so its long-press assignment does not run. During PTT the tone
-replaces the microphone temporarily; releasing PTT stops it. The usual transmit restrictions apply. It gives an
-error beep on DMR channels or hardware without transmit tones. Availability is in the
-[feature matrix](../feature-matrix.md).
-PTT when locked also controls the Tone burst key; power-off ends the burst immediately without a roger beep.
-During VOX, the burst runs to completion before the full VOX quiet tail begins.
-Pressing and releasing the key during a debug-link burst leaves that burst running until its own limit or stop.
-For a repeater that always needs the tone, turn on **Tone burst** in the channel's settings instead
-([Editing a channel](07-channels-zones-vfo.md#editing-a-channel)): every PTT on that channel then starts with 1 s of
-1750 Hz, no key needed.
-
-| Setting | Values | Default | What it does | Status |
-|---|---|---|---|---|
-| Long press time | 400 to 1200 ms, steps of 100 | 600 ms | How long you hold a key for a long press | Works |
-| Key repeat | 60 to 300 ms, steps of 20 | 120 ms | The repeat rate of **Up** and **Down** while held | Works |
-| Up/Down on Home | Channel, Zone, Talk target | Channel | What **Up** and **Down** change on Home. Talk target steps through the channel's contact and its listen list on DMR channels. On FM channels they change the channel | Works |
-| One row per key, named as on the radio (SK1, SK2, ...) | Default, Nothing, Monitor, Talk target, Power level, Next zone, Prev zone, Scan, Scan skip, Monitor toggle, Key lock, Home zone, Tone burst, Copy to VFO, VFO/Channel, Call back, TG name / number | Default | What a press of the key does. Default is what the [key roles](23-radios.md#key-roles) say. Monitor opens the squelch while you hold the key on FM, and turns digital monitor on or off on DMR. Scan skip skips the channel that stopped the scan until the scan stops, as **Skip channel for now** does ([scanning](12-scan.md#while-scanning)); it does nothing when no scan is running. Monitor toggle does what **\***, **5** does: on FM it latches the squelch open or closes it again, on DMR it turns digital monitor on or off ([FM](08-fm.md#monitor), [DMR](09-dmr.md#digital-monitor)); unlike Monitor, it needs no held key. Key lock locks and unlocks the keys. Call back talks to the last call heard. Home zone goes to the codeplug's first zone: put your home zone first in the CPS. Copy to VFO copies the channel to the VFO and opens it ([the VFO](07-channels-zones-vfo.md#copy-a-channel-to-the-vfo)); in the VFO it says "Already in VFO". VFO/Channel goes between the channel and the VFO, as a **VFO/MR** key does ([the VFO](07-channels-zones-vfo.md#the-vfo)). TG name / number switches the standard Home layout's talk line between the talkgroup's name first and its number first (Settings > Display > Talkgroup name first). The list offers both on radios with a VFO | Works |
-| Right soft key (where available) | Default, Nothing, Quick, and supported Home key functions | Default (Back) | Sets the short press on Home. **Quick** opens Quick settings | Works |
-| The key's name and "hold" (SK1 hold, ...) | Default, Nothing, Talk target, Power level, Next zone, Prev zone, Scan, Scan skip, Monitor toggle, Emergency, Key lock, Home zone, Copy to VFO, VFO/Channel, Call back, TG name / number | Default | What holding the key does. Emergency needs a 1.5 s hold. With Monitor as the press, the hold works on DMR channels; on FM holding the key keeps the squelch open (for an open squelch that stays, use **\***, **5**) | Works |
-
-The list has a row pair for each key the menus don't need; [the radio's list](23-radios.md#key-roles) says which. On a
-radio whose arrows are printed P1 and P2, they have rows too: what you set works on Home, and in the menus they stay
-arrows. They can't take Monitor or Tone burst, which need the key held, or Emergency, which needs a 1.5 s hold. Left at
-Default they show what they do on Home (Prev zone, Next zone). The key settings are also in the codeplug, so a codeplug
-written to the radio can set them, and a change here is written to the codeplug.
-
-### Key lock (key 9)
-
-When the keys lock by themselves and what still works while they are locked ([Key lock](05-keys-and-navigation.md#key-lock)).
-
-| Setting | Values | Default | What it does | Status |
-|---|---|---|---|---|
-| Auto lock | Off, 30 s, 1 min, 5 min | Off | Locks the keys after this time without a key press | Works |
-| PTT when locked | On, Off | On | Whether **PTT** works while the keys are locked. Off: **PTT** does nothing until you unlock | Works |
-| Knob when locked | On, Off | On | On radios whose firmware reads the volume knob only (the row is not shown on the others; see the [feature matrix](../feature-matrix.md)). Whether the volume knob works while the keys are locked. Off: turning it does nothing and shows the unlock hint, and when you unlock, the volume goes straight to where the knob is | Works |
-
-### My radio (key 0)
-
-| Setting | What it does |
-|---|---|
-| DMR ID and name | The radio model, then your DMR ID, the radio name and the two boot screen lines, as stored in the codeplug. On **DMR ID**, type a new ID with the digit keys (up to 16776415; the IDs above it are reserved for the network) and press **OK**: the radio writes it into the codeplug and uses it at once, and the Codeplug Editor or qdmr shows it on the next read. **Back** takes back the last digit, and with none left leaves the ID unchanged. On **Radio name**, **Boot 1** or **Boot 2**, **OK** opens text entry ([Text entry](07-channels-zones-vfo.md#text-entry)); **OK** there saves it, up to 16 characters |
-| About | The firmware version, its date and the radio model: the same page as **Settings > Advanced > About** (below) |
-
-### Advanced (last row)
-
-| Item | What it does |
-|---|---|
-| About | One line each: Firmware ("RadioFoundry"), Release (the release name, such as v26.11; not shown for a build between releases), Build (the commit it was built from), Date (the commit's date, or the build's for a build with local changes) and Radio (the radio model). Then the support info a bug report needs ([Support info](../spec/support-info.md)): Source (where the firmware was built: CI build for RadioFoundry's own builds, Build service, Pull request, a local build or a fork), Image (the start of the firmware's fingerprint, which shows whether it is one of our release images; it reads "checking" for a second or two after the page opens), and the radio's chips: MCU, Flash, Display, DMR chip, RF chip, Hardware and any hardware options. A photo of these lines, or the web site's **Download support info** on the Support page, goes with a bug report. Then RadioFoundry's license (MIT), its maintainers, where its contributors are listed, and the license of each other part: the third-party libraries and the AMBE+2 codec. The codec shows as "stock": it comes from your radio's own firmware and isn't part of RadioFoundry. The page is text in small print, with nothing cut short and no status bar. The status bar comes back during a call. **Up**, **Down** or the knob scroll a page longer than the screen |
-| Codeplug | Where the channels come from (built-in or from the CPS), the number of zones and channels |
-| Diagnostics | The diagnostics page (also **OK**, **6**, **7**) |
-| Backlight tests | Only in builds with `CONFIG_BACKLIGHT_TEST` ([Build configuration](../build-config.md)): a bench tool for measuring the backlight, in English only. **OK** steps through the pages the radio supports. **Compare value**: the knob steps 1, **Up** / **Down** 50 (1 on a radio whose channel knob has end stops), digits type a value (it applies when it has as many digits as the maximum; **#** applies a shorter one, **Back** deletes a digit), **\*** changes the PWM rate, holding **OK** switches to full and back; it shows the duty and the on and off time each period. **Brightness**: 0 to 100 % in steps of 10, kept as the Brightness setting (10 % for 0). **PWM rate**: the rates the radio has, at that brightness; the standard rate again on leaving. How to use them: [Backlight curve](../testing/backlight-curve.md) |
-| Factory reset | Puts every setting back to its default ([below](#factory-reset)) |
-| Crash log | What the last crash left, and sending it to the developers ([below](#crash-log)) |
-| RX past bands | Only on radios with a range for it: receive above the radio's rated bands, FM only. Off by default. Sensitivity isn't rated there, and the radio never transmits there |
-| Freq trim | Moves the radio's receive and transmit frequency together, for a radio that is off frequency. Measure the error (a frequency counter, a service monitor, or a hotspot's BER test) and enter it with the sign reversed. The page shows what the trim comes to in Hz at 440 MHz and 144 MHz: a radio 2 kHz high at 440 MHz takes about -4.5 ppm (-1980 Hz). The page shows the trim in large type over a slider from -10 to +10, with "+ to increase frequency" under it where the display has room. Up and Down (or the knob) step 0.1 ppm, # flips the sign, digits type it (# 4 5 OK is -4.5 ppm). Takes effect once you stop changing it. Only on radios that have it ([which radios](../feature-matrix.md)). Range -10.0 to +10.0 ppm in 0.1 ppm steps, default 0 |
-| Hardware | Only on radios that need it: facts about the radio the firmware can't detect, such as a board revision (one the radio detects isn't listed). **OK** steps through the choices, holding **OK** stores the one shown. "Not set" shows in the warning color until one is stored, and the radio won't transmit until then. A choice other than the one the radio runs applies from the next start-up |
-
-<img src="../ux/screens/160x120i5/about.png" width="200" alt="Settings > Advanced > About">
-
-<img src="../ux/screens/160x120i5/settings_advanced.png" width="200" alt="Settings, Advanced">
-
 ## Signaling tones
 
-**Settings > Signaling tones** has three events, each with its own tone: the **start** of your transmission, its **end**,
+**Settings > Tones & alerts > Signaling tones** has three events, each with its own tone: the **start** of your transmission, its **end**,
 and the **idle** moment when a reception ends and the channel is free again. DMR and FM are set separately. For each you
 pick where the tone sounds, and you build the tone yourself, step by step.
 
@@ -228,7 +274,7 @@ pick where the tone sounds, and you build the tone yourself, step by step.
 
 | Output | The tone sounds |
 |---|---|
-| Default | As before: the talk permit and the call end tone, with their switches in Settings > Sound, and the FM roger beep, which has no menu row yet (a developer turns it on over the debug link, and it is off otherwise). The default is not a fifth place: it means "leave this event as it was before this setting existed" |
+| Default | As before: the talk permit and the call end tone, with their switches in Settings > Tones & alerts > Alert tones, and the FM roger beep, which has no menu row yet (a developer turns it on over the debug link, and it is off otherwise). The default is not a fifth place: it means "leave this event as it was before this setting existed" |
 | Off | Never, the radio's own tone for that event included |
 | Speaker | On your speaker only |
 | On air | In your transmission, so the other stations hear it. DMR sends it as voice; FM as a tone on the carrier |
@@ -268,7 +314,7 @@ sound** (the permit beep at the start, the call end beep at the end and when idl
 
 ## Factory reset
 
-**Settings > Advanced > Factory reset** asks "Reset all settings to factory defaults? Channels stay. This can't be
+**Settings > Programming > Factory reset** asks "Reset all settings to factory defaults? Channels stay. This can't be
 undone." The focus starts on "No, keep settings". Focus "Yes, reset" and press **OK**.
 
 <img src="../ux/screens/160x120i5/factory_reset.png" width="200" alt="Factory reset confirmation">
@@ -279,12 +325,12 @@ position), erases RadioFoundry's own data area, and restarts the radio. The code
 ## Crash log
 
 When the firmware crashes, the radio keeps a short record of where and why, and restarts. A radio that stops
-responding for about 3 seconds counts as a crash too: the record says "Hang". **Settings > Advanced >
+responding for about 3 seconds counts as a crash too: the record says "Hang". **Settings > Programming >
 Crash log** shows the record: what happened, how many crashes in a row, how long the radio ran and the firmware
 build. Without a record it says "No crash recorded." Switching the radio off may lose the record: look before you
 turn it off.
 
-<img src="../ux/screens/160x120i5/crash_log.png" width="200" alt="Settings > Advanced > Crash log">
+<img src="../ux/screens/160x120i5/crash_log.png" width="200" alt="Settings > Programming > Crash log">
 
 | Item | What it does |
 |---|---|
@@ -316,7 +362,7 @@ A few settings exist in the radio but not yet on the menu:
 - the SFR idle beacon.
 
 Developers change them over the debug link (`tools/rfoundry_debug.py radio set ...`, `data settings ...`,
-`data ip-settings ...`, `snmp ...`). The radio keeps them. The roaming survey and beacon settings are in **Tools >
+`data ip-settings ...`, `snmp ...`). The radio keeps them. The roaming survey and beacon settings are in **Menu > Scan >
 Roaming** ([DMR](09-dmr.md#roaming)).
 
 A build without the Settings menu (`CONFIG_UI_SETTINGS=n`) shows "Set them with qdmr" instead, and keeps the stored

@@ -14,7 +14,7 @@ Connect the radio over its debug-link USB connection. On the computer, browse a 
 python tools/satellite_tle.py catalog --source amsat
 ```
 
-For a browser workflow, open **Tools > Satellite TLE Update** on the RadioFoundry site. Load the AMSAT daily bulletin
+For a browser workflow, open **Menu > Location > Satellite TLE Update** on the RadioFoundry site. Load the AMSAT daily bulletin
 or browse for a TLE file, then choose up to 10 FM satellites by name. Non-FM objects are not shown. ISS, SO-50 and
 AO-91 start selected when present. Search does not clear checked selections. The page refreshes the AMSAT bulletin
 before each push or bundle download; a selected file is used as supplied. A push replaces checked satellites' existing
@@ -65,7 +65,7 @@ protocol v6 supports the full ten. Profile-only ID changes require protocol v3 o
 
 ## Enter a TLE on the radio
 
-Open **OK**, **6** (Tools), then **Satellite**. Choose a pass to open that satellite's details, then press **#**. Enter the complete
+Open **OK**, **6** (Location), **3** (Satellite). Choose a pass to open that satellite's details, then press **#**. Enter the complete
 69-character first TLE line and press **OK**, then enter the complete second line and press **OK** again. The radio
 keeps the existing catalog ID and name. It validates both lines and commits the replacement as one transaction; a
 bad or incomplete pair does not replace the installed data. This edits both lines from scratch, so keep the original
@@ -73,7 +73,7 @@ TLE available while entering it.
 
 ## Track a satellite
 
-Open **OK**, **6** (Tools), then choose **Satellite**. The radio uses the selected position source for coordinates
+Open **OK**, **6** (Location), **3** (Satellite). The radio uses the selected position source for coordinates
 and altitude, and fresh GPS or computer NMEA for UTC, to predict passes for the installed TLEs. A saved fixed position
 can therefore provide the observer location while the GPS is acquiring its first fix, once the receiver provides
 current date and time. Computer fixes and UTC do not survive a restart: send fresh NMEA again, including altitude and

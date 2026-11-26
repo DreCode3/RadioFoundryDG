@@ -13,7 +13,7 @@ The chapters below name the command line tools as alternatives.
 
 <img src="../ux/screens/160x120i5/home_dmr.png" width="200" alt="Home screen on a DMR channel">
 <img src="../ux/screens/160x120i5/quick_dmr.png" width="200" alt="Quick settings">
-<img src="../ux/screens/160x120i5/hub.png" width="200" alt="The hub">
+<img src="../ux/screens/160x120i5/hub.png" width="200" alt="Menu">
 
 ## Reading order
 
@@ -30,7 +30,7 @@ The chapters below name the command line tools as alternatives.
 6. [The Home screen](06-home-screen.md): what each region shows, receiving, transmitting
 7. [Channels, zones and the VFO](07-channels-zones-vfo.md): P25, P25 trunked and NXDN channels too
 8. [FM](08-fm.md): squelch, monitor, tones, bandwidth, VOX, touch tones
-9. [DMR](09-dmr.md): talk targets, replying, Recent, contacts, timeslot and color code, privacy, roaming, trunked systems
+9. [DMR](09-dmr.md): talk targets, replying, the call log, contacts, timeslot and color code, privacy, roaming, trunked systems
 10. [Messages, call alert and radio check](10-messages-and-signaling.md)
 11. [Emergency](11-emergency.md)
 12. [Scan and dual watch](12-scan.md)
@@ -66,14 +66,14 @@ Keys are named by their job. [Key roles](23-radios.md#key-roles) shows which key
 | Change channel | Channel knob, or **Up** / **Down** |
 | Change zone | **Previous zone** / **Next zone**, or **OK**, **4**, pick a zone |
 | Quick settings | **\*** |
-| Open the menu (hub) | **OK** |
+| Open Menu | **OK** |
 | Act on the last caller | **#** |
-| Recent calls | **OK**, **3** |
+| Call log | **OK**, **3** |
 | Talk to another talkgroup or ID | Hold **#** |
 | Choose who to talk to | **Talk target** (DMR), or **\***, **8** |
 | Monitor | Hold **Monitor** |
 | Dual watch on / off | Hold **Talk target**, or **\***, **7** |
-| Scan on / off | **OK**, **6**, **1** |
+| Scan on / off | **OK**, **5**, **1** |
 | Undo temporary changes | **Back** on Home |
 | Save changes to the channel | Hold **OK** |
 | Back to Home | Hold **Back** |

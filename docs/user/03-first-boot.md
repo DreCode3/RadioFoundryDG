@@ -31,12 +31,12 @@ contacts and your DMR ID. When RadioFoundry finds no channels there, it uses six
 | Simplex 446.000 | 446.000 MHz | 12.5 kHz |
 | Simplex 446.500 | 446.500 MHz | 12.5 kHz |
 
-Check that these frequencies are legal for you before you transmit on them. **Settings > Advanced > Codeplug** shows
+Check that these frequencies are legal for you before you transmit on them. **Settings > Radio info > Codeplug** shows
 which channels the radio uses: "built-in channels" or "from the CPS".
 
 A radio that ran its original firmware still holds that firmware's codeplug. RadioFoundry checks the codeplug when it
 starts. When it isn't a RadioFoundry (open-firmware) codeplug, the radio ignores it and uses the built-in channels.
-**Settings > Advanced > Codeplug** then also shows "Other firmware's codeplug: ignored". Nothing is erased: the
+**Settings > Radio info > Codeplug** then also shows "Other firmware's codeplug: ignored". Nothing is erased: the
 Codeplug Editor can still read and convert it. Write a codeplug to replace it.
 
 The first time you save something on the radio (a channel, a contact, a zone, your DMR ID), it asks first, on the
@@ -57,12 +57,12 @@ Program channels, zones, contacts, talkgroup lists and your DMR ID with the Code
 ([Settings](17-settings.md)). Channels, contacts and the DMR ID come from the codeplug.
 
 DMR needs your DMR ID. Without one, the radio refuses to transmit on DMR channels and shows "No DMR ID in codeplug".
-**Settings > My radio > DMR ID and name** shows the ID the radio has, and sets one on the radio: it is written into
+**Settings > Programming > DMR ID and name** shows the ID the radio has, and sets one on the radio: it is written into
 the codeplug.
 
 ## Checks after installing
 
-1. **Settings > My radio > About** (also under **Advanced**) shows "RadioFoundry" with the version you flashed and the radio model. Below
+1. **Settings > Radio info > About** (also under **Advanced**) shows "RadioFoundry" with the version you flashed and the radio model. Below
    them it lists the authors and the licenses of everything in the firmware.
 2. On an FM channel, hold **Monitor** to open the squelch. You hear noise. This shows that the
    receiver and the audio path work.

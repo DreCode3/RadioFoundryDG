@@ -119,7 +119,7 @@ Reacquiring valid inputs may resume tracking only while the same satellite and f
 
 ## 5. User-facing behavior
 
-Tools > Satellite first predicts passes for every locally installed TLE using one current GPS position and UTC
+Menu > Location > Satellite first predicts passes for every locally installed TLE using one current GPS position and UTC
 snapshot. The list is ordered by AOS, shows time to AOS in hours and minutes (`H:MM`) and maximum elevation, and
 reports prediction progress. Missing position, altitude or valid UTC leaves the list unavailable instead of using stale
 inputs. Its AOS countdown updates as time passes from the scan's UTC snapshot. The pass list shows the age of the oldest

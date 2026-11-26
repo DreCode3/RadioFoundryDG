@@ -129,7 +129,7 @@ The VFO has a role of its own: byte A only, stored per VFO in the settings (`vfo
 set by `radio_req_vfo_sfr` (RREQ_VFO_SFR: refused outside the VFO, while transmitting and in hotspot mode; the debug
 link's RADIO op 38) and by Copy to VFO, which takes the channel's byte A. The radio core tunes again on a change, and
 looks at the role again when the VFO's split or color code changes, so a repeater stops on a split and starts once
-the VFO is on one frequency again. In FM the role is kept and does nothing. Tools > Single-freq repeater, opened in
+the VFO is on one frequency again. In FM the role is kept and does nothing. Menu > Connections > SFR, opened in
 the VFO, has a Role row (Off, User, User ERDM, Repeater, Repeater ERDM style) and an Inbound slot row; SELECT steps
 each.
 
@@ -145,11 +145,11 @@ each.
 | 2 Dual-path RX (`CONFIG_SFR_DUALPATH_RX`) | As first copy, but a voice burst with a frame whose C0 Golay check fails (`ambeFecDecode`) is held up to `DMR_SFR_DUALPATH_MS` (120 ms) for the other copy, and each failed frame is taken from it when its own check passes (stats `rx_sfr_held`, `rx_sfr_fixed`). A pass/fail check per frame, nothing ranked. No other copy in time: the burst plays as it came. Encrypted voice is never held |
 
 The setting is stored in bits 1-2 of the settings record's `rpt_beacon` byte (`settings-store.md`), set in
-Settings > Talk & listen > SFR receive and by debug link setting 30.
+Menu > Connections > SFR > SFR receive and by debug link setting 30.
 
 CW ID (`CONFIG_SFR_CWID`, `core/radio/radio_cwid.c`): the repeater role can identify itself in Morse. The setting
 `sfr_cwid` picks the interval: 0 off (default), 1 5 min, 2 10 min, 3 15 min, 4 30 min. It is stored in bits 3-5 of
-`rpt_beacon`, set in Settings > Talk & listen > SFR CW ID and by debug link setting 32.
+`rpt_beacon`, set in Menu > Connections > SFR > SFR CW ID and by debug link setting 32.
 
 | Rule | Detail |
 |---|---|
@@ -193,8 +193,7 @@ On air (SDR bench, 2026-10-19), the numbers on the radios' own hardware pages:
 
 Not built: the HR_C6000 driver level parts (raw RX RAM classification, `sfrRawClassify`; the register switches of
 command 0xD5); a setting on the radio for a channel's role (the Codeplug Editor sets it; the VFO's is set on the radio,
-above), and the framing and hang time of the VFO's role on the radio (the debug link sets them). On the radio, Tools >
-Single-freq repeater shows the
+above), and the framing and hang time of the VFO's role on the radio (the debug link sets them). On the radio, Menu > Connections > SFR shows the
 channel's role, slots and the repeater's state, and a repeater channel's Home screen says "SFR repeater" or "Repeating"
 where a DMR channel shows its talk target.
 

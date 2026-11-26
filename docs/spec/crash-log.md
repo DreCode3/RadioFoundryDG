@@ -305,7 +305,7 @@ codeplug contact number, 1..1024, 0 none) and what happens after a crash.
 Ask and Auto act once per record, 1.5 s after the start, on the Home screen, and only for a record that is neither
 seen nor sent and with a target set. Showing the Crash log screen or the prompt marks the record seen.
 
-**Settings > Advanced > Crash log** shows the summary line (`crash_summary`), "Report sent", the count in a row, the
+**Settings > Programming > Crash log** shows the summary line (`crash_summary`), "Report sent", the count in a row, the
 uptime and the build. Its rows: Send report, Send to (the contacts list, type to find), After a crash (Off, Ask, Auto
 in turn) and Clear. Without `CONFIG_CRASH_REPORT` only Clear is there. The screen is `CONFIG_CRASH_SCREEN` (on with the
 crash log); without it the debug link still shows the record.

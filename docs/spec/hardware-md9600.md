@@ -623,8 +623,7 @@ Optional, JS-M710 (unverified); the "MD-9600-5P GPS" FCC class II change. NMEA o
 
 ### 13.2 Power and detection
 
-PA9 high powers the GPS and the microphone together, so it stays on while the radio runs, whatever Settings > Location
-> GPS says (the setting stops USART1 only). It is low from reset, through the standby wait and after "off" (`latch`),
+PA9 high powers the GPS and the microphone together, so it stays on while the radio runs, whatever Menu > Location > Location settings > GPS says (the setting stops USART1 only). It is low from reset, through the standby wait and after "off" (`latch`),
 and driven high in `board_init`. No presence pin: detect by listening for valid NMEA, as on the MD-380 (ours).
 
 ---
@@ -860,7 +859,7 @@ the original firmware sounds the same on this radio is not checked); UHF receive
 | Receive | FM on both bands, every revision (19.3). Front-end tuning from calibration rows 0x30 / 0x39 (11.2) when they aren't blank, else mid scale |
 | DMR | receive on the shared HR_C6000 glue (configuration port PE2-PE5, voice port SPI1 at 4.5 MHz, interrupts PC0-PC2, I2S3 PCM). Reference offset and DMR modulation pair (11.2 rows 0x130-0x149) rewritten at each retune. The two codec profiles (tags 0x0609 and 0x1645, one id `md9600-s11v2`) run the codec from flash: code at 0x080E0000, tables at the start of sector 10, descriptor at 0x080FFF80 ([codec-md9600.md](codec-md9600.md)) |
 | Audio | FM from the IF chip (FM_MUTE high), PCM (DMR voice, beeps) from the HR_C6000 line out with FM held back, AF_SW muting otherwise (`boards/md9600/speaker_md9600.h`). A host audio session (`NET_USRP`) hears FM from PC3 and DMR from the stream, and transmits FM as PWM on PC8 into the HR_C6000's microphone input (19.9) |
-| GPS | USART1 RX (PA10), receive interrupt; 9600 baud first, then 4800, 19200, 38400, 57600, 115200, 3 s each. A silent line ends the search after the first window; a module once heard feeds APRS positions. Settings > Location > GPS off stops USART1; PA9 stays on (it also powers the mic) |
+| GPS | USART1 RX (PA10), receive interrupt; 9600 baud first, then 4800, 19200, 38400, 57600, 115200, 3 s each. A silent line ends the search after the first window; a module once heard feeds APRS positions. Menu > Location > Location settings > GPS off stops USART1; PA9 stays on (it also powers the mic) |
 | Hand mic | the keypad of 9.3 through `drivers/input/adckeys`, three equal scans per key. Key roles of A-D and A/B are a proposal (unverified). No `CAP_KEYPAD`: a mic may have no keypad |
 | Transmit | FM and DMR on UHF and VHF, checked off air into a dummy load (19.8, 19.9; VHF 19.9.1). On in the build (`CONFIG_MD9600_TX`, `CONFIG_MD9600_DMR_TX`); it still needs a confirmed revision (19.3) and plausible PA rows. Sub-audio: CTCSS and DCS from the PWM generator on PC7, with the DCS turn-off tail |
 | Not yet | Transmit power per level (a power meter), split duplex and the two-PLL burst switching (17 #17), the CPS's own command set, update packaging |
@@ -914,7 +913,7 @@ every other one's. It never drives PE15. Its thresholds are unmeasured, so it is
 image can't drive leaves the receiver off rather than programming the wrong chip.
 
 Transmit needs a confirmed revision. On V4A / V5 nothing is asked: the hardware option is hidden. On V1-V4 the radio
-asks until a record is stored: Settings > Advanced > Hardware > Board revision (warning color), the home screen
+asks until a record is stored: Settings > Programming > Hardware > Board revision (warning color), the home screen
 ("Set: Board revision", "Transmit waits for it", with the menu path as the hint) and PTT ("Can't transmit", the same
 line). Storing the revision the radio runs confirms it at once, without a restart; storing another one applies from
 the next start, and until then nothing transmits (the running revision is no longer confirmed, so the board refuses

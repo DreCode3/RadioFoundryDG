@@ -19,13 +19,13 @@ room. The [Radio reference](23-radios.md) lists them and says where APRS is veri
 ## Before you start
 
 - You need an amateur radio license. APRS sends only on amateur frequencies, and the radio refuses others.
-- Your callsign is the first word of the radio name (Settings > My radio, or the codeplug's radio name). Without a
+- Your callsign is the first word of the radio name (Settings > Programming > DMR ID and name, or the codeplug's radio name). Without a
   valid callsign nothing is sent, and the APRS page says why.
 - Sending is off until you turn it on. "Send position now" works at any time.
 
 ## The APRS page
 
-Press **OK**, **6** (Tools), **8** (APRS). The top of the page shows your callsign, the APRS
+Press **OK**, **6** (Location), **2** (APRS). The top of the page shows your callsign, the APRS
 frequency, your position and its source, and when the next beacon goes out. If the radio can't send, it says why.
 
 | Row | What it does |
@@ -145,10 +145,10 @@ The position comes from:
 Auto takes a fresh GPS position, else the computer's, else the fixed one.
 
 The position is not only APRS's: DMR calls and location requests (LRRP) use the same one. Its settings are under
-**Settings > Location**: **Position source** (Auto, GPS, Computer, Fixed) and **Fixed position**, a page with
+**Menu > Location > Location settings**: **Position source** (Auto, GPS, Computer, Fixed) and **Fixed position**, a page with
 **Latitude** and **Longitude**. To set the fixed position:
 
-1. Open Settings > Location > Fixed position, select Latitude and press OK. The value opens for editing.
+1. Open Menu > Location > Location settings > Fixed position, select Latitude and press OK. The value opens for editing.
 2. Type the degrees with the digits, decimal places included: `3`,`3`,`7`,`4`,`9`,`0` is 33.7490. The decimal point is
    already there. Longitude has three places before the point: 84.3880 is `8`,`4`,`3`,`8`,`8`,`0` (the radio puts the
    leading 0 in for you), and 122.4194 is `1`,`2`,`2`,`4`,`1`,`9`,`4`. For 10 to 19 degrees, type the 0 yourself.
@@ -160,7 +160,7 @@ Four decimal places put you within about 11 m. You can also type "latitude" or "
 
 ## GPS status
 
-**Tools > Position** shows what the radio's GPS is doing, on four pages. Press Up or Down (or turn the knob) for the
+**Menu > Location > GPS status** shows what the radio's GPS is doing, on four pages. Press Up or Down (or turn the knob) for the
 next page, or press 1 to 4. On a radio with a tall screen, Status also shows the grid locator and degrees, minutes and
 seconds, so there are three pages.
 
@@ -171,7 +171,7 @@ seconds, so there are three pages.
 | 3 Signal | each satellite's signal strength as a bar; filled bars are used in the fix |
 | 4 Grid | your Maidenhead grid locator (FN42li), and the position in degrees, minutes and seconds |
 
-"No GPS, or it is off" means the radio has no GPS or **Settings > Location > GPS** is off. A first fix outdoors takes
+"No GPS, or it is off" means the radio has no GPS or **Menu > Location > Location settings > GPS** is off. A first fix outdoors takes
 from a few seconds to a few minutes; indoors there may be none.
 
 ## With a computer (KISS and iGate)

@@ -12,7 +12,7 @@ Each key does the same kind of thing on every screen.
    from anywhere.
 3. **\*** opens quick settings for what you are doing. Holding **\*** locks or unlocks the keys.
 4. **#** opens the actions for the thing with the focus, such as a person, a talkgroup, a message or the last caller.
-   Holding **#** opens Recent.
+   Holding **#** opens the talk target picker on a DMR channel.
 5. **PTT** talks to the person or talkgroup with the focus in any list, once. With nothing focused, it talks to the
    channel's talk target.
 
@@ -30,11 +30,11 @@ a key the radio doesn't have.
 
 | Key | Press | Hold |
 |---|---|---|
-| **OK** | Home: open the hub. Lists: open or choose | Save or make permanent |
+| **OK** | Home: open Menu. Lists: open or choose | Save or make permanent |
 | **Back** | Back one level. Home: undo one temporary change | Home |
-| **Up**, **Down** | Move the focus. Home: next or previous channel (VFO: frequency step), or zone or talk target with **Settings > Keys > Up/Down on Home** (the channel knob stays on the channel). Editors: change the value | Repeats |
+| **Up**, **Down** | Move the focus. Home: next or previous channel (VFO: frequency step), or zone or talk target with **Settings > Buttons > Up/Down on Home** (the channel knob stays on the channel). Editors: change the value | Repeats |
 | **\*** | Quick settings. While you transmit on FM with **PTT**: its [touch tone](08-fm.md#touch-tones-dtmf) | Lock or unlock the keys |
-| **#** | While you transmit on FM with **PTT**: its [touch tone](08-fm.md#touch-tones-dtmf). Otherwise: actions for the focused item. Home: actions for the last caller. VFO: tunes a frequency being typed, as **OK** | DMR channels: the talk target picker (pick a talkgroup, or type an ID). Recent is **OK**, **3** |
+| **#** | While you transmit on FM with **PTT**: its [touch tone](08-fm.md#touch-tones-dtmf). Otherwise: actions for the focused item. Home: actions for the last caller. VFO: tunes a frequency being typed, as **OK** | DMR channels: the talk target picker (pick a talkgroup, or type an ID). The call log is **OK**, **3** |
 | **0** to **9** | Home: start Find. Lists: pick a numbered row, or type to filter. VFO: type a frequency. While you transmit with **PTT**: FM sends the key's [touch tone](08-fm.md#touch-tones-dtmf), DMR nothing | Home: speed dial (not built yet). While you transmit with **PTT**: as a press |
 | **Previous zone**, **Next zone** | Home: previous or next zone | |
 | **Monitor** | FM: opens the squelch while held. DMR: digital monitor (every talkgroup) on or off | |
@@ -44,11 +44,11 @@ a key the radio doesn't have.
 | Channel knob | Each click is one step. Clockwise: the next channel on Home (as **Up**), the next row down in a list or menu, a higher value in an editor. Counterclockwise: the opposite | |
 
 The side keys (**Monitor**, **Talk target** and **Power level** on most radios) can do other jobs. Set them in
-**Settings > Keys** ([Settings](17-settings.md#keys-key-8)) or in the codeplug.
+**Settings > Buttons** ([Settings](17-settings.md#buttons-key-8)) or in the codeplug.
 
-Each key press gives a short key beep unless **Settings > Sound > Key tones** is off.
+Each key press gives a short key beep unless **Settings > Tones & alerts > Key tones** is off.
 
-While the keys are locked (hold **\***), **PTT** still works. When **Settings > Key lock > PTT when locked** is off,
+While the keys are locked (hold **\***), **PTT** still works. When **Settings > Security & keypad lock > PTT when locked** is off,
 **PTT** gives an error beep and "PTT is off while locked: hold * to unlock".
 
 ## Moving around
@@ -58,7 +58,10 @@ The Home screen is the base. Every other screen is at most three levels away fro
 ```
 Home
  |-- *            Quick settings
- |-- OK           Hub: 1 Contacts, 2 Messages, 3 Recent, 4 Zones, 5 Channels, 6 Tools, 7 Settings
+ |-- OK           Menu, a 3x3 grid that matches the keypad:
+ |                    1 Contacts      2 Messages      3 Call log
+ |                    4 Zones         5 Scan          6 Location
+ |                    7 Connections   8 Settings      9 (empty)
  |                    (a radio without # gets 0 Last caller at the top)
  |-- #            Actions for the last caller
  |-- hold #       Talk target picker (DMR)
@@ -66,16 +69,31 @@ Home
  '-- Talk target  Talk target picker
 ```
 
-In numbered lists (the hub, Tools, Settings, actions, quick settings) a number key picks the row with that number
-directly. For example, **OK**, **6** opens Tools.
+| Menu entry | What is inside |
+|---|---|
+| 1 Contacts | Talkgroups and people, type to find ([DMR](09-dmr.md#contacts)) |
+| 2 Messages | Messages, newest first; a zone or channel another radio offers, while the offer waits (**Zone offers**) |
+| 3 Call log | Stations heard and calls made, newest first |
+| 4 Zones | The VFO and the zones; a zone's channels with **#** ([Zones](07-channels-zones-vfo.md)) |
+| 5 Scan | 1 Scan on or off ([Scan](12-scan.md)), 2 Roaming ([DMR](09-dmr.md#roaming)) |
+| 6 Location | 1 GPS status, 2 APRS ([APRS](13-aprs.md)), 3 Satellite (where built, [Satellite](18-satellite.md)), 4 Location settings |
+| 7 Connections | 1 Hotspot ([Hotspot](14-hotspot.md)), 2 USB network ([USB network](15-usb-network.md)), 3 SFR, 4 Data services (where built), 5 PC and network |
+| 8 Settings | Nine groups and Radio info ([Settings](17-settings.md)). Channels, zone editing, Diagnostics and Factory reset are in **Settings > Programming** |
+
+Menu's entries show what they hold: the number of unread messages, the zone in use, a scan that runs. Where a value
+doesn't fit beside the name, it is shortened or left out.
+
+In numbered lists (Menu, Scan, Location, Connections, Settings, actions, quick settings) a number key picks the row
+with that number directly. For example, **OK**, **7** opens Connections. An entry a radio doesn't have is left out, and
+the others keep their numbers.
 
 On displays with profiles, every list shows five rows of the same height, and Menu and the first level of Settings
 show them in two columns of five rows per page. **Up** and **Down** follow shortcut order down the left column, then
 the right, then move between pages. Where a list has more entries than fit, the title shows the highlighted entry's
-position, for example **3/12**. All seven main entries fit on one page of Menu, and **7** opens Settings directly.
+position, for example **3/12**. All eight Menu entries fit on one page, and **8** opens Settings directly.
 **OK** opens the highlighted item. **Back** returns to the previous screen.
 
-<img src="../ux/profile-samples/menu.png" width="310" alt="Menu with seven numbered entries in two columns">
+<img src="../ux/profile-samples/menu.png" width="310" alt="Menu with eight numbered entries in two columns">
 <img src="../ux/profile-samples/settings-night.png" width="310" alt="First page of Settings in the Night palette">
 
 Colored category icons appear on Menu and on the first level of Settings. The highlighted row is filled, with a bar
@@ -87,7 +105,7 @@ In long lists (Contacts, Channels, a zone's channels) the number keys filter the
 keypad spells words. **2** is ABC, **3** is DEF, and so on to **9** (WXYZ). Each key narrows the list to names with a
 word that starts with those letters. **Back** deletes the last key typed, then leaves the list.
 
-<img src="../ux/screens/160x120i5/hub.png" width="200" alt="The hub">
+<img src="../ux/screens/160x120i5/hub.png" width="200" alt="Menu">
 
 ## Find
 
@@ -97,8 +115,8 @@ this order:
 1. The channel at that position in the current zone. "12" lists channel 12.
 2. The digits as a frequency in one of the radio's bands, read as in the VFO: "438250" lists "Tune VFO to 438.250".
    **OK** opens the VFO on it. The VFO's mode, power and tones stay as they were.
-3. Channels in the zone, contacts and talkgroups, zones, places (Contacts, Messages and so on) and settings whose
-   names match the keys as letters.
+3. Channels in the zone, contacts and talkgroups, zones, places (Menu's entries, such as Contacts and Location) and
+   settings whose names match the keys as letters. Settings, **0** opens Find too.
 4. Contacts whose DMR ID starts with the number, from three digits on.
 5. The number itself, as a talkgroup ("Talk to TG 3100", "not saved") and as a private call ("Private call 3100").
 6. "Create contact 3100" when no contact has that ID. **OK** opens New Contact ([Contacts](09-dmr.md#contacts)).
@@ -107,12 +125,12 @@ Then:
 
 | Key | Does |
 |---|---|
-| **OK** | Go to the channel or zone, tune the VFO, open the place or setting, talk to the talkgroup or person for now, or create the contact |
+| **OK** | Go to the channel or zone, tune the VFO, open the place, open a setting where it lives (**Back** goes up through the pages on the way), talk to the talkgroup or person for now, or create the contact |
 | **PTT** | Talk to the focused talkgroup or person once |
 | **#** | Actions for the focused talkgroup or person |
 | **Back** | Delete the last digit. With one digit left, leave Find |
 
-Settings also answer to other names. For example, "promiscuous" finds Digital monitor and "TOT" finds TX timeout.
+Settings also answer to other names. For example, "promiscuous" finds Digital monitor at start and "TOT" finds TX timeout.
 
 <img src="../ux/screens/160x120i5/find_name.png" width="200" alt="Find, matching a name">
 <img src="../ux/screens/160x120i5/find_number.png" width="200" alt="Find, matching a number">
@@ -140,10 +158,10 @@ write is in progress, it says "Save busy: try again"; wait a moment and hold **O
 
 On Home, hold **\*** to lock the keys. The screen shows "Keys locked: hold * to unlock" and an "L" in the status line.
 While locked, **PTT** and **Monitor** still work. Any other key, and the channel knob, shows the unlock hint. Hold
-**\*** again to unlock. The volume knob still works, unless **Settings > Key lock > Knob when locked** is Off.
+**\*** again to unlock. The volume knob still works, unless **Settings > Security & keypad lock > Knob when locked** is Off.
 In menus holding **\*** doesn't lock, so a slow press can't lock the keys in the middle of a task.
 
-**Settings > Key lock > Auto lock** locks the keys by itself after a time without a key press. A radio with only
+**Settings > Security & keypad lock > Auto lock** locks the keys by itself after a time without a key press. A radio with only
 side keys (no keypad, no Back key) never locks by itself: nothing could unlock it.
 
 <img src="../ux/screens/160x120i5/home_locked.png" width="200" alt="Home with the keys locked">

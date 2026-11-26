@@ -7,7 +7,7 @@ connects the radio to a DMR network (BrandMeister, TGIF and others). The radio c
 nearby on one frequency. The radio speaks the MMDVM modem protocol over its serial port. On radios with USB this is
 the USB serial port. On radios without USB it is the programming cable ([Radio reference](23-radios.md)).
 
-Some radios leave hotspot mode out of their default image. On those radios **Tools > Hotspot** is dimmed. The
+Some radios leave hotspot mode out of their default image. On those radios **Menu > Connections > Hotspot** is dimmed. The
 [Radio reference](23-radios.md) lists them and says where hotspot mode is verified.
 
 ## What you need
@@ -15,7 +15,7 @@ Some radios leave hotspot mode out of their default image. On those radios **Too
 - A computer with MMDVMHost (Linux, macOS), or a Pi-Star style image on a Raspberry Pi.
 - The radio's USB cable, or its programming cable on a radio without USB.
 - The codec isn't needed: the radio passes the DMR frames through without decoding the voice.
-- **Settings > Connections > Hotspot allowed** on (the default).
+- **Menu > Connections > PC and network > Hotspot allowed** on (the default).
 
 ## Setting up MMDVMHost
 
@@ -74,7 +74,7 @@ The hotspot screen shows:
 - the frequency, the color code and the power the hotspot transmits at;
 - the current or last call, with its source ("RF" or "Net"), the caller and the talkgroup.
 
-**OK**, **6** (Tools), **3** (Hotspot) shows how to start hotspot mode. While it runs, the page has a "Stop hotspot"
+**OK**, **7** (Connections), **1** (Hotspot) shows how to start hotspot mode. While it runs, the page has a "Stop hotspot"
 row.
 
 ## While in hotspot mode
@@ -93,7 +93,7 @@ The radio leaves hotspot mode and returns to its channel when:
 - the host closes the port, or the USB cable is unplugged;
 - the host sends nothing for 20 s.
 
-To stop the radio from entering hotspot mode at all, turn **Settings > Connections > Hotspot allowed** off.
+To stop the radio from entering hotspot mode at all, turn **Menu > Connections > PC and network > Hotspot allowed** off.
 
 ## MMDVM SFR (single frequency repeater)
 
@@ -112,19 +112,19 @@ fails, on which radio, and the workarounds are in [Known issues by radio](../spe
 A channel can be a single frequency repeater, or a radio using one, without a host. Set the channel's SFR role in the
 Codeplug Editor. The channel must have one frequency (receive = transmit).
 
-The VFO can take a role too, with no codeplug change. In the DMR VFO open **Tools > Single-freq repeater**: **Role**
+The VFO can take a role too, with no codeplug change. In the DMR VFO open **Menu > Connections > SFR**: **Role**
 steps through Off, User, User (ERDM), Repeater and Repeater (ERDM style); **Inbound slot** switches TS1 and TS2. The
 VFO keeps its role, also after power off. It works only in DMR with one frequency: with a TX offset the page says the
 role is off. The VFO's color code is the repeater's on both slots. **Copy to VFO** brings a channel's role along.
 
 | Role | What the radio does |
 |---|---|
-| Repeater (Rpt, Rpt Moto) | Repeats every call heard on the inbound slot on the other slot, 90 ms later. PTT is off ("Repeater channel"). The radio shows receiving while it repeats; the red LED lights while it sends. It stays an ordinary channel while transmit is inhibited, the battery is critical or a scan or dual watch runs, and repeats again once that clears. **Settings > Talk & listen > SFR CW ID** makes it send its callsign in Morse every 5 to 30 minutes, after traffic |
-| User (User, ERDM) | Talks on the inbound slot, in step with the repeater. Plays the repeater's copy of a call. **Settings > Talk & listen > SFR receive** can also take the talker's own copy: the first to arrive, or both, with each damaged frame taken from the other copy (Dual-path RX) |
+| Repeater (Rpt, Rpt Moto) | Repeats every call heard on the inbound slot on the other slot, 90 ms later. PTT is off ("Repeater channel"). The radio shows receiving while it repeats; the red LED lights while it sends. It stays an ordinary channel while transmit is inhibited, the battery is critical or a scan or dual watch runs, and repeats again once that clears. **Menu > Connections > SFR > SFR CW ID** makes it send its callsign in Morse every 5 to 30 minutes, after traffic |
+| User (User, ERDM) | Talks on the inbound slot, in step with the repeater. Plays the repeater's copy of a call. **Menu > Connections > SFR > SFR receive** can also take the talker's own copy: the first to arrive, or both, with each damaged frame taken from the other copy (Dual-path RX) |
 
 All radios on the frequency must use the same inbound slot. A user with inbound slot 2 listens on slot 1, so it still
 hears a user set to inbound slot 1: two set-ups can't share a frequency. There is no CACH on an SFR: users follow the
-repeater's slot sync. **Tools > Single-freq repeater** shows the channel's role, its slots and what the repeater is
+repeater's slot sync. **Menu > Connections > SFR** shows the channel's role, its slots and what the repeater is
 doing. Details are in [docs/spec/sfr.md](../spec/sfr.md).
 
 ## Two radios as a duplex repeater

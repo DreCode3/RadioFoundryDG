@@ -17,7 +17,7 @@
 <p>
 <img src="docs/ux/screens/240x320i10x5/boot.png" width="200" alt="开机画面">
 <img src="docs/ux/screens/240x320i10x5/home_dual_two_rx.png" width="200" alt="双守候下两个信道同时接收">
-<img src="docs/ux/screens/240x320i10x5/tools.png" width="200" alt="工具：扫描、位置、热点、USB 网络、中继、漫游、APRS">
+<img src="docs/ux/screens/240x320i10x5/hub.png" width="200" alt="菜单：与键盘对应的 3x3 网格">
 <img src="docs/ux/screens/240x320i10x5/zone_offer.png" width="200" alt="另一台电台共享的区域，等待导入">
 </p>
 <p>

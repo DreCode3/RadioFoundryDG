@@ -80,7 +80,7 @@ The client receives the engine's output (section 3) exactly as the serial port w
 - From the host only, as rigctld's PTT: a connection from beyond the host is reset at once and the client keeps the
   port. A connection whose first bytes start an HTTP request (a web page posting to this port) is reset before any of
   it is decoded.
-- Needs the APRS KISS setting (Tools > APRS > KISS on USB), as on the serial port: without it the engine neither
+- Needs the APRS KISS setting (Menu > Location > APRS > KISS on USB), as on the serial port: without it the engine neither
   takes frames nor produces output.
 - On a radio without an APRS receive path (`aprs.md` 1) only transmit works; a client sees no received packets.
 - View keys (`net` section): `kiss.client kiss.conns kiss.frames_in kiss.frames_out kiss.dropped kiss.refused` (the
