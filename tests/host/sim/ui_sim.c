@@ -87,6 +87,7 @@
 #include "hal_time.h"
 #include "ui/gfx.h"
 #include "ui/ui_screens.h"
+#include "ui/ui_theme.h"
 #include "ui/ui_app.h"
 #include "ui/ui_svc.h"
 #include "ui/ui_nav.h"
@@ -3213,7 +3214,9 @@ static bool run_token(char *t, char *err, size_t len)
 			// Display rows differ between GUIs, so leave menus before changing the presentation.
 			ui_go_home();
 			prototype_gui = use_prototype;
-			ui_st.gui_profiles = use_prototype;
+			// The theme of the presentation, as ui_app_init picks it, then its settings applied again
+			ui_theme_use(use_prototype ? ui_theme_pick(UI_THEME_ID_PANELS) : &ui_theme_reference);
+			ui_st.gui_profiles = ui_theme_cur() == &ui_theme_panels;
 			ui_apply_setting(UI_SET_THEME, ui_svc_setting_get(UI_SET_THEME));
 			ui_apply_setting(UI_SET_ACCENT, ui_svc_setting_get(UI_SET_ACCENT));
 			ui_apply_setting(UI_SET_STRIP, ui_svc_setting_get(UI_SET_STRIP));

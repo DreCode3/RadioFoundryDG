@@ -19,6 +19,7 @@
 #include "ui_svc.h"
 #include "ui_svc_aprs.h"
 #include "ui_screens.h"		// ui_layout_init: a line of Chinese needs a taller font
+#include "ui_theme.h"		// the theme for the display
 #include "fmt.h"
 #include "i18n.h"
 #include "input/input.h"
@@ -1996,10 +1997,17 @@ void ui_app_init(void)
 #endif
 	view = &view_none;
 	memset(&ui_st, 0, sizeof ui_st);
+#if UI_THEME_SELECT
+	// The theme for this display, once the splash (always the reference theme's) is up: the build's default theme
+	// where the services offer the profile layouts (UI_FEAT_GUI_PROFILES; the UI simulator offers them on one of its
+	// display classes only), else the reference theme
+	const ui_theme_t *theme = ui_theme_pick((ui_svc_features() & UI_FEAT_GUI_PROFILES) != 0 ? UI_THEME_ID_DEFAULT :
+						 UI_THEME_ID_REFERENCE);
+	if (theme != ui_theme_cur())
+		ui_theme_use(theme);
+#endif
 #if CONFIG_UI_THEME_PANELS
-	// The profile layout needs a 240 px panel with room for its full status strip and caller line.
-	ui_st.gui_profiles = CONFIG_UI_COLOR && (ui_svc_features() & UI_FEAT_GUI_PROFILES) != 0 &&
-			     gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
+	ui_st.gui_profiles = ui_theme_cur() == &ui_theme_panels;	// the panels theme in use
 #endif
 	ui_st.volbar = -1;
 #if CONFIG_VOLUME_BAR
@@ -2143,7 +2151,7 @@ void ui_apply_setting(uint8_t id, int32_t v)
 	case UI_SET_GUI_NIGHT:
 		ui_st.gui_night = v == 1;
 		if (ui_st.gui_profiles)
-			ui_theme_set(ui_st.gui_night ? UI_THEME_PROFILE_NIGHT : UI_THEME_PROFILE_DAY);
+			ui_theme_set(ui_st.gui_night ? UI_PANELS_NIGHT : UI_PANELS_DAY);
 		break;
 	case UI_SET_GPS_CLOCK: ui_st.gps_clock = v == 1; break;
 #endif

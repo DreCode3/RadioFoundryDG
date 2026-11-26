@@ -209,10 +209,8 @@ extern ui_colors_t ui_col;
 // Color theme on color displays (Settings > Display), the values of settings_t.theme. Night is shades of pure red
 // on black, for eyes adapted to the dark: it has no highlight color of its own choosing
 enum { UI_THEME_DARK, UI_THEME_LIGHT, UI_THEME_HIGH_CONTRAST, UI_THEME_NIGHT, UI_THEME_COUNT };
-// After ui_layout_init; a value out of range is the dark theme
-#if CONFIG_UI_THEME_PANELS
-enum { UI_THEME_PROFILE_DAY = UI_THEME_COUNT, UI_THEME_PROFILE_NIGHT };
-#endif
+// The palette of the theme in use (ui_theme.h): for the reference theme UI_THEME_*. After ui_layout_init; a value
+// out of range is the first, the dark theme
 void ui_theme_set(uint8_t theme);
 uint8_t ui_theme_get(void);
 // Color displays (Settings > Display): the highlight color (UI_ACCENT_*, ui_svc.h) for list and tile focus and Home's

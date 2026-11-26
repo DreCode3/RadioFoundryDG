@@ -3,7 +3,8 @@
 // The theme framework (core/ui/ui_theme.h) with themes of the test's own in use (UI_THEME_SELECT): an op left NULL
 // reaches the reference theme's and draws the same frame, a palette without a colors op stays as it is, a theme's own
 // ops are the ones called, a strip of the theme's own is measured where it is drawn, and the list frame (ui_draw_list)
-// scrolls and places the cells of a geometry the reference theme doesn't have, also when that geometry is out of bounds
+// scrolls and places the cells of a geometry the reference theme doesn't have, also when that geometry is out of bounds,
+// and the theme picked for a display (ui_theme_pick). Built a second time with the panels theme (uiThemeTestPanels)
 #include <stdio.h>
 #include <string.h>
 #include "board.h"
@@ -753,6 +754,46 @@ static void test_geometry_bounds(void)
 	ui_theme_use(&ui_theme_reference);
 }
 
+// The theme for a display: the one numbered where the build has it and it fits, else the build's default where that
+// fits, else the reference theme, which fits every display. The test's own themes are in no build's list
+static bool picks(int w, int inset_right, int h, uint8_t bpp, uint8_t id, const ui_theme_t *want)
+{
+	hal_display_t d = disp;
+	d.width = (uint16_t)w; d.height = (uint16_t)h; d.inset_right = (uint8_t)inset_right; d.bpp = bpp;
+	d.flush_indexed = d_flush_indexed;
+	bool ok = gfx_init(&d) && ui_theme_pick(id) == want;
+	CHECK(gfx_init(&disp));
+	return ok;
+}
+
+static void test_pick(void)
+{
+	const ui_theme_t *ref = &ui_theme_reference;
+	CHECK(picks(W, 0, H, 16, UI_THEME_ID_DEFAULT, ref));
+	CHECK(picks(W, 0, H, 16, UI_THEME_ID_REFERENCE, ref));
+	CHECK(picks(W, 0, H, 16, UI_THEME_ID_PANELS, ref));	// doesn't fit, or isn't built
+	CHECK(picks(W, 0, H, 16, 200, ref));			// a number from a later build
+	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_REFERENCE, ref));
+#if CONFIG_UI_THEME_PANELS
+	// 310 drawable pixels across (the panel less its inset), 240 high, in color
+	const ui_theme_t *panels = &ui_theme_panels;
+	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_DEFAULT, panels));	// the build's default
+	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_PANELS, panels));
+	CHECK(picks(320, 10, 240, 4, 200, panels));
+	CHECK(picks(320, 0, 240, 4, UI_THEME_ID_DEFAULT, panels));
+	CHECK(picks(320, 11, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 309 across
+	CHECK(picks(320, 11, 240, 4, UI_THEME_ID_PANELS, ref));
+	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, ref));		// not 240 high
+	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
+	// Its palettes are Day and Night, with nothing past them: a palette out of range is Day
+	CHECK(ui_theme_panels.palette_count == 2 && ui_theme_panels.id == UI_THEME_ID_PANELS);
+#else
+	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_DEFAULT, ref));
+	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_PANELS, ref));
+#endif
+	CHECK(ui_theme_reference.id == UI_THEME_ID_REFERENCE && ui_theme_reference.fits == NULL);
+}
+
 int main(void)
 {
 	CHECK(gfx_init(&disp));
@@ -774,6 +815,8 @@ int main(void)
 	test_no_palette();
 	test_list_frame();
 	test_geometry_bounds();
+	test_pick();
+	ui_layout_init();
 
 	// Back on the reference theme: its layout, its colors and its frames again
 	ui_theme_set(UI_THEME_DARK);

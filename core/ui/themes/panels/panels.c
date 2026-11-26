@@ -27,7 +27,7 @@ color_t profile_row_bg, profile_row_focus, profile_home_gutter;
 typedef struct {
 	color_t row_bg, row_focus, home_gutter, bar_fg;
 } profile_colors_t;
-static const ui_colors_t profile_palettes[2] = {
+static const ui_colors_t profile_palettes[] = {	// by UI_PANELS_*
 	{ .bg = RGB565(220, 234, 244), .fg = RGB565(23, 40, 53), .dim = RGB565(53, 78, 101),
 	  .line = RGB565(171, 195, 216), .tx = RGB565(189, 41, 41), .rx = RGB565(20, 101, 59),
 	  .warn = RGB565(135, 96, 0), .idle = RGB565(53, 78, 101), .pill_fg = RGB565(255, 255, 255),
@@ -41,19 +41,40 @@ static const ui_colors_t profile_palettes[2] = {
 	  .priv = RGB565(130, 188, 255), .idle_fg = RGB565(0, 0, 0), .focus_fg = RGB565(237, 242, 247),
 	  .chnum = RGB565(180, 194, 209), .strip_bg = RGB565(25, 38, 52), .strip_warn = RGB565(245, 198, 104) },
 };
-static const profile_colors_t profile_colors[2] = {
+static const profile_colors_t profile_colors[] = {
 	{ RGB565(205, 223, 237), RGB565(174, 204, 231), RGB565(155, 183, 207), RGB565(255, 255, 255) },
 	{ RGB565(30, 46, 63), RGB565(48, 76, 102), RGB565(8, 15, 23), RGB565(237, 242, 247) },
 };
 
-void profile_palette(bool night)
+// The colors outside the shared tokens go with the palette (UI_PANELS_*). The theme has no appearance options
+static void panels_colors(ui_colors_t *c, uint8_t palette)
 {
-	ui_col = profile_palettes[night];
-	profile_row_bg = profile_colors[night].row_bg;
-	profile_row_focus = profile_colors[night].row_focus;
-	profile_home_gutter = profile_colors[night].home_gutter;
-	profile_bar_fg = profile_colors[night].bar_fg;
+	(void)c;
+	profile_row_bg = profile_colors[palette].row_bg;
+	profile_row_focus = profile_colors[palette].row_focus;
+	profile_home_gutter = profile_colors[palette].home_gutter;
+	profile_bar_fg = profile_colors[palette].bar_fg;
 }
+
+// A color display 240 px high with room across for the status strip's marks and the caller line
+static bool panels_fits(void)
+{
+	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
+}
+
+// The ops left NULL are the reference theme's, which still draw this look where ui_state_t.gui_profiles (and a list's
+// roomy flag) says this theme is in use
+static const ui_theme_ops_t panels_ops = {
+	.colors = panels_colors,
+};
+
+const ui_theme_t ui_theme_panels = {
+	.palettes = profile_palettes,
+	.palette_count = sizeof profile_palettes / sizeof profile_palettes[0],
+	.id = UI_THEME_ID_PANELS,
+	.ops = &panels_ops,
+	.fits = panels_fits,
+};
 
 
 typedef struct { int x, y, scale; } profile_mark_pos_t;

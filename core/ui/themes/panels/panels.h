@@ -14,12 +14,9 @@
 #define PROFILE_HOME_INSET 4
 #define PROFILE_FOOTER_H 34
 
-// Its colors outside the shared tokens, set with the palette (profile_palette)
+// Its colors outside the shared tokens, set with the palette (its colors op)
 extern color_t profile_bar_fg;
 extern color_t profile_row_bg, profile_row_focus, profile_home_gutter;
-
-// The Day (false) or Night palette into ui_col and the colors above
-void profile_palette(bool night);
 
 // The footer pane's top, and a rounded pane across the screen inside the gutter
 int profile_footer_top(void);

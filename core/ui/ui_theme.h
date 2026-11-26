@@ -10,11 +10,14 @@
 #include "ui_screens.h"
 
 // 1: the build has more than one theme and the one in use is chosen at run time (ui_theme_use). 0: the reference
-// theme only. No build sets it yet; a build with a second theme will, from its theme switches, and the host test of
-// the framework does for its own theme (tests/host/uiThemeTest.c)
+// theme only. Set by the theme switches (CONFIG_UI_THEME_PANELS); the host test of the framework sets it for its own
+// themes (tests/host/uiThemeTest.c)
 #ifndef UI_THEME_SELECT
-#define UI_THEME_SELECT	0
+#define UI_THEME_SELECT	CONFIG_UI_THEME_PANELS
 #endif
+
+// A theme's number, as the settings store it: fixed, whichever themes a build has. 0 is the build's default theme
+enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };
 
 // The bottom row's text (ops->bottom). The two list flags carry ui_list_t.roomy and .numbered, fields that exist only
 // with CONFIG_UI_THEME_PANELS, to the one piece of code that reads them, which is built only with it. So they follow
@@ -93,11 +96,19 @@ typedef struct ui_theme_ops {
 typedef struct ui_theme {
 	const ui_colors_t *palettes;	// by palette (ui_theme_set), before ops->colors
 	uint8_t palette_count;		// at least 1: a palette number out of range is the first
+	uint8_t id;			// UI_THEME_ID_*
 	const ui_theme_ops_t *ops;
+	// Whether the theme can draw on this display (after gfx_init). NULL: on every display
+	bool (*fits)(void);
 } ui_theme_t;
 
 // Today's look (ui_screens.c)
 extern const ui_theme_t ui_theme_reference;
+#if CONFIG_UI_THEME_PANELS
+// Rounded panels, Day and Night, the Commercial and Amateur Home layouts (themes/panels/panels.c). Its palettes:
+extern const ui_theme_t ui_theme_panels;
+enum { UI_PANELS_DAY, UI_PANELS_NIGHT };
+#endif
 
 // Pieces of ui_screens.c that a theme of its own draws with. External only in a build with such a theme: with the
 // reference theme alone they stay static there, so the compiler keeps inlining them where no LTO runs
@@ -131,6 +142,9 @@ extern const ui_theme_t *ui_theme_selected;
 // Puts a theme in use, with its layout and the palette in use (its first where it has fewer). After gfx_init.
 // false: the theme has no palette, and the one in use stays
 bool ui_theme_use(const ui_theme_t *t);
+// The theme with number id (UI_THEME_ID_*) where this build has it and it fits the display, else the build's default
+// theme where that fits, else the reference theme. After gfx_init
+const ui_theme_t *ui_theme_pick(uint8_t id);
 #else
 #define ui_theme_cur()	(&ui_theme_reference)
 #endif

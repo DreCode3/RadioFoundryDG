@@ -32,11 +32,9 @@ static uint8_t ui_accent;	// UI_ACCENT_*
 static bool ui_strip_fill;
 
 #if CONFIG_UI_THEME_PANELS
-static void theme_layout(ui_layout_t *L);
-
 static bool profile_theme(void)
 {
-	return ui_palette == UI_THEME_PROFILE_DAY || ui_palette == UI_THEME_PROFILE_NIGHT;
+	return ui_theme_cur() == &ui_theme_panels;
 }
 #endif
 
@@ -139,28 +137,11 @@ _Static_assert(sizeof palettes / sizeof palettes[0] == UI_THEME_COUNT, "a palett
 void ui_theme_set(uint8_t theme)
 {
 	const ui_theme_t *t = ui_theme_cur();
-	if (!CONFIG_UI_COLOR || (theme >= t->palette_count
-#if CONFIG_UI_THEME_PANELS
-	    && theme != UI_THEME_PROFILE_DAY && theme != UI_THEME_PROFILE_NIGHT
-#endif
-	   ))
-		theme = UI_THEME_DARK;	// without color settings: the dark theme only
-#if CONFIG_UI_THEME_PANELS
-	bool was_profile = profile_theme();
-#endif
+	if (!CONFIG_UI_COLOR || theme >= t->palette_count)
+		theme = UI_THEME_DARK;	// the first; without color settings, the dark theme only
 	ui_palette = theme;
 	if (gfx_bpp() == 1)
 		return;		// ink on paper whatever the theme
-#if CONFIG_UI_THEME_PANELS
-	if (profile_theme()) {
-		profile_palette(theme == UI_THEME_PROFILE_NIGHT);
-		if (!was_profile && ui_layout.small != NULL)
-			theme_layout(&ui_layout);
-		return;
-	}
-	if (was_profile && ui_layout.small != NULL)
-		theme_layout(&ui_layout);
-#endif
 	ui_col = t->palettes[theme];
 	if (t->ops->colors != NULL)
 		t->ops->colors(&ui_col, theme);
@@ -4622,10 +4603,38 @@ bool ui_theme_use(const ui_theme_t *t)
 	ui_layout_init();
 	return true;
 }
+
+// The themes this build has, and its default: the theme of its own where the build has one
+static const ui_theme_t *const ui_themes[] = {
+	&ui_theme_reference,
+#if CONFIG_UI_THEME_PANELS
+	&ui_theme_panels,
+#endif
+};
+#define UI_THEME_ID_BUILD	(CONFIG_UI_THEME_PANELS ? UI_THEME_ID_PANELS : UI_THEME_ID_REFERENCE)
+
+static const ui_theme_t *theme_fitting(uint8_t id)
+{
+	for (size_t i = 0; i < sizeof ui_themes / sizeof ui_themes[0]; i++) {
+		const ui_theme_t *t = ui_themes[i];
+		if (t->id == id && (t->fits == NULL || t->fits()))
+			return t;
+	}
+	return NULL;
+}
+
+const ui_theme_t *ui_theme_pick(uint8_t id)
+{
+	const ui_theme_t *t = theme_fitting(id != UI_THEME_ID_DEFAULT ? id : UI_THEME_ID_BUILD);
+	if (t == NULL)
+		t = theme_fitting(UI_THEME_ID_BUILD);
+	return t != NULL ? t : &ui_theme_reference;
+}
 #endif
 
 const ui_theme_t ui_theme_reference = {
 	.palettes = palettes,
 	.palette_count = sizeof palettes / sizeof palettes[0],
+	.id = UI_THEME_ID_REFERENCE,
 	.ops = &reference_ops,
 };
