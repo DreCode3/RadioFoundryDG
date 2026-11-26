@@ -1009,7 +1009,8 @@ static void test_panels_bar(void)
 	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back", "# more");	// Back leaves every list
 	BAR("OK choose  Back", UI_BAR_LIST, NULL, "OK", "Back", NULL);			// nothing left: the row is empty
 	// ... unless the focused row's value editor is open: OK and Back do its jobs then
-	BAR("OK save  Back cancel", UI_BAR_LIST | UI_BAR_OK_ACTS | UI_BAR_BACK_ACTS, NULL, "OK", "Back", "OK save  Back cancel");
+	BAR("OK save  Back cancel", UI_BAR_LIST | UI_BAR_OK_ACTS | UI_BAR_BACK_ACTS, NULL, "OK", "Back",
+	    "OK save  Back cancel");
 	// ... or the list says its OK does more (send, go, add, use): its OK and Back groups stay
 	BAR("OK send  Back", UI_BAR_LIST | UI_BAR_OK_ACTS, NULL, "OK", "Back", "OK send");
 	// ... a key at a time: Back that keeps editing stays, the plain OK choose beside it goes

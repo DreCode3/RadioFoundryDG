@@ -168,8 +168,8 @@ class PrototypeTest(unittest.TestCase):
             self.assertLessEqual(max(abs(a - b) for idle_row, rx_row in zip(idle[STRIP_H:148], receiving[STRIP_H:148])
                                      for a, b in zip(idle_row, rx_row)), 17)
     def test_home_strip_is_the_strip_of_every_screen(self):
-        # One status strip, a rounded pane: Home's is the menus' and the lists', pixel for pixel inside the pane, in both
-        # layouts and palettes (around it is each screen's own color: Home's gutter, a list's background)
+        # One status strip, a rounded pane: Home's is the menus' and the lists', pixel for pixel inside the pane, in
+        # both layouts and palettes (around it is each screen's own color: Home's gutter, a list's background)
         # Home's strip has no mode word (its mode bar has the mode): compared right of the mode word
         def pane(frame):
             return [row[60 * 3:300 * 3] for row in frame[3:STRIP_H - 2]]
@@ -184,7 +184,8 @@ class PrototypeTest(unittest.TestCase):
                         self.assertNotEqual(frame[2][4 * 3:5 * 3], frame[10][10 * 3:11 * 3], screen)
                     # The list's strip starts with the mode word, Home's doesn't
                     def left(frame):
-                        return any(max(row[x * 3:x * 3 + 3]) < 100 for row in frame[3:STRIP_H - 2] for x in range(10, 50))
+                        return any(max(row[x * 3:x * 3 + 3]) < 100 for row in frame[3:STRIP_H - 2]
+                                   for x in range(10, 50))
                     if not theme:	# dark ink on the Day strip
                         self.assertFalse(left(home))
                         self.assertTrue(left(self.render_frame(profile + "gps:fix ok 1")))
@@ -337,8 +338,10 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("msg:9991234,Hello scankey wait:9000 ok "
                         "expect:shows=Messages expect:shows=1_new expect:shows=On expect:layout=0")
         self.run_script("ok expect:hides=Local_repeaters expect:shows=Off expect:layout=0")
-        zones = self.render_frame("ok expect:layout=0")	# tile 4: the second row's first, its first line right of the digit
-        self.assertFalse(any(max(zones[y][x * 3:x * 3 + 3]) < 120 for y in range(ROWS_Y + TILE_H + 4, ROWS_Y + TILE_H + 20)
+        # tile 4: the second row's first, its first line right of the digit
+        zones = self.render_frame("ok expect:layout=0")
+        self.assertFalse(any(max(zones[y][x * 3:x * 3 + 3]) < 120
+                             for y in range(ROWS_Y + TILE_H + 4, ROWS_Y + TILE_H + 20)
                              for x in range(46, 100)))
         self.run_script("ok 8 1 row:Language ok down ok long:back ok "
                         "expect:shows=Conexiones expect:layout=0")
@@ -528,7 +531,8 @@ class PrototypeTest(unittest.TestCase):
                                 "".join(f"expect:hides={g} " for g in hidden) + "expect:layout=0")
 
     def test_hint_row_off_keeps_the_soft_keys(self):
-        # Hint row off hides only the hint line: the bar and its two labels stay on every screen, and lists keep five rows
+        # Hint row off hides only the hint line: the bar and its two labels stay on every screen, and lists keep five
+        # rows
         off = "ok 8 1 row:Hint_row ok long:back "
         self.run_script(off + "expect:shows=Menu expect:shows=Back expect:layout=0 "
                         "ok 1 expect:shows=OK expect:shows=Back expect:hides=#_more expect:layout=0")
@@ -703,8 +707,8 @@ class PrototypeTest(unittest.TestCase):
         )
         # The clock comes right after the states every theme shows (QA, step 4 review, B1): with privacy, an unread
         # message and a scan it stays, the mode word taking the smaller font first
-        self.run_script(GPS_CLOCK + "long:back gps:fix msg:9991234,Hello wait:9000 prototype:crypt_aes scankey wait:3000 "
-                        "expect:shows=14:08 expect:layout=0 ok 1 expect:shows=14:08 expect:layout=0")
+        self.run_script(GPS_CLOCK + "long:back gps:fix msg:9991234,Hello wait:9000 prototype:crypt_aes scankey "
+                        "wait:3000 expect:shows=14:08 expect:layout=0 ok 1 expect:shows=14:08 expect:layout=0")
         # ... and a list strip whose mode word must take 8x16 for the clock to fit: it does, before the clock goes
         self.run_script(GPS_CLOCK + "long:back gps:fix mon msg:9991234,Hello wait:9000 prototype:crypt_aes "
                         "scankey wait:3000 ok 1 lockkey wait:3000 expect:screen=contacts expect:shows=14:08 "

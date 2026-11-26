@@ -633,11 +633,11 @@ static const uint8_t panels_strip_right[] = {
 
 // The status strip, a rounded pane at the top of every screen, the same marks at the same size on every one: signal
 // bars, the mode, roaming, TX or NO TX and the monitor, dual watch and VOX marks from the left; battery, power, lock,
-// GPS, the USB network and the operating marks (unread mail, the privacy key, a receive-only channel, scanning) from the
-// right; the GPS clock in the room between. Home has no mode word in it: its mode bar has the mode. Nothing overlaps:
-// a crowded strip gives up items in the reverse of their order (PANELS_SI_*), and the mode takes the 8x16 font before
-// anything else goes. under: the screen's color around the pane. Returns whether the GPS clock is due but had no room
-// (Home then has it in its mode bar)
+// GPS, the USB network and the operating marks (unread mail, the privacy key, a receive-only channel, scanning) from
+// the right; the GPS clock in the room between. Home has no mode word in it: its mode bar has the mode. Nothing
+// overlaps: a crowded strip gives up items in the reverse of their order (PANELS_SI_*), and the mode takes the 8x16
+// font before anything else goes. under: the screen's color around the pane. Returns whether the GPS clock is due but
+// had no room (Home then has it in its mode bar)
 static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, color_t under, bool home)
 {
 	ui_strip_draws++;
@@ -734,8 +734,8 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 // picks the focused row and Back leaves, so each of its OK and Back groups is left out unless that key means more
 // (UI_BAR_OK_ACTS, UI_BAR_BACK_ACTS: the list declares it, "OK send", "Back keep editing", or the row's value editor
 // is open, "OK save  Back cancel"); elsewhere they stay ("Back undo", "Back stop scan"). Nothing compares text
-// a translation chose, so the bar and the row are the same in every language
-#define PANELS_BAR_MENU 0x100u	// the theme's own flags: Home, where OK opens the menu (ui_home_ok_menu): Menu on the left
+// a translation chose, so the bar and the row are the same in every language. The theme's own flags, above UI_BAR_*:
+#define PANELS_BAR_MENU 0x100u	// Home, where OK opens the menu (ui_home_ok_menu): Menu on the left
 #define PANELS_BAR_KEYS 0x200u	// ... a screen of the theme's own where OK and Back both act (Quick)
 #define PANELS_BAR_IDLE 0x400u	// ... Home's idle hint, whose first group is the menu's (the label says it)
 
@@ -1213,8 +1213,8 @@ static void panels_native_caps(const font_t *font, int x, int cy, const char *la
 	gfx_text(font, x, y > 0 ? y : 0, label, ink);
 }
 
-// Home's frame on the gutter: the strip (no mode word), the mode bar under it (the mode in the largest font, and the GPS
-// clock where the strip had no room for it) and the channel pane down to bottom. Returns the pane's top
+// Home's frame on the gutter: the strip (no mode word), the mode bar under it (the mode in the largest font, and the
+// GPS clock where the strip had no room for it) and the channel pane down to bottom. Returns the pane's top
 static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bottom)
 {
 	// The panes' and the bar's colors first: on a display with a 16-color palette the text's shades take what is left
@@ -1237,8 +1237,8 @@ static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bot
 	return y;
 }
 
-// The flags of Home's bar: Menu on the left where OK opens it (ui_home_ok_menu), and its idle hint (s->home_hint) starts
-// with the menu's group; Hint row off leaves out the hints
+// The flags of Home's bar: Menu on the left where OK opens it (ui_home_ok_menu), and its idle hint (s->home_hint)
+// starts with the menu's group; Hint row off leaves out the hints
 static unsigned panels_home_bar(const ui_state_t *s, const char *hint)
 {
 	return (ui_home_ok_menu(s) ? PANELS_BAR_MENU : 0u) | (hint != NULL && hint == s->home_hint ? PANELS_BAR_IDLE : 0u) |
@@ -1269,9 +1269,9 @@ static void panels_home_footer(const ui_state_t *s, const char *hint, int bottom
 // Home: the frame, then in the channel pane the zone, the channel's name as the main line (larger in Commercial), the
 // talk target where the layout shows it (Commercial: only one that isn't the channel's own; Amateur: always) and
 // Amateur's details, with the two lines of a call or of what needs attention at the pane's foot. Large text keeps the
-// zone, the main line and the target, larger, without the details. Where the pane is short (the hint row above the bar) the main line takes fewer
-// quarters of enlargement, then the details row and the zone line go, before anything overlaps. noinline: inlined in
-// panels_home, its buffers would be in the frame the reference Home is drawn from
+// zone, the main line and the target, larger, without the details. Where the pane is short (the hint row above the bar)
+// the main line takes fewer quarters of enlargement, then the details row and the zone line go, before anything
+// overlaps. noinline: inlined in panels_home, its buffers would be in the frame the reference Home is drawn from
 static void __attribute__((noinline)) panels_draw_home(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
@@ -1469,8 +1469,9 @@ static void panels_home(const radio_view_t *v, const ui_state_t *s)
 }
 
 #if CONFIG_DUAL_WATCH
-// Dual watch's Home in Home's frame: its panes inset in the channel pane, no list of calls (the alias is a live receiving
-// indication only), a refused PTT's reason centered. Commercial names the talk target where the channel number would be
+// Dual watch's Home in Home's frame: its panes inset in the channel pane, no list of calls (the alias is a live
+// receiving indication only), a refused PTT's reason centered. Commercial names the talk target where the channel
+// number would be
 static const ui_dual_style_t panels_dual[] = {
 	{ .inset = 12, .deny_margin = 15, .target_label = true },	// Commercial
 	{ .inset = 12, .deny_margin = 15 },				// Amateur
@@ -1534,8 +1535,8 @@ static int panels_badge(const ui_list_t *l, unsigned n, char *out, size_t cap)
 
 #define PANELS_GRID_ROWS 3	// a grid's rows of tiles, each two lines of text high
 
-// Where a list's cells end: a row's panel may run under the hint row's text where the row's text ends above it; a grid's
-// tiles end above the hint row. Without the bar (Hint row off) at y_end
+// Where a list's cells end: a row's panel may run under the hint row's text where the row's text ends above it; a
+// grid's tiles end above the hint row. Without the bar (Hint row off) at y_end
 static int panels_list_end(const ui_list_t *l, int y_end)
 {
 	if (y_end != ui_layout.hint_y)

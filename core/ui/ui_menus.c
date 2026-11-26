@@ -8724,7 +8724,8 @@ static const char *picker_title(void)
 }
 
 static const ui_scr_def_t picker_screen = {
-	.name = "picker", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(PICKER_TITLE, TEXT_ALT_OPEN "Talkgroup / Contact" TEXT_ALT_NEXT "TG / Contact" TEXT_ALT_CLOSE),
+	.name = "picker", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS,
+	.prefix = TRN(PICKER_TITLE, TEXT_ALT_OPEN "Talkgroup / Contact" TEXT_ALT_NEXT "TG / Contact" TEXT_ALT_CLOSE),
 	.hint = TRN(PICKER_HINT, TEXT_ALT_OPEN "PTT once  OK use  Hold OK set"
 		TEXT_ALT_NEXT "OK use  Hold OK set" TEXT_ALT_CLOSE),
 	.count = picker_count, .item = picker_item, .select = picker_select, .context = picker_context,

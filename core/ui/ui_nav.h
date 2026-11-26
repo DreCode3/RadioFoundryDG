@@ -67,9 +67,9 @@ typedef enum {
 #define SF_FIND		0x10u	// digits type the query (Find)
 #define SF_NO_STRIP	0x20u	// no status strip while the radio is idle (About: the owner's call); RX / TX bring it back
 #define SF_HINT_FN	0x40u	// the hint is built when drawn (hint_fn), not a marked text (hint)
-// OK does more on a row than open or pick it (send, go, add, use, tune, change, edit and save, talk ...); Back more than
-// leave (keep editing): a theme that leaves a list's usual OK and Back hints out keeps that key's (ui_list_t.ok_acts,
-// back_acts)
+// OK does more on a row than open or pick it (send, go, add, use, tune, change, edit and save, talk ...); Back more
+// than leave (keep editing): a theme that leaves a list's usual OK and Back hints out keeps that key's
+// (ui_list_t.ok_acts, back_acts)
 #define SF_OK_ACTS	0x80u
 #define SF_BACK_ACTS	0x100u
 
