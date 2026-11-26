@@ -6660,7 +6660,7 @@ static void loc_select(uint16_t row, bool hold)
 #if CONFIG_UI_SETTINGS
 		ui_push(SCR_GROUP, G_LOCATION);
 #else
-		ui_push(SCR_SETTINGS, 0);	// the page that says the settings menu isn't in this build
+		ui_toast(TR(SET_EMPTY_USE_QDMR, "Set them with qdmr"));	// built without the Settings menu
 #endif
 		break;
 	default: break;
@@ -6741,7 +6741,7 @@ static void conn_select(uint16_t row, bool hold)
 #if CONFIG_UI_SETTINGS
 		ui_push(SCR_GROUP, G_PC_NETWORK);
 #else
-		ui_push(SCR_SETTINGS, 0);
+		ui_toast(TR(SET_EMPTY_USE_QDMR, "Set them with qdmr"));
 #endif
 		break;
 	default: break;
@@ -6753,6 +6753,45 @@ static const ui_scr_def_t connections_screen = {
 	.prefix = TRN(TITLE_CONNECTIONS, "Connections"),
 	.hint_fn = menu_hint, .count = conn_count, .item = conn_item, .select = conn_select,
 };
+
+// ======================= Settings > Programming's pages =======================
+// Opened from Programming's rows, and without the Settings menu (CONFIG_UI_SETTINGS=n) from Menu's Settings entry,
+// which then lists them: the channels, the zones, the VFO and the diagnostics aren't settings
+
+enum { PA_CHANNELS, PA_ZONES, PA_VFO, PA_DIAG, PA_COUNT };
+
+static void prog_open(uint8_t pa)
+{
+	switch (pa) {
+	case PA_CHANNELS:
+#if CONFIG_CHANNEL_LIST
+		ui_push(SCR_CHANNELS, 0);
+#else
+		ui_toast(TR(WHY_CHANNELS_NOT_IN_BUILD, "Channels: not in this build"));
+#endif
+		break;
+	case PA_ZONES:
+		ui_push(SCR_ZONES, 0);
+		break;
+	case PA_VFO: {
+		// As the VFO row of Zones: to the VFO, or back to the channels
+		bool was = ui_view()->vfo;
+		radio_req_vfo(!was);
+		ui_go_home();
+		ui_toast(was ? TR(VFO_TOAST_BACK_TO_CHANNELS, "Back to channels") :
+			TR(ZONE_TOAST_VFO_TYPE_FREQUENCY, "VFO: type a frequency"));
+		break;
+	}
+	case PA_DIAG:
+		if (CONFIG_DIAG)
+			ui_push(SCR_DIAG, 0);
+		else
+			ui_toast(TR(WHY_DIAGNOSTICS_NOT_IN_BUILD, "Diagnostics: not in this build"));
+		break;
+	default:
+		break;
+	}
+}
 
 // ======================= Settings by intent (information-architecture.md 6) =======================
 // CONFIG_UI_SETTINGS=n leaves the whole menu out (the settings keep their stored values; qdmr sets them)
@@ -8015,12 +8054,7 @@ static void group_select(uint16_t i, bool hold)
 		break;
 	case ST_ACTION:
 		switch (s->id) {
-		case SA_DIAG:
-			if (CONFIG_DIAG)
-				ui_push(SCR_DIAG, 0);
-			else
-				ui_toast(TR(WHY_DIAGNOSTICS_NOT_IN_BUILD, "Diagnostics: not in this build"));
-			break;
+		case SA_DIAG: prog_open(PA_DIAG); break;
 		case SA_FIRMWARE: ui_push(SCR_ABOUT, 0); break;
 		case SA_CODEPLUG: ui_push(SCR_INFO, INFO_CODEPLUG); break;
 		case SA_MY_RADIO: ui_push(SCR_DMR_ID, 0); break;
@@ -8036,25 +8070,9 @@ static void group_select(uint16_t i, bool hold)
 #if CONFIG_SIG_TONES
 		case SA_PAGE_SIG: ui_push(SCR_GROUP, G_SIG); break;
 #endif
-		case SA_CHANNELS:
-#if CONFIG_CHANNEL_LIST
-			ui_push(SCR_CHANNELS, 0);
-#else
-			ui_toast(TR(WHY_CHANNELS_NOT_IN_BUILD, "Channels: not in this build"));
-#endif
-			break;
-		case SA_ZONES: ui_push(SCR_ZONES, 0); break;
-#if CONFIG_VFO_FM || CONFIG_VFO_DMR
-		case SA_VFO: {
-			// As the VFO row of Zones: to the VFO, or back to the channels
-			bool was = ui_view()->vfo;
-			radio_req_vfo(!was);
-			ui_go_home();
-			ui_toast(was ? TR(VFO_TOAST_BACK_TO_CHANNELS, "Back to channels") :
-				TR(ZONE_TOAST_VFO_TYPE_FREQUENCY, "VFO: type a frequency"));
-			break;
-		}
-#endif
+		case SA_CHANNELS: prog_open(PA_CHANNELS); break;
+		case SA_ZONES: prog_open(PA_ZONES); break;
+		case SA_VFO: prog_open(PA_VFO); break;
 		case SA_SFR_STATUS: ui_push(SCR_INFO, INFO_SFR); break;
 		case SA_INFO_GPS: ui_push(CONFIG_GPS_SKY ? SCR_GPS : SCR_INFO, INFO_POSITION); break;
 #if CONFIG_CRASH_SCREEN
@@ -8433,17 +8451,52 @@ const char *ui_set_item_name(uint8_t g, uint8_t i, bool english, const char **sy
 }
 void ui_open_setting(uint8_t g, uint8_t i) { (void)g; (void)i; }
 
-static uint16_t settings_count(void) { return 1; }
-static void settings_item(uint16_t i, ui_item_t *it)
+// Without the Settings menu, Menu's Settings entry says where the settings are set and lists Programming's pages,
+// which open as they do from Programming (prog_open)
+static bool prog_shown(uint8_t pa)
 {
-	(void)i;
-	str_copy(it->label, sizeof it->label, TR(SET_EMPTY_USE_QDMR, "Set them with qdmr"));
-	it->flags |= UI_ITEM_INFO;
+	return (pa != PA_CHANNELS || CONFIG_CHANNEL_LIST) && (pa != PA_ZONES || CONFIG_ZONE_EDIT) &&
+	       (pa != PA_VFO || CONFIG_VFO_FM || CONFIG_VFO_DMR) && (pa != PA_DIAG || CONFIG_DIAG);
 }
 
+static uint8_t prog_row(uint16_t row)
+{
+	for (uint8_t pa = 0; pa < PA_COUNT; pa++) {
+		if (prog_shown(pa) && row-- == 0)
+			return pa;
+	}
+	return PA_COUNT;
+}
+
+static uint16_t settings_count(void)
+{
+	uint16_t n = 0;
+	for (uint8_t pa = 0; pa < PA_COUNT; pa++)
+		n += prog_shown(pa);
+	return n;
+}
+
+static void settings_item(uint16_t i, ui_item_t *it)
+{
+	static const tr_id_t names[PA_COUNT] = { TRN(TITLE_CHANNELS, "Channels"), TRN(TITLE_ZONES, "Zones"),
+		TRX(WORD_VFO, "VFO"), TRN(TITLE_DIAGNOSTICS, "Diagnostics") };
+	uint8_t pa = prog_row(i);
+	if (pa < PA_COUNT)
+		str_copy(it->label, sizeof it->label, tr(names[pa]));
+}
+
+static void settings_select(uint16_t i, bool hold)
+{
+	(void)hold;
+	prog_open(prog_row(i));
+}
+
+static const char *settings_body(void) { return TR(SET_EMPTY_USE_QDMR, "Set them with qdmr"); }
+
 static const ui_scr_def_t settings_screen = {
-	.name = "settings", .flags = SF_LIST, .prefix = TRN(TITLE_SETTINGS, "Settings"), .hint = TRN(HINT_BACK, "Back"),
-	.count = settings_count, .item = settings_item,
+	.name = "settings", .flags = SF_LIST, .prefix = TRN(TITLE_SETTINGS, "Settings"),
+	.hint = TRN(HINT_OK_OPEN_BACK, "OK open  Back"),
+	.count = settings_count, .item = settings_item, .select = settings_select, .body = settings_body,
 };
 #define group_screen	settings_screen
 #define confirm_screen	settings_screen
