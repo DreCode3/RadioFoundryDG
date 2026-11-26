@@ -49,7 +49,8 @@ typedef struct {
 } ui_cell_t;
 
 // An op left NULL is the reference theme's, so a theme gives only what it draws differently. The shared entry points
-// in ui_screens.c (ui_draw_top, ui_draw_hint, ui_draw_home, ui_draw_list, ...) make the choice; nothing else calls an op
+// in ui_screens.c (ui_draw_top, ui_draw_hint, ui_draw_home, ui_draw_list, ...) make the choice, and ui_app_tick calls
+// animate; nothing else calls an op
 typedef struct ui_theme_ops {
 	// Fonts for the display and the regions, into *L
 	void (*layout)(ui_layout_t *L);

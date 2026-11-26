@@ -3363,9 +3363,10 @@ static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const
 	return theme_top(v, draw ? v->state : RS_IDLE, s, l->prefix, l->name, draw);
 }
 
-// With the profile look, noinline: its buffer stays out of list_top's frame. The stack check follows list_top from a
-// screen that only measures (ui_list_body_fits) on through the theme's head into the profile strip, one of the UI task's
-// deepest paths. Without that look the path is not among them, and a function of its own would only cost flash
+// With the panels theme in the build, noinline: its buffer stays out of list_top's frame. The stack check follows
+// list_top from a screen that only measures (ui_list_body_fits) on through the theme's head into the panels strip, one
+// of the UI task's deepest paths. Without that theme the path is not among them, and a function of its own would only
+// cost flash
 #if CONFIG_UI_THEME_PANELS
 __attribute__((noinline))
 #endif
