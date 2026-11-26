@@ -488,7 +488,12 @@ bool ui_svc_setting_set(uint8_t id, int32_t value);
 // are the defaults, and the UI may set the ones that depend on the display (Talkgroup name first, ui_app_init) with
 // ui_svc_setting_default
 bool ui_svc_settings_new(void);
-#if CONFIG_UI_THEME_PANELS
+// Its caller's guard: ui_app_init sets the default only with a theme chosen at run time (ui_theme.h's UI_THEME_SELECT,
+// whose default this is too)
+#ifndef UI_THEME_SELECT
+#define UI_THEME_SELECT	CONFIG_UI_THEME_PANELS
+#endif
+#if UI_THEME_SELECT
 // A theme's start-up default for a setting (UI_SET_LABEL_FIRST, the only one): in force at once, stored only with the
 // next save something else causes (settings_end_default). False for any other setting
 bool ui_svc_setting_default(uint8_t id, int32_t value);

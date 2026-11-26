@@ -838,7 +838,7 @@ int32_t ui_svc_setting_get(uint8_t id)
 // Setting writes since the last start (expect:setwrites): a start's defaults ask for none (ui_svc_setting_default)
 static unsigned sim_setting_writes;
 
-#if CONFIG_UI_THEME_PANELS
+#if UI_THEME_SELECT
 // As ui_svc_storage.c's: in force at once, not a write (the store keeps it in RAM until something else saves)
 bool ui_svc_setting_default(uint8_t id, int32_t value)
 {

@@ -450,7 +450,7 @@ bool ui_svc_settings_new(void)
 	return ss.load == SETTINGS_DEFAULTS || ss.load == SETTINGS_FOREIGN;
 }
 
-#if CONFIG_UI_THEME_PANELS
+#if UI_THEME_SELECT
 bool ui_svc_setting_default(uint8_t id, int32_t value)
 {
 	if (id != UI_SET_LABEL_FIRST)
