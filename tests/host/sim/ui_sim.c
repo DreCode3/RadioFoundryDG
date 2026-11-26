@@ -3316,6 +3316,23 @@ static bool run_token(char *t, char *err, size_t len)
 #endif
 	if (strcmp(t, "long") == 0)
 		return press(arg, true, err, len);
+	if (strcmp(t, "row") == 0 && arg != NULL) {
+		// row:Label: Down (each a counted press, as typed) until the focused row's label is Label ('_' for a space),
+		// so a flow names the row it means and survives rows that a build adds or leaves out before it
+		char want[64];
+		snprintf(want, sizeof want, "%s", arg);
+		for (char *p = want; *p; p++)
+			if (*p == '_')
+				*p = ' ';
+		for (int i = 0; i <= 64; i++) {
+			if (strcmp(ui_app_focus_label(), want) == 0)
+				return true;
+			if (i < 64 && !press("down", false, err, len))
+				return false;
+		}
+		snprintf(err, len, "row %s: not in this list (screen %s)", want, screen());
+		return false;
+	}
 	if (strcmp(t, "ptt") == 0) {
 		uint32_t ms = arg != NULL ? (uint32_t)atoi(arg) : 1000u;
 		if (!on_map(ACT_PTT, false)) {
