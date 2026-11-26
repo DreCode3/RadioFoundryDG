@@ -169,6 +169,16 @@ msgctxt "TOP_STATE_NO_TX"
 msgid "NO TX"
 msgstr "禁发"
 
+#: core/ui/themes/panels/panels.c core/ui/ui_aprs.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "HINT_BACK"
+msgid "Back"
+msgstr "返回"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_find.c
+msgctxt "FIND_CHIP_MENU"
+msgid "Menu"
+msgstr "菜单"
+
 #: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_dual.c core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "VALUE_ALL_CALL"
 msgid "All call"
@@ -223,16 +233,6 @@ msgstr "快捷"
 msgctxt "QUICK_HINT_ALL_SETTINGS"
 msgid "0 All settings  Hold OK save"
 msgstr "0 所有设置  长按 OK 保存"
-
-#: core/ui/themes/panels/panels.c core/ui/ui_aprs.c core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "HINT_BACK"
-msgid "Back"
-msgstr "返回"
-
-#: core/ui/ui_app.c core/ui/ui_find.c
-msgctxt "FIND_CHIP_MENU"
-msgid "Menu"
-msgstr "菜单"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"

@@ -167,6 +167,16 @@ msgctxt "TOP_STATE_NO_TX"
 msgid "NO TX"
 msgstr "NO TX"
 
+#: core/ui/themes/panels/panels.c core/ui/ui_aprs.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "HINT_BACK"
+msgid "Back"
+msgstr "Atrás"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_find.c
+msgctxt "FIND_CHIP_MENU"
+msgid "Menu"
+msgstr "Menú"
+
 #: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_dual.c core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "VALUE_ALL_CALL"
 msgid "All call"
@@ -221,16 +231,6 @@ msgstr "Rápido"
 msgctxt "QUICK_HINT_ALL_SETTINGS"
 msgid "0 All settings  Hold OK save"
 msgstr "0 Ajustes  Mant OK guardar"
-
-#: core/ui/themes/panels/panels.c core/ui/ui_aprs.c core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "HINT_BACK"
-msgid "Back"
-msgstr "Atrás"
-
-#: core/ui/ui_app.c core/ui/ui_find.c
-msgctxt "FIND_CHIP_MENU"
-msgid "Menu"
-msgstr "Menú"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
