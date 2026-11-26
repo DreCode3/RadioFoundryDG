@@ -3,12 +3,16 @@
 # Copyright (c) 2026 The RadioFoundry Authors
 # The per-commit check (fork-notes/gui-plan.md, Process): uiSim with no warnings, the pixel comparison against a
 # baseline, uiThemeTest, uiPrototypeTest and one GD-88 build with its stack check.
-#   fork-notes/tools/cc.sh BASELINE_DIR WORK_DIR [nofw]
+#   fork-notes/tools/cc.sh [--except SUBTREE]... BASELINE_DIR WORK_DIR [nofw]
 # BASELINE_DIR: made once with snapshot.py (fork-notes/local-setup.md). WORK_DIR: scratch output, outside the repo.
+# --except leaves a subtree of the baseline out of the pixel comparison (compare.py), for a step that changes those
+# frames on purpose (profile: the panels theme's renders); every other frame must still be identical
 # The GD-88 builds with csky-elf-gcc when it is installed, else in the C-SKY container (tools/docker/csky-toolchain).
 # On macOS uiThemeTest (built with AddressSanitizer, which hangs at start-up there) runs in the Linux image
 # $RF_HOST_IMAGE (default local/rf-host-tests, from Dockerfile.host-tests).
 set -u
+EXCEPT=()
+while [ "${1:-}" = --except ]; do EXCEPT+=(--except "${2:?subtree}"); shift 2; done
 BASE=${1:?baseline dir}; OUT=${2:?work dir}; FW=${3:-fw}
 ROOT=$(git rev-parse --show-toplevel); cd "$ROOT" || exit 2
 HERE=fork-notes/tools; mkdir -p "$OUT"
@@ -26,7 +30,7 @@ ok=1
 make -s -C tests/host uiSim >"$OUT/uisim.log" 2>&1; rc=$?; w=$(grep -ci warning "$OUT/uisim.log")
 echo "uiSim rc $rc warnings $w"; [ $rc = 0 ] && [ "$w" = 0 ] || { ok=0; head -30 "$OUT/uisim.log"; }
 if [ $ok = 1 ]; then
-	rm -rf "$OUT/cur" && python3 $HERE/snapshot.py "$ROOT" "$OUT/cur" && python3 $HERE/compare.py "$BASE" "$OUT/cur" || ok=0
+	rm -rf "$OUT/cur" && python3 $HERE/snapshot.py "$ROOT" "$OUT/cur" && python3 $HERE/compare.py ${EXCEPT[@]+"${EXCEPT[@]}"} "$BASE" "$OUT/cur" || ok=0
 	# rm: a binary from the other OS would look up to date
 	rm -f tests/host/uiThemeTest
 	"${THEME[@]}" 'make -s -C tests/host uiThemeTest && ./tests/host/uiThemeTest' >"$OUT/theme.log" 2>&1; rc=$?
