@@ -19,7 +19,8 @@ the code is laid out, who owns the data behind each screen, and how the UI is te
 |---|---|
 | `gfx.c`, `fonts.c`, `fmt.c` | drawing in a viewport inside the display's safe-area insets, fonts, number / text formatting |
 | `ui_screens.c` | drawing only: status strip, title, hint row, lists, Home, call screens, Quick tiles, banners, emergency |
-| `ui_theme.h` | a look as a `const` descriptor (`ui_theme_t`): its palettes and the drawing ops `ui_screens.c` calls for the status strip, the bottom row, banners, Home, Quick and a list's heading, cells and scroll marks (`ui_draw_list` keeps the list's frame and its scrolling). An op a theme leaves NULL is the reference theme's. One theme is built, `ui_theme_reference` (in `ui_screens.c`), so every op call resolves at build time; `UI_THEME_SELECT` makes the theme in use a variable for a build with more than one |
+| `ui_theme.h` | a look as a `const` descriptor (`ui_theme_t`): its palettes, its number (`UI_THEME_ID_*`, what settings store), the appearance options it honors (`UI_THEME_OPT_*`: Settings > Display shows their rows), whether it fits the display (`fits`), and the drawing ops `ui_screens.c` calls for the layout, the colors, the status strip, the bottom row, banners, Home, dual watch's Home, Quick, a list's heading, cells and scroll marks (`ui_draw_list` keeps the list's frame and its scrolling) and the marks that move (`animate`). An op a theme leaves NULL is the reference theme's. Shared code tests a theme's options, never which theme is in use. With the reference theme alone (`ui_theme_reference`, in `ui_screens.c`) every op call resolves at build time; with another theme built (`UI_THEME_SELECT`, from its switch) `ui_app_init` picks the stored theme where it fits (`ui_theme_pick`), after the splash |
+| `themes/panels/panels.c` | the panels theme (`CONFIG_UI_THEME_PANELS`): its palettes, ops and icon masks (`panels_icons.h`, from `tools/profile_icons.py`) |
 | `ui_app.c` | behavior without the RTOS: the navigation stack, global keys, Home and Quick keys, filters, Recent, events, banners |
 | `ui_menus.c` | every list screen and the screen table `ui_scr[]`: Hub, Actions, Compose, Contacts, Messages, Recent, Zones, Zone, the zone editor's (2.2), Channels, Channel, Tools, Settings, Picker, Info, Confirm, Scan, Roaming |
 | `ui_find.c` | type-to-find (T9 word starts, numbers, channel positions) |
@@ -687,7 +688,9 @@ draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240`
 
 `uiThemeTest` puts themes of its own in use (`ui_theme.h`, built with `UI_THEME_SELECT`): a theme with no op draws
 every frame as the reference theme does, a palette without a colors op stays as it is, a theme's ops are the ones
-called, and `ui_draw_list` scrolls and places the cells of a two-column geometry, also one out of bounds.
+called, and `ui_draw_list` scrolls and places the cells of a two-column geometry, also one out of bounds. It checks
+the theme picked for a display and the themes' appearance options; `uiThemeTestPanels` builds it with the panels
+theme, which it picks where the display fits it, and checks that theme's moving marks.
 
 `uiFlowTest` runs every task flow of `task-flows.md` with the press budgets of `usability-tests.md` on four display
 and key map pairs (K at 160x120i5, M at 128x64, V at 128x64, K at 240x320) plus the few-key fallbacks and the

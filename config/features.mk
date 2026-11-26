@@ -210,7 +210,8 @@ CONFIG_LANG_DEFAULT_ZH ?= n
 # color screen settings: theme, highlight color, filled status bar (off: the dark theme only; for radios whose only
 # screen is monochrome)
 CONFIG_UI_COLOR ?= y
-# Commercial and Amateur Home layouts and Day/Night palettes on supported wide color displays
+# The panels theme (core/ui/themes/panels): rounded panels, Day/Night palettes, the Commercial and Amateur Home
+# layouts and a GPS clock, on color panels 240 px high with 310 px across (docs/spec/ui.md)
 CONFIG_UI_THEME_PANELS ?= n
 # the Settings menu on the radio (off: settings keep their stored values and are set with qdmr; docs/spec/ui.md)
 CONFIG_UI_SETTINGS ?= y
@@ -386,6 +387,7 @@ $(if $(and $(call feature_on,LANG_DEFAULT_FR),$(if $(call feature_on,LANG_FR),,x
 $(if $(and $(call feature_on,LANG_DEFAULT_ZH),$(if $(call feature_on,LANG_ZH),,x)),$(error CONFIG_LANG_DEFAULT_ZH=y needs CONFIG_LANG_ZH=y))
 $(if $(and $(call feature_on,DMR_AES),$(if $(call feature_on,DMR_PRIVACY),,x)),$(error CONFIG_DMR_AES=y needs CONFIG_DMR_PRIVACY=y))
 $(if $(and $(call feature_on,CJK_GLYPHS),$(if $(call feature_on,LANG_ZH),,x)),$(error CONFIG_CJK_GLYPHS=y needs CONFIG_LANG_ZH=y))
+$(if $(and $(call feature_on,UI_THEME_PANELS),$(if $(call feature_on,UI_COLOR),,x)),$(error CONFIG_UI_THEME_PANELS=y needs CONFIG_UI_COLOR=y))
 $(foreach f,SFR_DUALPATH_RX SFR_CWID,$(if $(and $(call feature_on,$(f)),$(if $(call feature_on,SFR),,x)),$(error CONFIG_$(f)=y needs CONFIG_SFR=y)))
 $(foreach f,DMR_TRUNK_TX,$(if $(and $(call feature_on,$(f)),$(if $(call feature_on,DMR_TRUNK),,x)),$(error CONFIG_$(f)=y needs CONFIG_DMR_TRUNK=y)))
 $(foreach f,DMR_TRUNK_SUPL DMR_TRUNK_GW,$(if $(and $(call feature_on,$(f)),$(if $(call feature_on,DMR_TRUNK_TX),,x)),$(error CONFIG_$(f)=y needs CONFIG_DMR_TRUNK_TX=y)))
@@ -590,6 +592,15 @@ CONFIG_DISPLAY_INSET_TOP ?= $(CONFIG_DISPLAY_INSET)
 CONFIG_DISPLAY_INSET_BOTTOM ?= $(CONFIG_DISPLAY_INSET)
 CONFIG_DISPLAY_INSET_LEFT ?= $(CONFIG_DISPLAY_INSET)
 CONFIG_DISPLAY_INSET_RIGHT ?= $(CONFIG_DISPLAY_INSET)
+# The panels theme draws only on a color panel 240 px high with at least 310 px across inside its insets (fits() in
+# core/ui/themes/panels/panels.c), so on any other panel it is unsupported, as FONT_BIG above: ci's maximal
+# configuration leaves it off and the feature matrix says why (tools/boards.py reads this reason)
+PANEL_H := $(shell sed -n 's/^gallery = "[0-9][0-9]*x\([0-9][0-9]*\).*/\1/p' boards/$(BOARD)/board.toml 2>/dev/null)
+PANELS_FIT := $(shell test "0$(PANEL_W)" -ge $$((310 + $(CONFIG_DISPLAY_INSET_LEFT) + $(CONFIG_DISPLAY_INSET_RIGHT))) && \
+	test "0$(PANEL_H)" -eq $$((240 + $(CONFIG_DISPLAY_INSET_TOP) + $(CONFIG_DISPLAY_INSET_BOTTOM))) && echo y)
+ifneq ($(PANELS_FIT)$(filter UI_COLOR,$(BOARD_UNSUPPORTED)),y)
+BOARD_UNSUPPORTED += UI_THEME_PANELS	# the panels theme draws only on color panels 240 px high and 310 px across
+endif
 # The air queue's buffer in octets (IP gateway and zone sharing, docs/spec/dmr-data.md 12): queued packets take
 # their own length plus a 36-octet header. 2048 holds two longest packets (612) with room to spare, a zone's four
 # fragments, or about thirteen 120-octet datagrams
