@@ -116,15 +116,17 @@ Commits go in under the user's git identity. Contributions are MIT, credited to 
 ([license of contributions](docs/dev/contributing.md#license-of-contributions)); new files use the standard SPDX and
 copyright header, not a personal one.
 
-## This cloud environment
+## Environment
 
-- No radio, debug link or SDR bench is attached. HIL and on-air checks are the user's; ask for results, never claim
-  them.
-- Host tests run here (`make -C tests/host`). The container is rebuilt between sessions, so the toolchains may be
-  missing: `tools/install-arm-toolchain.sh` (Arm, minutes) and `tools/build-csky-toolchain.sh` (C-SKY, about
-  45 minutes), plus `git submodule update --init --depth 1`. The C-SKY build first needs
-  `apt-get install -y build-essential libgmp-dev libmpfr-dev libmpc-dev libisl-dev texinfo bison flex`; without
-  texinfo it fails at `doc/bfd.info`. Say which checks ran and which didn't.
+- The work runs locally on the user's Apple silicon Mac (moved from a cloud session on Nov 26, 2026). Setup,
+  toolchains and the pixel baseline: [fork-notes/local-setup.md](fork-notes/local-setup.md). Arm builds use the
+  native arm64 toolchain in `~/opt/`; GD-88 (C-SKY) builds go through `tools/docker/csky-toolchain/run.sh make
+  BOARD=gd88`. Use the Mac's cores: `make -j$(sysctl -n hw.ncpu)`, `JOBS=$(sysctl -n hw.ncpu) tools/ci.sh`, and run
+  independent builds and checks in parallel.
+- Ask before touching a connected radio, the debug link or the SDR bench (AGENTS.md rule 8). HIL and on-air checks
+  are the user's; ask for results, never claim them.
+- Say which checks ran and which didn't. If the full `tools/ci.sh` matrix stalls on macOS (see local-setup.md), the
+  user's Linux VM runs it.
 - GD-88 budget (default build, Nov 2026): flash 87.9% (about 107 KB free), RAM 95.0% (about 10.5 KB free). RAM is
   the tight one: prefer `const` tables and drawing on the fly over buffers.
 - The UI preview loop: `make -C tests/host uiSim`, then `tests/host/uiSim --geom 320x240iR10 --scale 2 --script
