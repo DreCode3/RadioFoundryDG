@@ -1429,8 +1429,9 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 
 // The grid's page in the title, before the cells: its shades take their palette entries ahead of the cells' on a
 // 16-color display (gfx.c). A single column: the reference theme's marks over the rows, after them
-static void panels_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+static void panels_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
+	(void)l;
 	int w = gfx_width();
 	int visible = g->rows * g->cols;
 	if (g->cols > 1) {

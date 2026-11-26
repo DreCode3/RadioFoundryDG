@@ -88,10 +88,11 @@ typedef struct ui_theme_ops {
 	void (*list_geom)(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g);
 	// One cell: its background and focus, the key's digit, the label and the value, an open editor
 	void (*cell)(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it);
-	// That the list has more before top or after the cells on screen. Called before the cells are drawn (over false)
-	// and after them (over true); a theme draws in one of the two. Marks on the cells need the second. What is drawn
-	// first gets its colors first on a display with a 16-color palette, which is what the first is for
-	void (*scroll)(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over);
+	// That the list has more before top or after the cells on screen, or where its focus is (l->focus of l->count).
+	// Called before the cells are drawn (over false) and after them (over true); a theme draws in one of the two. Marks
+	// on the cells need the second. What is drawn first gets its colors first on a display with a 16-color palette,
+	// which is what the first is for
+	void (*scroll)(const ui_list_t *l, const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over);
 	// Whether the screen must be drawn again at now_ms for the theme's moving marks (a scan or roaming mark, ...), s
 	// being the state of the frame on screen (s->now_ms its time). Every tick. NULL: nothing on screen moves, as in the
 	// reference theme
@@ -174,6 +175,8 @@ void ui_secondary_hint_split(char *left, char *right, size_t cap, bool quick_onl
 // A row's label from x and its value right-aligned at w, the label kept whole where it can be
 void ui_row_text(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
 	color_t vfg, bool preview);
+// Quick settings' hint while the TX frequency tile edits, NULL while it doesn't (into buf)
+const char *ui_quick_split_hint(const radio_view_t *v, const ui_state_t *s, char *buf, size_t len);
 // The reference theme's Home, for a channel another theme leaves to it
 void ui_reference_home(const radio_view_t *v, const ui_state_t *s);
 // The banner, if one is up, its lower edge at bottom (ui_screens.c has the details)

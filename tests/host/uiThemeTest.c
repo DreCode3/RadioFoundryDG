@@ -624,10 +624,11 @@ static void probe_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cel
 	ncells++;
 }
 
-static struct { uint16_t top, count; uint8_t rows, cols; } scrolled[2];
-static void probe_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+static struct { const ui_list_t *l; uint16_t top, count; uint8_t rows, cols; } scrolled[2];
+static void probe_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
 	note(over ? 'S' : 's');
+	scrolled[over].l = l;
 	scrolled[over].top = top;
 	scrolled[over].count = count;
 	scrolled[over].rows = g->rows;
@@ -649,7 +650,7 @@ static void expect(int line, uint16_t count, uint16_t focus, uint16_t top_in, ui
 	snprintf(want, sizeof want, "HGs%.*sS", n, "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
 	ok = ok && strcmp(order, want) == 0 && top == first && ncells == n && geom_y == head_y;
 	ok = ok && scrolled[0].top == first && scrolled[0].count == count && scrolled[1].top == first &&
-		scrolled[1].count == count;
+		scrolled[1].count == count && scrolled[0].l == &l && scrolled[1].l == &l;	// the list, for its focus
 	for (int r = 0; ok && r < n; r++) {
 		int col = r / rows;
 		char label[16];

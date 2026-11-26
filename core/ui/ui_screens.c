@@ -3712,8 +3712,9 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 }
 
 // The reference theme's scroll marks, over the rows: more above / below
-static void reference_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+static void reference_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
+	(void)l;
 	if (!over)
 		return;
 	int w = gfx_width();
@@ -3748,13 +3749,13 @@ static void list_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell
 		reference_cell(l, g, c, it);
 }
 
-static void list_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+static void list_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
 	const ui_theme_ops_t *o = ui_theme_cur()->ops;
 	if (o->scroll != NULL)
-		o->scroll(g, top, count, over);
+		o->scroll(l, g, top, count, over);
 	else
-		reference_scroll(g, top, count, over);
+		reference_scroll(l, g, top, count, over);
 }
 
 // A list screen's frame, the same in every theme: the title, the body text, which rows are on screen, the banner and
@@ -3789,7 +3790,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		*l->top = top;
 	if (l->count == 0 && l->empty != NULL)
 		wrap_text(g.font, l->empty, y + 1, y_end, true, ui_col.dim);
-	list_scroll(&g, top, l->count, false);
+	list_scroll(l, &g, top, l->count, false);
 	for (int r = 0; r < visible && top + r < l->count; r++) {
 		uint16_t i = (uint16_t)(top + r);
 		ui_item_t it;
@@ -3808,7 +3809,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 			c.x += g.col_w[k] + g.col_gap;
 		list_cell(l, &g, &c, &it);
 	}
-	list_scroll(&g, top, l->count, true);
+	list_scroll(l, &g, top, l->count, true);
 	ui_draw_banner(s);
 	if (s->toast)
 		ui_draw_hint(s->toast, true);
@@ -4161,7 +4162,7 @@ static void quick_list_item(uint16_t i, ui_item_t *it)
 
 // The hint while the TX freq tile edits: what Up / Down and the digits do, or the TX frequency typed so far, whole
 // (blanks for the digits to come); NULL when that tile isn't editing
-static const char *quick_split_hint(const radio_view_t *v, const ui_state_t *s, char *buf, size_t len)
+UI_THEME_SHARED const char *ui_quick_split_hint(const radio_view_t *v, const ui_state_t *s, char *buf, size_t len)
 {
 	if (!s->quick_edit || ui_quick_kind(s->quick_focus, v) != QT_SPLIT)
 		return NULL;
@@ -4187,7 +4188,7 @@ static void __attribute__((noinline)) draw_quick_list(const radio_view_t *v, con
 {
 	static uint16_t top;
 	char hint[24];
-	const char *split_hint = quick_split_hint(v, s, hint, sizeof hint);
+	const char *split_hint = ui_quick_split_hint(v, s, hint, sizeof hint);
 	quick_v = v;
 	quick_s = s;
 	quick_list_focus = s->quick_focus;
@@ -4203,7 +4204,7 @@ static void __attribute__((noinline)) draw_quick_tiles(const radio_view_t *v, co
 	int w = gfx_width(), h = gfx_height();
 	const char *name = v->vfo ? "VFO" : v->ch.name;
 	char label[24];	// a tile's label, and the hint's text after the tiles (one buffer: the ui task's stack is tight)
-	const char *split_hint = quick_split_hint(v, s, label, sizeof label);
+	const char *split_hint = ui_quick_split_hint(v, s, label, sizeof label);
 
 	gfx_clear(ui_col.bg);
 	// Title row keeps the state pill (P2)
@@ -4264,7 +4265,7 @@ static void __attribute__((noinline)) draw_quick_tiles(const radio_view_t *v, co
 	if (s->toast != NULL)
 		ui_draw_hint(s->toast, true);
 	else if (split_hint != NULL)
-		ui_draw_hint(quick_split_hint(v, s, label, sizeof label), false);	// the tiles used label
+		ui_draw_hint(ui_quick_split_hint(v, s, label, sizeof label), false);	// the tiles used label
 	else if (h >= UI_TALL_PX)
 		ui_draw_hint(TR(QUICK_HINT_ALL_SETTINGS, "0 All settings  Hold OK save"), false);
 }
