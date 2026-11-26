@@ -90,8 +90,12 @@ Decided Nov 26 (user):
   "Talkgroup / Contact".
 - The theme choice is Settings > Display's first row, named **Theme**, shown only on builds with more than one theme
   that fits the display. The reference theme's palette row, named Theme until now, becomes **Colors**.
-- "Talkgroup name first" works the same in both themes; a build whose default theme is panels starts with it on, so
-  panels shows the name first by default ("USA · TG 3100").
+- "Talkgroup name first" works the same in both themes; a radio that starts in the panels theme starts with it on,
+  so panels shows the name first by default ("USA · TG 3100"). A radio that starts in the reference theme (its
+  display doesn't fit panels) starts with it off, as before. Decided by the theme the radio starts in, not by panels
+  being compiled in.
+- The Theme row's choices are named "Original" and "Panels".
+- Messages' "Zone offers" row shows the offered zone's name, as the Tools row did (menu entries show their values).
 
 ## Behavior of settings rows
 
