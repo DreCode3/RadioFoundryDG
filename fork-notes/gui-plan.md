@@ -120,7 +120,9 @@ Claude goes to the user, with both positions, and the user decides.
 2. Framework: extract the reference theme's drawing behind a theme descriptor with no visual change (gallery
    identical), then move the profile look onto it as the second theme.
 3. Layout fixes in the second theme.
-4. Menu tree, settings row behavior, naming (shared; updates task flows, press budgets, IA and translations).
+4. Menu tree, settings row behavior, naming. First: fix the UI simulator's division by zero on an empty zone
+   (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),
+   with a test that reproduces it, since step 4 exercises zone and channel editing. (shared; updates task flows, press budgets, IA and translations).
 5. Icons and palettes.
 6. Freeze on the GD-88, then port to other display classes.
 
