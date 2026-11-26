@@ -218,6 +218,11 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
      entry no longer shows the typed digits; the soft key bar filters hints by English words, so French shows
      "PTT Parler OK #+"; a banner cuts off the second line of dual watch Home; a busy status strip overlaps its
      icons; Quick in Chinese is unreadable at 6x12.
+   - Second attempt on the branch (`d82a2621`..`3cdbc1ba`, not QA-approved): step 3's risks first (the name-first default kept
+     in RAM with `ui_svc_setting_default`, new on a foreign area too, an `UPGRADED` test), then the Layout rules on
+     the step 2 look. Open questions for the user are in the implementer's report: the mode word in both the strip
+     and Home's mode bar; Hint row off still hiding the bar; the Quick and menu labels a third of the screen can't
+     hold in 8x16 ("Digital monitor", "TG / Contact", some translations).
 5. Icons and palettes.
 6. Freeze on the GD-88, then port to other display classes.
 
