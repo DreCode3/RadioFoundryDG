@@ -91,6 +91,10 @@ typedef struct ui_theme_ops {
 	// and after them (over true); a theme draws in one of the two. Marks on the cells need the second. What is drawn
 	// first gets its colors first on a display with a 16-color palette, which is what the first is for
 	void (*scroll)(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over);
+	// Whether the screen must be drawn again at now_ms for the theme's moving marks (a scan or roaming mark, ...), s
+	// being the state of the frame on screen (s->now_ms its time). Every tick. NULL: nothing on screen moves, as in the
+	// reference theme
+	bool (*animate)(const radio_view_t *v, const ui_state_t *s, uint32_t now_ms);
 } ui_theme_ops_t;
 
 typedef struct ui_theme {

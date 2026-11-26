@@ -787,11 +787,23 @@ static void test_pick(void)
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
 	// Its palettes are Day and Night, with nothing past them: a palette out of range is Day
 	CHECK(ui_theme_panels.palette_count == 2 && ui_theme_panels.id == UI_THEME_ID_PANELS);
+	// Its scan mark moves every 100 ms while a scan runs (not paused: scan 3); nothing moves otherwise. The reference
+	// theme has nothing that moves
+	const ui_theme_ops_t *po = ui_theme_panels.ops;
+	base();
+	state.now_ms = 1000;
+	view.scan = 1;
+	CHECK(po->animate != NULL && !po->animate(&view, &state, 1099) && po->animate(&view, &state, 1100));
+	view.scan = 3;
+	CHECK(!po->animate(&view, &state, 1100));
+	view.scan = 0;
+	CHECK(!po->animate(&view, &state, 5000));
 #else
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_DEFAULT, ref));
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_PANELS, ref));
 #endif
-	CHECK(ui_theme_reference.id == UI_THEME_ID_REFERENCE && ui_theme_reference.fits == NULL);
+	CHECK(ui_theme_reference.id == UI_THEME_ID_REFERENCE && ui_theme_reference.fits == NULL &&
+	      ui_theme_reference.ops->animate == NULL);
 }
 
 int main(void)

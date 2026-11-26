@@ -1257,6 +1257,24 @@ static void panels_home_dual(const radio_view_t *v, const ui_state_t *s)
 }
 #endif
 
+// The marks that move: the scan mark's highlight every 100 ms, the roaming mark every 125 ms while it searches or
+// surveys (and the simulator's recording dot)
+static bool panels_animate(const radio_view_t *v, const ui_state_t *s, uint32_t now_ms)
+{
+	if (v->scan != 0 && v->scan != 3 && now_ms / 100u != s->now_ms / 100u)
+		return true;
+#if CONFIG_DMR_ROAMING
+	if ((v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY) &&
+	    now_ms / 125u != s->now_ms / 125u)
+		return true;
+#endif
+#ifdef GFX_FIT_TRACE
+	if (s->gui_sim_recording && now_ms / 400u != s->now_ms / 400u)
+		return true;
+#endif
+	return false;
+}
+
 // A list's palette entries, then its heading: a larger left-aligned title (the main menu's is Menu), or the strip
 // alone for a list without a title
 static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
@@ -1584,6 +1602,7 @@ static const ui_theme_ops_t panels_ops = {
 	.list_geom = panels_list_geom,
 	.cell = panels_cell,
 	.scroll = panels_scroll,
+	.animate = panels_animate,
 };
 
 const ui_theme_t ui_theme_panels = {

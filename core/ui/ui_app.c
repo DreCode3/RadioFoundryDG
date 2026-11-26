@@ -2565,17 +2565,6 @@ static void profile_tick(const radio_view_t *v, uint32_t now_ms)
 {
 	if (!ui_st.gui_profiles)
 		return;
-	if (v->scan != 0 && v->scan != 3 && now_ms / 100u != ui_st.now_ms / 100u)
-		dirty = true;
-#if CONFIG_DMR_ROAMING
-	if ((v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY) &&
-	    now_ms / 125u != ui_st.now_ms / 125u)
-		dirty = true;
-#endif
-#ifdef GFX_FIT_TRACE
-	if (ui_st.gui_sim_recording && now_ms / 400u != ui_st.now_ms / 400u)
-		dirty = true;
-#endif
 #if CONFIG_GPS
 	ui_position_t pos = { 0 };
 	bool fix = ui_svc_position(&pos) && pos.fix;
@@ -2601,6 +2590,11 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 	view = v;
 #endif
 	now = now_ms;
+#if UI_THEME_SELECT
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->animate != NULL && o->animate(v, &ui_st, now_ms))
+		dirty = true;
+#endif
 #if CONFIG_UI_THEME_PANELS
 	profile_tick(v, now_ms);
 #endif
