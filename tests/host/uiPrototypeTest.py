@@ -11,9 +11,10 @@ import zlib
 
 SIM = Path(__file__).resolve().with_name("uiSim")
 GEOMETRY = "320x240iR10"
-# Settings > Display's first rows: Display profile and Day/Night, each a pick list
-AMATEUR = "ok 8 1 ok down ok long:back "
-NIGHT = "ok 8 1 down ok down ok long:back "
+# Settings > Display's panels rows: Display profile and Day/Night, each a pick list, after Theme
+AMATEUR = "ok 8 1 row:Display_profile ok down ok long:back "
+NIGHT = "ok 8 1 row:Day/Night ok down ok long:back "
+GPS_CLOCK = "ok 8 1 row:GPS_clock ok "
 # The panels theme's layout on the 310 x 240 drawable area: the status strip, a list's title row, one row height
 STRIP_H = 29
 ROWS_Y = 59
@@ -217,7 +218,7 @@ class PrototypeTest(unittest.TestCase):
         self.assertGreaterEqual(max(y for _, y in heading) - min(y for _, y in heading), 14)
         # One row height, five rows on the display: the row panels start every ROW_H pixels.
         self.assertEqual(row_starts(frame, 16), [ROWS_Y + 2 + ROW_H * k for k in range(5)])
-        self.run_script("ok 8 1 expect:count=12 up expect:focus=Low_battery_warning "
+        self.run_script("ok 8 1 expect:count=13 expect:focus=Theme up expect:focus=Low_battery_warning "
                         "up expect:focus=Auto_power_off up expect:focus=Battery_saver "
                         "up expect:focus=Language up expect:focus=Talkgroup_name_first expect:layout=0")
     def test_colored_icons_are_on_settings_categories_only(self):
@@ -263,7 +264,7 @@ class PrototypeTest(unittest.TestCase):
                         "7 expect:screen=group expect:shows=Security_&_keypad_lock "
                         "back expect:focus=Security_&_keypad_lock")
     def test_profile_settings_submenus_use_roomy_headings(self):
-        groups = [("8 1", 12), ("8 2", 6), ("8 3", 3), ("8 4", 8), ("8 5", 4), ("8 6", 2), ("8 7", 2), ("8 8", 11),
+        groups = [("8 1", 13), ("8 2", 6), ("8 3", 3), ("8 4", 8), ("8 5", 4), ("8 6", 2), ("8 7", 2), ("8 8", 11),
                   ("8 9", 7), ("8 up ok", 6), ("8 2 row:Alert_tones ok", 8), ("8 2 row:Signaling_tones ok", 9),
                   ("6 4", 8), ("7 3", 3), ("7 5", 5)]
         for shortcut, count in groups:
@@ -409,14 +410,22 @@ class PrototypeTest(unittest.TestCase):
     def test_display_choices_are_native_and_survive_reboot(self):
         # Display profile and Day/Night open a pick list with the value in use checked; GPS clock flips on OK
         self.run_script(
-            "ok 8 1 expect:shows=Display_profile expect:hides=GUI_profile ok expect:screen=pick "
+            "ok 8 1 expect:shows=Display_profile expect:hides=GUI_profile down ok expect:screen=pick "
             "expect:shows=Commercial expect:shows=Amateur expect:focus=Commercial down ok expect:screen=group "
             "down ok expect:shows=Day expect:shows=Night down ok "
             "down expect:focus=GPS_clock ok expect:shows=On reboot "
-            "expect:screen=home ok 8 1 expect:shows=Amateur expect:shows=Night down down expect:focus=GPS_clock "
+            "expect:screen=home ok 8 1 expect:shows=Amateur expect:shows=Night down down down expect:focus=GPS_clock "
             "expect:shows=On"
         )
-        self.run_script("ok 8 1 expect:hides=Display_profile expect:shows=Theme", "320x240")
+        self.run_script("ok 8 1 expect:hides=Display_profile expect:shows=Colors", "320x240")
+        # Theme, the first row where more than one theme fits: the one in use checked, and choosing another puts it in
+        # use at once, its own appearance rows after the Theme row, and is kept across a restart
+        self.run_script("ok 8 1 expect:focus=Theme expect:shows=Panels ok expect:screen=pick expect:checked=Panels "
+                        "row:Original ok expect:screen=group expect:focus=Theme expect:shows=Original "
+                        "expect:shows=Colors expect:hides=Day/Night reboot expect:screen=home "
+                        "ok 8 1 expect:shows=Original expect:shows=Colors ok row:Panels ok expect:shows=Day/Night "
+                        "expect:hides=Colors")
+        self.run_script("ok 8 1 expect:hides=Theme expect:focus=Colors", "220x176")
 
     def test_talkgroup_order_key_and_setting_in_both_themes(self):
         # Talkgroup name first (the key and Settings > Display) works in every theme. A build whose default theme is
@@ -434,12 +443,12 @@ class PrototypeTest(unittest.TestCase):
 
     def test_gps_clock_obeys_fix_and_native_receiver_setting(self):
         self.run_script(
-            "ok 8 1 down down ok back back back expect:hides=14:08 "
+            GPS_CLOCK + "back back back expect:hides=14:08 "
             "gps:fix expect:shows=14:08 ok 8 1 expect:hides=14:08 back back back "
             "gps:searching expect:hides=14:08 gps:fix "
             "ok 6 4 expect:focus=GPS ok back back back expect:hides=14:08"
         )
-        setup = "ok 8 1 down down ok long:back gps:fix "
+        setup = GPS_CLOCK + "long:back gps:fix "
         for profile in ("", AMATEUR):
             with self.subTest(profile=profile or "Commercial"):
                 clock = self.render_frame(profile + setup +
@@ -474,7 +483,7 @@ class PrototypeTest(unittest.TestCase):
                     "wait:9000 expect:layout=0"
                 )
         self.run_script(
-            "ok 8 1 down down ok long:back gps:fix mon vox:on roam:searching "
+            GPS_CLOCK + "long:back gps:fix mon vox:on roam:searching "
             "prototype:bt_connected prototype:record_on prototype:dstar_on prototype:crypt_arc4 "
             "prototype:talkaround_on msg:9991234,Hello rxonly:on scankey wait:9000 "
             "expect:shows=D-STAR expect:shows=ARC4 expect:shows=14:08 expect:layout=0"
@@ -482,7 +491,7 @@ class PrototypeTest(unittest.TestCase):
 
     def test_commercial_crowded_status_keeps_the_clock_and_device_icons(self):
         setup = (
-            "ok 8 1 down down ok long:back gps:fix quick 7 ctx 3 5 ok wait:3000 "
+            GPS_CLOCK + "long:back gps:fix quick 7 ctx 3 5 ok wait:3000 "
             "expect:dual=1 mon roam:ready prototype:bt_connected prototype:dstar_on "
             "prototype:crypt_arc4 prototype:talkaround_on msg:9991234,Hello wait:9000 lockkey wait:3000"
         )
@@ -498,7 +507,7 @@ class PrototypeTest(unittest.TestCase):
 
     def test_gui_switch_keeps_channel_and_display_preferences(self):
         self.run_script(
-            "down ok 8 1 ok down ok gui:original expect:screen=home "
+            "down ok 8 1 row:Display_profile ok down ok gui:original expect:screen=home "
             "expect:shows=Valley_rpt expect:freq=147060000 "
             "ok 8 1 expect:hides=Display_profile gui:prototype expect:screen=home "
             "expect:centered=Valley_rpt ok 8 1 expect:shows=Amateur"

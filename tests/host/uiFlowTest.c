@@ -1426,7 +1426,7 @@ static const flow_t flows_mono[] = {
 	{ "S filled status bar on a monochrome screen: dimmed", "", "ok 8 1 row:Filled_status_bar ok",
 	  "toast=Colors_are_for set62=1", 15, false },	// unchanged: on by default
 #else
-	{ "S no color rows on a monochrome screen", "", "ok 8 1 row:Brightness", "hides=Theme hides=Highlight hides=Filled", 3, false },
+	{ "S no color rows on a monochrome screen", "", "ok 8 1 row:Brightness", "hides=Colors hides=Highlight hides=Filled", 3, false },
 #endif
 };
 
@@ -1444,16 +1444,16 @@ static const flow_t flows_k[] = {
 		{ "11 dual watch: Up/Down on zone, the knob still steps", "ok 8 8 row:Up/Down_on_Home ok down ok long:back quick 7 ctx 3 5 ok", "enc+",
 	  "dual=1 azone=0 apos=4", 1, false },
 #if CONFIG_UI_COLOR
-	{ "S theme light (color screens)", "", "ok 8 1 row:Theme ok down ok", "set7=1", 6, false },
+	{ "S colors light (color screens)", "", "ok 8 1 row:Colors ok down ok", "set7=1", 6, false },
 	{ "S highlight color red (the first after Default)", "", "ok 8 1 row:Highlight_color ok down ok", "set61=1", 7, false },
 	{ "S filled status bar off (on by default)", "", "ok 8 1 row:Filled_status_bar ok", "set62=0", 6, false },
-	{ "S theme night, the last", "", "ok 8 1 row:Theme ok down down down ok", "set7=3", 8, false },
+	{ "S colors night, the last", "", "ok 8 1 row:Colors ok down down down ok", "set7=3", 8, false },
 	// Night shows red only: its highlight is its own red, so the row is dimmed and says why
 	{ "S night: the highlight color is red only", "theme:night ok 8 1 row:Highlight_color", "ok",
 	  "toast=Night_theme set61=0", 1, false },
 #else
 	// Built without CONFIG_UI_COLOR: Display has no color rows
-	{ "S no color rows in this build", "", "ok 8 1 row:Brightness", "hides=Theme hides=Highlight hides=Filled", 6, false },
+	{ "S no color rows in this build", "", "ok 8 1 row:Brightness", "hides=Colors hides=Highlight hides=Filled", 6, false },
 	{ "S large text without the color rows", "", "ok 8 1 row:Large_text ok", "set8=1", 6, false },
 #endif
 #if CONFIG_SUBTONE && CONFIG_CHANNEL_EDIT

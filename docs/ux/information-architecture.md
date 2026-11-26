@@ -169,7 +169,7 @@ text of the row that opens it, in sentence case.
 
 | # | Group | Contents |
 |---|---|---|
-| 1 | **Display** | The theme's appearance rows first (the reference theme: Theme, Highlight color, Filled status bar; the panels theme: Display profile, Day/Night, GPS clock), then Brightness, Backlight, Large text, Hint row, Talkgroup name first, Language, Battery saver, Auto power off, Low battery warning |
+| 1 | **Display** | Theme (where more than one theme fits the display), the theme's appearance rows (the reference theme: Colors, Highlight color, Filled status bar; the panels theme: Display profile, Day/Night, GPS clock), then Brightness, Backlight, Large text, Hint row, Talkgroup name first, Language, Battery saver, Auto power off, Low battery warning |
 | 2 | **Tones & alerts** | Volume (radios without a knob), Tone volume, Key tones, Voice prompts, Vibrate; pages: Alert tones (each beep on or off) and Signaling tones |
 | 3 | **Audio** | Mic gain, Mic AGC, Mic noise reduction |
 | 4 | **Call settings** | Reply window, TX timeout, Show talker alias, DMR monitor at start, Answer radio checks, Answer call alerts, Message format, Accept zone shares |

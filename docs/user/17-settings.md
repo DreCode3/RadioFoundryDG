@@ -43,17 +43,20 @@ Connections > PC and network** (below).
 
 ### Display (key 1)
 
-The first rows are the look's own: each look (theme) has its own appearance settings, and Display shows those of the
-one in use. The standard look has **Theme**, **Highlight color** and **Filled status bar**. The panels look, on displays
-that have it, has **Display profile**, **Day/Night** and, on a radio with a GPS, **GPS clock**.
+**Theme** comes first on a radio with more than one look (theme) for its display: Original, the standard look, and
+Panels. Picking one switches the look at once and keeps it. The next rows are the look's own: each look has its own
+appearance settings, and Display shows those of the one in use. The standard look has **Colors**, **Highlight color**
+and **Filled status bar**. The panels look has **Display profile**, **Day/Night** and, on a radio with a GPS, **GPS
+clock**.
 [Commercial and Amateur Home](06-home-screen.md#commercial-and-amateur-home) shows what changes on Home.
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
+| Theme | Original, Panels | Panels where the firmware has the panels look and the display fits it, else Original | The look of every screen. Only on a radio whose firmware has more than one look that fits its display | Works |
 | Display profile | Commercial, Amateur | Commercial | Home's layout. Both show the zone and the channel name, with a call's caller and talkgroup below. Commercial uses a larger channel name and shows the talk target only when it isn't the channel's own. Amateur always shows the talk target and the frequency, timeslot and color code | Works |
 | Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
 | GPS clock | Off, On | Off | Shows the date and UTC time on a line at the bottom of idle Home when a valid GPS fix supplies both | Works |
-| Theme | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
+| Colors | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
 | Highlight color | Default, Red, Orange, Yellow, Teal, Light blue, Purple, Pink | Default | The color of the selected row or tile and of the channel number on Home. Not in the Night theme, which is always red. Not on radios with a monochrome screen | Works |
 | Filled status bar | On, Off | On | Fills the top status line with the highlight color (light gray with Default, white in the high-contrast theme, bright red in Night) and draws its text black. Not on radios with a monochrome screen | Works |
 | Brightness | 10 to 100 %, steps of 10 | 100 % | Backlight brightness. Also in quick settings, tile 9 | Works |

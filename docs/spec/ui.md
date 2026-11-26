@@ -618,7 +618,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 | `CONFIG_CONTACT_EDIT` | = `CHANNEL_EDIT` and `DMR` | no contact editor (2.4): Contacts has no New contact row, Find has no Create contact row and Save as contact stays dimmed. Needs `CONFIG_CHANNEL_EDIT` and `CONFIG_DMR` |
 | `CONFIG_GPS_SKY` | = GPS and APRS | Menu > Location > GPS status is a page of text instead of the GPS screen (2.3) and the satellite sentences aren't read (about 5.2 KB, 176 B of RAM) |
 | `CONFIG_LANG_ES` | y | Spanish is listed dimmed in Settings > Display > Language (2.5); without any language the lookup and the fonts' Latin-1 glyphs are left out |
-| `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Theme, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 600 B). For radios whose only screen is monochrome |
+| `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Colors, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 600 B). For radios whose only screen is monochrome |
 | `CONFIG_UI_THEME_PANELS` | n | Off keeps the existing Home layout, status strip and color settings. On builds the panels theme (the profile layout), which the radio starts with when the stored theme asks for it (`gui_theme`, [settings store](settings-store.md); 0, the default, is the panels theme in such a build) and the color display is 240 px high with at least 310 drawable pixels across |
 
 Screens for features that are off (`CONFIG_DMR`, `CONFIG_HOTSPOT`, `CONFIG_VFO_FM`, `CONFIG_VFO_DMR`, `CONFIG_SCAN`, data features) are
@@ -771,8 +771,11 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
 - `CONFIG_UI_THEME_PANELS` builds the panels theme: Commercial (default) and Amateur on color displays with a 240 px
   drawable height and at least 310 px of drawable width after insets. Other geometries use the standard layout. The
   radio picks the theme at start, after the splash, from the stored theme (`gui_theme` in
-  [the settings store](settings-store.md); 0, the default, is the build's default theme). Day/Night switches the
-  palette across Home and menus. Day is the default. The profile menus use these palettes in place of Theme,
+  [the settings store](settings-store.md); 0, the default, is the build's default theme). Settings > Display's first
+  row, Theme (Original, Panels), is there when more than one theme fits the display (`ui_theme_fits`): the pick list
+  checks the theme in use, and a pick stores `gui_theme` and puts the theme in use at once (`ui_theme_use`), then
+  applies the appearance settings again, as at start. Day/Night switches the
+  palette across Home and menus. Day is the default. The profile menus use these palettes in place of Colors,
   Highlight color and Filled status bar. With a board GPS, GPS clock (default Off) shows the UTC date and minute on
   idle Home while a recent GPS fix has both date and time. The three choices are saved in
   [the settings store](settings-store.md). Talkgroup name first (the setting and the TG name / number key) orders the

@@ -3893,6 +3893,16 @@ msgid "Emergency"
 msgstr "Urgence"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_VALUE_THEME_ORIGINAL"
+msgid "Original"
+msgstr "Original"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_THEME_PANELS"
+msgid "Panels"
+msgstr "Panneaux"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_VALUE_UPDOWN_CHANNEL"
 msgid "Channel"
 msgstr "Canal"
@@ -3948,6 +3958,11 @@ msgid "Speaker + air"
 msgstr "HP + émission"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_LABEL_THEME"
+msgid "Theme"
+msgstr "Thème"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_GUI_PROFILE"
 msgid "Display profile"
 msgstr "Profil d'affichage"
@@ -3963,9 +3978,9 @@ msgid "GPS clock"
 msgstr "Horloge GPS"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_THEME"
-msgid "Theme"
-msgstr "Thème"
+msgctxt "SET_LABEL_COLORS"
+msgid "Colors"
+msgstr "Couleurs"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_HIGHLIGHT_COLOR"

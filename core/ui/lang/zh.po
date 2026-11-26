@@ -3895,6 +3895,16 @@ msgid "Emergency"
 msgstr "紧急呼叫"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_VALUE_THEME_ORIGINAL"
+msgid "Original"
+msgstr "原版"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_VALUE_THEME_PANELS"
+msgid "Panels"
+msgstr "分栏"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_VALUE_UPDOWN_CHANNEL"
 msgid "Channel"
 msgstr "信道"
@@ -3950,6 +3960,11 @@ msgid "Speaker + air"
 msgstr "扬声器+空中"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_LABEL_THEME"
+msgid "Theme"
+msgstr "主题"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_GUI_PROFILE"
 msgid "Display profile"
 msgstr "显示配置"
@@ -3965,9 +3980,9 @@ msgid "GPS clock"
 msgstr "GPS 时钟"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_THEME"
-msgid "Theme"
-msgstr "主题"
+msgctxt "SET_LABEL_COLORS"
+msgid "Colors"
+msgstr "配色"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_HIGHLIGHT_COLOR"

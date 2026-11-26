@@ -198,6 +198,8 @@ bool ui_theme_use(const ui_theme_t *t);
 // The theme with number id (UI_THEME_ID_*) where this build has it and it fits the display, else the build's default
 // theme where that fits, else the reference theme. After gfx_init
 const ui_theme_t *ui_theme_pick(uint8_t id);
+// The build has the theme with number id (UI_THEME_ID_*) and it fits the display: Settings > Display offers it
+bool ui_theme_fits(uint8_t id);
 // The theme in use honors appearance option opt (UI_THEME_OPT_*). With the reference theme alone every one of its
 // options is, so code that tests one is built only with UI_THEME_SELECT
 #define ui_theme_has(opt)	((ui_theme_cur()->options & (opt)) != 0)

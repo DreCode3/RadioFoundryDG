@@ -6995,6 +6995,21 @@ static const tr_id_t n_keyfn_hold[] = { TRN(VALUE_DEFAULT, "Default"), TRN(KEYFN
 #endif
 };
 #endif
+#if UI_THEME_SELECT
+// The themes (UI_THEME_ID_*), each offered where the build has it and it fits the display (pick_offered)
+static const int16_t v_gui_theme[] = {
+	UI_THEME_ID_REFERENCE,
+#if CONFIG_UI_THEME_PANELS
+	UI_THEME_ID_PANELS,
+#endif
+};
+static const tr_id_t n_gui_theme[] = {
+	TRN(SET_VALUE_THEME_ORIGINAL, "Original"),
+#if CONFIG_UI_THEME_PANELS
+	TRN(SET_VALUE_THEME_PANELS, "Panels"),
+#endif
+};
+#endif
 static const int16_t v_updown[] = { 0, 1, 2 };
 static const tr_id_t n_updown[] = { TRN(SET_VALUE_UPDOWN_CHANNEL, "Channel"), TRN(WORD_ZONE, "Zone"),
 	TRN(KEYFN_VALUE_TALK_TARGET, "Talk target") };
@@ -7072,8 +7087,12 @@ static const tr_id_t n_sigout_local[] = { TRN(VALUE_DEFAULT, "Default"), TRN(VAL
 #define LIST(nm, syn_, sid, v, nms) { nm, syn_, ST_LIST, sid, sizeof v / sizeof v[0], { .values = v, .names = nms } }
 #define ACTION(nm, syn_, a) { nm, syn_, ST_ACTION, a, 0, { { 0, 0, 0, NULL } } }
 
-// Settings > Display: the appearance rows of the theme in use first (its options, ui_theme.h), then the rest
+// Settings > Display: the theme where there is a choice, the appearance rows of the theme in use (its options,
+// ui_theme.h), then the rest
 static const set_item_t s_display[] = {
+#if UI_THEME_SELECT
+	LIST(TRN(SET_LABEL_THEME, "Theme"), "look style appearance", UI_SET_GUI_THEME, v_gui_theme, n_gui_theme),
+#endif
 #if CONFIG_UI_THEME_PANELS
 	LIST(TRN(SET_LABEL_GUI_PROFILE, "Display profile"), "home layout gui profile commercial amateur",
 		UI_SET_GUI_PROFILE, v_display_choice, n_gui_profile),
@@ -7082,7 +7101,7 @@ static const set_item_t s_display[] = {
 	TOGGLE(TRN(SET_LABEL_GPS_CLOCK, "GPS clock"), "date time UTC", UI_SET_GPS_CLOCK),
 #endif
 #if CONFIG_UI_COLOR	// a radio whose only screen is monochrome has no colors to set: no rows for them
-	LIST(TRN(SET_LABEL_THEME, "Theme"), "contrast", UI_SET_THEME, v_theme, n_theme),
+	LIST(TRN(SET_LABEL_COLORS, "Colors"), "contrast", UI_SET_THEME, v_theme, n_theme),
 	LIST(TRN(SET_LABEL_HIGHLIGHT_COLOR, "Highlight color"), "accent", UI_SET_ACCENT, v_accent, n_accent),
 	TOGGLE(TRN(SET_LABEL_FILLED_STATUS_BAR, "Filled status bar"), "top line", UI_SET_STRIP),
 #endif
@@ -7415,6 +7434,13 @@ static uint8_t appearance_option(uint8_t id)
 static bool set_hidden(const set_item_t *s)
 {
 #if UI_THEME_SELECT
+	// The theme choice: on a build with more than one theme that fits this display
+	if (s->type == ST_LIST && s->id == UI_SET_GUI_THEME) {
+		uint8_t fit = 0;
+		for (uint8_t k = 0; k < s->n; k++)
+			fit += ui_theme_fits((uint8_t)s->values[k]);
+		return fit < 2;
+	}
 	// Settings > Display has the rows of the theme in use's appearance options only
 	uint8_t opt = s->type != ST_ACTION ? appearance_option(s->id) : 0;
 	if (opt != 0 && !ui_theme_has(opt))
@@ -7815,6 +7841,16 @@ static const char *home_key_default(uint8_t id, int32_t v)
 }
 #endif
 
+// A setting's value as its row and pick list show it: the theme's stored 0 (the build's default) is the theme in use
+static int32_t set_get(const set_item_t *s)
+{
+#if UI_THEME_SELECT
+	if (s->type == ST_LIST && s->id == UI_SET_GUI_THEME)
+		return ui_theme_cur()->id;
+#endif
+	return ui_svc_setting_get(s->id);
+}
+
 static void set_value_text(const set_item_t *s, int32_t v, char *out, size_t len)
 {
 	sbuf_t b;
@@ -7979,7 +8015,7 @@ static void group_item(uint16_t i, ui_item_t *it)
 	str_copy(it->label, sizeof it->label, set_name(s, false));
 	bool edit = set_editing && i == ui_frame()->focus;
 	if (s->type != ST_ACTION)
-		set_value_text(s, edit ? set_value : ui_svc_setting_get(s->id), it->value, sizeof it->value);
+		set_value_text(s, edit ? set_value : set_get(s), it->value, sizeof it->value);
 	else if (s->id == SA_LANGUAGE)
 		str_copy(it->value, sizeof it->value, lang_name(lang_current()));
 	else if (ui_frame()->arg == G_RADIO_INFO) {
@@ -8266,6 +8302,10 @@ static const set_item_t *pick_item(void)
 
 static bool pick_offered(const set_item_t *s, uint8_t k)
 {
+#if UI_THEME_SELECT
+	if (s->id == UI_SET_GUI_THEME)
+		return ui_theme_fits((uint8_t)s->values[k]);
+#endif
 #if CONFIG_KEY_ASSIGN
 	if (s->id >= UI_SET_KEY_FIRST && s->id <= UI_SET_KEY_LAST)
 		return ui_svc_key_offered(s->id, s->values[k]);
@@ -8301,7 +8341,7 @@ static void pick_list_item(uint16_t i, ui_item_t *it)
 	if (s == NULL || k >= s->n)
 		return;
 	str_copy(it->label, sizeof it->label, tr(s->names[k]));
-	if (ui_svc_setting_get(s->id) == s->values[k])
+	if (set_get(s) == s->values[k])
 		str_copy(it->value, sizeof it->value, GLYPH_CHECK);
 }
 
@@ -8309,7 +8349,7 @@ static void pick_enter(void)
 {
 	const set_item_t *s = pick_item();
 	for (uint16_t i = 0; s != NULL && i < pick_count(); i++) {
-		if (ui_svc_setting_get(s->id) == s->values[pick_value(s, i)]) {
+		if (set_get(s) == s->values[pick_value(s, i)]) {
 			ui_frame()->focus = i;
 			break;
 		}

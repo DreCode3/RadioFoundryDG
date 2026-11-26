@@ -15,9 +15,9 @@ for i, (nm, sc) in enumerate(entries):
     if seen[nm] > 1: entries[i] = ("%s__%d" % (nm, seen[nm]), sc)
 variants = {  # prefixes from docs/dev/testing.md (profile samples): Commercial Day is the start state
     "commercial_day": "",
-    "amateur_day": "ok 8 1 ok down ok long:back ",
-    "commercial_night": "ok 8 1 down ok down ok long:back ",
-    "amateur_night": "ok 8 1 ok down ok long:back ok 8 1 down ok down ok long:back ",
+    "amateur_day": "ok 8 1 row:Display_profile ok down ok long:back ",
+    "commercial_night": "ok 8 1 row:Day/Night ok down ok long:back ",
+    "amateur_night": "ok 8 1 row:Display_profile ok down ok long:back ok 8 1 row:Day/Night ok down ok long:back ",
 }
 os.makedirs(out, exist_ok=True)
 for g in range(10):        # every row of Settings (Settings > group, since the menu tree of step 3), five depths

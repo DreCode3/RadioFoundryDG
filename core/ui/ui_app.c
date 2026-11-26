@@ -2119,6 +2119,22 @@ void ui_apply_setting(uint8_t id, int32_t v)
 		ui_st.ptt_locked = v != 0;
 		ui_svc_ptt_block(ui_st.locked && !ui_st.ptt_locked);
 		break;
+#if UI_THEME_SELECT
+	case UI_SET_GUI_THEME: {
+		// The theme chosen in Settings > Display, in use at once where it fits (else the build's default, as at
+		// start-up), then the appearance settings again: the new theme honors other ones (ui_theme.h)
+		const ui_theme_t *t = ui_theme_pick(v >= 0 && v <= 0xFF ? (uint8_t)v : UI_THEME_ID_DEFAULT);
+		if (t == ui_theme_cur() || !ui_theme_use(t))
+			break;
+		ui_apply_setting(UI_SET_THEME, ui_svc_setting_get(UI_SET_THEME));
+		ui_apply_setting(UI_SET_ACCENT, ui_svc_setting_get(UI_SET_ACCENT));
+		ui_apply_setting(UI_SET_STRIP, ui_svc_setting_get(UI_SET_STRIP));
+#if CONFIG_UI_THEME_PANELS
+		ui_apply_setting(UI_SET_GUI_NIGHT, ui_svc_setting_get(UI_SET_GUI_NIGHT));
+#endif
+		break;
+	}
+#endif
 	// A setting the theme in use doesn't honor (ui_theme.h) leaves its look as the theme's own
 	case UI_SET_THEME:
 #if UI_THEME_SELECT
