@@ -406,12 +406,13 @@ static void test_own_ops(void)
 #define TALL_Y	60	// under a title; 10 less without one
 static int tall_draws, tall_measures;
 static bool tall_measure_bare, tall_titled;
+static radio_state_t tall_st;
 static int tall_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name,
 	bool draw)
 {
-	(void)st;
 	if (draw) {
 		tall_draws++;
+		tall_st = st;
 	} else {
 		tall_measures++;
 		tall_measure_bare = v == NULL && s == NULL;
@@ -491,6 +492,17 @@ static void test_top_only(void)
 			CHECK(ink(TALL_Y + (n - 1) * fh, TALL_Y + n * fh));
 	}
 	CHECK(differs && some_fit && some_not);	// the bodies tell the two strips apart, and fall both ways
+	// A list's strip shows what the radio is doing: the view's state, as on every other screen
+	l.body = "L1";
+	view.state = RS_RX;
+	ui_draw_list(&view, &state, &l);
+	CHECK(tall_st == RS_RX);
+	view.state = RS_TX;
+	ui_draw_list(&view, &state, &l);
+	CHECK(tall_st == RS_TX);
+	view.state = RS_IDLE;
+	ui_draw_list(&view, &state, &l);
+	CHECK(tall_st == RS_IDLE);
 	// Without a title the theme is asked so, and the list starts where it says
 	l.prefix = l.name = NULL;
 	l.body = "L1";
@@ -526,7 +538,34 @@ static void test_bottom_only(void)
 	ui_draw_home(&view, &state);
 	CHECK(got.bottom == 4 && got.bottom_flags == UI_BAR_TOAST && got.bottom_soft == NULL);
 #endif
+	// This theme has no strip of its own: a list is measured through the reference strip (without a view: nothing is
+	// drawn), with the reference theme's answer for every length of message
+	uint16_t top = 0;
+	ui_list_t l = list(2, 0, &top);
+	static const char body[] = "L1\nL2\nL3\nL4\nL5\nL6\nL7\nL8";
+	bool with_theme[8], some_fit = false, some_not = false;
+	uint32_t strips = ui_strip_draws;
+	for (int n = 1; n <= 8; n++) {
+		char text[sizeof body];
+		memcpy(text, body, (size_t)(3 * n - 1));
+		text[3 * n - 1] = 0;
+		l.body = text;
+		with_theme[n - 1] = ui_list_body_fits(&state, &l);
+	}
+	CHECK(ui_strip_draws == strips);
+	l.body = NULL;
 	ui_theme_use(&ui_theme_reference);
+	for (int n = 1; n <= 8; n++) {
+		char text[sizeof body];
+		memcpy(text, body, (size_t)(3 * n - 1));
+		text[3 * n - 1] = 0;
+		l.body = text;
+		bool fits = ui_list_body_fits(&state, &l);
+		CHECK(fits == with_theme[n - 1]);
+		some_fit = some_fit || fits;
+		some_not = some_not || !fits;
+	}
+	CHECK(some_fit && some_not);
 }
 
 // A theme without a palette is refused: the one in use stays, with its colors
