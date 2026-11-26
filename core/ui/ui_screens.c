@@ -31,13 +31,6 @@ static uint8_t ui_palette;	// the palette in use: UI_THEME_* (what Settings > Di
 static uint8_t ui_accent;	// UI_ACCENT_*
 static bool ui_strip_fill;
 
-#if CONFIG_UI_THEME_PANELS
-static bool profile_theme(void)
-{
-	return ui_theme_cur() == &ui_theme_panels;
-}
-#endif
-
 // The highlight color over the theme's own (Settings > Display), one shade per color for both the filled status strip
 // (reverse video: the color as background, text and icons black) and the focus highlight (black text), so the two
 // match; also Home's channel number. All are light shades: black on each is at least 7.5:1 after RGB565 rounding.
@@ -679,13 +672,13 @@ void ui_draw_title(const font_t *f, int x, int y, int max_w, const char *prefix,
 		gfx_text(f, tx, y, nfit, c);
 }
 
-static const char *wrap_line(const font_t *f, const char *t, int max_w, char *line, size_t cap);
+UI_THEME_SHARED const char *ui_wrap_line(const font_t *f, const char *t, int max_w, char *line, size_t cap);
 static int wrap_lines(const font_t *f, const char *t, int max_w, int max, char lines[][64], bool preview);
 
 // An overlay's top edge (banner, two-line toast) moved up to a gap between lines of what is under it, so it never
 // cuts a line of text in half: the first row at or above y whose row above is all one color (background, or the
 // edge of a focus bar), at most one line up
-static int overlay_top(int y, int x0, int right_inset)
+UI_THEME_SHARED int ui_overlay_top(int y, int x0, int right_inset)
 {
 	int w = gfx_width() - right_inset;
 	for (int t = y; t > 0 && t > y - ui_layout.large->h - 2; t--) {
@@ -701,7 +694,7 @@ static int overlay_top(int y, int x0, int right_inset)
 
 // Split a hint into the Back group (it starts with the Back key's name, "Back" or its translation) and the rest,
 // joined by two spaces
-static void hint_split(const char *text, char *left, size_t lcap, char *right, size_t rcap)
+UI_THEME_SHARED void ui_hint_split(const char *text, char *left, size_t lcap, char *right, size_t rcap)
 {
 	size_t ln = 0, rn = 0;
 	const char *back = TR(HINT_BACK, "Back");
@@ -735,7 +728,7 @@ static bool alt_mark(char c)
 }
 
 #if CONFIG_UI_THEME_PANELS || CONFIG_KEY_ASSIGN
-static void secondary_hint_split(char *left, char *right, size_t cap, bool quick_only)
+UI_THEME_SHARED void ui_secondary_hint_split(char *left, char *right, size_t cap, bool quick_only)
 {
 	// Use Quick before the last-caller shortcut. With an assigned soft key, only remove Quick
 	// so other groups stay on the left.
@@ -787,7 +780,7 @@ static bool board_has_digits(void)
 // key name (board.quick_label / context_label: "P1 Quick"), and in a hint (not a toast, whose numbers are values) a
 // group that starts with a digit goes, so no hint names a key the radio doesn't have. Text for a keypad radio comes
 // back unchanged
-static const char *key_names(const char *text, char *out, size_t cap, bool hint)
+UI_THEME_SHARED const char *ui_key_names(const char *text, char *out, size_t cap, bool hint)
 {
 	bool digits = board_has_digits() || !hint;
 	if (text == NULL || cap == 0 || (digits && board.quick_label == NULL && board.context_label == NULL))
@@ -832,23 +825,12 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 	// tight on some radios) and no more stack (the UI task's deepest chain runs through here, docs/dev/stack-check.md)
 	const ui_layout_t *L = &ui_layout;
 	const font_t *f = L->small;
-	int inset = 0, top = L->hint_y, h = gfx_height() - top;
+	int top = L->hint_y, h = gfx_height() - top;
 	char fit[64];
 	color_t bg = toast ? ui_col.fg : ui_col.hint_bg;
 	color_t fg = toast ? ui_col.bg : ui_col.dim;
 	int text_y = L->hint_y;
-#if CONFIG_UI_THEME_PANELS
-	if (profile_theme()) {
-		inset = PROFILE_HOME_INSET;
-		top = profile_footer_top();
-		h = PROFILE_FOOTER_H;
-		f = toast ? L->small : FONT_AA_LARGEST;
-		text_y = top + (h - f->h) / 2;
-		if (!toast)
-			fg = profile_bar_fg;
-	}
-#endif
-	int w = gfx_width() - 2 * inset;
+	int w = gfx_width();
 	if (gfx_bpp() == 1 && !toast)
 		fg = ui_col.fg;
 	if (toast) {
@@ -858,18 +840,18 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 		// One line in the longest alternate that fits it, else two lines of the first
 		for (int level = 0; more; level++) {
 			gfx_text_alt(text, level, second, sizeof second, &more);
-			line = key_names(second, first, sizeof first, false);
+			line = ui_key_names(second, first, sizeof first, false);
 			if (gfx_text_width(f, line) <= w - 2)
 				break;
 		}
 		if (gfx_text_width(f, line) > w - 2) {
 			gfx_text_alt(text, 0, second, sizeof second, &more);
-			line = key_names(second, first, sizeof first, false);
+			line = ui_key_names(second, first, sizeof first, false);
 		}
 		if (line != first) {
 			memcpy(first, second, sizeof first);	// the rest below may point into it, and second is reused
 		}
-		const char *rest = wrap_line(f, first, w - 2, fit, sizeof fit);
+		const char *rest = ui_wrap_line(f, first, w - 2, fit, sizeof fit);
 		int y = text_y;
 		second[0] = 0;
 		if (*rest) {
@@ -879,57 +861,34 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 			memcpy(second, rest, n);
 			second[n] = 0;
 			y -= f->h;
-			top = overlay_top(y, inset ? inset + 5 : 0, inset ? inset + 5 : 0);
+			top = ui_overlay_top(y, 0, 0);
 		}
-#if CONFIG_UI_THEME_PANELS
-		if (inset)
-			profile_pane(top, gfx_height() - PROFILE_HOME_INSET - top, bg);
-		else
-#endif
-			gfx_fill(0, top, w, gfx_height() - top, bg);
-		gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
+		gfx_fill(0, top, w, gfx_height() - top, bg);
+		gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
 		if (second[0]) {
 			gfx_text_fit(f, second, w - 2, fit, sizeof fit);
-			gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y + f->h, fit, fg);
+			gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y + f->h, fit, fg);
 		}
 		return;
 	}
-#if CONFIG_UI_THEME_PANELS
-	if (inset)
-		profile_pane(top, h, bg);
-	else
-#endif
-		gfx_fill(0, top, w, h, bg);
+	gfx_fill(0, top, w, h, bg);
 	if (gfx_bpp() == 1)
 		gfx_hline(0, L->hint_y, w, ui_col.line);
 	// The longest alternate whose groups fit side by side (or the shortest there is)
 	char form[64], left[64], right[24];
 	bool more = true;
 	int lw = 0, rw = 0;
-	int room = w - (inset ? 12 : 0);
 	for (int level = 0; more; level++) {
 		gfx_text_alt(text, level, form, sizeof form, &more);
-#if CONFIG_UI_THEME_PANELS
-		if (flags & UI_BAR_LIST)
-			compact_menu_hint(form, flags & UI_BAR_NUMBERED);
-#endif
-		hint_split(key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
-#if CONFIG_UI_THEME_PANELS || CONFIG_KEY_ASSIGN
-		if (inset || soft_key != NULL)
-			secondary_hint_split(left, right, sizeof right, soft_key != NULL);
+		ui_hint_split(ui_key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
+#if CONFIG_KEY_ASSIGN
+		if (soft_key != NULL)
+			ui_secondary_hint_split(left, right, sizeof right, true);
 #endif
 		lw = gfx_text_width(f, left);
 		rw = gfx_text_width(f, soft_key != NULL ? soft_key : right);
-		if (lw + (rw && lw ? f->w : 0) + rw <= room)
+		if (lw + (rw && lw ? f->w : 0) + rw <= w)
 			break;
-#if CONFIG_UI_THEME_PANELS
-		if (!more && inset && f != L->small) {
-			f = f == FONT_AA_LARGEST && f != &font_aa_12x24 ? &font_aa_12x24 : L->small;
-			text_y = top + (h - f->h) / 2;
-			level = -1;
-			more = true;
-		}
-#endif
 	}
 	// Still too wide: the last groups on the left go, whole, before anything is shortened
 	while (lw + (rw && lw ? f->w : 0) + rw > w) {
@@ -942,22 +901,16 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 		lw = gfx_text_width(f, left);
 	}
 	int margin = lw + (rw && lw ? f->w : 0) + rw <= w - 2 ? 1 : 0;
-#if CONFIG_UI_THEME_PANELS
-	if (profile_theme() && lw + (rw && lw ? f->w : 0) + rw <= w - 30)
-		margin = 15 - inset;
-	else if (inset)
-		margin = 6;
-#endif
 	if (rw > w - 2 * margin)
 		rw = w - 2 * margin;
 	const char *right_text = soft_key != NULL ? soft_key : right;
 	if (*right_text) {
 		gfx_text_fit(f, right_text, rw, fit, sizeof fit);
-		gfx_text(f, inset + w - margin - gfx_text_width(f, fit), text_y, fit, fg);
+		gfx_text(f, w - margin - gfx_text_width(f, fit), text_y, fit, fg);
 	}
 	if (left[0]) {
 		gfx_text_fit(f, left, w - 2 * margin - (*right_text ? rw + f->w : 0), fit, sizeof fit);
-		gfx_text(f, inset + margin, text_y, fit, fg);
+		gfx_text(f, margin, text_y, fit, fg);
 	}
 }
 
@@ -3320,7 +3273,7 @@ static int wrap_lines(const font_t *f, const char *t, int max_w, int max, char l
 {
 	int n = 0;
 	while (*t && n < max) {
-		const char *next = wrap_line(f, t, max_w, lines[n], sizeof lines[0]);
+		const char *next = ui_wrap_line(f, t, max_w, lines[n], sizeof lines[0]);
 		if (n == max - 1 && *next) {
 			if (preview)
 				ui_fit_end(f, t, max_w, lines[n], sizeof lines[0]);
@@ -3363,7 +3316,7 @@ UI_THEME_SHARED void ui_banner_box(const ui_state_t *s, int bottom, int x0, int 
 	int pad = gfx_height() >= UI_TALL_PX ? 2 : 1;
 	int h = (nt + nx + 1) * f->h + 2 * pad;
 	int y = bottom - h;
-	int top = overlay_top(y, x0, right_inset);	// the box grows up to a gap between lines; its text stays at the bottom
+	int top = ui_overlay_top(y, x0, right_inset);	// the box grows up to a gap between lines; its text stays at the bottom
 	color_t edge = bn->warn ? ui_col.warn : ui_col.focus;
 	if (gfx_bpp() == 1) {
 		// inverse video box (wireframe 128x64)
@@ -3459,7 +3412,7 @@ static int list_bottom(const ui_state_t *s)
 
 // One line of word-wrapped text: copies into line what fits in max_w pixels (breaking at the last space, or inside a
 // word longer than the line, never shortening), returns where the next line starts
-static const char *wrap_line(const font_t *f, const char *t, int max_w, char *line, size_t cap)
+UI_THEME_SHARED const char *ui_wrap_line(const font_t *f, const char *t, int max_w, char *line, size_t cap)
 {
 #if CONFIG_LANG_ZH
 	// A character at a time: a CJK character may end a line as well as a space, and the width is measured on whole
@@ -3529,7 +3482,7 @@ static int wrap_text(const font_t *f, const char *t, int y, int y_end, bool draw
 {
 	char line[64];
 	while (*t && y + f->h <= y_end) {
-		const char *next = wrap_line(f, t, gfx_width(), line, sizeof line);
+		const char *next = ui_wrap_line(f, t, gfx_width(), line, sizeof line);
 		if (*next && y + 2 * f->h > y_end)
 			ui_fit_end(f, t, gfx_width(), line, sizeof line);	// the last line that fits: never drop text silently
 		t = next;
@@ -3568,7 +3521,7 @@ int ui_draw_text_page(const radio_view_t *v, const ui_state_t *s, const char *ti
 		rows = 1;
 	int total = 0;
 	for (const char *t = text; *t; total++)
-		t = wrap_line(f, t, w, line, sizeof line);
+		t = ui_wrap_line(f, t, w, line, sizeof line);
 	int max_first = total > rows ? total - rows : 0;
 	if (*first > max_first)
 		*first = (uint16_t)max_first;
@@ -3577,7 +3530,7 @@ int ui_draw_text_page(const radio_view_t *v, const ui_state_t *s, const char *ti
 		// a label only where a line of the text starts, never on a wrapped value's next line
 		bool starts = t == text || t[-1] == '\n';
 		size_t lab = starts && labels ? label_len(t) : 0;
-		t = wrap_line(f, t, w, line, sizeof line);
+		t = ui_wrap_line(f, t, w, line, sizeof line);
 		int r = i - *first;
 		if (r < 0)
 			continue;
@@ -3699,7 +3652,7 @@ bool ui_list_body_fits(const ui_state_t *s, const ui_list_t *l)
 	for (const char *t = l->body; t != NULL && *t; y += f->h) {
 		if (y + f->h > y_end)
 			return false;
-		t = wrap_line(f, t, gfx_width(), line, sizeof line);
+		t = ui_wrap_line(f, t, gfx_width(), line, sizeof line);
 	}
 	return true;
 }
@@ -3851,7 +3804,7 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 	const char *rest = NULL;
 	if (paginated && !it->value[0] && pitch >= 2 * row_font->h &&
 	    gfx_text_width(row_font, it->label) > label_room)
-		rest = wrap_line(row_font, it->label, label_room, val, sizeof val);
+		rest = ui_wrap_line(row_font, it->label, label_room, val, sizeof val);
 	int ty = c->y + (rest && *rest ? (pitch - 2 * row_font->h) / 2 : pad);
 	if (it->num) {
 		char n[3] = { it->num, ' ', 0 };
@@ -4552,7 +4505,7 @@ void ui_draw_diag(const radio_view_t *v, uint32_t keys, int32_t enc_total, uint8
 		y += f->h;
 	}
 	char named[32];
-	gfx_text(f, 0, gfx_height() - f->h, key_names(TR(DIAG_HINT, "* more  Back"), named, sizeof named, true),
+	gfx_text(f, 0, gfx_height() - f->h, ui_key_names(TR(DIAG_HINT, "* more  Back"), named, sizeof named, true),
 		ui_col.idle);
 }
 #endif

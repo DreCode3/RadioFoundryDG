@@ -20,7 +20,7 @@
 #define PROFILE_GEAR_OUTLINE RGB565(0, 0, 0)
 #define PROFILE_GEAR_FILL RGB565(148, 148, 148)
 
-color_t profile_bar_fg;
+static color_t profile_bar_fg;	// the bottom row's text
 color_t profile_row_bg, profile_row_focus, profile_home_gutter;
 
 // The profile look's Day and Night palettes, and its colors outside the shared tokens (index: night)
@@ -662,7 +662,7 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 	return draw_profile_top(v, st, s, prefix, name);
 }
 
-void compact_menu_hint(char *left, bool numbered)
+static void compact_menu_hint(char *left, bool numbered)
 {
 	for (char *group = left; *group;) {
 		char *end = strstr(group, "  ");
@@ -1221,6 +1221,111 @@ void profile_row(int x, int y, int w, int h, color_t ink)
 
 // --- The theme ---
 
+// The bottom row, a rounded pane above the screen's lower edge: key hints in the largest font that fits them (groups
+// separated by two spaces, with text alternates; a list's OK group shortened to OK), or a toast in the small font,
+// centered, with a second line above it when it is too long for one. soft_key: Home's assigned soft key, its label on
+// the right. The buffers are the reference theme's (ui_screens.c): the UI task's deepest chain runs through here
+static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
+{
+#if CONFIG_VOLUME_BAR
+	ui_hint_draws++;
+#endif
+	bool toast = flags & UI_BAR_TOAST;
+	const ui_layout_t *L = &ui_layout;
+	const int inset = PROFILE_HOME_INSET;
+	int top = profile_footer_top();
+	const int h = PROFILE_FOOTER_H;
+	const font_t *f = toast ? L->small : FONT_AA_LARGEST;
+	char fit[64];
+	color_t bg = toast ? ui_col.fg : ui_col.hint_bg;
+	color_t fg = toast ? ui_col.bg : profile_bar_fg;
+	int text_y = top + (h - f->h) / 2;
+	int w = gfx_width() - 2 * inset;
+	if (toast) {
+		char first[64], second[64];	// second holds the raw alternate until the key names are in first
+		const char *line = first;	// the alternate with the key names: first, or second when there were none
+		bool more = true;
+		// One line in the longest alternate that fits it, else two lines of the first
+		for (int level = 0; more; level++) {
+			gfx_text_alt(text, level, second, sizeof second, &more);
+			line = ui_key_names(second, first, sizeof first, false);
+			if (gfx_text_width(f, line) <= w - 2)
+				break;
+		}
+		if (gfx_text_width(f, line) > w - 2) {
+			gfx_text_alt(text, 0, second, sizeof second, &more);
+			line = ui_key_names(second, first, sizeof first, false);
+		}
+		if (line != first) {
+			memcpy(first, second, sizeof first);	// the rest below may point into it, and second is reused
+		}
+		const char *rest = ui_wrap_line(f, first, w - 2, fit, sizeof fit);
+		int y = text_y;
+		second[0] = 0;
+		if (*rest) {
+			// Two lines: the first ends at a word, the rest goes below it
+			size_t n = strlen(rest);
+			n = n < sizeof second - 1 ? n : sizeof second - 1;
+			memcpy(second, rest, n);
+			second[n] = 0;
+			y -= f->h;
+			top = ui_overlay_top(y, inset + 5, inset + 5);
+		}
+		profile_pane(top, gfx_height() - PROFILE_HOME_INSET - top, bg);
+		gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
+		if (second[0]) {
+			gfx_text_fit(f, second, w - 2, fit, sizeof fit);
+			gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y + f->h, fit, fg);
+		}
+		return;
+	}
+	profile_pane(top, h, bg);
+	// The longest alternate whose groups fit side by side in the largest font, then in the next ones
+	char form[64], left[64], right[24];
+	bool more = true;
+	int lw = 0, rw = 0;
+	int room = w - 12;
+	for (int level = 0; more; level++) {
+		gfx_text_alt(text, level, form, sizeof form, &more);
+		if (flags & UI_BAR_LIST)
+			compact_menu_hint(form, flags & UI_BAR_NUMBERED);
+		ui_hint_split(ui_key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
+		ui_secondary_hint_split(left, right, sizeof right, soft_key != NULL);
+		lw = gfx_text_width(f, left);
+		rw = gfx_text_width(f, soft_key != NULL ? soft_key : right);
+		if (lw + (rw && lw ? f->w : 0) + rw <= room)
+			break;
+		if (!more && f != L->small) {
+			f = f == FONT_AA_LARGEST && f != &font_aa_12x24 ? &font_aa_12x24 : L->small;
+			text_y = top + (h - f->h) / 2;
+			level = -1;
+			more = true;
+		}
+	}
+	// Still too wide: the last groups on the left go, whole, before anything is shortened
+	while (lw + (rw && lw ? f->w : 0) + rw > w) {
+		char *cut = NULL;
+		for (char *p = strstr(left, "  "); p != NULL; p = strstr(p + 1, "  "))
+			cut = p;
+		if (cut == NULL)
+			break;
+		*cut = 0;
+		lw = gfx_text_width(f, left);
+	}
+	int margin = lw + (rw && lw ? f->w : 0) + rw <= w - 30 ? 15 - inset : 6;
+	if (rw > w - 2 * margin)
+		rw = w - 2 * margin;
+	const char *right_text = soft_key != NULL ? soft_key : right;
+	if (*right_text) {
+		gfx_text_fit(f, right_text, rw, fit, sizeof fit);
+		gfx_text(f, inset + w - margin - gfx_text_width(f, fit), text_y, fit, fg);
+	}
+	if (left[0]) {
+		gfx_text_fit(f, left, w - 2 * margin - (*right_text ? rw + f->w : 0), fit, sizeof fit);
+		gfx_text(f, inset + margin, text_y, fit, fg);
+	}
+}
+
 // The banner on the strip's color. While dual watch runs its screen is read for a gap right of the pane tags, which
 // span several lines of text
 static void panels_banner(const ui_state_t *s)
@@ -1246,6 +1351,7 @@ static const ui_theme_ops_t panels_ops = {
 	.layout = panels_layout,
 	.colors = panels_colors,
 	.top = panels_top,
+	.bottom = panels_bottom,
 	.banner = panels_banner,
 };
 

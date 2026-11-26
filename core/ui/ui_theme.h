@@ -132,6 +132,15 @@ const char *ui_home_soft_key(const ui_state_t *s);	// the label of Home's assign
 void ui_draw_bottom_key(const ui_state_t *s, const char *hint, const char *soft_key);
 // Text shortened at its end to max_w
 void ui_fit_end(const font_t *f, const char *s, int max_w, char *out, size_t len);
+// One line of word-wrapped text into line; returns where the next line starts
+const char *ui_wrap_line(const font_t *f, const char *t, int max_w, char *line, size_t cap);
+// An overlay's top edge moved up from y to a gap between lines of the screen under it (columns x0 to the right inset)
+int ui_overlay_top(int y, int x0, int right_inset);
+// The bottom row's text: the key names a radio without a keypad has (hint: a hint, not a toast), the Back group apart
+// from the rest, and the Quick group (or, without quick_only, the last one) moved to the right
+const char *ui_key_names(const char *text, char *out, size_t cap, bool hint);
+void ui_hint_split(const char *text, char *left, size_t lcap, char *right, size_t rcap);
+void ui_secondary_hint_split(char *left, char *right, size_t cap, bool quick_only);
 // The banner, if one is up, its lower edge at bottom (ui_screens.c has the details)
 void ui_banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg);
 #else
