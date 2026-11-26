@@ -97,10 +97,23 @@ typedef struct ui_theme_ops {
 	bool (*animate)(const radio_view_t *v, const ui_state_t *s, uint32_t now_ms);
 } ui_theme_ops_t;
 
+// The settings a theme honors, its appearance options (ui_theme_t.options): Settings > Display shows their rows, and
+// only they reach the theme. They are not features: every screen and function is there in every theme
+#define UI_THEME_OPT_PALETTE	0x01u	// Theme (UI_SET_THEME): which of its palettes
+#define UI_THEME_OPT_ACCENT	0x02u	// Highlight color (UI_SET_ACCENT)
+#define UI_THEME_OPT_STRIP	0x04u	// Filled status bar (UI_SET_STRIP)
+#define UI_THEME_OPT_LABEL_FIRST 0x08u	// Talkgroup name first (UI_SET_LABEL_FIRST) and the key that switches it
+#define UI_THEME_OPT_DAY_NIGHT	0x10u	// Day/Night (UI_SET_GUI_NIGHT): its palettes are UI_PALETTE_DAY and _NIGHT
+#define UI_THEME_OPT_LAYOUT	0x20u	// Display Profile (UI_SET_GUI_PROFILE): the Commercial or Amateur Home
+#define UI_THEME_OPT_GPS_CLOCK	0x40u	// GPS clock (UI_SET_GPS_CLOCK); the theme shows the GPS fix and time (ui_state_t)
+// The palettes of a theme with UI_THEME_OPT_DAY_NIGHT
+enum { UI_PALETTE_DAY, UI_PALETTE_NIGHT };
+
 typedef struct ui_theme {
 	const ui_colors_t *palettes;	// by palette (ui_theme_set), before ops->colors
 	uint8_t palette_count;		// at least 1: a palette number out of range is the first
 	uint8_t id;			// UI_THEME_ID_*
+	uint8_t options;		// UI_THEME_OPT_*
 	const ui_theme_ops_t *ops;
 	// Whether the theme can draw on this display (after gfx_init). NULL: on every display
 	bool (*fits)(void);
@@ -119,9 +132,8 @@ typedef struct {
 } ui_dual_style_t;
 #endif
 #if CONFIG_UI_THEME_PANELS
-// Rounded panels, Day and Night, the Commercial and Amateur Home layouts (themes/panels/panels.c). Its palettes:
+// Rounded panels, Day and Night, the Commercial and Amateur Home layouts (themes/panels/panels.c)
 extern const ui_theme_t ui_theme_panels;
-enum { UI_PANELS_DAY, UI_PANELS_NIGHT };
 #endif
 
 // Pieces of ui_screens.c that a theme of its own draws with. External only in a build with such a theme: with the
@@ -180,6 +192,9 @@ bool ui_theme_use(const ui_theme_t *t);
 // The theme with number id (UI_THEME_ID_*) where this build has it and it fits the display, else the build's default
 // theme where that fits, else the reference theme. After gfx_init
 const ui_theme_t *ui_theme_pick(uint8_t id);
+// The theme in use honors appearance option opt (UI_THEME_OPT_*). With the reference theme alone every one of its
+// options is, so code that tests one is built only with UI_THEME_SELECT
+#define ui_theme_has(opt)	((ui_theme_cur()->options & (opt)) != 0)
 #else
 #define ui_theme_cur()	(&ui_theme_reference)
 #endif

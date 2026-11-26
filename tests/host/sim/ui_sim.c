@@ -3221,7 +3221,6 @@ static bool run_token(char *t, char *err, size_t len)
 			// again
 			ui_svc_setting_set(UI_SET_GUI_THEME, use_prototype ? UI_THEME_ID_PANELS : UI_THEME_ID_REFERENCE);
 			ui_theme_use(ui_theme_pick((uint8_t)ui_svc_setting_get(UI_SET_GUI_THEME)));
-			ui_st.gui_profiles = ui_theme_cur() == &ui_theme_panels;
 			ui_apply_setting(UI_SET_THEME, ui_svc_setting_get(UI_SET_THEME));
 			ui_apply_setting(UI_SET_ACCENT, ui_svc_setting_get(UI_SET_ACCENT));
 			ui_apply_setting(UI_SET_STRIP, ui_svc_setting_get(UI_SET_STRIP));

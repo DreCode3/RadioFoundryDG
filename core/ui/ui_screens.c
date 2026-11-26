@@ -4415,5 +4415,6 @@ const ui_theme_t ui_theme_reference = {
 	.palettes = palettes,
 	.palette_count = sizeof palettes / sizeof palettes[0],
 	.id = UI_THEME_ID_REFERENCE,
+	.options = UI_THEME_OPT_PALETTE | UI_THEME_OPT_ACCENT | UI_THEME_OPT_STRIP | UI_THEME_OPT_LABEL_FIRST,
 	.ops = &reference_ops,
 };

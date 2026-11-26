@@ -787,6 +787,11 @@ static void test_pick(void)
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
 	// Its palettes are Day and Night, with nothing past them: a palette out of range is Day
 	CHECK(ui_theme_panels.palette_count == 2 && ui_theme_panels.id == UI_THEME_ID_PANELS);
+	// Its appearance options: Day/Night, the Home layout and the GPS clock, none of the reference theme's
+	CHECK(ui_theme_panels.options == (UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK));
+	CHECK(ui_theme_use(&ui_theme_panels) && !ui_theme_has(UI_THEME_OPT_PALETTE) &&
+	      ui_theme_has(UI_THEME_OPT_DAY_NIGHT));
+	ui_theme_use(&ui_theme_reference);
 	// Its scan mark moves every 100 ms while a scan runs (not paused: scan 3); nothing moves otherwise. The reference
 	// theme has nothing that moves
 	const ui_theme_ops_t *po = ui_theme_panels.ops;
@@ -804,6 +809,10 @@ static void test_pick(void)
 #endif
 	CHECK(ui_theme_reference.id == UI_THEME_ID_REFERENCE && ui_theme_reference.fits == NULL &&
 	      ui_theme_reference.ops->animate == NULL);
+	// The reference theme's appearance options: Theme, Highlight color, Filled status bar, Talkgroup name first
+	CHECK(ui_theme_reference.options == (UI_THEME_OPT_PALETTE | UI_THEME_OPT_ACCENT | UI_THEME_OPT_STRIP |
+					    UI_THEME_OPT_LABEL_FIRST));
+	CHECK(ui_theme_cur() == ref && ui_theme_has(UI_THEME_OPT_ACCENT) && !ui_theme_has(UI_THEME_OPT_LAYOUT));
 }
 
 int main(void)

@@ -2000,9 +2000,6 @@ void ui_app_init(void)
 	if (theme != ui_theme_cur())
 		ui_theme_use(theme);
 #endif
-#if CONFIG_UI_THEME_PANELS
-	ui_st.gui_profiles = ui_theme_cur() == &ui_theme_panels;	// the panels theme in use
-#endif
 	ui_st.volbar = -1;
 #if CONFIG_VOLUME_BAR
 	knob_seen = -1;
@@ -2119,23 +2116,24 @@ void ui_apply_setting(uint8_t id, int32_t v)
 		ui_st.ptt_locked = v != 0;
 		ui_svc_ptt_block(ui_st.locked && !ui_st.ptt_locked);
 		break;
+	// A setting the theme in use doesn't honor (ui_theme.h) leaves its look as the theme's own
 	case UI_SET_THEME:
-#if CONFIG_UI_THEME_PANELS
-		if (ui_st.gui_profiles)
+#if UI_THEME_SELECT
+		if (!ui_theme_has(UI_THEME_OPT_PALETTE))
 			break;
 #endif
 		ui_theme_set((uint8_t)v);
 		break;
 	case UI_SET_ACCENT:
-#if CONFIG_UI_THEME_PANELS
-		if (ui_st.gui_profiles)
+#if UI_THEME_SELECT
+		if (!ui_theme_has(UI_THEME_OPT_ACCENT))
 			v = UI_ACCENT_DEFAULT;
 #endif
 		ui_accent_set((uint8_t)v);
 		break;
 	case UI_SET_STRIP:
-#if CONFIG_UI_THEME_PANELS
-		if (ui_st.gui_profiles)
+#if UI_THEME_SELECT
+		if (!ui_theme_has(UI_THEME_OPT_STRIP))
 			v = 0;
 #endif
 		ui_strip_set(v != 0);
@@ -2144,8 +2142,8 @@ void ui_apply_setting(uint8_t id, int32_t v)
 	case UI_SET_GUI_PROFILE: ui_st.gui_profile = v == 1; break;
 	case UI_SET_GUI_NIGHT:
 		ui_st.gui_night = v == 1;
-		if (ui_st.gui_profiles)
-			ui_theme_set(ui_st.gui_night ? UI_PANELS_NIGHT : UI_PANELS_DAY);
+		if (ui_theme_has(UI_THEME_OPT_DAY_NIGHT))
+			ui_theme_set(ui_st.gui_night ? UI_PALETTE_NIGHT : UI_PALETTE_DAY);
 		break;
 	case UI_SET_GPS_CLOCK: ui_st.gps_clock = v == 1; break;
 #endif
@@ -2346,9 +2344,9 @@ void ui_app_key(const input_event_t *ev)
 			return;
 #if CONFIG_DMR
 		case ACT_TALK_LABEL:
-#if CONFIG_UI_THEME_PANELS
-			if (ui_st.gui_profiles)
-				return;		// both profiles already lead with the talkgroup name
+#if UI_THEME_SELECT
+			if (!ui_theme_has(UI_THEME_OPT_LABEL_FIRST))
+				return;		// the theme's own order (both panels layouts lead with the talkgroup name)
 #endif
 			// Saved like Settings > Display > Talkgroup name first, so the choice survives a power cycle
 			ui_svc_setting_set(UI_SET_LABEL_FIRST, !ui_st.label_first);
@@ -2561,9 +2559,10 @@ __attribute__((noinline)) static void knob_tick(const radio_view_t *v)
 #endif
 
 #if CONFIG_UI_THEME_PANELS
-static void profile_tick(const radio_view_t *v, uint32_t now_ms)
+// The GPS fix and the time for a theme that shows them (UI_THEME_OPT_GPS_CLOCK): a change draws the screen again
+static void gps_clock_tick(void)
 {
-	if (!ui_st.gui_profiles)
+	if (!ui_theme_has(UI_THEME_OPT_GPS_CLOCK))
 		return;
 #if CONFIG_GPS
 	ui_position_t pos = { 0 };
@@ -2596,7 +2595,7 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 		dirty = true;
 #endif
 #if CONFIG_UI_THEME_PANELS
-	profile_tick(v, now_ms);
+	gps_clock_tick();
 #endif
 	ui_st.now_ms = now_ms;
 #if CONFIG_VOLUME_BAR

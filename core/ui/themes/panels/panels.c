@@ -33,7 +33,7 @@ static color_t profile_row_bg, profile_row_focus;
 typedef struct {
 	color_t row_bg, row_focus, home_gutter, bar_fg;
 } profile_colors_t;
-static const ui_colors_t profile_palettes[] = {	// by UI_PANELS_*
+static const ui_colors_t profile_palettes[] = {	// by UI_PALETTE_*
 	{ .bg = RGB565(220, 234, 244), .fg = RGB565(23, 40, 53), .dim = RGB565(53, 78, 101),
 	  .line = RGB565(171, 195, 216), .tx = RGB565(189, 41, 41), .rx = RGB565(20, 101, 59),
 	  .warn = RGB565(135, 96, 0), .idle = RGB565(53, 78, 101), .pill_fg = RGB565(255, 255, 255),
@@ -52,7 +52,7 @@ static const profile_colors_t profile_colors[] = {
 	{ RGB565(30, 46, 63), RGB565(48, 76, 102), RGB565(8, 15, 23), RGB565(237, 242, 247) },
 };
 
-// The colors outside the shared tokens go with the palette (UI_PANELS_*). The theme has no appearance options
+// The colors outside the shared tokens go with the palette (UI_PALETTE_*), the only option the op takes
 static void panels_colors(ui_colors_t *c, uint8_t palette)
 {
 	(void)c;
@@ -1586,8 +1586,7 @@ static void panels_layout(ui_layout_t *L)
 	ui_layout_regions(L, PROFILE_BAND_H, profile_footer_top());
 }
 
-// The ops left NULL are the reference theme's, which still draw this look where ui_state_t.gui_profiles (and a list's
-// roomy flag) says this theme is in use
+// The ops left NULL are the reference theme's
 static const ui_theme_ops_t panels_ops = {
 	.layout = panels_layout,
 	.colors = panels_colors,
@@ -1609,6 +1608,7 @@ const ui_theme_t ui_theme_panels = {
 	.palettes = profile_palettes,
 	.palette_count = sizeof profile_palettes / sizeof profile_palettes[0],
 	.id = UI_THEME_ID_PANELS,
+	.options = UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK,
 	.ops = &panels_ops,
 	.fits = panels_fits,
 };

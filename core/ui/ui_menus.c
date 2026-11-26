@@ -10,6 +10,7 @@
 #include "ui_svc.h"
 #include "ui_svc_aprs.h"
 #include "ui_screens.h"
+#include "ui_theme.h"		// the appearance options of the theme in use
 #include "aprs/aprs_fmt.h"
 #include "font.h"
 #include "fmt.h"
@@ -7167,14 +7168,38 @@ static uint16_t hwopt_visible(void)
 
 // Settings a radio without a battery (or a broadcast receiver, or the key) doesn't have are left out of the list, not
 // shown disabled
+#if UI_THEME_SELECT
+// The appearance option (UI_THEME_OPT_*) a Display setting is, 0 for any other setting
+static uint8_t appearance_option(uint8_t id)
+{
+	switch (id) {
+	case UI_SET_THEME: return UI_THEME_OPT_PALETTE;
+	case UI_SET_ACCENT: return UI_THEME_OPT_ACCENT;
+	case UI_SET_STRIP: return UI_THEME_OPT_STRIP;
+	case UI_SET_LABEL_FIRST: return UI_THEME_OPT_LABEL_FIRST;
+#if CONFIG_UI_THEME_PANELS
+	case UI_SET_GUI_NIGHT: return UI_THEME_OPT_DAY_NIGHT;
+	case UI_SET_GUI_PROFILE: return UI_THEME_OPT_LAYOUT;
+	case UI_SET_GPS_CLOCK: return UI_THEME_OPT_GPS_CLOCK;
+#endif
+	default: return 0;
+	}
+}
+#endif
+
 static bool set_hidden(const set_item_t *s)
 {
-#if CONFIG_UI_THEME_PANELS
-	if (s->type == ST_CHOICE)
-		return !ui_st.gui_profiles || (s->id == UI_SET_GPS_CLOCK && !(feats() & UI_FEAT_GPS));
-	if (ui_st.gui_profiles && s->type != ST_ACTION &&
-	    (s->id == UI_SET_THEME || s->id == UI_SET_ACCENT || s->id == UI_SET_STRIP || s->id == UI_SET_LABEL_FIRST))
+#if UI_THEME_SELECT
+	// Settings > Display has the rows of the theme in use's appearance options only
+	uint8_t opt = s->type != ST_ACTION ? appearance_option(s->id) : 0;
+	if (opt != 0 && !ui_theme_has(opt))
 		return true;
+#endif
+#if CONFIG_UI_THEME_PANELS
+	if (s->type == ST_CHOICE && s->id == UI_SET_GPS_CLOCK)
+		return !(feats() & UI_FEAT_GPS);
+	if (s->type == ST_CHOICE)
+		return false;
 #endif
 #if RFOUNDRY_HWOPTS
 	if (s->type == ST_ACTION && s->id == SA_HARDWARE)
@@ -7501,8 +7526,8 @@ static const set_item_t *set_item_at(uint16_t i)
 static uint8_t set_key_next(const set_item_t *s, uint8_t at)
 {
 	uint8_t next = (uint8_t)((at + 1u) % s->n);
-#if CONFIG_UI_THEME_PANELS
-	if (ui_st.gui_profiles && s->values[next] == KEYFN_TALK_LABEL)
+#if UI_THEME_SELECT
+	if (!ui_theme_has(UI_THEME_OPT_LABEL_FIRST) && s->values[next] == KEYFN_TALK_LABEL)
 		next = (uint8_t)((next + 1u) % s->n);
 #endif
 	return next;

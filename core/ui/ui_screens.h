@@ -140,7 +140,6 @@ typedef struct {
 	const char *home_soft_key_label;	// NULL without an assignable Back key, empty for Nothing
 #endif
 #if CONFIG_UI_THEME_PANELS
-	bool gui_profiles;	// the display can use the Commercial and Amateur layouts
 	uint8_t gui_profile;	// 0 Commercial, 1 Amateur
 	bool gui_night;
 	bool gps_clock;		// show the GPS date and time while idle
