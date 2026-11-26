@@ -6582,6 +6582,78 @@ static void test_display_profile_settings(void)
 }
 #endif
 
+// Talkgroup name first's start-up default (ui_svc_setting_default, as ui_app_init sets it on a new radio): in force at
+// once, never a save of its own, so a start that couldn't read the record writes nothing over it; stored with the next
+// save, and with the save a claim of another firmware's area makes. A stored record keeps its bit on an upgrade
+static void test_setting_default(void)
+{
+	settings_stats_t st;
+	sim_flash_create(0x40000u, &reset_map);
+	CHECK(storage_init() && settings_init() == SETTINGS_DEFAULTS && ui_svc_settings_new());
+	CHECK(ui_svc_setting_default(UI_SET_LABEL_FIRST, 1) && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 1);
+	settings_get_stats(&st);
+	CHECK(!st.dirty);
+	settings_poll(now + 60000u);
+	settings_get_stats(&st);
+	CHECK(st.saves == 0);
+	settings_begin()->squelch = 3;		// something else changes: the default goes with its save
+	settings_end(now);
+	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED && !ui_svc_settings_new());
+	CHECK(ui_svc_setting_get(UI_SET_LABEL_FIRST) == 1);
+
+	// A stored 0 (number first) and a start that can't read the record: defaults, new, but nothing is written
+	CHECK(ui_svc_setting_set(UI_SET_LABEL_FIRST, 0) && settings_flush());
+	sim_flash_bad_read(reset_map.settings_addr, reset_map.settings_size);
+	CHECK(settings_init() == SETTINGS_DEFAULTS && ui_svc_settings_new());
+	uint32_t units = sim_flash_units();
+	CHECK(ui_svc_setting_default(UI_SET_LABEL_FIRST, 1));
+	settings_poll(now + 60000u);
+	settings_get_stats(&st);
+	CHECK(st.saves == 0 && !st.dirty && sim_flash_units() == units);
+	sim_flash_bad_read(0, 0);
+	CHECK(settings_init() == SETTINGS_LOADED && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 0);
+	sim_flash_free();
+
+	// An upgrade (page 0 written by a firmware with fewer fields, no other page) keeps a stored 0: not new
+	for (int bit = 0; bit < 2; bit++) {
+		sim_flash_create(0x40000u, &reset_map);
+		settings_t d;
+		settings_defaults(&d);
+		d.squelch = 5;
+		d.updown_home = (uint8_t)(bit ? d.updown_home | SETTINGS_HOME_LABEL_FIRST :
+					     d.updown_home & ~SETTINGS_HOME_LABEL_FIRST);
+		uint16_t n = (uint16_t)(offsetof(settings_t, updown_home) + 1u);
+		uint8_t r[STORAGE_SLOT_SIZE];
+		memset(r, 0xFF, sizeof r);
+		memcpy(r, "OSET", 4);
+		r[4] = 5; r[5] = r[6] = r[7] = 0;
+		r[8] = (uint8_t)SETTINGS_LAYOUT; r[9] = (uint8_t)(SETTINGS_LAYOUT >> 8);
+		r[10] = (uint8_t)n; r[11] = 0;
+		memcpy(&r[12], &d, n);
+		uint32_t crc = storage_crc32(0, r, 12u + n);
+		memcpy(&r[12 + n], &crc, 4);
+		memset(&r[STORAGE_SLOT_SIZE - 4], 0, 4);
+		memcpy(&sim_flash_data[reset_map.settings_addr + 2 * STORAGE_SECTOR], r, sizeof r);
+		CHECK(storage_init() && settings_init() == SETTINGS_UPGRADED && !ui_svc_settings_new());
+		CHECK(ui_svc_setting_get(UI_SET_LABEL_FIRST) == bit && ui_svc_setting_get(UI_SET_SQUELCH) == 5);
+		sim_flash_free();
+	}
+
+	// Another firmware's settings area: new, the default in RAM, and the claim's save stores it
+	sim_flash_create(0x40000u, &reset_map);
+	memset(&sim_flash_data[reset_map.settings_addr + 2 * STORAGE_SECTOR], 0x5A, 3000);
+	memset(&sim_flash_data[reset_map.journal_addr], 0x5A, 100);
+	CHECK(!storage_init() && storage_region() == STORAGE_REGION_FOREIGN);
+	CHECK(settings_init() == SETTINGS_FOREIGN && ui_svc_settings_new());
+	CHECK(ui_svc_setting_default(UI_SET_LABEL_FIRST, 1));
+	CHECK(storage_claim_request());
+	settings_poll(now + 60000u);
+	settings_get_stats(&st);
+	CHECK(st.saves == 1 && storage_region() == STORAGE_REGION_OURS);
+	CHECK(storage_init() && settings_init() == SETTINGS_LOADED && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 1);
+	sim_flash_free();
+}
+
 static void test_factory_reset(void)
 {
 	settings_t sv;
@@ -12242,6 +12314,7 @@ int main(void)
 #endif
 	test_dmr_data_glue();	// (last: the data service's state carries over)
 	test_factory_reset();
+	test_setting_default();
 #if CONFIG_UI_THEME_PANELS
 	test_display_profile_settings();
 #endif

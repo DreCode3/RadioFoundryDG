@@ -315,6 +315,20 @@ void settings_end(uint32_t now_ms)
 	storage_quick_unlock();
 }
 
+void settings_end_default(void)
+{
+	storage_quick_lock();
+	const uint8_t *l = (const uint8_t *)&live, *b = (const uint8_t *)&before;
+	uint8_t *sv = (uint8_t *)&saved;
+	for (size_t i = 0; i < sizeof(live); i++) {
+		if (l[i] != b[i]) {
+			sv[i] = l[i];	// as if stored: nothing to save for it
+		}
+	}
+	dirty = memcmp(&live, &saved, sizeof(live)) != 0;
+	storage_quick_unlock();
+}
+
 // Where the next record goes: the first free slot after the newest one in its sector, else slot 0 of the next sector
 // that holds no page of the set in force or of this save (erased first). False when every sector does
 static bool next_slot(uint16_t *sector, uint16_t *slot, bool *erase)

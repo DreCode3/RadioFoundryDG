@@ -446,7 +446,16 @@ bool ui_svc_settings_new(void)
 {
 	settings_stats_t ss;
 	settings_get_stats(&ss);
-	return ss.load == SETTINGS_DEFAULTS;
+	// A foreign area runs on the defaults in RAM, and a claim saves what the radio runs with: new as well
+	return ss.load == SETTINGS_DEFAULTS || ss.load == SETTINGS_FOREIGN;
+}
+
+bool ui_svc_setting_default(uint8_t id, int32_t value)
+{
+	if (!ui_svc_setting_set(id, value))
+		return false;
+	settings_end_default();
+	return true;
 }
 
 bool ui_svc_setting_set(uint8_t id, int32_t value)
