@@ -136,6 +136,16 @@ Decided Nov 26, after step 4's second attempt:
 - **The Zones tile in the 3x3 Menu shows no zone name**; Home already shows the zone. Messages ("1 new") and Scan
   ("On") keep their values.
 - **Home's right soft key stays Back by default** in both layouts (Settings > Right soft key can make it Quick).
+- **Quick tile 8 reads "TG/Contact"** in panels (no spaces around the slash; "TG / Contact" is 96 px and a tile
+  holds about 88 px at 8x16). **VFO Quick tile 5 keeps "TX freq"**; the hint row says "0-9 TX frequency".
+- Forced by the 8x16 rule, accepted: the clock in Home's mode bar is one 8x16 line (step 2: two 6x12 lines).
+- The hint row's "only what the bar can't" hides only a list's plain open and choose. A list where OK does
+  something else ("OK send", "OK add", "OK go", "OK use", "OK edit/save", "Back keep editing") keeps that hint,
+  marked by a flag on the list, never by comparing text.
+- Text entry, emergency and the hotspot screen keep their hint line with Hint row off (they need their instructions).
+- Italian Settings title "Opzioni" (fits the Menu tile) is kept until an Italian speaker reviews it.
+- French hints longer than a 160 px row (160 x 128, 160 x 120) go to the port step: their English keys have no short
+  forms, so short French forms mean new English alternates too.
 
 - Grids: one fixed column split for the whole list, not per page.
 - One row height everywhere; lists show 5 rows on 310 x 240.
