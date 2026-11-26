@@ -141,11 +141,18 @@ static const flow_t flows[] = {
 	// Settings: groups 1-9, Radio info after them (no digit), 0 is Find
 	{ "Settings: 0 is Find", "ok 8", "0", "screen=find query=", 1, false },
 	{ "Settings: Radio info by Up", "ok 8", "up", "screen=settings focus=Radio_info", 1, false },
+	// Its values, read only: OK does nothing on a value without a page, so the hint offers only Back there
 	{ "Settings: Radio info is read only", "ok 8 up", "ok", "screen=group shows=Radio_info shows=Battery "
-	  "shows=Radio_name shows=OK_open", 1, false },
+	  "shows=84% shows=Radio_name shows=Q0TEST shows=About shows=GPS hides=OK_open hides=OK_change", 1, false },
+	{ "Settings: Radio info's About opens a page", "ok 8 up ok", "row:About", "focus=About shows=OK_open", 3, false },
 	{ "Settings: Radio info's About", "ok 8 up ok", "row:About ok", "screen=about", 4, false },
 	{ "Settings: Factory reset is Programming's last row", "ok 8 9", "up", "focus=Factory_reset", 1, false },
 	{ "Settings: Programming has Channels", "ok 8 9", "ok", "screen=channels", 1, false },
+	// The hint says what OK does on the focused row: opens a page, a pick list, or changes the value
+	{ "Settings: OK opens Programming's pages", "ok 8 9", "", "focus=Channels shows=OK_open hides=OK_change", 0,
+	  false },
+	{ "Settings: OK chooses on a pick row", "ok 8 4 row:TX_timeout", "", "shows=OK_choose", 0, false },
+	{ "Settings: OK changes an on/off row", "ok 8 4 row:Show_talker_alias", "", "shows=OK_change", 0, false },
 	{ "Settings: Alert tones is a page of Tones & alerts", "ok 8 2 row:Alert_tones", "ok",
 	  "screen=group shows=Alert_tones focus=Talk_permit_tone", 1, false },
 	{ "Settings: Back from Alert tones to its row", "ok 8 2 row:Alert_tones ok", "back",

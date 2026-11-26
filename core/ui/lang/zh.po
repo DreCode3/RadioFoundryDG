@@ -1199,7 +1199,7 @@ msgctxt "APRS_LABEL_PACKETS"
 msgid "Packets"
 msgstr "数据包"
 
-#: core/ui/ui_aprs.c
+#: core/ui/ui_aprs.c core/ui/ui_menus.c
 msgctxt "HINT_OK_CHOOSE_BACK"
 msgid "OK choose  Back"
 msgstr "OK 选  返回"
@@ -4549,10 +4549,20 @@ msgctxt "SET_TOAST_SAVED_AS_YOU_CHANGE"
 msgid "Settings are saved as you change them"
 msgstr "设置更改即保存"
 
+#: core/ui/ui_menus.c
+msgctxt "HINT_OK_SAVE_BACK_CANCEL"
+msgid "OK save  Back cancel"
+msgstr "OK 保存  返回取消"
+
 #: core/ui/ui_menus.c core/ui/ui_position.c
 msgctxt "HINT_OK_CHANGE_BACK"
 msgid "OK change  Back"
 msgstr "OK 改  返回"
+
+#: core/ui/ui_menus.c
+msgctxt "HINT_OK_SAVE_BACK"
+msgid "OK save  Back"
+msgstr "OK 保存  返回"
 
 #: core/ui/ui_menus.c
 msgctxt "RESET_ROW_KEEP"

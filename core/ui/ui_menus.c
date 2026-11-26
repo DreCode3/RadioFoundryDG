@@ -8222,11 +8222,28 @@ static const char *group_title(void)
 	return g < GROUPS ? tr(groups[g].name) : "";
 }
 
+// What OK does on the focused row: flips it, opens its pick list, edits or saves its number, opens its page, does its
+// one job, or nothing (a Radio info value without a page)
 static const char *group_hint(void)
 {
-	// Radio info changes nothing: its rows open pages
-	return ui_frame()->arg == G_RADIO_INFO ? TR(HINT_OK_OPEN_BACK, "OK open  Back") :
-		TR(HINT_OK_CHANGE_BACK, "OK change  Back");
+	const set_item_t *s = set_item_at(ui_frame()->focus);
+	if (s == NULL)
+		return TR(HINT_BACK, "Back");
+	switch (s->type) {
+	case ST_LIST: return TR(HINT_OK_CHOOSE_BACK, "OK choose  Back");
+	case ST_NUMBER:
+		return set_editing ? TR(HINT_OK_SAVE_BACK_CANCEL, "OK save  Back cancel") :
+			TR(HINT_OK_CHANGE_BACK, "OK change  Back");
+	case ST_ACTION:
+		switch (s->id) {
+		case SA_INFO_BATTERY: case SA_INFO_DMR_ID: case SA_INFO_NAME: return TR(HINT_BACK, "Back");
+#if CONFIG_POSITION && CONFIG_GPS && CONFIG_SATELLITE_TLE
+		case SA_SAVE_GPS_POS: return TR(HINT_OK_SAVE_BACK, "OK save  Back");
+#endif
+		default: return TR(HINT_OK_OPEN_BACK, "OK open  Back");
+		}
+	default: return TR(HINT_OK_CHANGE_BACK, "OK change  Back");
+	}
 }
 
 static const ui_scr_def_t group_screen = {

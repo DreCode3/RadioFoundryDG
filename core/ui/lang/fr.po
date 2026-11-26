@@ -1197,7 +1197,7 @@ msgctxt "APRS_LABEL_PACKETS"
 msgid "Packets"
 msgstr "Paquets"
 
-#: core/ui/ui_aprs.c
+#: core/ui/ui_aprs.c core/ui/ui_menus.c
 msgctxt "HINT_OK_CHOOSE_BACK"
 msgid "OK choose  Back"
 msgstr "OK choisir  Retour"
@@ -4547,10 +4547,20 @@ msgctxt "SET_TOAST_SAVED_AS_YOU_CHANGE"
 msgid "Settings are saved as you change them"
 msgstr "Sauvegarde auto param"
 
+#: core/ui/ui_menus.c
+msgctxt "HINT_OK_SAVE_BACK_CANCEL"
+msgid "OK save  Back cancel"
+msgstr "OK valider  Ret annule"
+
 #: core/ui/ui_menus.c core/ui/ui_position.c
 msgctxt "HINT_OK_CHANGE_BACK"
 msgid "OK change  Back"
 msgstr "OK modif  Retour"
+
+#: core/ui/ui_menus.c
+msgctxt "HINT_OK_SAVE_BACK"
+msgid "OK save  Back"
+msgstr "OK enregistrer  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "RESET_ROW_KEEP"
