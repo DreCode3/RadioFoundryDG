@@ -110,7 +110,8 @@ common abbreviations (VFO, SFR, DMR, GPS, APRS, TG, CTCSS, DCS).
 
 Each step is QA-clean before the next starts. An implementer subagent does the work; an independent adversarial
 reviewer (QA) reviews it without the implementer's conclusions; findings go back to the implementer and the loop
-repeats until QA approves. Commits are pushed only after QA approval. A disagreement between the implementer, QA or
+repeats until QA approves. Work is pushed as it is committed, but a step counts as done, and the next step starts, only
+after QA approval. A disagreement between the implementer, QA or
 Claude goes to the user, with both positions, and the user decides.
 
 ## Order of work
