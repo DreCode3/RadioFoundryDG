@@ -180,12 +180,10 @@ def test_zones_and_channels_lists(home):
     r.press("4")
     s = wait_screen(r, "zones", "Zones on 4")
     assert as_int(s.get("ui.count")) >= 2, s			# the VFO and at least one zone
-    if "UI_SETTINGS" not in r.features():
-        r.press("back", LONG)
-        skip("not_built", "built without CONFIG_UI_SETTINGS: Channels is in Settings > Programming")
     r.press("back")
     wait_screen(r, "hub")
-    for k in ("8", "9", "ok"):
+    # Settings > Programming's first row; without the Settings menu, Menu's Settings entry lists it first
+    for k in (("8", "9", "ok") if "UI_SETTINGS" in r.features() else ("8", "ok")):
         r.press(k)
     s = wait_screen(r, "channels", "Channels, Programming's first row")
     if as_int(s.get("ui.count")) == 0:
@@ -202,16 +200,19 @@ def test_diagnostics_page(home):
     open them."""
     r = home
     if "UI_SETTINGS" not in r.features():
-        skip("not_built", "built without CONFIG_UI_SETTINGS: Diagnostics is in Settings > Programming")
-    for k in ("ok", "8", "0", "3", "4", "2", "4", "ok"):	# "diag"
-        r.press(k)
-    wait_screen(r, "group", "Programming, on Diagnostics")
+        # Menu's Settings entry lists Programming's pages, Diagnostics last
+        for k in ("ok", "8", "up"):
+            r.press(k)
+        list_screen = "settings"
+    else:
+        r.open_setting("Diagnostics", "TITLE_DIAGNOSTICS", "3424")	# "diag"
+        list_screen = "group"
     r.press("ok")
-    s = r.wait_for(lambda v: v.get("ui.screen") in ("diag", "group"), sections=("link",), what="diagnostics")
+    s = r.wait_for(lambda v: v.get("ui.screen") in ("diag", list_screen), sections=("link",), what="diagnostics")
     if s["ui.screen"] != "diag":
         skip("not_built", "built without CONFIG_DIAG")
     r.press("back")
-    wait_screen(r, "group", "BACK leaves the diagnostics")
+    wait_screen(r, list_screen, "BACK leaves the diagnostics")
     r.press("back", LONG)
     wait_screen(r, "home")
 

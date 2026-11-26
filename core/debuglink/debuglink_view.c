@@ -397,6 +397,7 @@ static void link_section(dl_text_t *t)
 		(unsigned)u.focus, (unsigned)u.count, (unsigned)u.locked, u.unlock_key, (unsigned)u.gps);
 	dl_text(t, "ui.banner=%s\nui.toast=%s\nui.query=%s\nui.draws=%u\nui.dual=%u\n", u.banner, u.toast, u.query,
 		(unsigned)u.draws, u.dual);
+	dl_text(t, "ui.focus_label=%s\n", u.focus_label != NULL ? u.focus_label : "");
 	dl_text(t, "input.idle_ms=%u\nui.backlight=%u\n", (unsigned)input_idle_ms(), ui_backlight());
 	if (board.display != NULL && board.display->panel != NULL) {
 		// A board's hook fills only what it knows: the rest must read as not known, never as stack contents

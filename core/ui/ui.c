@@ -137,6 +137,8 @@ void ui_get_status(ui_app_status_t *st)
 		st->toast = "";
 	if (st->query == NULL)
 		st->query = "";
+	if (st->focus_label == NULL)
+		st->focus_label = "";
 }
 
 static void ui_task(void *arg)

@@ -712,11 +712,9 @@ class Radio:
         lang = self.view(["storage"]).get("settings.lang")
         if lang in (None, "en"):
             return None
-        self.go_home()
-        # Settings > 0 (Find, also in the VFO), "language" on the keys (Find knows it by its English name in every
-        # language), its row in Settings > Display, OK
-        for k in ("ok", "8", "0", "5", "2", "6", "4", "8", "2", "4", "3", "ok", "ok"):
-            self.press(k)
+        # Find knows it by its English name in every language
+        self.open_setting("Language", "SET_LABEL_LANGUAGE", "52648243")
+        self.press("ok")
         self.wait_for(lambda v: v.get("ui.screen") == "language", sections=("link",), what="the Language screen")
         for _ in range(16):  # English is the list's first row
             if as_int(self.view(["link"]).get("ui.focus"), 0) == 0:
@@ -726,6 +724,45 @@ class Radio:
         self.wait_for(lambda v: v.get("settings.lang") == "en", sections=("storage",), what="language English")
         self.go_home()
         return lang
+
+    @staticmethod
+    def setting_labels(english, key):
+        """A setting row's label in English and in every catalog (core/ui/lang/*.po, its key's msgstr): what
+        ui.focus_label shows for it in the language in use"""
+        labels = {english}
+        lang_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "core", "ui", "lang")
+        for name in sorted(os.listdir(lang_dir)) if os.path.isdir(lang_dir) else []:
+            if not name.endswith(".po"):
+                continue
+            with open(os.path.join(lang_dir, name), encoding="utf-8") as f:
+                m = re.search(r'msgctxt "%s"\nmsgid "[^"]*"\nmsgstr "([^"]*)"' % re.escape(key), f.read())
+            if m and m.group(1):
+                labels.add(m.group(1))
+        return labels
+
+    def open_setting(self, english, key, digits, required=True):
+        """A setting opened through Settings > 0 (Find, which also works in the VFO): the digits typed, then Down to
+        the result whose label is the setting's (ui.focus_label, in any language: setting_labels), not the first
+        result, which may be a channel or a contact that matches the same keys; OK opens it in its group. False
+        (with required False) when Find doesn't list it."""
+        labels = self.setting_labels(english, key)
+        self.go_home()
+        for k in ("ok", "8", "0", *digits):
+            self.press(k)
+        self.wait_for(lambda v: v.get("ui.screen") == "find", sections=("link",), what="Find")
+        for _ in range(20):  # more than Find's rows
+            if self.view(["link"]).get("ui.focus_label") in labels:
+                break
+            self.press("down")
+        else:
+            if not required:
+                self.go_home()
+                return False
+            raise AssertionError(f"Find lists no {english} for {digits}")
+        self.press("ok")
+        self.wait_for(lambda v: v.get("ui.screen") == "group" and v.get("ui.focus_label") in labels,
+                      sections=("link",), what=f"{english} in its settings group")
+        return True
 
     def pick_first(self):
         """In a setting's pick list (ui.screen pick), its first value: Up to it, then OK."""

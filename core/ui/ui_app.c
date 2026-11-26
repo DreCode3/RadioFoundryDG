@@ -2931,6 +2931,7 @@ void ui_app_status(ui_app_status_t *s)
 		s->toast = toast_text;
 	}
 	s->query = stack[sp].scr == SCR_FIND ? ui_find_query() : (d->flags & SF_FILTER) ? filter_keys : "";
+	s->focus_label = (d->flags & SF_LIST) && d->draw == NULL ? ui_focus_drawn : "";
 	s->draws = draws;
 	s->strip_drawn = strip_ok;
 #if CONFIG_DUAL_WATCH
