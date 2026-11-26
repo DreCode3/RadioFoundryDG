@@ -19,7 +19,7 @@ the code is laid out, who owns the data behind each screen, and how the UI is te
 |---|---|
 | `gfx.c`, `fonts.c`, `fmt.c` | drawing in a viewport inside the display's safe-area insets, fonts, number / text formatting |
 | `ui_screens.c` | drawing only: status strip, title, hint row, lists, Home, call screens, Quick tiles, banners, emergency |
-| `ui_theme.h` | a look as a `const` descriptor (`ui_theme_t`): its palettes and the drawing ops `ui_screens.c` calls for the status strip, the bottom row, banners, Home, Quick and a list's heading, cells and scroll marks (`ui_draw_list` keeps the list's frame and its scrolling). One is built, `ui_theme_reference` (in `ui_screens.c`), so every op call resolves at build time |
+| `ui_theme.h` | a look as a `const` descriptor (`ui_theme_t`): its palettes and the drawing ops `ui_screens.c` calls for the status strip, the bottom row, banners, Home, Quick and a list's heading, cells and scroll marks (`ui_draw_list` keeps the list's frame and its scrolling). An op a theme leaves NULL is the reference theme's. One theme is built, `ui_theme_reference` (in `ui_screens.c`), so every op call resolves at build time; `UI_THEME_SELECT` makes the theme in use a variable for a build with more than one |
 | `ui_app.c` | behavior without the RTOS: the navigation stack, global keys, Home and Quick keys, filters, Recent, events, banners |
 | `ui_menus.c` | every list screen and the screen table `ui_scr[]`: Hub, Actions, Compose, Contacts, Messages, Recent, Zones, Zone, the zone editor's (2.2), Channels, Channel, Tools, Settings, Picker, Info, Confirm, Scan, Roaming |
 | `ui_find.c` | type-to-find (T9 word starts, numbers, channel positions) |
@@ -645,7 +645,7 @@ panel alone), radio core, the usability-test codeplug (3 zones,
 40 channels, 30 contacts) and the services of section 4.
 
 ```
-make -C tests/host run-ui                                      # gfxTest, uiFlowTest, the layout check
+make -C tests/host run-ui                                      # gfxTest, uiThemeTest, uiFlowTest, the layout check
 make -C tests/host ui-gallery                                  # docs/ux/screens/<class>/<screen>.png, sheets/<class>.png
 make -C tests/host ui-sheets GEOM=128x64                       # contact sheet only, tests/host/out/sheets/
 tests/host/uiSim --geom 160x120i5 --script "ok 4 down ok expect:zone=1" --out zone.png --scale 3
@@ -681,6 +681,10 @@ draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240`
 | `worst` | worst-case codeplug content from here on (`sim_worst`: 16-character names, 8-digit talkgroups, 7-digit IDs, channels 985-1024, 80-channel zones) |
 | `power:<n>` | the radio's power level index |
 | `expect:<key>=<value>` | check: `screen focus depth count zone pos vfo freq mode tx txid txpriv talk locked query banner toast power sq ts cc temporary writes checks sent text scanning privacy hearall monitor hotspot beeps radio_tot radio_backlight beep pttblock poweroff wake usbnet set<id>` (`wake` 1 when a banner or the emergency screen asked for the backlight since the last check, `beep` the last beep kind, `set<id>` a setting's stored value; `_` = space, `*` = anything) |
+
+`uiThemeTest` puts themes of its own in use (`ui_theme.h`, built with `UI_THEME_SELECT`): a theme with no op draws
+every frame as the reference theme does, a palette without a colors op stays as it is, a theme's ops are the ones
+called, and `ui_draw_list` scrolls and places the cells of a two-column geometry, also one out of bounds.
 
 `uiFlowTest` runs every task flow of `task-flows.md` with the press budgets of `usability-tests.md` on four display
 and key map pairs (K at 160x120i5, M at 128x64, V at 128x64, K at 240x320) plus the few-key fallbacks and the

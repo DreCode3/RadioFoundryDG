@@ -699,6 +699,15 @@ TESTS   += gfxTestZh
 gfxTestZh: gfxTest.c $(UI) $(CJK) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(CORE)/ui/fonts/*.inc)
 	$(CC) $(CFLAGS) -I$(ROOT)/hal -Iout/gen -Wshadow -DGFX_INDEXED=1 -DGFX_MAX_ROWS=240u -DCONFIG_NET_WEBCTL=1 -DCONFIG_LANG_ZH=1 -o $@ gfxTest.c $(UI) $(CJK)
 
+# The theme framework (core/ui/ui_theme.h) with themes of the test's own in use (UI_THEME_SELECT): an op left NULL
+# reaches the reference theme's and draws the same frame, a palette without a colors op stays as it is, and the list
+# frame scrolls and places the cells of a geometry the reference theme doesn't have. Under AddressSanitizer, for the
+# geometry out of bounds: a width read past the columns lands in the next variable without it
+TESTS   += uiThemeTest
+uiThemeTest: uiThemeTest.c $(UI) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(CORE)/ui/fonts/*.inc)
+	$(CC) $(CFLAGS) -fsanitize=address -fno-omit-frame-pointer -I$(ROOT)/hal -Iout/gen -Wshadow -DGFX_INDEXED=1 \
+	      -DGFX_MAX_ROWS=240u -DCONFIG_NET_WEBCTL=1 -DUI_THEME_SELECT=1 -o $@ uiThemeTest.c $(UI)
+
 # The frame buffer's last bytes with a GFX_FB_BYTES that is not a multiple of 4 (the DM-32UV's, sized from its insets):
 # a safe area of exactly that size, drawn to its bottom right corner. Always under AddressSanitizer, which is what sees
 # a write past the buffer: without it the bytes land in the next variable and nothing fails
@@ -793,9 +802,10 @@ ui-sheets: uiSim
 	UI_GALLERY_COLORS="$(UI_GALLERY_COLORS)" ./uiSim --sheets out/sheets $(GEOM)
 
 run: run-ui
-run-ui: gfxTest gfxTestZh gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim beepReel
+run-ui: gfxTest gfxTestZh uiThemeTest gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim beepReel
 	./gfxTest
 	./gfxTestZh
+	./uiThemeTest
 	./gfxFbEdgeTest
 	./i18nTest
 	./i18nTestNoLang
