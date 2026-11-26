@@ -77,7 +77,8 @@ static const hal_cps_t cps = {
 };
 #endif
 
-// Reassignable in Settings > Keys and the codeplug (core/input/keyassign.h): the keys with a function of their own. P1, P2 and the mic's P6, P7 are QUICK and CONTEXT, which the menus need
+// Reassignable in Settings > Buttons and the codeplug (core/input/keyassign.h): the keys with a function of their own.
+// P1, P2 and the mic's P6, P7 are QUICK and CONTEXT, which the menus need
 static const uint8_t side_keys[] = { KEY_P3, KEY_TONE, KEY_MIC_P4, KEY_MIC_P5 };
 static const char *const side_key_names[] = { "P3", "TONE", "Mic P4", "Mic P5" };
 

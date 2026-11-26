@@ -40,8 +40,8 @@
 #define DL_SETTING_ENC_OPTIONS	31u	// SETTING id of the vocoder's encode options (VOCODER_OPT_*)
 #define DL_SETTING_ZS_OFFERS	32u	// SETTING id of zone share offers (zone_share_api.h)
 #define DL_SETTING_REF_TRIM	35u	// SETTING id of the reference trim, ppb two's complement (radio/ref_trim.h)
-#define DL_SETTING_TONES_OFF	36u	// SETTING id of the Settings > Sound tones (radio_settings_t.tones_off)
-#define DL_SETTING_GPS		37u	// SETTING id of Settings > Location > GPS (settings_t.gps, board_t.gps)
+#define DL_SETTING_TONES_OFF	36u	// SETTING id of the Alert tones (Settings > Tones & alerts) (radio_settings_t.tones_off)
+#define DL_SETTING_GPS		37u	// SETTING id of Menu > Location > Location settings > GPS (settings_t.gps, board_t.gps)
 
 static const char *word(uint8_t v, const char *const *names, uint8_t n)
 {

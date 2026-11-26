@@ -196,7 +196,7 @@ md9600_rf_err_t md9600_rf_pa_ref(md9600_rf_t *rf, uint16_t dac);
 md9600_rf_err_t md9600_rf_pa(md9600_rf_t *rf, bool on);
 // End a transmission: APC ramped down, the loop and the supplies off, then the last receive settings
 void md9600_rf_tx_off(md9600_rf_t *rf);
-// A person stored the revision in use (Settings > Advanced > Hardware): transmit is allowed from now on, no restart.
+// A person stored the revision in use (Settings > Programming > Hardware): transmit is allowed from now on, no restart.
 // Off: they stored another one, so the one in use may be wrong: transmit is refused until the restart applies it
 void md9600_rf_confirm(md9600_rf_t *rf, bool on);
 // What a tx() on hz at power would be refused for now, MD9600_RF_OK when it would be allowed

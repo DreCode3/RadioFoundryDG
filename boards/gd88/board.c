@@ -61,7 +61,7 @@ static const keymap_entry_t keymap[] = {
 	{ KEY_PTT, ACT_PTT, ACT_PTT, true, false, 0 },
 };
 
-// Reassignable in Settings > Keys (core/input/keyassign.h): side key 1, side key 2, top key
+// Reassignable in Settings > Buttons (core/input/keyassign.h): side key 1, side key 2, top key
 static const uint8_t side_keys[] = { KEY_SK1, KEY_SK2, KEY_SOS };
 #if CONFIG_KEY_ASSIGN
 static const uint8_t home_keys[] = { KEY_SOFT_RIGHT };

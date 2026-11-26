@@ -144,7 +144,7 @@ def test_gps_nmea(board, pytestconfig):
     good0, bad0, b0 = numbers(line)[:3]
     assert line.startswith("gps yes"), f"no valid NMEA heard: {line} (b0 = no bytes: the UART pins or the power)"
     if line.endswith(" off"):
-        skip("state", "Settings > Location > GPS is off: the module was heard at start-up, then powered down")
+        skip("state", "Menu > Location > Location settings > GPS is off: the module was heard at start-up, then powered down")
     time.sleep(3)
     good1, bad1, b1 = numbers(board.line("gps "))[:3]
     assert good1 > good0, f"no new sentences in 3 s ({good0} -> {good1})"

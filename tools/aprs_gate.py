@@ -21,7 +21,7 @@ The radio gates and decides (the iGate rules are in the firmware, aprs_igate.c);
 - NMEA: $GPRMC / $GPGGA lines from a serial GPS or a file go to the radio as SetHardware 'N' frames (the radio's
   "Computer" position source).
 
-Turn KISS on first: Tools > APRS > KISS on USB, or `rfoundry_debug.py aprs set kiss 1`. The radio must not be in hotspot
+Turn KISS on first: Menu > Location > APRS > KISS on USB, or `rfoundry_debug.py aprs set kiss 1`. The radio must not be in hotspot
 mode. The passcode is computed from the callsign when not given (the public APRS-IS hash); without --call the tool
 logs in receive-only ("-1"), which APRS-IS takes for reading but not for gating.
 """

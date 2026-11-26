@@ -113,7 +113,7 @@ void ambeVoiceTxToneCancel(void);
 #endif
 void ambeVoiceSetTestSignal(bool on);
 bool ambeVoiceTestSignal(void);
-// Encode options for DMR transmissions (VOCODER_OPT_*, default VOCODER_OPT_DEFAULT; Settings > Talk & listen > Mic
+// Encode options for DMR transmissions (VOCODER_OPT_*, default VOCODER_OPT_DEFAULT; Settings > Audio > Mic
 // noise reduction). Handed to the vocoder in the audio callback before the next frame it encodes. Any task
 void ambeVoiceSetEncodeOptions(uint32_t opts);
 // The options in force (those set that the vocoder takes), and the ones the vocoder takes (0: none, or no vocoder)

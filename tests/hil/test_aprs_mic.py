@@ -13,7 +13,7 @@ the cable. So the person sends each position from the radio's own menu, cable ou
 1. With the cable in, the test sets up the APRS test frequency, path and lowest power as test_aprs.py does
    (`aprs_air`: --aprs-test-mhz, path none, the RAM test callsign), starts a WINDOW_S bench board AFSK decode and
    prints "GO".
-2. The person unplugs the cable, opens Tools > APRS, picks Send position now and waits for the transmission to end,
+2. The person unplugs the cable, opens Menu > Location > APRS, picks Send position now and waits for the transmission to end,
    then plugs the cable back in.
    - Over 1 (reference): a quiet room, nobody speaking.
    - Over 2: a steady loud whistle, or loud speech, at the microphone from before Send position now until the
@@ -34,8 +34,8 @@ from test_aprs import (_aprs, _n, aprs_air, check_tones, print_capture,  # noqa:
                        print_frame)
 from test_mic_gain import wait_link
 
-# Unplug, Tools > APRS > Send position now, the engine's wait for its next service pass (5.7 s once, test_aprs.py
-# CAPTURE_S), the transmission: press Send soon after GO
+# Unplug, Menu > Location > APRS > Send position now, the engine's wait for its next service pass (5.7 s once,
+# test_aprs.py CAPTURE_S), the transmission: press Send soon after GO
 WINDOW_S = 15
 SOUND_RATIO = 1.25   # over 2's deviation / over 1's: the frames are the same, so a muted microphone leaves them equal
 
@@ -51,7 +51,7 @@ def _over(radio, sdr_bench, s, n, name, how):
     print(f"\n=== over {n}/{len(OVERS)} ({name}): {s.hz / 1e6:.4f} MHz, lowest power ===")
     with sdr_bench.lease():
         job = sdr_bench.aprs_rx_start(s.hz / 1e6, seconds=WINDOW_S)
-        print(f"GO: {WINDOW_S} s from now. Unplug the cable, then Tools > APRS > Send position now. {how}. "
+        print(f"GO: {WINDOW_S} s from now. Unplug the cable, then Menu > Location > APRS > Send position now. {how}. "
               "When the transmission ends, plug the cable back in.", flush=True)
         s.expected_rf += 1
         res = sdr_bench.aprs_rx_result(job)
@@ -78,7 +78,7 @@ def _over(radio, sdr_bench, s, n, name, how):
 
 
 @pytest.mark.feature("aprs_afsk", owner=(
-        "take the programming cable out, send a position from Tools > APRS, once in a quiet room and once whistling "
+        "take the programming cable out, send a position from Menu > Location > APRS, once in a quiet room and once whistling "
         "or speaking loudly at the microphone"))
 @pytest.mark.manual
 @pytest.mark.radio_tx

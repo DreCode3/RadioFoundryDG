@@ -260,7 +260,7 @@ def test_tftp_write(radio, backup_dir):
     core = radio.core()
     with network_mode(radio) as (udp, radio_ip, own_id):
         if as_int(udp.view(["net_svc"]).get("tftp.write_allowed"), 1) == 0:
-            skip("state", "TFTP codeplug writes are off on the radio (Settings > Connections)")
+            skip("state", "TFTP codeplug writes are off on the radio (Menu > Connections > PC and network)")
         backup = _read_image(radio_ip)
         again = _read_image(radio_ip)
         d = cps_client.compare(backup, again, QDMR, skip=())

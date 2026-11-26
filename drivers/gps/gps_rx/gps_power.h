@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
 // When a GPS module is powered, the part every board shares (hal_gps_t.enable): the module is powered and listened
-// to at start-up whatever Settings > Location > GPS says, so the radio knows whether it has one. Once it has been heard
-// it follows the setting: the board's GPS task switches its supply and receive path within one poll. Never heard: off
-// for good. Generic and pure: no UART, no RTOS. The setting may come from any task; everything else is the GPS task's.
+// to at start-up whatever Menu > Location > Location settings > GPS says, so the radio knows whether it has one. Once
+// it has been heard it follows the setting: the board's GPS task switches its supply and receive path within one poll.
+// Never heard: off for good. Generic and pure: no UART, no RTOS. The setting may come from any task; everything else is
+// the GPS task's.
 #ifndef GPS_POWER_H
 #define GPS_POWER_H
 
@@ -18,7 +19,7 @@ typedef struct {
 
 // Start of the probe: the board has just powered the module and its receive path. Keeps the setting
 void gps_power_init(gps_power_t *p);
-// Settings > Location > GPS, from any task: takes effect at the GPS task's next gps_power_step
+// Menu > Location > Location settings > GPS, from any task: takes effect at the GPS task's next gps_power_step
 void gps_power_set(gps_power_t *p, bool on);
 // The probe heard a module
 void gps_power_found(gps_power_t *p);

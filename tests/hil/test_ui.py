@@ -531,33 +531,33 @@ def test_home_back_key_can_open_quick(home):
 
 @pytest.mark.feature("ui_settings")
 def test_long_press_time_reaches_input(home):
-    """Settings > Keys > Long press time: the gesture engine uses the new time at once (input.long_ms)."""
+    """Settings > Buttons > Long press time: the gesture engine uses the new time at once (input.long_ms)."""
     r = home
     before = as_int(r.view(["link"]).get("input.long_ms"))
     if before is None:
         skip("not_built", "firmware without input.long_ms")
     if before >= 1200:
         skip("state", "the long press time is already at its maximum")
-    settings_keys(r, "ok 7 8 ok up ok")
+    settings_keys(r, "ok 8 8 ok up ok")
     try:
         r.wait_for(lambda x: as_int(x.get("input.long_ms")) == before + 100, sections=("link",),
                    what="long press time +100 ms")
         s = r.view(["storage"])
         assert as_int(s.get("settings.long_press_ms")) == before + 100, s
     finally:
-        settings_keys(r, "ok 7 8 ok down ok")
+        settings_keys(r, "ok 8 8 ok down ok")
     r.wait_for(lambda x: as_int(x.get("input.long_ms")) == before, sections=("link",), what="long press time back")
 
 
 @pytest.mark.feature("key_lock")
 def test_auto_lock(home):
-    """Settings > Key lock > Auto lock 30 s locks the keys after 30 s without a key; set back to Off after."""
+    """Settings > Security & keypad lock > Auto lock 30 s locks the keys after 30 s without a key; set back to Off after."""
     r = home
     if r.unlock_key() == "none":
         skip("no_hw", "no key on the radio unlocks: auto lock never locks it")
     if as_int(r.view(["storage"]).get("settings.auto_lock_s"), 0) != 0:
         skip("state", "auto lock is already on")
-    settings_keys(r, "ok 7 9 ok")
+    settings_keys(r, "ok 8 7 ok down ok")	# Auto lock's pick list: Off, then 30 s
     try:
         r.wait_for(lambda x: x.get("settings.auto_lock_s") == "30", sections=("storage",), what="auto lock 30 s")
         assert ui(r)["ui.locked"] == "0"
@@ -740,7 +740,7 @@ def test_save_timeslot_to_channel(home):
 @pytest.mark.feature("zone_edit")
 @pytest.mark.codeplug_write
 def test_zone_editor_moves_a_channel(home):
-    """Hub 4, # on the zone in use, # on the channel in use: Channel actions (ui.md 2.2). Move down (Move up on the
+    """Menu 4, # on the zone in use, # on the channel in use: Channel actions (ui.md 2.2). Move down (Move up on the
     last channel) writes the zone off the UI task (storage.job_busy, zone.edits one more, zone.edit_last 0), the menu
     stays open and the radio stays on its channel at the new position; the opposite move puts the zone back."""
     r = home
@@ -786,7 +786,7 @@ def test_zone_editor_moves_a_channel(home):
 @pytest.mark.bench_service
 @pytest.mark.bench_modem
 def test_delete_message(home, request, pytestconfig):
-    """Hub 2 (Messages), OK on the newest, Delete (the last action): the inbox has one message less. Only a message
+    """Menu 2 (Messages), OK on the newest, Delete (the last action): the inbox has one message less. Only a message
     from an isolated bench (RFOUNDRY_HIL_DELETE_MESSAGE=hil) or a disposable inbox
     (RFOUNDRY_HIL_DELETE_MESSAGE=1) can be deleted. On the isolated bench the selected text must start with
     HIL_SMS_PREFIX. With --allow-rf the bench can supply that message."""

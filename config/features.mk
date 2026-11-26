@@ -28,7 +28,7 @@ CONFIG_DMR_AES ?= $(CONFIG_DMR_PRIVACY)
 # talker alias decode and TX of our radio name (needs DMR)
 CONFIG_DMR_TALKER_ALIAS ?= $(CONFIG_DMR)
 # ETSI GPS Info in the embedded LC (FLCO 8): the caller's position decoded and shown, ours sent from the position
-# service (core/position) when Settings > Location > Position in DMR calls is on (needs DMR)
+# service (core/position) when Menu > Location > Location settings > Send in DMR calls is on (needs DMR)
 CONFIG_DMR_GPS ?= $(CONFIG_DMR)
 # DMR text messages (SMS; needs DMR): ETSI IP text and ETSI defined short data, sent and received (docs/spec/dmr-data.md 5)
 CONFIG_DMR_SMS ?= $(CONFIG_DMR)
@@ -169,8 +169,9 @@ CONFIG_CPS_OPENFW ?= $(CONFIG_HOSTLINK)
 CONFIG_CPS_FAST ?= $(if $(filter y,$(CONFIG_CPS_OPENFW)),$(if $(filter y,$(CONFIG_DEBUGLINK) $(CONFIG_STUB_ENTRY)),y,n),n)
 # the diagnostics page
 CONFIG_DIAG ?= y
-# Settings > Advanced > Backlight tests: a bench tool that sets the backlight's PWM compare value, brightness and rate
-# by hand, to measure a radio's backlight drive (docs/testing/backlight-curve.md). Untranslated; off in every release
+# Settings > Programming > Backlight tests: a bench tool that sets the backlight's PWM compare value, brightness and
+# rate by hand, to measure a radio's backlight drive (docs/testing/backlight-curve.md). Untranslated; off in every
+# release
 CONFIG_BACKLIGHT_TEST ?= n
 # 16x32 font, only useful on 240 px and wider displays
 CONFIG_FONT_XL ?= n
@@ -220,7 +221,7 @@ CONFIG_SCAN ?= y
 # the dual watch screens: two channels on Home, which one PTT uses and which one a call came in on; the radio core's
 # dual watch across zones and with the VFO, PTT on the selected channel (needs SCAN; docs/ux/dual-watch.md)
 CONFIG_DUAL_WATCH ?= $(CONFIG_SCAN)
-# key assignment: Settings > Keys and the codeplug's quick-key slots say what the board's programmable keys do
+# key assignment: Settings > Buttons and the codeplug's quick-key slots say what the board's programmable keys do
 # (core/input/keyassign.c, docs/spec/ui.md 3.1)
 CONFIG_KEY_ASSIGN ?= y
 # the hub's Channels list: every codeplug channel by number, and a channel's settings (read only; core/ui/ui_menus.c,
@@ -248,14 +249,14 @@ CONFIG_FM_TX_TONES ?= $(CONFIG_FM)
 CONFIG_DTMF ?= $(CONFIG_FM)
 # FM VOX: voice-operated transmit from the microphone level (needs FM; unverified on the bench)
 CONFIG_VOX ?= $(CONFIG_FM)
-# reference oscillator trim: Settings > Advanced > Freq trim moves receive and transmit together (needs the board's
-# hal_radio_t.ref_trim; docs/spec/radio-features.md 6.1)
+# reference oscillator trim: Settings > Programming > Frequency trim moves receive and transmit together (needs the
+# board's hal_radio_t.ref_trim; docs/spec/radio-features.md 6.1)
 CONFIG_REF_TRIM ?= y
 # receiver battery saving: FM receiver duty cycling while idle (needs FM)
 CONFIG_BATTERY_SAVE ?= $(CONFIG_FM)
 # vibration alerts on the board's motor (hal_power_t.vibrate) for messages, call alerts, private calls and emergencies,
-# Settings > Sound > Vibrate (core/radio/vibe.c, docs/spec/radio-features.md 4.1). On for radios with a motor (their
-# config.mk); a board without one shows the setting dimmed
+# Settings > Tones & alerts > Vibrate (core/radio/vibe.c, docs/spec/radio-features.md 4.1). On for radios with a motor
+# (their config.mk); a board without one shows the setting dimmed
 CONFIG_VIBRATE ?= n
 # the GPS receiver: the board's module driver and its NMEA parsing (drivers/gps, platform/*/gps*, CAP_GPS). Off, the
 # radio has no GPS: DMR_GPS, LRRP and APRS send the fixed position when one is set (core/position), else none. Off
@@ -267,8 +268,9 @@ CONFIG_AM_RX ?= $(CONFIG_FM)
 # broadcast FM receive: FM channels and the VFO in the broadcast receiver's range play on that second receiver
 # chip, receive only (board.bcast, CAP_BCAST_FM; docs/spec/airband-and-broadcast.md). Off where there is none
 CONFIG_BCAST_FM ?= y
-# receive past the band table: a range in board.bands (rx_ext_count) that receives only while Settings > Advanced says
-# so, off by default, never transmit (docs/spec/radio-features.md). Off where the chip documents give no range
+# receive past the band table: a range in board.bands (rx_ext_count) that receives only while Settings > Programming >
+# RX past bands says so, off by default, never transmit (docs/spec/radio-features.md). Off where the chip documents give
+# no range
 CONFIG_RX_EXT ?= y
 # audio path probe: debug link command 0x10 to read / write the audio chip's registers and watch the PCM stream's
 # levels, for the USB audio feasibility tests on the bench (docs/spec/hardware-dm1701.md 21.3; needs DEBUGLINK and DMR, whose
@@ -285,7 +287,7 @@ CONFIG_STUB_ENTRY ?= $(CONFIG_HOSTLINK)
 # fault status, task, stack words) where a reset doesn't clear it and restarts the radio; the next start shows it
 # (core/crash, docs/spec/crash-log.md). Off: a crash stops the radio until a power cycle, as before. Needs nothing else
 CONFIG_CRASH_LOG ?= y
-# the crash log's screen: Settings > Advanced > Crash log, the record's summary and Clear (needs CRASH_LOG). Off, the
+# the crash log's screen: Settings > Programming > Crash log, the record's summary and Clear (needs CRASH_LOG). Off, the
 # debug link still shows the record
 CONFIG_CRASH_SCREEN ?= $(CONFIG_CRASH_LOG)
 # the crash report: the crash log's record, packed (76-124 bytes), as one UDP datagram over DMR packet data to a
@@ -351,7 +353,7 @@ CONFIG_AIR_RAW ?= n
 # (core/p25/p25_follow.c, docs/spec/p25-trunking.md). Needs P25
 CONFIG_P25_TRUNK ?= $(CONFIG_P25)
 # the GPS status screen: satellites on a sky plot and signal bars, fix quality, grid locator (core/position/nmea_sky.c,
-# core/ui/ui_gps.c, docs/spec/position.md 3). Needs GPS; off, Tools > Position is a page of text
+# core/ui/ui_gps.c, docs/spec/position.md 3). Needs GPS; off, Menu > Location > GPS status is a page of text
 CONFIG_GPS_SKY ?= $(CONFIG_GPS)
 
 # Satellite TLE storage and tracking (docs/spec/satellite.md); needs DEBUGLINK. Full and amateur builds use 12 KB of

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
 // The radio core's settings that the codeplug's settings area holds, one row per key (docs/spec/codeplug-settings.md
-// 3): the data service's and the Settings > Sound tones'. The same tables on every radio: a setting is added here, and
+// 3): the data service's and the Alert tones'. The same tables on every radio: a setting is added here, and
 // the radio core, the menu and the debug link follow it through codeplug/codeplug_keys.h
 #ifndef RFOUNDRY_RADIO_KEYS_H
 #define RFOUNDRY_RADIO_KEYS_H
@@ -22,10 +22,11 @@ static const codeplug_key_row_t radio_keys[] = {
 #define RADIO_KEYS_N	((uint8_t)(sizeof(radio_keys) / sizeof(radio_keys[0])))
 _Static_assert(sizeof(radio_keys) / sizeof(radio_keys[0]) <= CODEPLUG_KEYS_MAX, "codeplug_keys_store's batch");
 
-// The tones Settings > Sound turns off, one bool key each (absent: the radio's own copy). The radio's own copy is
-// radio_settings_t.tones_off, bit n set when row n's tone is off; its owner unpacks it into this struct for the table
-// and packs it back (radio_tones_unpack, radio_tones_pack). Every build with tones has them: each is a beep the radio
-// core plays, FM or DMR (the call end tone is DMR's, so it needs CONFIG_DMR too: the menu row says so)
+// The tones Alert tones (Settings > Tones & alerts) turns off, one bool key each (absent: the radio's own copy). The
+// radio's own copy is radio_settings_t.tones_off, bit n set when row n's tone is off; its owner unpacks it into this
+// struct for the table and packs it back (radio_tones_unpack, radio_tones_pack). Every build with tones has them: each
+// is a beep the radio core plays, FM or DMR (the call end tone is DMR's, so it needs CONFIG_DMR too: the menu row says
+// so)
 typedef struct {
 	bool call_end;		// on: the tone when a DMR call heard ends
 	bool tot_warn;

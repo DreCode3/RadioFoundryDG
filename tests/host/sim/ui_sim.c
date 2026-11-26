@@ -52,8 +52,8 @@
 //   vox:on|off, rxonly:on|off, roam:off|ready|searching|weak|locked    simulated channel and radio state
 //   usbnet:off|on|up    USB a serial port, a network adapter, or a network adapter the computer has brought up
 //   timeout             the TX timeout cuts the transmission off while PTT is still held (shows the timeout deny)
-//   pttlocked:on|off    turns Settings > Key lock > PTT when locked on or off
-//   autolock:<s>        Settings > Keys > Auto lock: s seconds, 0 off
+//   pttlocked:on|off    turns Settings > Security & keypad lock > PTT when locked on or off
+//   autolock:<s>        Settings > Security & keypad lock > Auto lock: s seconds, 0 off
 //   battery:<pct>       the battery reads pct; offfailed: auto power off couldn't switch off
 //   foreign             the codeplug is another firmware's: a channel write asks first (codeplug-foreign)
 //   aeskeys             system 3 is a DMR AES one holding traffic keys 0 and 7 (the channel editor's AES key row)
@@ -481,7 +481,7 @@ static bool afsk_tx_busy(void) { return false; }
 static void afsk_tx_stop(void) {}
 // A transmit path (the APRS RF rows are live); the UI doesn't key, so it never sends
 static const hal_afsk_t afsk = { .tx_start = afsk_tx_start, .tx_busy = afsk_tx_busy, .tx_stop = afsk_tx_stop };
-// A vocoder with encode options (Settings > Talk & listen > Mic AGC and Mic noise reduction are live); only options()
+// A vocoder with encode options (Settings > Audio > Mic AGC and Mic noise reduction are live); only options()
 // is called
 static uint32_t v_options(void) { return VOCODER_OPT_NOISE_REDUCTION | VOCODER_OPT_TONE_FRAMES | VOCODER_OPT_AGC; }
 static const hal_vocoder_t vocoder = { .options = v_options };
@@ -527,10 +527,10 @@ uint32_t sim_now(void) { return now_ms; }
 static bool hotspot_on;
 hostlink_mode_t hostlink_mode(void) { return hotspot_on ? HOSTLINK_HOTSPOT : HOSTLINK_IDLE; }
 void hostlink_hotspot_exit(void) { hotspot_on = false; }
-static bool usb_net;	// the USB personality (Tools > USB network)
+static bool usb_net;	// the USB personality (Menu > Connections > USB network)
 static bool usb_up;	// the computer has brought the network adapter up (hal_netif_t.up)
 
-// APRS (Tools > APRS, core/ui/ui_aprs.c): a small stand-in for the engine's view and configuration
+// APRS (Menu > Location > APRS, core/ui/ui_aprs.c): a small stand-in for the engine's view and configuration
 static struct {
 	bool off;		// "aprs:off": not in this build
 	bool no_call;		// "aprs:nocall": no callsign anywhere
@@ -1811,17 +1811,17 @@ typedef struct { ui_msg_t m; uint32_t at; } sim_msg_t;
 static sim_msg_t inbox[8];
 static uint16_t n_inbox;
 
-// The volume feature (a radio without a knob: the VOL key, Settings > Sound > Volume) only with the "softvol" token, so
-// the other screens look as on the radios with a knob
+// The volume feature (a radio without a knob: the VOL key, Settings > Tones & alerts > Volume) only with the "softvol"
+// token, so the other screens look as on the radios with a knob
 static bool soft_volume;
-// The broadcast receiver (Settings > Talk & listen > FM broadcast step) only with the "bcast" token, the same way
+// The broadcast receiver (Settings > Receive & VFO > FM broadcast step) only with the "bcast" token, the same way
 static bool bcast_rx;
 // P25 on this radio (UI_FEAT_P25: the VFO's mode tile offers it) only with the "p25" token; NXDN with "nxdn"
 static bool p25_radio;
 static bool nxdn_radio;
 static bool gui_profiles;
 static bool prototype_gui;
-// Hardware options (Settings > Advanced > Hardware, hal_hwopt.h) only with the "hwopt" token: a revision that starts
+// Hardware options (Settings > Programming > Hardware, hal_hwopt.h) only with the "hwopt" token: a revision that starts
 // unset and a plain option
 static int8_t hwopt_val[2];
 static const char *const hwopt_revs[] = { "V1", "V2", "V3" };
@@ -1835,9 +1835,9 @@ static const hal_hwopt_t sim_hwopts[] = {
 	{ .name = "Option", .count = 2, .choices = hwopt_onoff, .get = hwopt_get1, .set = hwopt_set1 },
 };
 
-// A reference trim (Settings > Advanced > Freq trim) only with the "trim" token, the same way
+// A reference trim (Settings > Programming > Frequency trim) only with the "trim" token, the same way
 static bool ref_trim;
-// A volume knob the MCU reads (Settings > Key lock > Knob when locked) only with a "knob:<percent>" token
+// A volume knob the MCU reads (Settings > Security & keypad lock > Knob when locked) only with a "knob:<percent>" token
 static bool knob_radio;
 static bool vol_held;		// ui_svc_volume_hold: the radio ignores the volume knob
 uint32_t ui_svc_features(void)
@@ -3402,7 +3402,7 @@ static bool run_token(char *t, char *err, size_t len)
 		advance(200);
 		return true;
 	}
-	if (strcmp(t, "autolock") == 0 && arg != NULL) {	// Settings > Keys > Auto lock
+	if (strcmp(t, "autolock") == 0 && arg != NULL) {	// Settings > Security & keypad lock > Auto lock
 		int32_t sec = atoi(arg);
 		ui_svc_setting_set(UI_SET_AUTO_LOCK_S, sec);
 		ui_apply_setting(UI_SET_AUTO_LOCK_S, sec);
@@ -3420,7 +3420,7 @@ static bool run_token(char *t, char *err, size_t len)
 		advance(200);
 		return true;
 	}
-	if (strcmp(t, "pttlocked") == 0 && arg != NULL) {	// Settings > Key lock > PTT when locked
+	if (strcmp(t, "pttlocked") == 0 && arg != NULL) {	// Settings > Security & keypad lock > PTT when locked
 		bool on = strcmp(arg, "on") == 0;
 		if (!on && strcmp(arg, "off") != 0) {
 			snprintf(err, len, "pttlocked: expected on or off, got %s", arg);
@@ -4034,7 +4034,7 @@ static bool run_token(char *t, char *err, size_t len)
 		return true;
 	}
 	if (strcmp(t, "gps") == 0 && arg != NULL) {	// gps:none, gps:off, gps:search, gps:fix (above ui_svc_position)
-		// Settings > Location > GPS: flows share the store
+		// Menu > Location > Location settings > GPS: flows share the store
 		ui_svc_setting_set(UI_SET_GPS, strcmp(arg, "off") != 0);
 		if (strcmp(arg, "none") == 0) {
 			sim_gps = SIM_GPS_NONE;

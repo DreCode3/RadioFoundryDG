@@ -144,8 +144,8 @@ static void gps_task(void *arg)
 				break;
 			}
 		}
-		// Settings > Location > GPS, once the module is known: the supply first on the way up, last on the way down,
-		// so the USART never listens to an unpowered line. Back on, it takes the rate the hunt found
+		// Menu > Location > Location settings > GPS, once the module is known: the supply first on the way up, last on
+		// the way down, so the USART never listens to an unpowered line. Back on, it takes the rate the hunt found
 		if (gps_power_step(&power)) {
 			if (power.on && cfg->power != NULL) {
 				cfg->power(true);

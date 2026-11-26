@@ -242,7 +242,7 @@ def _features(radio):
 @pytest.mark.bench_service
 @pytest.mark.bench_modem
 def test_call_end_tone_setting(radio, sdr_bench, pytestconfig):
-    """Settings > Sound > Call end tone: a call heard ends with the call end tone when it is on, and with no tone when
+    """Settings > Tones & alerts > Alert tones > Call end tone: a call heard ends with the call end tone when it is on, and with no tone when
     it is off (the setting's bit in beep.tones_off, set with the SETTING op; the tone counted by beep.played). The
     setting and the tone volume are put back afterwards."""
     _on_dmr_channel(radio, pytestconfig)
@@ -253,7 +253,7 @@ def test_call_end_tone_setting(radio, sdr_bench, pytestconfig):
         skip("state", "volume 0 (a knob turned down): the tone follows it and is dropped before it is counted")
     tones =radio.view(["audio"]).get("beep.tones_off")
     if tones is None:
-        skip("not_built", "firmware without the Settings > Sound tone settings (beep.tones_off)")
+        skip("not_built", "firmware without the Alert tones settings (beep.tones_off)")
     was_off, was_level = int(tones), int(f["set.beep_level"])
     L = radio.link
     played = {}

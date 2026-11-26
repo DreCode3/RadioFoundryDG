@@ -68,4 +68,4 @@ La radio ha trovato dati di un altro firmware dove RadioFoundry salva le imposta
 
 ## La radio si è riavviata da sola
 
-Guarda Impostazioni > Avanzate > Log crash e includi le sue righe nella segnalazione insieme alle informazioni di supporto. [Altro](../../docs/user/17-settings.md#crash-log)
+Guarda Impostazioni > Programmazione > Log crash e includi le sue righe nella segnalazione insieme alle informazioni di supporto. [Altro](../../docs/user/17-settings.md#crash-log)

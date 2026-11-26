@@ -185,7 +185,7 @@ useful in commercial service and to hams alike.
 Any way you can:
 
 - **Test and report.** Run RadioFoundry on your radio and [report what breaks](https://github.com/radiofoundry/radiofoundry/issues/new?template=bug_report.yml). If the radio restarted,
-  include the crash log from **Settings > Advanced > Crash log** ([settings](docs/user/17-settings.md#crash-log)).
+  include the crash log from **Settings > Programming > Crash log** ([settings](docs/user/17-settings.md#crash-log)).
 - **Ask.** [Request a feature](https://github.com/radiofoundry/radiofoundry/issues/new?template=feature_request.yml) or [a radio](https://github.com/radiofoundry/radiofoundry/issues/new?template=radio_request.yml) you'd like supported.
 - **Contribute.** Send pull requests for code or docs ([contributing](docs/dev/contributing.md)).
 - **Donate or lend a radio.** This helps the most, especially older models that are hard to find now, because every

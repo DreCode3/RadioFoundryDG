@@ -21,7 +21,7 @@ Pass criteria:
   2.6 times the one at 12.5 kHz (the radio scales every deviation with the channel bandwidth; nominally 2).
 - test_fm_tx_tone_burst: TONE_BURST on for 2 s (radio-features.md 3.3): one keyed segment holding a 1750 Hz tone
   (+-10 Hz) for at least 1.5 s, deviation 500-2500 Hz peak at 12.5 kHz (the narrow band limit).
-- test_fm_tx_tone_burst_key: Tone burst assigned to the first side key in Settings > Keys (restored afterwards), the
+- test_fm_tx_tone_burst_key: Tone burst assigned to the first side key in Settings > Buttons (restored afterwards), the
   key's scan bit injected: a 100 ms tap sends one keyed segment of 1750 Hz (+-10 Hz) for 0.8-1.3 s (the timed burst,
   nominally 1 s); a 3 s hold sends 1750 Hz for 2.7-3.3 s and the carrier drops within 0.5 s of the tone's end.
 - test_fm_tx_roger_beep: roger_beep 1, a 1.5 s over: the segment ends with 1200 Hz then 900 Hz (+-15 Hz), each 60-160

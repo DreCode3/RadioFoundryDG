@@ -116,7 +116,8 @@ static const keymap_entry_t keymap[] = {
 	{ KEY_PTT, ACT_PTT, ACT_PTT, true, false, 0 },
 };
 
-// Reassignable in Settings > Keys and the codeplug (core/input/keyassign.h): the side keys top to bottom, then P1 and P2
+// Reassignable in Settings > Buttons and the codeplug (core/input/keyassign.h): the side keys top to bottom, then P1
+// and P2
 static const uint8_t side_keys[] = { KEY_SK1, KEY_SK2, KEY_SK3, KEY_FN_LEFT, KEY_FN_RIGHT };
 static const char *const side_key_names[] = { "SK1", "SK2", "SK3", "P1", "P2" };
 

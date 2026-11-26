@@ -44,7 +44,7 @@ Yes. The installer backs up your radio and its original codeplug when it install
 
 ## How do I get to the VFO?
 
-Three ways: Menu, 4 (Zones), where the VFO is the first row; a side key set to VFO/Channel in Settings > Keys (or the VFO/MR key where the radio has one); or * then 4 (To VFO) on a channel, which copies the channel into the VFO. [More](../../docs/user/07-channels-zones-vfo.md#the-vfo)
+Three ways: Menu, 4 (Zones), where the VFO is the first row; a side key set to VFO/Channel in Settings > Buttons (or the VFO/MR key where the radio has one); or * then 4 (To VFO) on a channel, which copies the channel into the VFO. [More](../../docs/user/07-channels-zones-vfo.md#the-vfo)
 
 ## I have trouble reaching my hotspot or one particular repeater on DMR
 
@@ -84,4 +84,4 @@ The radio found another firmware's data where RadioFoundry keeps its settings, a
 
 ## The radio restarted by itself
 
-Look at Settings > Advanced > Crash log, and include its lines in your report together with the support info. [More](../../docs/user/17-settings.md#crash-log)
+Look at Settings > Programming > Crash log, and include its lines in your report together with the support info. [More](../../docs/user/17-settings.md#crash-log)

@@ -148,7 +148,7 @@ static void test_repeat(void)
 	CHECK(count(ACT_NAV_UP, GESTURE_PRESS) == 0);
 }
 
-// Settings > Keys: a longer long press and a slower repeat (input_engine_set_timing); 0 is the defaults again
+// Settings > Buttons: a longer long press and a slower repeat (input_engine_set_timing); 0 is the defaults again
 static void test_timing(void)
 {
 	reset(0);

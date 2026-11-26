@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
-// Microphone gain (Settings > Talk & listen > Mic gain; docs/spec/radio-features.md 3.6): a step 0..10, 2 dB a step,
+// Microphone gain (Settings > Audio > Mic gain; docs/spec/radio-features.md 3.6): a step 0..10, 2 dB a step,
 // 5 = the board's own levels. A board with hal_radio_t.mic_gain gets the step as a dB offset for FM and DMR (the
 // modem's microphone gain); otherwise the step scales the mic PCM before DMR's and P25's encoders and FM isn't
 // changed. A board whose PCM is quiet (hal_radio_t.mic_pcm_db) has that much more gain on the PCM at every step; the

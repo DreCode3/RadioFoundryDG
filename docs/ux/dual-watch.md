@@ -213,7 +213,7 @@ hold #. Every side key can take A/B or Dual watch in Settings > Buttons (press o
 | Start, B in another zone | 5 (`* 7`, select B, next zone) |
 | Talk on B | 1 (A/B key, Right) or 2 (`# 1`) |
 | Stop | 1 (hold SK2), 2 (Back Back, `* 7`) |
-| Zone scan | 3 (Menu > Scan: `OK 6 1`; was 2 with `* 7`) |
+| Zone scan | 3 (Menu > Scan: `OK 5 1`; was 2 with `* 7`) |
 | Talk back on | 6 (Settings > Receive & VFO) |
 
 ## 7. Decisions

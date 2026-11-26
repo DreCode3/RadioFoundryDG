@@ -568,7 +568,7 @@ static const contact_t contacts[] = {
 uint32_t codeplug_dmr_id(void) { return own_dmr_id; }
 
 // The codeplug's settings area: the ARS server key (the gateway's is built out, CONFIG_DMR_IP_GATEWAY=0) and the
-// Settings > Sound tone keys, one-byte bools (kv_tone: -1 absent)
+// Alert tones keys, one-byte bools (kv_tone: -1 absent)
 static bool kv_ars_present;
 static uint8_t kv_serial;
 static uint32_t kv_ars;
@@ -4629,8 +4629,8 @@ static void test_position(void)
 	dmrDataServiceGetSettings(&ds);
 	CHECK(ds.hasGps);			// LRRP takes triggered requests: a GPS is there
 
-	// DMR GPS Info: off until Settings > Location > Send in DMR calls says so, then our position goes out in the
-	// call. The setting is the position service's own: saved without APRS, back after a restart
+	// DMR GPS Info: off until Menu > Location > Location settings > Send in DMR calls says so, then our position goes
+	// out in the call. The setting is the position service's own: saved without APRS, back after a restart
 	CHECK(position_now(&lat, &lon, &err, &send, now) && !send && lat == 481173000 && err == 20);
 	CHECK(ui_svc_setting_get(UI_SET_POS_DMR_CALLS) == 0 && ui_svc_setting_set(UI_SET_POS_DMR_CALLS, 1));
 	position_cfg_t pc;
@@ -4685,13 +4685,13 @@ static void test_position(void)
 	reload_channel();
 	CHECK(ui_svc_setting_set(UI_SET_POS_DMR_CALLS, 1));
 
-	// Settings > Location > GPS off: the fix goes at once
+	// Menu > Location > Location settings > GPS off: the fix goes at once
 	position_gps_enable(false);
 	CHECK(!ui_svc_position(&up) && !dmrDataServiceOwnPosition(&lp));
 	position_gps_enable(true);
 
-	// A radio without a GPS: the fixed position typed in Settings > Location is what LRRP answers with and what
-	// goes out in calls, after a restart too
+	// A radio without a GPS: the fixed position typed in Menu > Location > Location settings is what LRRP answers with
+	// and what goes out in calls, after a restart too
 	gps_here = false;
 	CHECK(!dmrDataServiceOwnPosition(&lp));
 	CHECK(ui_svc_setting_set(UI_SET_POS_FIXED_LAT, 337490000) && ui_svc_setting_set(UI_SET_POS_FIXED_LON, -843880000));
@@ -5140,8 +5140,8 @@ static void test_ui_glue(void)
 	CHECK((sv.accent & SETTINGS_AUDIO_MASK) == 0);
 	ui_svc_apply(UI_SET_NOISE_REDUCTION, ui_svc_setting_get(UI_SET_NOISE_REDUCTION));
 	CHECK(ambeVoiceEncodeOptions() == VOCODER_OPT_DEFAULT);
-	// Settings > Location > GPS reaches the board: the stored value at start-up (ui_app applies every setting), then
-	// each change (the setting store keeps it either way)
+	// Menu > Location > Location settings > GPS reaches the board: the stored value at start-up (ui_app applies every
+	// setting), then each change (the setting store keeps it either way)
 	ui_svc_apply(UI_SET_GPS, ui_svc_setting_get(UI_SET_GPS));
 	CHECK(gps_enable_calls == 1 && gps_enabled);
 	CHECK(ui_svc_setting_set(UI_SET_GPS, 0));
@@ -5223,8 +5223,9 @@ static void test_ui_glue(void)
 	ui_svc_apply(UI_SET_TALK_PERMIT, 1);
 	run(20);
 	CHECK(sm.set.talk_permit);
-	// Signaling tones (Settings > Sound, sigtone.h): the default until set; a set reaches the radio core, which clamps
-	// it (no on air copy of a reception's end), saves it in settings_t and gives it back; an old record reads default
+	// Signaling tones (Settings > Tones & alerts, sigtone.h): the default until set; a set reaches the radio core,
+	// which clamps it (no on air copy of a reception's end), saves it in settings_t and gives it back; an old record
+	// reads default
 	for (int ev = 0; ev < SIG_EV_COUNT; ev++) {
 		CHECK(ui_svc_setting_get((uint8_t)(UI_SET_SIG_DMR + ev)) == SIG_OUT_DEFAULT &&
 		      ui_svc_setting_get((uint8_t)(UI_SET_SIG_FM + ev)) == SIG_OUT_DEFAULT &&
@@ -5346,8 +5347,9 @@ static void test_ui_glue(void)
 	memset(sr.sig_ms, 0, sizeof sr.sig_ms);
 	radio_set_settings(&sr);
 	run(20);
-	// Settings > Sound tones. The four keyed ones (docs/spec/codeplug-settings.md 5.2): on while absent; a set writes
-	// a one-byte bool key with no codeplug reload, and the radio core saves the tone as the radio's own
+	// Alert tones (Settings > Tones & alerts). The four keyed ones (docs/spec/codeplug-settings.md 5.2): on while
+	// absent; a set writes a one-byte bool key with no codeplug reload, and the radio core saves the tone as the
+	// radio's own
 	static const uint8_t tone_ids[] = { UI_SET_CALL_END_TONE, UI_SET_TOT_WARN_TONE, UI_SET_BATTERY_TONE,
 					    UI_SET_TX_DENY_TONE };
 	for (size_t i = 0; i < sizeof(tone_ids); i++) {
@@ -5919,8 +5921,8 @@ static void test_soft_volume(void)
 	CHECK(debuglink_radio_feature_op(DL_OP_VOLUME, (const uint8_t[]){ RADIO_VOLUME_KNOB }, 1) == DL_ST_OK);
 	run(100);
 	CHECK(vol_last == 90 && sm.view.volume_src == RVOL_KNOB && sm.view.volume_override == -1);
-	// The knob lock (keys locked, Settings > Key lock > Knob when locked Off): the level stays while the knob moves, the view
-	// still tracks the knob, and letting go takes the knob's level at once
+	// The knob lock (keys locked, Settings > Security & keypad lock > Knob when locked Off): the level stays while the
+	// knob moves, the view still tracks the knob, and letting go takes the knob's level at once
 	CHECK(radio_volume_knob() && (ui_svc_feat_radio() & UI_FEAT_VOLUME_KNOB) && sm.view.volume_knob == 90);
 	radio_req_volume_hold(true);
 	run(100);

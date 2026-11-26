@@ -12,7 +12,7 @@ view sections of every build with a position service.
   report would carry; the ambiguity blurs it. Every setting is put back.
 - test_position_settings_survive_restart (opt-in, --allow-reboot): they are back after a restart, on a build without
   APRS as on one with it.
-- test_gps_power_switch: Settings > Location > GPS (debug link SETTING 37) switches the module and its receive path off
+- test_gps_power_switch: Menu > Location > Location settings > GPS (debug link SETTING 37) switches the module and its receive path off
   and on again: pos.gps_on follows, no bytes arrive while off, sentences come back once on. Skips without a module.
 - test_gps_fix (--manual: the owner takes the radio where it sees the sky): the board GPS is heard and gets a fix.
 - test_gps_status_icon: the status strip's GPS icon (ui.gps) is none without a module; with one it follows the fix
@@ -131,7 +131,7 @@ def _nmea(v):
 
 @pytest.mark.feature("gps")
 def test_gps_power_switch(radio):
-    """Settings > Location > GPS off powers the module down and stops its receive path, on brings both back (a board
+    """Menu > Location > Location settings > GPS off powers the module down and stops its receive path, on brings both back (a board
     whose module shares a supply it can't cut stops the receive path only). The setting is put back."""
     v = _pos(radio)
     if "pos.gps_present" not in v:
@@ -191,8 +191,8 @@ def test_gps_status_icon(radio):
         radio.link.setting("gps", 1 if was_on else 0)
 
 
-@pytest.mark.feature("gps", owner="take the radio where it sees the sky, Settings > Location > GPS on, and wait for "
-                                  "a fix (Tools > Position)")
+@pytest.mark.feature("gps", owner="take the radio where it sees the sky, Menu > Location > Location settings > GPS on, and wait for "
+                                  "a fix (Menu > Location > GPS status)")
 @pytest.mark.manual
 def test_gps_fix(radio):
     """The board GPS is heard and has a fix; with the source on Auto it is the position in use."""

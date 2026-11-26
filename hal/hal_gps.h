@@ -4,8 +4,9 @@
 // position service (core/position); this is the rest the core needs from the board.
 //
 // Radios sold with and without a module share a board, so the module is powered and listened to at start-up whatever
-// Settings > Location > GPS says, until it has been heard or the board gives up. Once heard, its supply and receive
-// path follow the setting (enable). A board whose module shares a supply it can't cut stops the receive path only.
+// Menu > Location > Location settings > GPS says, until it has been heard or the board gives up. Once heard, its supply
+// and receive path follow the setting (enable). A board whose module shares a supply it can't cut stops the receive
+// path only.
 #ifndef HAL_GPS_H
 #define HAL_GPS_H
 
@@ -15,8 +16,8 @@
 typedef struct {
 	// Optional: the module has been heard. NULL = CAP_GPS alone says (the module is always fitted)
 	bool (*present)(void);
-	// Settings > Location > GPS: power the module and its receive path on or off, within one poll. Any task; called
-	// with the stored value at start-up and on each change. NULL = the module is always on
+	// Menu > Location > Location settings > GPS: power the module and its receive path on or off, within one poll. Any
+	// task; called with the stored value at start-up and on each change. NULL = the module is always on
 	void (*enable)(bool on);
 	// Optional: the module is powered and listened to now (the start-up probe, then the setting)
 	bool (*running)(void);

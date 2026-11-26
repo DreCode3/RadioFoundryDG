@@ -4,11 +4,11 @@
 // hardware-db25d.md 3.1). The board gives the UART, its interrupt, the power pin with its polarity and, if its io init
 // hasn't, the RXD pad's mux (hrc_gps_cfg_t).
 //
-// The module is powered at start-up and listened for for LISTEN_MS, whatever Settings > Location > GPS says, so the
-// radio knows whether it has one. One checksum-valid sentence makes it present, and every sentence then goes to the
-// position service (core/position, CONFIG_GPS). Nothing heard: the module is powered off again, the UART stopped,
-// and the radio reports no GPS (hal_gps_t.present). Once present, the module is powered only while the setting is on
-// (hal_gps_t.enable; drivers/gps/gps_rx/gps_power): the task switches it within one poll, the UART and
+// The module is powered at start-up and listened for for LISTEN_MS, whatever Menu > Location > Location settings > GPS
+// says, so the radio knows whether it has one. One checksum-valid sentence makes it present, and every sentence then
+// goes to the position service (core/position, CONFIG_GPS). Nothing heard: the module is powered off again, the UART
+// stopped, and the radio reports no GPS (hal_gps_t.present). Once present, the module is powered only while the setting
+// is on (hal_gps_t.enable; drivers/gps/gps_rx/gps_power): the task switches it within one poll, the UART and
 // the supply together.
 #include "platform.h"
 #include "config.h"

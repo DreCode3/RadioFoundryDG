@@ -68,7 +68,7 @@ static const keymap_entry_t keymap[] = {
 	{ KEY_PTT, ACT_PTT, ACT_PTT, true, false, 0 },
 };
 
-// Reassignable in Settings > Keys and the codeplug (core/input/keyassign.h): the side keys top to bottom
+// Reassignable in Settings > Buttons and the codeplug (core/input/keyassign.h): the side keys top to bottom
 static const uint8_t side_keys[] = { KEY_SK1, KEY_SK2 };
 static const char *const side_key_names[] = { "SK1", "SK2" };
 // The arrows left and right of the 4-way key are printed P1 and P2: programmable on Home, arrows in the menus

@@ -27,12 +27,12 @@ typedef enum {
 	// Zone sharing (CONFIG_ZONE_SHARE): send the zone or channel (SCR_SHARE only without the zone editor, whose menus
 	// send them), to whom; an offer, its channels, the zone a channel joins
 	SCR_SHARE, SCR_SHARE_TO, SCR_OFFER, SCR_OFFER_PREVIEW, SCR_OFFER_ZONE,
-	SCR_HWOPT,			// the board's hardware options (Settings > Advanced > Hardware; hal_hwopt.h)
+	SCR_HWOPT,			// the board's hardware options (Settings > Programming > Hardware; hal_hwopt.h)
 	SCR_ZCHANNEL, SCR_ZPICK, SCR_ZONEEDIT, SCR_ZONEDEL,	// the zone editor (ui.md 2.2): Channel actions, Add
 								// channel, Zone options, Delete zone
 	SCR_CHZONES,			// the channel editor's Zones: in which zones the channel is (arg = its number)
-	SCR_DMR_ID,			// the radio's own DMR ID (Settings > My radio)
-	SCR_REF_TRIM,			// the reference trim (Settings > Advanced > Freq trim)
+	SCR_DMR_ID,			// the radio's own DMR ID (Settings > Programming > DMR ID and name)
+	SCR_REF_TRIM,			// the reference trim (Settings > Programming > Frequency trim)
 	SCR_GPS,			// Menu > Location > GPS status's pages (CONFIG_GPS_SKY): status, sky, signal, grid
 	SCR_CONTACT_EDIT,		// the contact editor (CONFIG_CONTACT_EDIT): a new contact, from ui_target
 	SCR_LANGUAGE,			// Settings > Display > Language: every language, those not built dimmed
@@ -41,13 +41,13 @@ typedef enum {
 	SCR_APRS_STATION,		// a heard station's actions
 	SCR_MESSAGE_TEXT,		// message body editor
 	SCR_MESSAGE_READ,		// a message's whole text, scrolled (the message screen's Full message row)
-	SCR_DATA_SERVICES,		// Settings > Connections > Data services: ARS server, IP gateway (CONFIG_DMR_ARS / _IP_GATEWAY)
+	SCR_DATA_SERVICES,		// Menu > Connections > Data services: ARS server, IP gateway (CONFIG_DMR_ARS / _IP_GATEWAY)
 	SCR_SATELLITE_PASSES,		// Menu > Location > Satellite: predict and select the next installed-TLE passes
 	SCR_SATELLITE,			// selected satellite: live pass details and tracking controls
 	SCR_SATELLITE_TEXT,		// one 69-character TLE line
 	SCR_SIG_CHAIN,			// Settings > Signaling tones: one event's five steps (arg = sig_event_t)
 #if CONFIG_BACKLIGHT_TEST
-	SCR_BL_TEST,			// Settings > Advanced > Backlight tests
+	SCR_BL_TEST,			// Settings > Programming > Backlight tests
 #endif
 	SCR_SCAN_MENU, SCR_LOCATION, SCR_CONNECTIONS,	// Menu 5, 6 and 7
 #if CONFIG_UI_SETTINGS

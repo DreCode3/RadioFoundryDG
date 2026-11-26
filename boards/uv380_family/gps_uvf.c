@@ -5,7 +5,7 @@
 // same two pins and no module, but an owner can fit one there (hardware-dm1701.md 14). Radios with and without a module
 // share an image, so the module is powered for the listen window only and switched off again when nothing is heard. A
 // sentence keeps it on, and every sentence goes to the position service (core/position). From then on PA9 follows
-// Settings > Location > GPS (board_t.gps)
+// Menu > Location > Location settings > GPS (board_t.gps)
 #include "config.h"
 #include "uvf.h"
 #include "pins.h"

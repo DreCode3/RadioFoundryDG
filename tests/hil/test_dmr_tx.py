@@ -474,7 +474,7 @@ def test_dmr_tx_permit_before_key(radio, sdr_bench, pytestconfig):
         if knob_down:
             radio.link.volume("knob")
     print(f"beep.played +{played}; gate {gate} -> {after}")
-    assert played >= 1, "no beep played for the over: is Settings > Talk permit off?"
+    assert played >= 1, "no beep played for the over: is the Talk permit tone (Settings > Tones & alerts > Alert tones) off?"
     if gate is not None:
         assert after["g"] - gate["g"] >= 1, "the TX gate never closed for the over"
         assert after["l"] == gate["l"], f"the key-up found the beep still sounding ({gate['l']} -> {after['l']})"

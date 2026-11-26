@@ -1372,8 +1372,8 @@ static void test_dmr_position(void)
 #endif
 }
 
-// Settings > Location > GPS (position_gps_enable): a board fix is the position while the setting is on, and with it off
-// the fix is gone at once (not 60 s later) and new sentences from the driver are ignored
+// Menu > Location > Location settings > GPS (position_gps_enable): a board fix is the position while the setting is on,
+// and with it off the fix is gone at once (not 60 s later) and new sentences from the driver are ignored
 static void test_gps_setting(void)
 {
 	const char *rmc = "$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A";

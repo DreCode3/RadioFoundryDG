@@ -30,7 +30,7 @@ int16_t ui_app_backlight_hold(void);
 bool ui_app_take_backlight_reapply(void);
 // A banner or the emergency screen came up since the last call (then cleared): the backlight comes on for it
 bool ui_app_take_wake(void);
-// Auto power off is due (Settings > Power > Auto power off): the housekeeping task switches the radio off. If
+// Auto power off is due (Settings > Display > Auto power off): the housekeeping task switches the radio off. If
 // the supply stays on, it queues UI_EV_POWER_OFF_FAILED (ui_notify) and the UI waits a whole period again. Any task
 bool ui_app_power_off_due(void);
 

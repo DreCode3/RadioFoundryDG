@@ -766,8 +766,8 @@ static void test_crash_bits(void)
 	CHECK(settings_theme(&s) == 3);
 }
 
-// The Settings > Sound tones share sound_flags with the knob lock: each keeps its bits, and firmware from before the
-// tones (which only sets and clears SETTINGS_KNOB_LOCK) leaves them as they are
+// The Alert tones (Settings > Tones & alerts) share sound_flags with the knob lock: each keeps its bits, and firmware
+// from before the tones (which only sets and clears SETTINGS_KNOB_LOCK) leaves them as they are
 static void test_sound_flags(void)
 {
 	settings_t s;

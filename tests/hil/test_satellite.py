@@ -12,7 +12,7 @@ from test_task_stacks import HEAP_MIN_FREE, tasks_section
 @pytest.mark.feature(
     "satellite_tle",
     optional=True,
-    owner="load a current TLE, provide position and UTC, then start tracking on Tools > Satellite",
+    owner="load a current TLE, provide position and UTC, then start tracking on Menu > Location > Satellite",
 )
 def test_satellite_tracking_view(radio):
     view = radio.view(["core"])
@@ -27,7 +27,7 @@ def test_satellite_tracking_view(radio):
 @pytest.mark.feature(
     "satellite_tle",
     optional=True,
-    owner="load a current TLE, provide position and UTC, then start tracking on Tools > Satellite",
+    owner="load a current TLE, provide position and UTC, then start tracking on Menu > Location > Satellite",
 )
 def test_satellite_tracking_heap(radio):
     view = radio.view(["core"])

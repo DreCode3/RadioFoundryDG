@@ -27,7 +27,7 @@ static struct {
 #endif
 #if CONFIG_GPS
 	fix_t gps;
-	bool gps_off;		// Settings > Location > GPS is off: the board's fix doesn't count (position_gps_enable)
+	bool gps_off;		// Menu > Location > Location settings > GPS is off: the board's fix doesn't count (position_gps_enable)
 	bool gps_heard;		// the board GPS has sent a valid sentence (fix or not), last at gps_heard_ms
 	uint32_t gps_heard_ms;
 #if CONFIG_UI_THEME_PANELS

@@ -74,8 +74,8 @@ typedef struct {
 	const band_t *bands;
 	uint8_t band_count;
 	// Optional: the last rx_ext_count entries of bands are a receive-only range past the radio's rated bands, in force
-	// only while *rx_ext_on (Settings > Advanced, off by default; docs/spec/radio-features.md). Read the table through
-	// board_band_count(), and never set tx on these entries
+	// only while *rx_ext_on (Settings > Programming > RX past bands, off by default; docs/spec/radio-features.md). Read
+	// the table through board_band_count(), and never set tx on these entries
 	uint8_t rx_ext_count;
 	bool *rx_ext_on;
 	uint8_t power_count;
@@ -90,8 +90,8 @@ typedef struct {
 	const hal_input_t *input;
 	const keymap_entry_t *keymap;
 	uint8_t keymap_len;
-	// The keys the user may reassign (Settings > Keys, the codeplug's quick-key slots; core/input/keyassign.h), as key
-	// map bits in role order, up to KEYASSIGN_ROLES: every key with a function of its own (side keys, numbered SK1,
+	// The keys the user may reassign (Settings > Buttons, the codeplug's quick-key slots; core/input/keyassign.h), as
+	// key map bits in role order, up to KEYASSIGN_ROLES: every key with a function of its own (side keys, numbered SK1,
 	// SK2, ... from the top, then programmable and function keys), not the keys the menus need (select, back, QUICK,
 	// CONTEXT, digits, PTT). side_key_names: each one's name as printed on the radio, for Settings ("SK1", "P1")
 	const uint8_t *side_keys;
@@ -310,7 +310,7 @@ static inline board_volts_t board_volts(void)
 	return board.power != NULL && board.power->supply_mv != NULL ? BOARD_VOLTS_SUPPLY : BOARD_VOLTS_NONE;
 }
 
-// Settings > Location > GPS took effect (a board without the hook has nothing to switch)
+// Menu > Location > Location settings > GPS took effect (a board without the hook has nothing to switch)
 static inline void board_gps_enable(bool on)
 {
 	if (board.gps != NULL && board.gps->enable != NULL) {

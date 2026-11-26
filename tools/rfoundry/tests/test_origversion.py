@@ -246,7 +246,7 @@ class StoreLearned(unittest.TestCase):
     def test_refused_store_says_how_to_set_it(self):
         link = self.link(-1, refuse=True)
         _, out = quiet(cli.store_learned, "port", self.board, self.learned, link_fn=lambda p: link)
-        self.assertIn("Settings > Advanced > Hardware", out)
+        self.assertIn("Settings > Programming > Hardware", out)
 
     def test_nothing_learned_opens_nothing(self):
         def boom(port):
@@ -307,7 +307,7 @@ class HwoptPrompt(unittest.TestCase):
 
     def test_no_answer_says_where_to_set_it(self):
         _, out = self.run_prompt(self.link(), [])
-        self.assertIn("Settings > Advanced > Hardware > " + self.name, out)
+        self.assertIn("Settings > Programming > Hardware > " + self.name, out)
 
     def test_restart_due_is_said(self):
         asked, out = self.run_prompt(self.link(value=1), [])

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
 // The codeplug settings area (docs/spec/codeplug-settings.md) in the Codeplug Editor: static/js/codeplug/kv.js, the
-// general settings' arsServer, ipGateway and Settings > Sound tones (records.js, model.js) and the region the editor moves to and from a radio.
-// Run with node --test site/tests/ (site/tests/run.sh).
+// general settings' arsServer, ipGateway and Settings > Tones & alerts tones (records.js, model.js) and the region the
+// editor moves to and from a radio. Run with node --test site/tests/ (site/tests/run.sh).
 
 import { test } from "node:test";
 import assert from "node:assert/strict";

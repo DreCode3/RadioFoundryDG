@@ -6,7 +6,7 @@
 # without it
 # The host link runs on the programming cable's UART0; USB, PPP and TCP_CONNS follow the platform
 # (platform/hrc7000/config.mk)
-# The vibration motor on PTB24 (Settings > Sound > Vibrate)
+# The vibration motor on PTB24 (Settings > Tones & alerts > Vibrate)
 CONFIG_VIBRATE ?= y
 # 128x64 monochrome: no room for the large font, and no colors to set
 CONFIG_FONT_XL ?= n

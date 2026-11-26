@@ -122,18 +122,18 @@ typedef struct {
 	// Here, in the byte before auto_lock_s that was padding: the radio with the least RAM has none to spare in its
 	// maximal build
 	bool label_first;	// Home's talk line: the talkgroup's name before its number (Settings > Display, a side key)
-	uint16_t auto_lock_s;	// lock the keys after this long without a key press, 0 = never (Settings > Keys)
-	bool alias_show;	// show received talker aliases (Settings > Talk & listen)
+	uint16_t auto_lock_s;	// lock the keys after this long without a key press, 0 = never (Settings > Buttons)
+	bool alias_show;	// show received talker aliases (Settings > Call settings)
 	bool ptt_locked;	// PTT works while the keys are locked (Settings > Privacy)
-	bool hear_all_default;	// hear all on whenever a DMR channel is selected (Settings > Talk & listen)
-	bool message_tone;	// a tone when a message arrives (Settings > Sound)
-	bool vibrate;		// vibrate for messages, calls to us, emergencies (Settings > Sound, CONFIG_VIBRATE)
-	uint8_t updown;		// what Up / Down change on Home: 0 channel, 1 zone, 2 talk target (Settings > Keys)
-	uint8_t low_batt_pct;	// warn at this battery percent, 0 = never (Settings > Power)
-	uint8_t volume;		// speaker volume step 0..RADIO_VOLUME_MAX of a radio without a knob (the volume screen, Settings > Sound)
+	bool hear_all_default;	// hear all on whenever a DMR channel is selected (Settings > Call settings)
+	bool message_tone;	// a tone when a message arrives (Settings > Tones & alerts > Alert tones)
+	bool vibrate;		// vibrate for messages, calls to us, emergencies (Settings > Tones & alerts, CONFIG_VIBRATE)
+	uint8_t updown;		// what Up / Down change on Home: 0 channel, 1 zone, 2 talk target (Settings > Buttons)
+	uint8_t low_batt_pct;	// warn at this battery percent, 0 = never (Settings > Display)
+	uint8_t volume;		// speaker volume step 0..RADIO_VOLUME_MAX of a radio without a knob (the volume screen, Settings > Tones & alerts)
 	int8_t volbar;		// the knob was turned: its step in the bar over the screen (ui_draw_volume_bar), -1 = none
 	bool knob_lock;		// the volume knob does nothing while the keys are locked (Knob when locked Off)
-	uint16_t auto_off_min;	// switch off after this long without use, 0 = never (Settings > Power)
+	uint16_t auto_off_min;	// switch off after this long without use, 0 = never (Settings > Display)
 	uint16_t unread;	// unread messages
 	const char *home_hint;	// the hint for Home's idle state, built from the board's keys ("OK Menu *Quick #Joe")
 #if CONFIG_KEY_ASSIGN
@@ -190,7 +190,7 @@ extern ui_layout_t ui_layout;
 enum { UI_USB_NET_OFF, UI_USB_NET_WAIT, UI_USB_NET_UP };
 
 // ui_state_t.gps: the status strip's GPS icon, a satellite dish. None on a radio without a GPS (board_has_gps: a module
-// detected after start-up gets it then); hollow while Settings > Location > GPS is off; solid while it is on without a
+// detected after start-up gets it then); hollow while Location settings > GPS is off; solid while it is on without a
 // fix, silent included; with a fix, solid with its feed arm and two waves
 enum { UI_GPS_NONE, UI_GPS_OFF, UI_GPS_SEARCH, UI_GPS_FIX };
 

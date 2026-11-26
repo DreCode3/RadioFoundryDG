@@ -631,7 +631,8 @@ gpsBaudTest: gpsBaudTest.c $(ROOT)/drivers/gps/gps_rx/gps_baud.c $(ROOT)/drivers
 	$(CC) $(CFLAGS) -Wshadow -o $@ gpsBaudTest.c $(ROOT)/drivers/gps/gps_rx/gps_baud.c \
 		$(ROOT)/drivers/gps/gps_rx/gps_rx.c $(ROOT)/drivers/gps/nmea_line/nmea_line.c
 
-# When a GPS module is powered: the start-up probe, then Settings > Location > GPS (drivers/gps/gps_rx/gps_power.c)
+# When a GPS module is powered: the start-up probe, then Menu > Location > Location settings > GPS
+# (drivers/gps/gps_rx/gps_power.c)
 TESTS   += gpsPowerTest
 gpsPowerTest: gpsPowerTest.c $(ROOT)/drivers/gps/gps_rx/gps_power.c $(ROOT)/drivers/gps/gps_rx/gps_power.h
 	$(CC) $(CFLAGS) -Wshadow -o $@ gpsPowerTest.c $(ROOT)/drivers/gps/gps_rx/gps_power.c

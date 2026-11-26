@@ -65,7 +65,7 @@ def _key_and_check(radio, hz, what):
                                      f"{mid.get('tx_deny')}, txlim.refused {mid.get('txlim.refused')})"
     radio.wait_for(lambda s: s.get("state") != "tx", timeout=3, what="TX ended")
     played, shared = _beeps(radio)
-    assert played > played0, f"{what}: no beep played for the over: are the key beep and Settings > Talk permit off?"
+    assert played > played0, f"{what}: no beep played for the over: are the key beep and the Talk permit tone (Settings > Tones & alerts > Alert tones) off?"
     assert shared == shared0, f"{what}: the beep played into a stream already running (beep.shared " \
                               f"{shared0} -> {shared}), so the voice stream never took a beep's stream over"
     t0 = time.monotonic()

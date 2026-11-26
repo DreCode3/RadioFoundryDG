@@ -350,7 +350,7 @@ bool codeplug_zone(uint16_t i, zone_t *out)
 }
 static const contact_t contacts[] = { { "Local", 9, CONTACT_GROUP, 0 } };
 uint32_t codeplug_dmr_id(void) { return 9996543; }
-// The settings area holds only the Settings > Sound tone keys here: one-byte bools, -1 absent (kv_tone_set)
+// The settings area holds only the Alert tones keys here: one-byte bools, -1 absent (kv_tone_set)
 static int16_t kv_tone[CODEPLUG_KEY_TX_DENY_TONE - CODEPLUG_KEY_CALL_END_TONE + 1] = { -1, -1, -1, -1 };
 static uint8_t kv_serial;
 int codeplug_kv_get(uint16_t key, void *buf, uint16_t max)
@@ -3902,8 +3902,8 @@ static void test_dmr_beeps(void)
 	chans[6].no_beep = false;
 }
 
-// Settings > Sound: a tone key of the codeplug's settings area at 0 silences its beeps, at 1 or absent they play
-// (codeplug-settings.md 3), and the radio core takes a key written without a codeplug reload
+// Alert tones (Settings > Tones & alerts): a tone key of the codeplug's settings area at 0 silences its beeps, at 1 or
+// absent they play (codeplug-settings.md 3), and the radio core takes a key written without a codeplug reload
 static void set_tones_off(radio_settings_t *s) { s->tones_off = RADIO_TONES_MASK; }
 
 static void test_tone_keys(void)

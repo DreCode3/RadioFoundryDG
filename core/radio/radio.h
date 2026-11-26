@@ -98,7 +98,7 @@ typedef struct {
 	uint8_t beep_level;	// 0 = silent .. 100: the loudest a beep gets (it follows the volume up to this)
 	bool key_beep;		// radio_req_beep(BEEP_KEY) sounds
 	bool talk_permit;	// DMR: the talk permit tone when the voice goes on air (channels without no_beep)
-	uint8_t tones_off;	// Settings > Sound tones off, bit n for radio_tone_rows[n] (radio_keys.h); a key of the
+	uint8_t tones_off;	// Alert tones off, bit n for radio_tone_rows[n] (radio_keys.h); a key of the
 				// codeplug's settings area holds over it (docs/spec/codeplug-settings.md 5.2)
 	// Signaling tones (sigtone.h), by sig_event_t: where each sounds in DMR and FM (sig_out_t), 0 = the radio's own
 	// tone for the event (talk permit, call end, roger beep); and each event's chain of up to 10 steps, a frequency in
@@ -792,7 +792,8 @@ void radio_req_volume_override(int8_t step);
 // Hold the level in force and ignore the knob (the keys are locked), or follow the knob again: it takes the knob's
 // level at once. RAM only. Does nothing without a knob
 void radio_req_volume_hold(bool hold);
-// Whether the MCU reads a volume knob (the level follows it): Settings > Key lock > Knob when locked is shown only then
+// Whether the MCU reads a volume knob (the level follows it): Settings > Security & keypad lock > Knob when locked is
+// shown only then
 bool radio_volume_knob(void);
 bool radio_volume_soft(void);
 // Whether the MCU can set the speaker level at all (the board has the hook): knob radios accept an override

@@ -68,4 +68,4 @@ La radio encontró datos de otro firmware donde RadioFoundry guarda sus ajustes,
 
 ## La radio se reinició sola
 
-Mira Ajustes > Avanzado > Log de fallos e incluye sus líneas en tu informe junto con la información de soporte. [Más](../../docs/user/17-settings.md#crash-log)
+Mira Ajustes > Programación > Log de fallos e incluye sus líneas en tu informe junto con la información de soporte. [Más](../../docs/user/17-settings.md#crash-log)

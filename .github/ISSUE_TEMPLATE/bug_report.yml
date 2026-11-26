@@ -33,7 +33,7 @@ body:
     id: version
     attributes:
       label: Firmware version
-      description: Settings > Advanced > About shows the version and commit. Or `tools/rfoundry_debug.py version`.
+      description: Settings > Radio info > About shows the version and commit. Or `tools/rfoundry_debug.py version`.
       placeholder: v26.11 (3029db9)
     validations:
       required: true
@@ -109,7 +109,7 @@ body:
     attributes:
       label: Crash log
       description: |
-        If the radio restarted or froze, open Settings > Advanced > Crash log before you switch it off (switching off
+        If the radio restarted or froze, open Settings > Programming > Crash log before you switch it off (switching off
         may lose the record) and copy what it shows, or attach a photo of the screen. With the radio on USB,
         `tools/rfoundry_debug.py crash` prints the same record. "No crash recorded" is worth saying too.
         [How the crash log works](https://github.com/radiofoundry/radiofoundry/blob/main/docs/user/17-settings.md#crash-log).

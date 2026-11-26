@@ -74,7 +74,7 @@ static const keymap_entry_t keymap[] = {
 	{ KEY_MIC_AB, ACT_VFO_TOGGLE, ACT_COPY_VFO, false, false, 0 },
 };
 
-// Reassignable in Settings > Keys and the codeplug (core/input/keyassign.h): P3, P4, the orange key
+// Reassignable in Settings > Buttons and the codeplug (core/input/keyassign.h): P3, P4, the orange key
 static const uint8_t side_keys[] = { KEY_P3, KEY_P4, KEY_ALARM };
 static const char *const side_key_names[] = { "P3", "P4", "Orange" };
 

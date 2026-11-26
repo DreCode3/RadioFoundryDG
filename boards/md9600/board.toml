@@ -48,7 +48,7 @@ extra = [
 [flash]
 family = "usb-dfu"
 keep_codec = true
-notice = "One image serves every MD-9600, but only V1-V3 boards (original firmware V06.xx) have been tested. V4 (V16.xx) boards have not been tried on a radio, and on one V4A/V5 (V26.xx) radio DMR transmit drops out (#750): receive or transmit may not work on these boards. Transmit stays off until you turn it on in Settings > Advanced > Hardware. Keep a backup so you can go back to the original firmware, and please report what you find."
+notice = "One image serves every MD-9600, but only V1-V3 boards (original firmware V06.xx) have been tested. V4 (V16.xx) boards have not been tried on a radio, and on one V4A/V5 (V26.xx) radio DMR transmit drops out (#750): receive or transmit may not work on these boards. Transmit stays off until you turn it on in Settings > Programming > Hardware. Keep a backup so you can go back to the original firmware, and please report what you find."
 stock_versions = [
 	"03.28 to 06.24 (V1-V3 boards)", "16.24 and 16.45 (V4 boards)", "26.38 to 26.45 and 126.61 (V5 boards)", "26.57 (V4A boards)",
 ]

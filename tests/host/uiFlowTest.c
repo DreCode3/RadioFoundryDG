@@ -411,7 +411,7 @@ static const flow_t flows[] = {
 #if CONFIG_DMR && CONFIG_DMR_PRIVACY
 	{ "10 privacy", "", "quick 6 back", "privacy=1 screen=home", 3, false },
 #endif
-	{ "11 scan start (Tools > Scan)", "", "ok 5 1", "scanning=1", 3, false },
+	{ "11 scan start (Menu > Scan)", "", "ok 5 1", "scanning=1", 3, false },
 	{ "11 nuisance skip", "ok 5 1", "ctx 1", "pos=4 scanning=1", 2, false },
 	{ "11 scan stop", "ok 5 1", "back", "scanning=0", 1, false },
 	// Dual watch (docs/ux/dual-watch.md): on in a few presses, PTT on the selected channel, the other one press away
@@ -441,7 +441,7 @@ static const flow_t flows[] = {
 	{ "11 dual watch, two receivers: talk on B", "receivers:2 quick 7 ctx 3 5 ok rxb:9997777,3100,g wait:300 rxbend",
 	  "ctx 1", "dual=1 sel=B last=B uipos=5", 2, false },
 	{ "11 dual watch: long SK2", "quick 7 ctx 3 5 ok back back", "long:user2", "dual=1 sel=A bpos=5", 1, false },
-	{ "11 dual watch: Tools > Scan, a zone scan instead", "quick 7 ctx 3 5 ok", "ok 5 1", "dual=0 scanning=1", 3, false },
+	{ "11 dual watch: Menu > Scan, a zone scan instead", "quick 7 ctx 3 5 ok", "ok 5 1", "dual=0 scanning=1", 3, false },
 	{ "11 dual watch: the last B after power off", "quick 7 ctx 3 5 ok back back reboot", "quick 7", "dual=1 sel=A bpos=5",
 	  2, false },
 	// Each pane names its own mode (the strip names the selected one's), every mode the build runs: a VFO pane says
@@ -485,7 +485,7 @@ static const flow_t flows[] = {
 	{ "11 dual watch modes: NXDN call", "nxdn chkind:3,nxdn up down quick 7 tune:a", "fmrx",
 	  "dual=1 shows=NXDN_call hides=FM_signal hides=DMR_call", 0, false },
 #endif
-	// Settings > Advanced > Hardware (last row): OK steps a choice without storing ("*"), holding OK stores it
+	// Settings > Programming > Hardware: OK steps a choice without storing ("*"), holding OK stores it
 	{ "S hardware options open", "hwopt", "ok 8 9 row:Hardware ok", "screen=hwopt shows=Not_set", 10 + PROG_BELOW_DIAG_N,
 	  false },
 	{ "S hardware option stepped, not stored", "hwopt ok 8 9 row:Hardware ok", "ok ok", "shows=V2*", 2, false },
@@ -506,8 +506,8 @@ static const flow_t flows[] = {
 	{ "S freq trim: OK leaves", "trim ok 8 9 row:Frequency_trim ok", "ok", "screen=group shows=Frequency_trim", 1, false },
 	{ "S no freq trim without the hook", "", "ok 8 up ok row:About", "hides=Freq_trim", 7, false },
 #if CONFIG_BACKLIGHT_TEST
-	// Settings > Advanced > Backlight tests, under Diagnostics. The sim's display has the raw hooks (4096 counts, three
-	// rates, 7324 Hz standard), so the compare value page comes first
+	// Settings > Programming > Backlight tests, under Diagnostics. The sim's display has the raw hooks (4096 counts,
+	// three rates, 7324 Hz standard), so the compare value page comes first
 	{ "S backlight tests", "", "ok 8 9 row:Backlight_tests ok", "screen=bltest shows=CV", 9, false },
 	{ "S backlight tests by Find (duty)", "", "3 8 8 9 row:Backlight_tests ok", "screen=group focus=Backlight_tests", 6, false },
 	{ "S backlight tests: digits set the value", "ok 8 9 row:Backlight_tests ok", "2 1 3 7", "shows=CV_2137", 4, false },
@@ -808,7 +808,8 @@ static const flow_t flows[] = {
 	{ "14 GPS details", "", "ok 6 1", "screen=gps", 3, false },
 	{ "15 hotspot page", "", "ok 7 1", "screen=info", 4, false },
 #if CONFIG_SFR && CONFIG_VFO_DMR
-	// Tools > Single-freq repeater in the VFO sets its role (docs/spec/sfr.md 4): SELECT steps Role and Inbound slot
+	// Menu > Connections > SFR > SFR status in the VFO sets its role (docs/spec/sfr.md 4): SELECT steps Role and
+	// Inbound slot
 	{ "15 VFO SFR page", "ok 4 up ok", "ok 7 3 ok", "screen=info focus=Role shows=Off", 4, false },
 	{ "15 VFO SFR role: User, then TS2", "ok 4 up ok ok 7 3 ok", "ok down ok", "screen=info shows=User shows=TS2", 3,
 	  false },
@@ -945,8 +946,8 @@ static const flow_t flows[] = {
 	  "ok 4 5 ok", "set103=0 toast=Not_changed screen=sig-chain", 4, false },
 	{ "S signaling tones: Up and Down step the value", "ok 8 2 row:Signaling_tones ok row:Start_steps ok down down down down",
 	  "ok 5 0 0 up up ok 6 0 down ok", "set104=520 set134=50", 12, false },
-	// The own DMR ID (Settings > My radio, set76, the codeplug's): digits type it, OK saves, BACK takes the last digit
-	// back and with none typed leaves it; 0 is refused
+	// The own DMR ID (Settings > Programming > DMR ID and name, set76, the codeplug's): digits type it, OK saves, BACK
+	// takes the last digit back and with none typed leaves it; 0 is refused
 	{ "S DMR ID opens", "", "ok 8 9 row:DMR_ID_and_name ok", "screen=dmr-id shows=DMR_ID", 7, false },
 	{ "S About from My radio", "", "ok 8 up ok row:About ok", "screen=about shows=Build:", 8, false },
 	{ "S DMR ID typed and saved", "ok 8 9 row:DMR_ID_and_name ok", "9 9 9 9 9 9 9 ok", "set76=9999999 toast=DMR_ID_saved", 8, false },
@@ -960,7 +961,7 @@ static const flow_t flows[] = {
 	{ "S DMR ID: past the last is refused", "ok 8 9 row:DMR_ID_and_name ok", "1 6 7 7 6 4 1 6", "toast=IDs_go_up", 8, false },
 	{ "S DMR ID: the refused digit isn't kept", "ok 8 9 row:DMR_ID_and_name ok", "1 6 7 7 6 4 1 6 ok", "set76=1677641", 9, false },
 	{ "S DMR ID 0 is refused", "ok 8 9 row:DMR_ID_and_name ok 3 1 ok", "0 ok", "set76=31 toast=IDs_start screen=dmr-id", 2, false },
-	// Data services (Settings > Connections, the last row; set86 ARS server, set87 IP gateway, the codeplug's settings
+	// Data services (Menu > Connections 4; set86 ARS server, set87 IP gateway, the codeplug's settings
 	// area): typed as the DMR ID, 0 turns the service off
 	{ "S data services opens", "", "ok 7 4", "screen=data-services shows=ARS_server shows=IP_gateway shows=Off", 3,
 	  false },
@@ -979,7 +980,7 @@ static const flow_t flows[] = {
 	  true },
 	{ "S digits on a name row type no ID", "ok 8 9 row:DMR_ID_and_name ok down", "3 1",
 	  "screen=dmr-id focus=Radio_name toast=No_item_with_that_number", 2, false },
-	// Vibrate (Settings > Sound, radio-features.md 4.1): ui_vibe_t 0 message, 1 call, 2 emergency
+	// Vibrate (Settings > Tones & alerts, radio-features.md 4.1): ui_vibe_t 0 message, 1 call, 2 emergency
 	{ "S vibrate on a message", "", "msg:9991234,Hi", "vibes=1 vibe=0", 0, false },
 	{ "S vibrate on a call alert", "", "alert:91", "vibes=1 vibe=1", 0, false },
 	{ "S vibrate on a private call", "", "privcall:91", "vibes=1 vibe=1", 0, false },
@@ -1006,7 +1007,7 @@ static const flow_t flows[] = {
 	{ "S Copy to VFO: tile 4 in the VFO is Mode", "copykey", "quick 4", "toast=VFO:_FM mode=fm vfo=1", 2, false },
 	{ "S VFO/MR key: channel to VFO and back", "", "vfokey vfokey", "vfo=0 toast=Back_to_channels", 2, false },
 	{ "S VFO/MR key: into the VFO", "", "vfokey", "vfo=1", 1, false },
-	// The VFO's step: Auto follows the width (12.5 kHz narrow, 25 kHz wide); one set in Settings > Talk stays
+	// The VFO's step: Auto follows the width (12.5 kHz narrow, 25 kHz wide); one set in Settings > Receive & VFO stays
 	{ "S VFO entry: OK tunes the typed frequency", "vfokey", "1 4 6 5 2 ok", "freq=146520000", 6, false },
 	{ "S VFO entry: # tunes it too", "vfokey", "1 4 6 5 2 ctx", "freq=146520000", 6, false },
 	{ "S VFO entry: # tunes it with a banner up", "vfokey msg:9991234,Meet_at_the_north_lot", "1 4 6 5 2 ctx",
@@ -1129,8 +1130,8 @@ static const flow_t flows[] = {
 	{ "A interval", "", "ok 6 2 6", "aprs_interval=60", 4, false },
 	{ "A SmartBeaconing", "", "ok 6 2 7", "aprs_smart=1", 4, false },
 	{ "A send via DMR", "", "ok 6 2 8", "aprs_via=1", 4, false },
-	// Settings > Location: what every position report sends (the position service; ui_position.c). The page opens on
-	// Answer GPS requests (no GPS here: the rows above are dimmed); the position rows follow it
+	// Menu > Location > Location settings: what every position report sends (the position service; ui_position.c). The
+	// page opens on Answer GPS requests (no GPS here: the rows above are dimmed); the position rows follow it
 	{ "L position source", "ok 6 4 row:Position_source", "ok down ok", "pos_source=1 shows=GPS", 3, false },
 	{ "L position source wraps to auto", "ok 6 4 row:Position_source ok down down down down ok", "", "pos_source=0 shows=Auto", 0, false },
 	{ "L position in DMR calls", "ok 6 4 row:Send_in_DMR_calls", "ok", "pos_dmrgps=1 focus=Send_in_DMR_calls", 1, false },
@@ -1150,7 +1151,7 @@ static const flow_t flows[] = {
 	{ "L latitude after a refused digit", "ok 6 4 row:Fixed_position ok", "1 9 5 ok", "pos_lat=900000000", 4, false },
 	{ "L latitude BACK takes a digit back", "ok 6 4 row:Fixed_position ok", "1 3 9 back 3 ok", "pos_lat=330000000", 6, false },
 	{ "L latitude BACK leaves unchanged", "ok 6 4 row:Fixed_position ok", "1 1 back back", "pos_lat=0 screen=fixed-pos", 4, false },
-	// Tools > Position's pages (CONFIG_GPS_SKY, ui_gps.c): Up / Down or the digits turn them
+	// Menu > Location > GPS status's pages (CONFIG_GPS_SKY, ui_gps.c): Up / Down or the digits turn them
 	{ "G GPS status page", "", "ok 6 1", "shows=3D_Fix", 3, false },
 	{ "G GPS sky page", "ok 6 1", "down", "screen=gps shows=Sky", 1, false },
 	{ "G GPS signal page", "ok 6 1", "3", "shows=9_of_14_in_the_fix", 1, false },
@@ -1183,7 +1184,7 @@ static const flow_t flows[] = {
 	{ "A new DMR message does not change an open APRS reply", "aprs:message ok 2 ok msg:9991234,Newer wait:9000", "ok",
 	  "sent=1 aprs_to=Q4WAB-9 text=OK", 1, false },
 	{ "A not in this build", "aprs:off", "ok 6 2 2", "toast=APRS:_not aprs_auto=0", 4, false },
-	// The crash log and its report (docs/spec/crash-log.md): Settings > Advanced > Crash log, after the restart
+	// The crash log and its report (docs/spec/crash-log.md): Settings > Programming > Crash log, after the restart
 	{ "C crash log from Advanced", "crash:on", "ok 8 9 row:Crash_log ok", "screen=crash shows=Fault_3 shows=Crash_log crash_seen=1",
 	  9 + PROG_BELOW_DIAG_N, false },
 	{ "C crash: Off neither asks nor sends", "crash:on wait:2500", "", "screen=home crash_sends=0 crash_seen=0", 0, false },
@@ -1436,7 +1437,7 @@ static const flow_t flows_k[] = {
 	{ "E emergency: hold the top key", "", "long:emerg", "toast=EMERGENCY_sent", 1, false },
 	{ "E emergency: hold again cancels", "long:emerg", "long:emerg", "toast=Emergency_canceled", 1, false },
 	{ "E top key short: power", "", "user3", "power=5", 1, false },
-	// Side keys (Settings > Keys rows 4-9, core/input/keyassign.h; set42 = side key 1 ... set47 = top key hold)
+	// Side keys (Settings > Buttons rows 4-9, core/input/keyassign.h; set42 = side key 1 ... set47 = top key hold)
 	{ "K key rows retain their press and hold labels", "", "ok 8 8",
 	  "screen=group shows=SK1 shows=SK1_hold shows=SK2", 3, false },
 	// A key's row opens the functions its slot offers, the one in use checked: Down n picks the n-th after it
@@ -1532,9 +1533,10 @@ static const flow_t flows_k[] = {
 	{ "V volume stays while keys come", "softvol volkey", "up wait:2000 up wait:2000", "screen=volume vol=10", 2, false },
 	{ "V volume from a menu, back returns to it", "softvol ok", "volkey back", "screen=hub", 2, false },
 	{ "V a knob radio: no editor", "", "volkey", "screen=home toast=Volume:_use", 1, false },
-	{ "V volume is in Settings > Sound", "softvol ok 8 2", "row:Volume", "shows=Volume", 0, false },
-	// A volume knob the MCU reads ("knob:<percent>"): Settings > Key lock > Knob when locked, on by default
-	{ "V knob: the option is in Settings > Key lock", "knob:50 ok 8 7", "row:Knob_when_locked", "focus=Knob_when_locked", 2, false },
+	{ "V volume is in Settings > Tones & alerts", "softvol ok 8 2", "row:Volume", "shows=Volume", 0, false },
+	// A volume knob the MCU reads ("knob:<percent>"): Settings > Security & keypad lock > Knob when locked, on by
+	// default
+	{ "V knob: the option is in Settings > Security & keypad lock", "knob:50 ok 8 7", "row:Knob_when_locked", "focus=Knob_when_locked", 2, false },
 	{ "V knob: no option without a knob", "ok 8 7", "row:Auto_lock", "focus=Auto_lock", 0, false },
 	{ "V knob: on, locking holds nothing", "knob:50", "long:lockkey", "locked=1 volhold=0", 1, false },
 	{ "V knob: on, a turn while locked sets the level and shows the bar", "knob:50 long:lockkey wait:3000", "knob:75",
@@ -1838,7 +1840,7 @@ static void crawl(const sim_geom_t *g, sim_map_t map, const char *mapname)
 	printf("# crawl [%s]: %d screens and states checked\n", mapname, screens);
 }
 
-// About (Settings > Advanced): every word readable at every display class (nothing shortened with an ellipsis, all
+// About (Settings > Radio info): every word readable at every display class (nothing shortened with an ellipsis, all
 // the way to the end), no status strip while idle, the strip back while transmitting
 static void about_checks(void)
 {
@@ -1999,9 +2001,9 @@ static void t3_other_checks(void)
 }
 #endif
 
-// Tools > APRS > Stations heard, at every display class: a station with a position shows how far and which way it is
-// from ours, beside the longest call there is, kept whole. No position of ours, or none of the station's: the row is
-// the call and its age, as before.
+// Menu > Location > APRS > Stations heard, at every display class: a station with a position shows how far and which
+// way it is from ours, beside the longest call there is, kept whole. No position of ours, or none of the station's: the
+// row is the call and its age, as before.
 // EP: our position none / fixed x the station's none / valid (QJ4XYZ has none)
 static void heard_checks(void)
 {

@@ -50,7 +50,7 @@ extern radio_view_t ui_svc_view;
 #define UI_FEAT_VOLUME		(1u << 17)	// the volume is the radio's to set: no knob (radio_volume_soft), VOL key + Settings
 #define UI_FEAT_BCAST		(1u << 18)	// a broadcast FM receiver (radio_bcast_capable): its VFO step setting
 #define UI_FEAT_ZONE_SHARE	(1u << 19)	// ui_svc_zone_* (zone sharing over DMR data, CONFIG_ZONE_SHARE)
-#define UI_FEAT_VOLUME_KNOB	(1u << 21)	// the MCU reads a volume knob (radio_volume_knob): Settings > Key lock > Knob when locked
+#define UI_FEAT_VOLUME_KNOB	(1u << 21)	// the MCU reads a volume knob (radio_volume_knob): Settings > Security & keypad lock > Knob when locked
 #define UI_FEAT_REF_TRIM	(1u << 20)	// a reference trim (hal_radio_t.ref_trim, radio/ref_trim.h): Freq trim setting
 #define UI_FEAT_P25		(1u << 22)	// P25 on this board (CONFIG_P25, radio_p25_fits): the VFO's mode tile offers it
 #define UI_FEAT_NXDN		(1u << 23)	// NXDN on this board (CONFIG_NXDN, radio_nxdn_fits): the same
@@ -184,17 +184,17 @@ bool ui_svc_t3_cli(uint32_t gw, char *out, size_t len);
 // --- Beeps (radio-features): the radio sounds key beeps only when its key_beep setting is on ---
 typedef enum { UI_BEEP_KEY, UI_BEEP_ERROR, UI_BEEP_MESSAGE, UI_BEEP_BATTERY_LOW } ui_beep_t;
 void ui_svc_beep(uint8_t beep);
-// --- Vibration (radio-features 4.1): a pattern on the board's motor; the UI asks only when Settings > Sound >
+// --- Vibration (radio-features 4.1): a pattern on the board's motor; the UI asks only when Settings > Tones & alerts >
 // Vibrate is on. Weak no-op without CONFIG_VIBRATE ---
 typedef enum { UI_VIBE_MESSAGE, UI_VIBE_CALL, UI_VIBE_EMERGENCY } ui_vibe_t;
 void ui_svc_vibrate(uint8_t vibe);
-// PTT while the keys are locked (Settings > Key lock > PTT when locked): blocked = the input layer doesn't hand PTT
-// presses to the radio core (a PTT already held is still released). Weak no-op without the input layer
+// PTT while the keys are locked (Settings > Security & keypad lock > PTT when locked): blocked = the input layer
+// doesn't hand PTT presses to the radio core (a PTT already held is still released). Weak no-op without the input layer
 void ui_svc_ptt_block(bool blocked);
 // Keys locked: DTMF keys send nothing during FM TX (radio-features.md 3.7). Weak no-op without the input layer
 void ui_svc_dtmf_block(bool blocked);
-// Keys locked with Settings > Key lock > Knob when locked Off: the radio holds its level and ignores the volume knob; false
-// follows the knob again. Weak no-op without the radio core
+// Keys locked with Settings > Security & keypad lock > Knob when locked Off: the radio holds its level and ignores the
+// volume knob; false follows the knob again. Weak no-op without the radio core
 void ui_svc_volume_hold(bool hold);
 
 // --- Messages and signaling (dmr-data) ---
@@ -218,7 +218,7 @@ bool ui_svc_msg_send(uint32_t dst, bool group, const char *text);
 bool ui_svc_msg_reply(uint16_t i, const char *text);
 bool ui_svc_radio_check(uint32_t id);
 bool ui_svc_call_alert(uint32_t id);
-// ARS registration with the presence server (Settings > Connections > Data services), as dmrArsState_t
+// ARS registration with the presence server (Menu > Connections > Data services), as dmrArsState_t
 enum { UI_ARS_OFF, UI_ARS_REGISTERING, UI_ARS_REGISTERED, UI_ARS_REFUSED, UI_ARS_NO_ANSWER };
 uint8_t ui_svc_ars_state(void);
 
@@ -264,7 +264,7 @@ bool ui_svc_satellite_path(satellite_path_view_t *path);
 bool ui_svc_satellite_replace(uint8_t index, const satellite_tle_lines_t *lines);
 bool ui_svc_satellite_update_busy(void);
 #endif
-// The radio's GPS for the status strip: none, or one with Settings > Location > GPS off or on, however it was set
+// The radio's GPS for the status strip: none, or one with Location settings > GPS off or on, however it was set
 enum { UI_GPS_POWER_NONE, UI_GPS_POWER_OFF, UI_GPS_POWER_ON };
 uint8_t ui_svc_gps_power(void);
 // One satellite for the GPS screen's sky plot and signal bars
@@ -396,54 +396,55 @@ typedef enum {
 	// USB network (usb-network.md 1, 5): the network personality at power-on, control station passthrough (the PC
 	// answers the radio's data), the fixed link pair (192.168.10.x) instead of the address by DMR ID
 	UI_SET_USB_BOOT_NET, UI_SET_PC_ENDPOINT, UI_SET_USB_FIXED_LINK,
-	// Reassignable keys (Settings > Keys, CONFIG_KEY_ASSIGN; core/input/keyassign.h): a KEYFN_* each, kept in the
+	// Reassignable keys (Settings > Buttons, CONFIG_KEY_ASSIGN; core/input/keyassign.h): a KEYFN_* each, kept in the
 	// codeplug's quick-key slots. Press and long press of board.side_keys[0], then [1], ...: UI_SET_KEY_FIRST + 2 *
 	// role (+ 1 for the long press), UI_KEY_ROLES roles
 	UI_SET_KEY_FIRST, UI_SET_KEY_LAST = UI_SET_KEY_FIRST + 2 * UI_KEY_ROLES - 1,
-	UI_SET_VIBRATE,		// vibrate for alerts (Settings > Sound, CONFIG_VIBRATE; settings_t.ui_flags)
+	UI_SET_VIBRATE,		// vibrate for alerts (Settings > Tones & alerts, CONFIG_VIBRATE; settings_t.ui_flags)
 	UI_SET_ACCENT,		// the highlight color, UI_ACCENT_* (Settings > Display; settings_t.accent bits 0-2)
 	UI_SET_STRIP,		// the status strip filled with it (Settings > Display; settings_t.accent bit 3)
-	// The crash report (Settings > Advanced > Crash log, CONFIG_CRASH_REPORT; settings_crash_mode / settings_crash_contact):
-	// after a crash UI_CRASH_SEND_*, the target's codeplug contact number (1-based, 0 none)
+	// The crash report (Settings > Programming > Crash log, CONFIG_CRASH_REPORT; settings_crash_mode /
+	// settings_crash_contact): after a crash UI_CRASH_SEND_*, the target's codeplug contact number (1-based, 0 none)
 	UI_SET_CRASH_MODE, UI_SET_CRASH_CONTACT,
 	UI_SET_VOLUME,		// speaker volume 0 (mute) .. RADIO_VOLUME_MAX of a radio without a knob (UI_FEAT_VOLUME; settings_t.volume)
 	// Dual watch (CONFIG_DUAL_WATCH, docs/ux/dual-watch.md): after a call on the other channel, PTT talks there for a
 	// while (settings_t.ui_flags); the last B, UI_DUAL_B_* (settings_dual_b)
 	UI_SET_DUAL_TALK_BACK, UI_SET_DUAL_B,
-	// The VFO's step (Settings > Talk, CONFIG_VFO; settings_t.vfo_step_hz) in 10 Hz units, 833 the 8.33 kHz air band
-	// grid; 0 auto: the width's, 12.5 or 25 kHz
+	// The VFO's step (Settings > Receive & VFO, CONFIG_VFO; settings_t.vfo_step_hz) in 10 Hz units, 833 the 8.33 kHz
+	// air band grid; 0 auto: the width's, 12.5 or 25 kHz
 	UI_SET_VFO_STEP,
-	// Dual watch on one receiver: the wait after a signal, ms (Settings > Talk; radio_settings_t.dual_delay_ms)
+	// Dual watch on one receiver: the wait after a signal, ms (Settings > Receive & VFO;
+	// radio_settings_t.dual_delay_ms)
 	UI_SET_DUAL_DELAY_MS,
-	UI_SET_NOISE_REDUCTION,	// the vocoder's mic noise reduction on DMR TX (Settings > Talk & listen; accent bits 6-7)
+	UI_SET_NOISE_REDUCTION,	// the vocoder's mic noise reduction on DMR TX (Settings > Audio; accent bits 6-7)
 	UI_SET_MIC_AGC,		// the vocoder's mic AGC on DMR TX (accent bits 6-7); while on, mic gain is step 5 and dimmed
-	UI_SET_SFR_RX,		// what an SFR user channel hears, dmr_sfr_rx_t (Settings > Talk, CONFIG_SFR; radio_settings_t.sfr_rx)
-	UI_SET_SFR_CWID,	// the SFR repeater's CW ID interval code 0..4 (Settings > Talk, CONFIG_SFR_CWID; radio_settings_t.sfr_cwid)
-	// The VFO's step in the broadcast band, whatever the VFO step (Settings > Talk, CONFIG_BCAST_FM;
+	UI_SET_SFR_RX,		// what an SFR user channel hears, dmr_sfr_rx_t (Menu > Connections > SFR, CONFIG_SFR; radio_settings_t.sfr_rx)
+	UI_SET_SFR_CWID,	// the SFR repeater's CW ID interval code 0..4 (Menu > Connections > SFR, CONFIG_SFR_CWID; radio_settings_t.sfr_cwid)
+	// The VFO's step in the broadcast band, whatever the VFO step (Settings > Receive & VFO, CONFIG_BCAST_FM;
 	// radio_settings_t.bcast_step) in kHz: 200 (the odd tenths) or 100
 	UI_SET_BCAST_STEP,
 	UI_SET_ZONE_OFFERS,	// accept zone shares from other radios: 1 on (the default), 0 off (settings_t.zs_offers)
 	UI_SET_DMR_ID,		// the radio's own DMR ID in the codeplug, 1..CODEPLUG_DMR_ID_MAX (a set is a codeplug write job)
-	UI_SET_REF_TRIM,	// reference oscillator trim, ppb -10000..+10000 (Settings > Advanced; settings_t.ref_trim_ppb)
+	UI_SET_REF_TRIM,	// reference oscillator trim, ppb -10000..+10000 (Settings > Programming; settings_t.ref_trim_ppb)
 	UI_SET_LANGUAGE,	// the UI's language, i18n.h lang_value: "en" English, 0 never picked (Settings > Display; settings_t.lang)
-	UI_SET_RX_EXT,		// receive past the band table (Settings > Advanced; settings_t.cp_flags, CONFIG_RX_EXT)
+	UI_SET_RX_EXT,		// receive past the band table (Settings > Programming; settings_t.cp_flags, CONFIG_RX_EXT)
 	// Knob when locked: 1 the volume knob works while the keys are locked (the default), 0 it does nothing
 	// (UI_FEAT_VOLUME_KNOB; settings_t.sound_flags bit SETTINGS_KNOB_LOCK, stored inverted)
 	UI_SET_KNOB_WHEN_LOCKED,
-	// The position service's settings (Settings > Location, CONFIG_POSITION; core/position/position.h): where our
-	// position comes from (position_pref_t), the fixed position in 1e-7 degree (both 0 = not set), our position
-	// sent in DMR voice calls 0 / 1 (ETSI GPS Info, CONFIG_DMR_GPS)
+	// The position service's settings (Menu > Location > Location settings, CONFIG_POSITION; core/position/position.h):
+	// where our position comes from (position_pref_t), the fixed position in 1e-7 degree (both 0 = not set), our
+	// position sent in DMR voice calls 0 / 1 (ETSI GPS Info, CONFIG_DMR_GPS)
 	UI_SET_POS_SOURCE, UI_SET_POS_FIXED_LAT, UI_SET_POS_FIXED_LON, UI_SET_POS_DMR_CALLS,
 	UI_SET_RAM_COUNT,	// the ids up to here have a slot in ui_svc_ram_get/set's table; those after live elsewhere only
 	// Home's talk line: the talkgroup's name first, 1 on (Settings > Display; updown_home bit 7, ui_svc_storage.c)
 	UI_SET_LABEL_FIRST = UI_SET_RAM_COUNT,
-	// The ARS server's and the off-net IP gateway's DMR IDs, 0 = off (Settings > Connections > Data services,
+	// The ARS server's and the off-net IP gateway's DMR IDs, 0 = off (Menu > Connections > Data services,
 	// CONFIG_DMR_ARS / CONFIG_DMR_IP_GATEWAY): the setting in force; a set is a codeplug write job (the settings area,
 	// docs/spec/codeplug-settings.md), which the radio core takes when codeplug_kv_serial() moves on
 	UI_SET_ARS_SERVER,
 	UI_SET_IP_GATEWAY,
-	// Settings > Sound, 1 on (the default), 0 off. Tones kept as keys of the settings area over the radio core's
-	// radio_settings_t.tones_off (radio_keys.h radio_tone_rows), set as above
+	// Settings > Tones & alerts > Alert tones, 1 on (the default), 0 off. Tones kept as keys of the settings area over
+	// the radio core's radio_settings_t.tones_off (radio_keys.h radio_tone_rows), set as above
 	UI_SET_CALL_END_TONE,	// DMR: a call heard has ended
 	UI_SET_TOT_WARN_TONE,	// the TX time-out is near
 	UI_SET_BATTERY_TONE,	// low and critical battery
@@ -525,8 +526,9 @@ typedef struct {
 } ui_event_t;
 // The owner's two boot screen lines from the codeplug (storage-cps); empty strings when there are none
 void ui_svc_boot_text(char line1[17], char line2[17]);
-// The codeplug's name fields (Settings > My radio): the radio name (8 characters; APRS takes its first word as the
-// callsign) and the two boot screen lines (16 each). Set is a storage job: false while another one is pending
+// The codeplug's name fields (Settings > Programming > DMR ID and name): the radio name (8 characters; APRS takes its
+// first word as the callsign) and the two boot screen lines (16 each). Set is a storage job: false while another one is
+// pending
 enum { UI_NAME_RADIO, UI_NAME_BOOT1, UI_NAME_BOOT2, UI_NAME_COUNT };
 void ui_svc_name_get(uint8_t which, char out[17]);
 bool ui_svc_name_set(uint8_t which, const char *text);
@@ -544,7 +546,7 @@ void ui_svc_keys_poll(void);
 // A home key's event (ACT_HOME_KEY_n, board.home_keys): the action it does now, its function on Home (home true) or
 // the key's own action elsewhere; ACT_NONE for nothing. Any other action comes back as it is (CONFIG_KEY_ASSIGN)
 uint8_t ui_svc_home_key(uint8_t action, uint8_t gesture, bool home);
-// Settings > Keys: value may go in the setting id's slot (a home key's role can't hold Monitor or Tone burst)
+// Settings > Buttons: value may go in the setting id's slot (a home key's role can't hold Monitor or Tone burst)
 bool ui_svc_key_offered(uint8_t id, int32_t value);
 
 #endif

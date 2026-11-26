@@ -670,7 +670,7 @@ def learn_original_version(args, usb, board, log=say, ask=None, sleep=time.sleep
 
 def learned_hint(board, learned):
     """How to set a learned choice by hand, when rfoundry couldn't store it."""
-    return ("set %s to %s on the radio: Settings > Advanced > Hardware" % (board.original_version["hwopt"],
+    return ("set %s to %s on the radio: Settings > Programming > Hardware" % (board.original_version["hwopt"],
                                                                             learned["choice"]))
 
 
@@ -698,7 +698,7 @@ def store_learned(port, board, learned, log=say, link_fn=None):
             log("ok       the radio already holds %s %s" % (name.lower(), choice))
         elif action == "mismatch":
             warn("the radio holds %s %s, but its original firmware %s says %s. Left as it is: if %s is wrong, change "
-                 "it on the radio (Settings > Advanced > Hardware)" % (name.lower(), held, learned["version"], choice,
+                 "it on the radio (Settings > Programming > Hardware)" % (name.lower(), held, learned["version"], choice,
                                                                      held))
         else:
             log("note     this RadioFoundry build has no %s %s: nothing stored" % (name.lower(), choice))
@@ -751,7 +751,7 @@ def hwopt_prompt(port, board, log=say, choose=ask_choice, link_fn=None):
         while True:
             c = choose(o["name"], o["choices"], [origversion.majors_for(spec, x) for x in o["choices"]])
             if c is None:
-                warn("set it on the radio: Settings > Advanced > Hardware > %s. The home screen reminds you until "
+                warn("set it on the radio: Settings > Programming > Hardware > %s. The home screen reminds you until "
                      "then" % o["name"])
                 return
             try:
@@ -767,7 +767,7 @@ def hwopt_prompt(port, board, log=say, choose=ask_choice, link_fn=None):
                 log("stored   %s %s: the radio is ready to transmit" % (o["name"].lower(), o["choices"][c]))
             return
     except (debuglink.LinkError, OSError) as e:
-        warn("could not read the radio's hardware options (%s): check Settings > Advanced > Hardware on the radio" % e)
+        warn("could not read the radio's hardware options (%s): check Settings > Programming > Hardware on the radio" % e)
     finally:
         link.close()
 

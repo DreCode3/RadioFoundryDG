@@ -972,8 +972,8 @@ bool ui_svc_codeplug_answer(uint8_t answer)
 }
 
 #if CONFIG_DMR
-// The radio's own DMR ID, written into the codeplug (Settings > My radio): the radio core takes it when
-// codeplug_serial() changes, and a CPS read shows it
+// The radio's own DMR ID, written into the codeplug (Settings > Programming > DMR ID and name): the radio core takes it
+// when codeplug_serial() changes, and a CPS read shows it
 static void dmr_id_job(void *ctx)
 {
 	(void)ctx;
@@ -991,7 +991,7 @@ static bool dmr_id_post(uint32_t id)
 #endif
 
 #if CONFIG_DMR_DATA_CORE
-// The ARS server or the IP gateway (Settings > Connections > Data services), set as every keyed setting is
+// The ARS server or the IP gateway (Menu > Connections > Data services), set as every keyed setting is
 // (docs/spec/codeplug-settings.md 5): the key is written when the settings area can be, so a CPS read shows it, and
 // the data service takes the setting, which the radio core saves as the radio's own. Not a codeplug write that asks
 // about another firmware's codeplug: there the area can't be written and holds no key, so the setting is only the
@@ -1022,10 +1022,10 @@ static bool data_id_post(uint16_t key, uint32_t id)
 }
 #endif
 
-// A Settings > Sound tone on or off, set as every keyed setting is (docs/spec/codeplug-settings.md 5.2, data_id_job):
-// the key is written when the settings area can be, and the radio core takes the tone into its settings, which it
-// saves as the radio's own. Refused only when the codeplug has the key and it couldn't be updated. The key in
-// job.channel, on or off in job.temp
+// An Alert tones row (Settings > Tones & alerts) on or off, set as every keyed setting is
+// (docs/spec/codeplug-settings.md 5.2, data_id_job): the key is written when the settings area can be, and the radio
+// core takes the tone into its settings, which it saves as the radio's own. Refused only when the codeplug has the key
+// and it couldn't be updated. The key in job.channel, on or off in job.temp
 static void tone_job(void *ctx)
 {
 	(void)ctx;

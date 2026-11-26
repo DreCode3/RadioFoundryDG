@@ -110,7 +110,7 @@ typedef struct {
 	uint16_t auto_lock_s;		// lock the keys after this long without a key press, 0 = never
 	uint16_t long_press_ms;		// long press threshold for core/input, 0 = INPUT_LONG_MS
 	uint16_t repeat_ms;		// key repeat period, 0 = INPUT_REPEAT_MS
-	uint8_t gps;			// GPS on: Settings > Location > GPS powers the module (board_gps_enable) and lets APRS use its fix
+	uint8_t gps;			// GPS on: Menu > Location > Location settings > GPS powers the module (board_gps_enable) and lets APRS use its fix
 	uint8_t pos_format;		// position format shown (UI list index)
 	uint16_t pos_send_s;		// send our position every so many seconds, 0 = never (kept only)
 	// DMR emergency (dmr_emergency_settings_t, docs/spec/dmr-emergency.md); em_stored 0 = never set (the defaults)
@@ -228,8 +228,9 @@ typedef struct {
 	// Zone share: the zones imported last, so the same zone sent again updates its import instead of adding a copy
 	// (docs/spec/zone-share.md 5.4); key 0 = unused, the oldest replaced first
 	settings_zs_import_t zs_import[SETTINGS_ZS_IMPORTS];
-	// Sound options (appended; was knob_flags, bit 0 only): SETTINGS_KNOB_LOCK, then the Settings > Sound tones off
-	// in bits 4..7 (settings_tones_off). 0 = the knob works and every tone is on, as an older record reads
+	// Sound options (appended; was knob_flags, bit 0 only): SETTINGS_KNOB_LOCK, then the Alert tones (Settings > Tones
+	// & alerts) off in bits 4..7 (settings_tones_off). 0 = the knob works and every tone is on, as an older record
+	// reads
 	uint8_t sound_flags;
 	// The VFOs' SFR role (docs/spec/sfr.md 4): byte A of a codeplug channel's SFR bytes (core/dmr/sfr.h), role bits 0 =
 	// none (was reserved9[0..1]: an older record reads none). The VFO's outbound color code is its own (no byte B)
@@ -388,7 +389,7 @@ static inline void settings_set_crash_contact(settings_t *s, uint16_t num)
 }
 
 // settings_t.sound_flags (bits 1..3 reserved, 0)
-#define SETTINGS_KNOB_LOCK		0x01u	// the volume knob does nothing while the keys are locked (Settings > Key lock > Knob when locked Off)
+#define SETTINGS_KNOB_LOCK		0x01u	// the volume knob does nothing while the keys are locked (Settings > Security & keypad lock > Knob when locked Off)
 #define SETTINGS_TONES_OFF_SHIFT	4	// radio_settings_t.tones_off, the radio's own copy of the codeplug's tone keys
 #define SETTINGS_TONES_OFF_MASK		0xF0u
 

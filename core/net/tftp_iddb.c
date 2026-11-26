@@ -291,7 +291,7 @@ static bool read_file(uint32_t off, uint8_t *buf, uint16_t len)
 static int open_write(uint32_t tsize, const char **msg)
 {
 	if (!tftp_codeplug_write_allowed()) {
-		*msg = "codeplug writes are off (Settings > Connections)";
+		*msg = "codeplug writes are off (Menu > Connections > PC and network)";
 		return TFTP_FAIL(TFTP_ERR_ACCESS);
 	}
 	if (!storage_ready() || map() == NULL) {

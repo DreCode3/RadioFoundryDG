@@ -25,7 +25,7 @@ That is the whole obligation, and it takes a minute to meet:
 | A fork, or source files copied from RadioFoundry | The `LICENSE` file, the `AUTHORS` and `CONTRIBUTORS` files that say who the authors are, and the SPDX and copyright lines at the top of each file. |
 | Part of a file, moved into a file of your own | Our copyright line in that file, and `LICENSE` in your tree. The license speaks of "substantial portions"; when in doubt, keep the line. |
 | Your own changes | Add your copyright line below ours. Please don't replace ours. |
-| A firmware image | The `LICENSE` text with the download, in the release package or its documentation. On the radio, keep the `License:` line of the About page (**Settings > Advanced > About**): it is the copyright notice in the image, next to the third-party licenses. The maintainers listed below it are RadioFoundry's. Replace them with your own, so your users know whom to contact. |
+| A firmware image | The `LICENSE` text with the download, in the release package or its documentation. On the radio, keep the `License:` line of the About page (**Settings > Radio info > About**): it is the copyright notice in the image, next to the third-party licenses. The maintainers listed below it are RadioFoundry's. Replace them with your own, so your users know whom to contact. |
 | Code from `third_party/`, or the fonts | That component's own license and notice. They are in [LICENSES/](LICENSES/), in each submodule's tree and in `platform/<platform>/THIRD_PARTY`. Some of them (BSD-3-Clause, Apache-2.0) also require their license text to accompany a binary. |
 
 Nothing else is required. You don't have to publish your changes, use the MIT license for your own code or tell us.

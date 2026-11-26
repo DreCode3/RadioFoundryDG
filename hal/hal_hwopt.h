@@ -2,7 +2,7 @@
 // Copyright (c) 2026 The RadioFoundry Authors
 // Hardware options: facts about the radio a person may have to state because software can't always read them, such as
 // which board revision a radio with several revisions has. The board keeps them itself, outside the settings record,
-// so a settings reset doesn't lose them. Settings > Advanced > Hardware lists them and the debug link reads and sets
+// so a settings reset doesn't lose them. Settings > Programming > Hardware lists them and the debug link reads and sets
 // them (HWOPT, docs/spec/debuglink.md 3.25). Optional: board.hwopts is NULL where the radio has none.
 //
 // A board that can detect the fact reports it through state(): a detected option is hidden, and only an option that

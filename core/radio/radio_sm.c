@@ -268,7 +268,7 @@ static void beep(radio_sm_t *sm, uint8_t b)
 {
 #if CONFIG_BEEP
 	if (radio_tone_off(sm->set.tones_off, b)) {
-		return;		// Settings > Sound turned it off (the codeplug's settings area)
+		return;		// Alert tones (Settings > Tones & alerts) turned it off (the codeplug's settings area)
 	}
 	beep_play((beep_t)b, beep_level_now(sm), beep_shared_now());
 #else
@@ -323,7 +323,7 @@ static void data_kv_load(void);
 // area in RAM: a read is a few bytes of flash, and only on those events
 static uint8_t kv_seen;		// codeplug_kv_serial() at the last load
 
-// The Settings > Sound tones' keys over s->tones_off, the radio's own copy (docs/spec/codeplug-settings.md 5.2): true
+// The Alert tones' keys over s->tones_off, the radio's own copy (docs/spec/codeplug-settings.md 5.2): true
 // if one changed it
 _Static_assert(RADIO_TONES_MASK <= (SETTINGS_TONES_OFF_MASK >> SETTINGS_TONES_OFF_SHIFT), "the tones fit sound_flags");
 static bool tones_apply(radio_settings_t *s)
@@ -7607,9 +7607,9 @@ static void bench_tick(radio_sm_t *sm, uint32_t now_ms)
 
 // --- Settings: what the radio was set to, back at power-on (core/settings), and saved when it changes ---
 
-// The radio's own DMR ID, the codeplug's (set on the radio in Settings > My radio, which writes the codeplug). Taken
-// before a channel is selected: a trunked channel's system needs an ID to start, and one selected without would stay
-// unavailable
+// The radio's own DMR ID, the codeplug's (set on the radio in Settings > Programming > DMR ID and name, which writes
+// the codeplug). Taken before a channel is selected: a trunked channel's system needs an ID to start, and one selected
+// without would stay unavailable
 static void load_own_id(radio_sm_t *sm)
 {
 #if CONFIG_DMR
