@@ -1413,14 +1413,14 @@ static const flow_t flows_mono[] = {
 	// The talk line on the smallest display (#336): an icon, not "PTT->" or "Reply->", so the label keeps its room
 	{ "2 the talk line: an arrow, no PTT word", "", "", "screen=home shows=TG_3100_USA hides=PTT", 0, false },
 	{ "4 reply window: a long label is cut, not dropped", "call:3101234,201,g", "", "shows=TG_201_Main_O hides=Reply", 0, false },
-	// The side key's TG name / number (Settings > Display > Talkgroup name first): the name leads. The choice is saved,
-	// so the next flow starts with it and turns it back off
+	// The side key's TG name / number (Settings > Display > Talkgroup name first): the name leads; pressed again, the
+	// number. Each flow starts from the default (off: this build's default theme is the reference one)
 	{ "4 a side key puts the TG name first", "call:3101234,201,g", "labelkey",
 	  "shows=Main_Ops hides=TG_201_Main toast=Talkgroup_name_first", 1, false },
-	{ "4 kept, and pressed again: the number first", "call:3101234,201,g", "labelkey",
+	{ "4 pressed again: the number first", "labelkey call:3101234,201,g", "labelkey",
 	  "shows=TG_201_Main toast=Talkgroup_number_first", 1, false },
 #if CONFIG_UI_COLOR
-	{ "S theme on a monochrome screen: dimmed", "", "ok 8 1 row:Theme ok", "toast=Colors_are_for set7=0", 13, false },
+	{ "S colors on a monochrome screen: dimmed", "", "ok 8 1 row:Colors ok", "toast=Colors_are_for set7=0", 13, false },
 	{ "S highlight color on a monochrome screen: dimmed", "", "ok 8 1 row:Highlight_color ok",
 	  "toast=Colors_are_for set61=0", 14, false },
 	{ "S filled status bar on a monochrome screen: dimmed", "", "ok 8 1 row:Filled_status_bar ok",

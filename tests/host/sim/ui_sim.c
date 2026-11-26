@@ -2910,6 +2910,8 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_NOISE_REDUCTION, 1);
 	ui_svc_setting_set(UI_SET_MIC_AGC, 0);
 	ui_svc_setting_set(UI_SET_UPDOWN_HOME, 0);
+	// Talkgroup name first: on where the panels theme is the build's default, off elsewhere (settings_defaults)
+	ui_svc_setting_set(UI_SET_LABEL_FIRST, gui_profiles);
 	ui_svc_setting_set(UI_SET_VFO_STEP, 0);
 	sim_step = 0;
 	ui_svc_setting_set(UI_SET_AUTO_OFF_MIN, 0);

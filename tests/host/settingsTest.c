@@ -735,6 +735,19 @@ static void test_map_for(void)
 	CHECK(hal_flash_map_for(NULL, NULL, 0x1000000u, 4096) == NULL);
 }
 
+// Talkgroup name first (updown_home bit 7): a new radio starts with it on where the build's default theme is panels
+// (settingsTestPanels), off elsewhere; Up / Down on Home starts on the channel either way. A record keeps its bit, so
+// an older record's 0 still reads number first
+static void test_label_first_default(void)
+{
+	settings_t s;
+	settings_defaults(&s);
+	CHECK(((s.updown_home & SETTINGS_HOME_LABEL_FIRST) != 0) == (CONFIG_UI_THEME_PANELS != 0));
+	CHECK(settings_updown_home(&s) == 0);
+	s.updown_home = 0;
+	CHECK((s.updown_home & SETTINGS_HOME_LABEL_FIRST) == 0);
+}
+
 // The crash report's mode and target live in spare bits of accent, theme and updown_home (settings.h): each field
 // keeps its own bits whatever the other one does
 static void test_crash_bits(void)
@@ -1294,6 +1307,7 @@ int main(void)
 	test_native_and_jobs();
 	test_settings_layout();
 	test_crash_bits();
+	test_label_first_default();
 	test_read_field();
 	test_sound_flags();
 	test_map_end();

@@ -1529,14 +1529,19 @@ endif
 
 # The sector journal and the settings store on a simulated NOR flash, with power cuts at every point of a write
 STORE   := $(CORE)/storage/storage.c $(CORE)/settings/settings.c sim/sim_flash.c
-TESTS   += settingsTest
+TESTS   += settingsTest settingsTestPanels
 
 settingsTest: settingsTest.c $(STORE) $(wildcard $(CORE)/storage/*.h $(CORE)/settings/*.h sim/sim_flash.h)
 	$(CC) $(CFLAGS) -I$(ROOT)/hal -I. -Wshadow -DCONFIG_RADIO_DETOUR=1 -o $@ settingsTest.c $(STORE)
+# The same with the panels theme built, the build's default theme then (settings_defaults: Talkgroup name first on)
+settingsTestPanels: settingsTest.c $(STORE) $(wildcard $(CORE)/storage/*.h $(CORE)/settings/*.h sim/sim_flash.h)
+	$(CC) $(CFLAGS) -I$(ROOT)/hal -I. -Wshadow -DCONFIG_RADIO_DETOUR=1 -DCONFIG_UI_THEME_PANELS=1 -o $@ settingsTest.c \
+		$(STORE)
 
 run: run-settings
-run-settings: settingsTest spiNorTest spiNandTest spiNandLutTest nandSectorsTest
+run-settings: settingsTest settingsTestPanels spiNorTest spiNandTest spiNandLutTest nandSectorsTest
 	./settingsTest
+	./settingsTestPanels
 	./spiNorTest
 	./spiNandTest
 	./spiNandLutTest

@@ -419,14 +419,14 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("ok 8 1 expect:hides=Display_profile expect:shows=Theme", "320x240")
 
     def test_talkgroup_order_key_and_setting_in_both_themes(self):
-        # Talkgroup name first (the key and Settings > Display) works in every theme: Amateur Home's talk line reads
-        # "TG 3100 · USA", then "USA · TG 3100"
-        for geometry in (GEOMETRY, "320x240"):
+        # Talkgroup name first (the key and Settings > Display) works in every theme. A build whose default theme is
+        # panels starts with it on: Amateur Home's talk line reads "USA · TG 3100", then "TG 3100 · USA"
+        for geometry, toast in ((GEOMETRY, "Talkgroup_number_first"), ("320x240", "Talkgroup_name_first")):
             with self.subTest(geometry=geometry):
-                self.run_script("labelkey expect:toast=Talkgroup_name_first", geometry)
-        self.run_script(AMATEUR + "expect:shows=3100_ expect:hides=USA_ "
-                        "labelkey expect:shows=USA_ expect:hides=3100_ "
-                        "ok 8 1 row:Talkgroup_name_first expect:shows=On ok long:back expect:shows=3100_")
+                self.run_script("labelkey expect:toast=" + toast, geometry)
+        self.run_script(AMATEUR + "expect:shows=USA_ expect:hides=3100_ "
+                        "labelkey expect:shows=3100_ expect:hides=USA_ "
+                        "ok 8 1 row:Talkgroup_name_first expect:shows=Off ok long:back expect:shows=USA_")
         after_call_back = "ok 8 8 row:SK3_hold ok " + "down " * 14 + "ok "
         for geometry in (GEOMETRY, "320x240"):
             with self.subTest(geometry=geometry):
