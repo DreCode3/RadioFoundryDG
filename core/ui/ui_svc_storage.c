@@ -23,7 +23,7 @@
 #include "codeplug/codeplug.h"
 #include "codeplug/codeplug_kv.h"
 #include "radio/radio_keys.h"
-#include "dmr/dmr_emergency.h"	// the emergency tone (Settings > Sound); stubs without CONFIG_DMR_EMERGENCY
+#include "dmr/dmr_emergency.h"	// the emergency tone (Settings > Tones & alerts > Alert tones); stubs without CONFIG_DMR_EMERGENCY
 #include "hal_time.h"
 #include "config.h"
 #if CONFIG_HOSTLINK
@@ -142,7 +142,7 @@ static bool key_set(uint8_t id, int32_t value);
 #if CONFIG_DMR
 static bool dmr_id_post(uint32_t id);	// a job: the codeplug write is the housekeeping task's
 #endif
-// The settings area's key of a Settings > Sound tone row (radio_keys.h radio_tone_rows)
+// The settings area's key of a Settings > Tones & alerts > Alert tones row (radio_keys.h radio_tone_rows)
 static uint16_t tone_row_key(uint8_t id)
 {
 	return id == UI_SET_CALL_END_TONE ? CODEPLUG_KEY_CALL_END_TONE : id == UI_SET_TOT_WARN_TONE ? CODEPLUG_KEY_TOT_WARN_TONE :

@@ -1661,8 +1661,8 @@ msgstr "无 GPS 或已关闭"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_FIX_SETTINGS_LOCATION"
-msgid "Settings > Location"
-msgstr "设置 > 位置"
+msgid "Location settings"
+msgstr "位置设置"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_HINT"
@@ -2956,8 +2956,8 @@ msgstr "中继台（ERDM 式）"
 
 #: core/ui/ui_menus.c
 msgctxt "POS_BODY_NO_GPS_OR_OFF"
-msgid "No GPS, or it is off (Settings > Location)"
-msgstr "无 GPS 或已关闭（设置 > 位置）"
+msgid "No GPS, or it is off (Location settings)"
+msgstr "无 GPS 或已关闭（位置设置）"
 
 #: core/ui/ui_menus.c
 msgctxt "POS_BODY_NO_FIX_GO_OUTSIDE"
@@ -4936,8 +4936,8 @@ msgstr "请关机再开机"
 
 #: core/ui/ui_screens.c
 msgctxt "HW_FIX_SETTINGS_PATH"
-msgid "Settings>Advanced>Hardware"
-msgstr "设置>高级>Hardware"
+msgid "Settings>Programming>Hardware"
+msgstr "设置>写频>Hardware"
 
 #: core/ui/ui_screens.c
 msgctxt "DENY_WHY_RX_ONLY"

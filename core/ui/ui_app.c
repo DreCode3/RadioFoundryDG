@@ -129,7 +129,7 @@ static void entry_cancel(void)
 	dirty = true;
 }
 
-// Lock or unlock the keys; PTT goes with them when Settings > Key lock > PTT when locked is off
+// Lock or unlock the keys; PTT goes with them when Settings > Security & keypad lock > PTT when locked is off
 static void set_locked(bool locked)
 {
 	ui_st.locked = locked;
@@ -625,7 +625,7 @@ static void station(sbuf_t *b, const ui_event_t *ev)
 		sb_u32(b, ev->id, 1);
 }
 
-// The alerts that reach the user anyway (a banner, a screen, maybe a tone) also vibrate when Settings > Sound > Vibrate
+// The alerts that reach the user anyway (a banner, a screen, maybe a tone) also vibrate when Settings > Tones & alerts > Vibrate
 // is on; on a radio without a motor the request does nothing
 static void vibrate(uint8_t vibe)
 {
@@ -1105,7 +1105,7 @@ void ui_scan_skip(void)
 }
 
 #if CONFIG_DMR
-// Up / Down on Home set to "Talk target" (Settings > Keys): the channel's default talkgroup, then its listen list,
+// Up / Down on Home set to "Talk target" (Settings > Buttons): the channel's default talkgroup, then its listen list,
 // each a temporary talk target (the default ends it). False when there is nothing to step through
 static bool talk_step(int dir)
 {
@@ -1163,7 +1163,7 @@ bool ui_home_key(const input_event_t *ev)
 	if (is_nav(ev)) {
 		if (ui_st.entry)
 			entry_cancel();
-		// Settings > Keys > Up/Down on Home: the channel (default), the zone, or the talk target (DMR channels). The
+		// Settings > Buttons > Up/Down on Home: the channel (default), the zone, or the talk target (DMR channels). The
 		// arrow keys only: the channel knob always steps the channel, so the two can do different jobs (#25)
 		bool arrows = ev->action != ACT_ENC_STEP;
 		if (arrows && !view->vfo && ui_st.updown == 1) {
@@ -1550,7 +1550,7 @@ static void quick_activate(int tile)
 		break;
 	case QT_SCAN:
 #if CONFIG_DUAL_WATCH
-		ui_dual_key();		// tile 7 is Dual watch; a zone scan is in Tools > Scan
+		ui_dual_key();		// tile 7 is Dual watch; a zone scan is in Menu > Scan
 #else
 		ui_scan_toggle();
 #endif
@@ -1863,7 +1863,7 @@ static void list_move(const ui_scr_def_t *d, int8_t dir)
 	dirty = true;
 }
 
-// Inlined into its one caller: as a call of its own its frame stacked under a list row's select (Tools > APRS, down
+// Inlined into its one caller: as a call of its own its frame stacked under a list row's select (Location > APRS, down
 // to a crash report) and set the ui task's deepest chain (stack-check.md)
 static inline __attribute__((always_inline)) bool list_key(const ui_scr_def_t *d, const input_event_t *ev)
 {
@@ -2226,7 +2226,7 @@ void ui_app_key(const input_event_t *ev)
 	last_use_ms = now;
 	off_warned = false;
 	if (ev->action == ACT_PTT && ev->gesture == GESTURE_DOWN && ui_st.locked && !ui_st.ptt_locked) {
-		// The input layer kept this press from the radio (Settings > Key lock > PTT when locked)
+		// The input layer kept this press from the radio (Settings > Security & keypad lock > PTT when locked)
 		ui_svc_beep(UI_BEEP_ERROR);
 		ui_toast(has_quick_key ? TR(LOCK_TOAST_PTT_OFF_HOLD_STAR, "PTT is off while locked: hold * to unlock") :
 			TR(LOCK_TOAST_PTT_OFF_HOLD_BACK, "PTT is off while locked: hold Back to unlock"));
@@ -2438,7 +2438,7 @@ void ui_app_key(const input_event_t *ev)
 		ui_toast(TR(HOME_TOAST_KEY_NOT_USED, "Not used here"));
 }
 
-// Auto power off (Settings > Power): after auto_off_min without a key press, a call, a scan or the hotspot, a
+// Auto power off (Settings > Display): after auto_off_min without a key press, a call, a scan or the hotspot, a
 // banner a minute before, then the housekeeping task switches off (ui_app_power_off_due)
 static void use_tick(const radio_view_t *v)
 {
@@ -2459,7 +2459,7 @@ static void use_tick(const radio_view_t *v)
 		power_off_due = true;
 }
 
-// Low battery warning (Settings > Power): a banner when the battery falls to the level, again every 5 min while
+// Low battery warning (Settings > Display): a banner when the battery falls to the level, again every 5 min while
 // it stays there, with the low battery tone unless the radio core's own voltage warning has sounded (view.battery)
 static void battery_tick(const radio_view_t *v)
 {
@@ -2486,7 +2486,7 @@ static void battery_tick(const radio_view_t *v)
 }
 
 #if CONFIG_DMR
-// Hear all by default (Settings > Talk & listen): latched on each time a DMR channel is selected (not by a scan
+// Hear all by default (Settings > Call settings > DMR monitor at start): latched on each time a DMR channel is selected (not by a scan
 // passing through); BACK on Home still turns it off until the next channel
 static void hear_all_tick(const radio_view_t *v)
 {
@@ -2735,7 +2735,7 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 		dirty = true;
 	}
 #if CONFIG_ZONE_SHARE
-	// An offer's banner goes with the offer: expired, or answered from Tools > Zones/Chs Received
+	// An offer's banner goes with the offer: expired, or answered from Messages > Zone offers
 	if (ui_st.banner.kind == UI_BANNER_ZONE_OFFER && !ui_svc_zone_offer_pending()) {
 		ui_st.banner.kind = UI_BANNER_NONE;
 		dirty = true;
@@ -2800,7 +2800,7 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 		dirty = true;
 	}
 #endif
-	// Auto lock (Settings > Keys): after so long without a key press, not while transmitting
+	// Auto lock (Settings > Buttons): after so long without a key press, not while transmitting
 	if (!lock_armed) {
 		lock_armed = true;
 		last_key_ms = now;

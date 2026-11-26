@@ -1659,8 +1659,8 @@ msgstr "Sin GPS o apagado"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_FIX_SETTINGS_LOCATION"
-msgid "Settings > Location"
-msgstr "Ajustes > Ubicación"
+msgid "Location settings"
+msgstr "Ajustes de ubicación"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_HINT"
@@ -2954,8 +2954,8 @@ msgstr "Repetidor (estilo ERDM)"
 
 #: core/ui/ui_menus.c
 msgctxt "POS_BODY_NO_GPS_OR_OFF"
-msgid "No GPS, or it is off (Settings > Location)"
-msgstr "Sin GPS o apagado (Ajustes > Ubicación)"
+msgid "No GPS, or it is off (Location settings)"
+msgstr "Sin GPS o apagado (Ajustes de ubicación)"
 
 #: core/ui/ui_menus.c
 msgctxt "POS_BODY_NO_FIX_GO_OUTSIDE"
@@ -4934,8 +4934,8 @@ msgstr "Apaga y enciende la radio"
 
 #: core/ui/ui_screens.c
 msgctxt "HW_FIX_SETTINGS_PATH"
-msgid "Settings>Advanced>Hardware"
-msgstr "Ajustes>Avanzado>Hardware"
+msgid "Settings>Programming>Hardware"
+msgstr "Ajustes>Programación>Hardware"
 
 #: core/ui/ui_screens.c
 msgctxt "DENY_WHY_RX_ONLY"

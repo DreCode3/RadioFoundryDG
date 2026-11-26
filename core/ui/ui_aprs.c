@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
-// Tools > APRS (docs/spec/aprs.md 10): what APRS is doing (callsign, frequency, position, next beacon, or why nothing
+// Menu > Location > APRS (docs/spec/aprs.md 10): what APRS is doing (callsign, frequency, position, next beacon, or why nothing
 // can be sent) and the everyday choices, one row each: send now, automatic beacons, the frequency (region), the RF
 // power (as the channel, or a level of its own), the digipeater path (the hops), our SSID, the interval, SmartBeaconing, the
 // way out (radio / DMR / both), KISS on the host port, and the stations heard (receive builds). Where the position
-// comes from is the position service's (Settings > Location, ui_position.c). The rest (symbol, comment, digital
+// comes from is the position service's (Location settings, ui_position.c). The rest (symbol, comment, digital
 // destination, iGate, digipeater) is set with qdmr, the debug link or tools/rfoundry_debug.py (aprs.md 11).
 #include <string.h>
 #include "ui_nav.h"

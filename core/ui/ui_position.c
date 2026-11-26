@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
-// Settings > Location > Fixed position (docs/spec/position.md 4): the latitude and longitude the position service
+// Menu > Location > Location settings > Fixed position (docs/spec/position.md 4): the latitude and longitude the position service
 // reports when the radio has no GPS fix, or when the source is set to Fixed. For every protocol that sends our
 // position (DMR GPS Info, LRRP, APRS).
 //

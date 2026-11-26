@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
-// Tools > Position with CONFIG_GPS_SKY (docs/spec/ui.md 2.3): the board GPS on four pages, Up / Down (the knob, the
+// Menu > Location > GPS status with CONFIG_GPS_SKY (docs/spec/ui.md 2.3): the board GPS on four pages, Up / Down (the knob, the
 // digits 1-4) to turn them. Status: the fix, satellites, position, altitude, speed, dilution, time. Sky: where each
 // satellite is (a polar plot, north up), filled when the fix uses it. Signal: each satellite with a signal as a bar. Grid:
 // the Maidenhead locator large, the position in degrees, minutes and seconds. Nothing is kept: every draw reads the
@@ -474,7 +474,7 @@ static void gps_draw(void)
 	if (!ui_svc_position(&p)) {
 		gfx_text(ui_layout.small, 0, y, TR(GPS_WHY_NO_GPS_OR_OFF, "No GPS, or it is off"), ui_col.warn);
 		gfx_text(ui_layout.small, 0, y + ui_layout.small->h + 2,
-			TR(GPS_FIX_SETTINGS_LOCATION, "Settings > Location"), ui_col.dim);
+			TR(GPS_FIX_SETTINGS_LOCATION, "Location settings"), ui_col.dim);
 	} else {
 		switch (page) {
 		case PG_SKY: draw_sky(&p, y); break;

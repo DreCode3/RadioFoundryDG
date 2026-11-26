@@ -713,7 +713,7 @@ bool ui_dual_home_key(const input_event_t *ev)
 	case ACT_NAV_DOWN:
 		if (!nav || ui_st.entry)
 			return false;
-		if (ui_st.updown == 1)	// Settings > Keys > Up/Down: Zone
+		if (ui_st.updown == 1)	// Settings > Buttons > Up/Down: Zone
 			ui_dual_zone_step(ev->action == ACT_NAV_UP ? 1 : -1);
 		else
 			step_selected(ev->action == ACT_NAV_UP ? 1 : -1);

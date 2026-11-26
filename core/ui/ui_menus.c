@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
-// The list screens and the screen table (information-architecture.md 4, 6, 8): the Hub with its six destinations,
-// actions on a station, Contacts, Messages, Recent, Channels, Tools, Settings grouped by intent, the talk target
-// picker, information pages and the one confirmation (factory reset, P7).
+// The list screens and the screen table (information-architecture.md 4, 6, 8): Menu (the hub) and its Scan, Location
+// and Connections lists, actions on a station, Contacts, Messages, the call log, Zones, Channels, Settings grouped by
+// intent with their pick lists, the talk target picker, information pages and the one confirmation (factory reset, P7).
 #include <stddef.h>
 #include <string.h>
 #include "board.h"
@@ -43,7 +43,7 @@
 #include "dmr/sfr.h"
 #endif
 
-// Settings > Connections > Data services: the ARS server and the IP gateway
+// Menu > Connections > Data services: the ARS server and the IP gateway
 #define DATA_IDS	(CONFIG_DMR && (CONFIG_DMR_ARS || CONFIG_DMR_IP_GATEWAY))
 
 #ifndef RFOUNDRY_GIT
@@ -1753,7 +1753,7 @@ static char toast_msg[84];
 // ======================= Zone sharing (docs/spec/zone-share.md; docs/user/07-channels-zones-vfo.md) =======================
 // CONTEXT in a zone: send the zone, or the channel focused, to a contact or talkgroup (with the zone editor: from
 // its Channel actions and Zone options). An offer from another radio comes as a banner (CONTEXT opens it) and waits
-// under Tools while it lasts: Import, Preview, Reject
+// in Messages while it lasts: Import, Preview, Reject
 // The rows that share, with the share icon in front
 #define SHARE_ZONE	TR(SHARE_ROW_ZONE_TO, GLYPH_SHARE " Share zone to...")
 #define SHARE_CHANNEL	TR(SHARE_ROW_CHANNEL_TO, GLYPH_SHARE " Share channel to...")
@@ -1989,7 +1989,7 @@ static void offer_item(uint16_t i, ui_item_t *it)
 static void offer_enter(void)
 {
 	if (ui_st.banner.kind == UI_BANNER_ZONE_OFFER)
-		ui_st.banner.kind = UI_BANNER_NONE;	// opened from Tools: the banner about it has done its job
+		ui_st.banner.kind = UI_BANNER_NONE;	// opened from Messages: the banner about it has done its job
 	if (offer_get())
 		ui_svc_zone_offer_open(offer.serial);	// open: it doesn't expire while the user reads it
 }
@@ -4792,7 +4792,7 @@ static const char *info_body(void)
 	case INFO_POSITION: {
 		ui_position_t p;
 		if (!ui_svc_position(&p)) {
-			sb_str(&b, TR(POS_BODY_NO_GPS_OR_OFF, "No GPS, or it is off (Settings > Location)"));
+			sb_str(&b, TR(POS_BODY_NO_GPS_OR_OFF, "No GPS, or it is off (Location settings)"));
 		} else if (!p.fix) {
 			// GGA counts only satellites a fix uses
 			sb_str(&b, TR(POS_BODY_NO_FIX_GO_OUTSIDE, "No fix yet. Go outside, away from buildings."));
@@ -4997,7 +4997,7 @@ static const ui_scr_def_t info_screen = {
 	.select = info_select, .title = info_title, .body = info_body,
 };
 
-// ======================= My radio: DMR ID and names (Settings > My radio) =======================
+// ======================= My radio: DMR ID and names (Settings > Programming) =======================
 // The radio's own DMR ID (CONFIG_DMR) and the codeplug's name fields: the radio name and the two boot screen lines,
 // all saved in the codeplug (a CPS read shows them). On the ID row digits type a new one, OK writes it. Typed as the
 // channel editor's Own ID (ui.md 2.1): a digit past CODEPLUG_DMR_ID_MAX is refused, BACK takes the last digit back and
@@ -5214,7 +5214,7 @@ static const ui_scr_def_t dmr_id_screen = {
 };
 
 #if DATA_IDS
-// ======================= Data services (Settings > Connections) =======================
+// ======================= Data services (Menu > Connections) =======================
 // The ARS presence server and the off-net IP gateway, both DMR IDs saved in the codeplug's settings area
 // (docs/spec/codeplug-settings.md), so a CPS read shows them and the Codeplug Editor can set them. Typed as My radio's
 // DMR ID: digits type, OK saves, BACK takes the last digit back and with none typed leaves the ID as it was. 0 turns
@@ -5379,7 +5379,7 @@ static const ui_scr_def_t ds_screen = {
 #endif
 
 #if CONFIG_REF_TRIM
-// ======================= Freq trim (Settings > Advanced) =======================
+// ======================= Frequency trim (Settings > Programming) =======================
 // The reference trim (radio/ref_trim.h; radio-features.md 6.1), drawn as a volume-style page: the value in large type
 // over a slider from -10 to +10 ppm, then what it moves a carrier by at 440 and 144 MHz. Up / Down step 0.1 ppm (0.5
 // held) and are saved at once (a board that retunes for it does so once the trim holds still), so a counter or a
@@ -5586,7 +5586,7 @@ static const ui_scr_def_t trim_screen = {
 };
 #endif
 
-// ======================= About (Settings > Advanced) =======================
+// ======================= About (Settings > Radio info) =======================
 // A text page, every word shown (nothing shortened), no status strip while idle: the release and the commit,
 // RadioFoundry's license, the maintainers, where the contributors are listed, the third-party code and fonts in this
 // image and the codec. From AUTHORS and platform/<platform>/THIRD_PARTY, through the header make generates
@@ -5738,7 +5738,7 @@ static const ui_scr_def_t about_screen = {
 	.name = "about", .flags = SF_FIELD | SF_NO_STRIP, .key = about_key, .draw = about_draw, .enter = about_enter,
 };
 
-// ======================= Backlight tests (Settings > Advanced > Backlight tests) =======================
+// ======================= Backlight tests (Settings > Programming > Backlight tests) =======================
 
 #if CONFIG_BACKLIGHT_TEST
 // A bench tool (docs/testing/backlight-curve.md), so its text is untranslated. OK steps through the pages the board
@@ -5996,7 +5996,7 @@ static const ui_scr_def_t bl_test_screen = {
 };
 #endif
 
-// ======================= Roaming (Tools > Roaming, docs/spec/dmr-roaming.md 6.2) =======================
+// ======================= Roaming (Menu > Scan > Roaming, docs/spec/dmr-roaming.md 6.2) =======================
 
 enum { RM_ZONE, RM_NOW, RM_LOCK, RM_SURVEY, RM_BEACON, RM_LEN, RM_PROBE, RM_COUNT };
 
@@ -6222,7 +6222,7 @@ static const ui_scr_def_t roam_screen = {
 	.count = roam_count, .item = roam_item, .select = roam_select, .body = roam_body,
 };
 
-// ======================= Crash log (Settings > Advanced, docs/spec/crash-log.md) =======================
+// ======================= Crash log (Settings > Programming, docs/spec/crash-log.md) =======================
 // arg 0: from the menu (the record, the report's settings); arg 1: the prompt after the restart ("After a crash:
 // Ask"). Only with the crash log; the report's rows only with the crash report
 
@@ -7372,7 +7372,7 @@ tr_id_t ui_set_group_name(uint8_t g) { return g < GROUPS ? groups[g].name : TR_N
 #if RFOUNDRY_HWOPTS
 #define HWOPT_ROWS_MAX		15
 
-// The hardware options Settings > Advanced > Hardware lists (hal_hwopt.h): those the board didn't detect
+// The hardware options Settings > Programming > Hardware lists (hal_hwopt.h): those the board didn't detect
 static uint16_t hwopt_visible(void)
 {
 	uint16_t n = 0;
@@ -7573,7 +7573,7 @@ static const ui_scr_def_t settings_screen = {
 };
 
 #if CONFIG_SIG_TONES
-// ======================= Signaling tone steps (Settings > Signaling tones) =======================
+// ======================= Signaling tone steps (Settings > Tones & alerts > Signaling tones) =======================
 // One event's five steps (the frame's arg is the sig_event_t). OK on a step opens its frequency: digits type it, Up /
 // Down / the knob step it by 10, OK takes it and opens the length, OK again saves both. BACK leaves the step as it was.
 // A step of length 0 ends the chain (the ones after it are not played), and a chain with no step is the event's

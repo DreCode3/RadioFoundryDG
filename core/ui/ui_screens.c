@@ -501,7 +501,7 @@ static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state
 			sb_u32(&b, s->battery_pct, 1);
 			sb_chr(&b, '%');
 			rx -= gfx_text_width(f, pct);
-			// Settings > Power > Low battery warning
+			// Settings > Display > Low battery warning
 			uint8_t low = s->low_batt_pct ? s->low_batt_pct : 15;
 			bc = s->battery_pct <= low ? swarn : sfg;
 			gfx_text(f, rx, ty, pct, bc);
@@ -578,7 +578,7 @@ static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state
 	else if (v->monitor && !v->aprs_tx && strip_fits(f, lx, rx, "MON"))
 		lx = gfx_text(f, lx + f->w, ty, "MON", swarn);
 #if CONFIG_USB_NETWORK && CONFIG_HOSTLINK
-	// USB as a network adapter (Tools > USB network): the serial tools are off. IP, and once the PC has the link up an
+	// USB as a network adapter (Menu > Connections > USB network): the serial tools are off. IP, and once the PC has the link up an
 	// up and a down arrow right after it, as a phone shows its data link. The arrows stand close, each head beside the
 	// other's shaft, so the shafts stop short of the other arrow's head: 3 * hw + 3 columns, at least 6 rows (on the
 	// smallest font a shorter shaft reads as a cross). Room as for the other words, a space either side
@@ -1499,7 +1499,7 @@ static const char *hwopt_action(void)
 	if (o != NULL && hwopt_state(o) == HWOPT_ST_RESTART) {
 		return TR(HW_FIX_POWER_CYCLE, "Turn the radio off and on");
 	}
-	return TR(HW_FIX_SETTINGS_PATH, "Settings>Advanced>Hardware");
+	return TR(HW_FIX_SETTINGS_PATH, "Settings>Programming>Hardware");
 }
 
 #if CONFIG_P25_TRUNK || CONFIG_DMR_TRUNK
@@ -4045,7 +4045,7 @@ bool ui_quick_tile(int tile, const radio_view_t *v, const ui_state_t *s, char *l
 		[QT_MONITOR] = TRN(QUICK_LABEL_MONITOR, TEXT_ALT_OPEN "Monitor" TEXT_ALT_NEXT "MON" TEXT_ALT_CLOSE),
 		[QT_VOX] = TRX(WORD_VOX, "VOX"),
 #if CONFIG_DUAL_WATCH
-		// tile 7 is Dual watch; a zone scan is in Tools > Scan
+		// tile 7 is Dual watch; a zone scan is in Menu > Scan
 		[QT_SCAN] = TRN(QUICK_LABEL_DUAL_WATCH, TEXT_ALT_OPEN "Dual watch" TEXT_ALT_NEXT "Dual" TEXT_ALT_CLOSE),
 #else
 		[QT_SCAN] = TRN(WORD_SCAN, "Scan"),
