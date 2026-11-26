@@ -331,6 +331,8 @@ static __attribute__((noinline)) int32_t setting_get_flash(uint8_t id)
 	case UI_SET_GUI_NIGHT:
 	case UI_SET_GPS_CLOCK:
 		return (SETTINGS_FIELD(gui_flags) & gui_flag(id)) != 0;
+	case UI_SET_GUI_THEME:
+		return SETTINGS_FIELD(gui_theme);
 #endif
 	case UI_SET_ACCENT:
 		return SETTINGS_FIELD(accent) & SETTINGS_ACCENT_COLOR;
@@ -516,6 +518,14 @@ bool ui_svc_setting_set(uint8_t id, int32_t value)
 		settings_end(hal_millis());
 		return true;
 	}
+	case UI_SET_GUI_THEME:
+		// Any number a byte holds: one this build lacks starts the build's default (ui_theme_pick)
+		if (value < 0 || value > 0xFF)
+			return false;
+		st = settings_begin();
+		st->gui_theme = (uint8_t)value;
+		settings_end(hal_millis());
+		return true;
 #endif
 	case UI_SET_THEME:
 	case UI_SET_ACCENT:

@@ -6543,6 +6543,11 @@ static void test_display_profile_settings(void)
 	CHECK(settings_init() == SETTINGS_DEFAULTS);
 	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 0 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
 	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 0);
+	// The theme: 0 (the build's default) on a new radio, any number a byte holds, kept apart from gui_flags
+	CHECK(ui_svc_setting_get(UI_SET_GUI_THEME) == 0);
+	CHECK(!ui_svc_setting_set(UI_SET_GUI_THEME, -1) && !ui_svc_setting_set(UI_SET_GUI_THEME, 256));
+	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 255) && ui_svc_setting_get(UI_SET_GUI_THEME) == 255);
+	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 1));
 	CHECK(ui_svc_setting_set(UI_SET_THEME, 2));
 	CHECK(ui_svc_setting_set(UI_SET_GUI_PROFILE, 1));
 	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 1));
@@ -6551,10 +6556,13 @@ static void test_display_profile_settings(void)
 	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED);
 	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 1 &&
 	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2);
+	CHECK(ui_svc_setting_get(UI_SET_GUI_THEME) == 1);
+	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 0) && ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1);
 	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 0));
 	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED);
 	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
-	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2);
+	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2 &&
+	      ui_svc_setting_get(UI_SET_GUI_THEME) == 0);
 	sim_flash.map = NULL;
 	storage_init();
 	settings_init();

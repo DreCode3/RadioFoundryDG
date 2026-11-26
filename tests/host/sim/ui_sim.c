@@ -1827,7 +1827,7 @@ uint32_t ui_svc_features(void)
 	return 0xFFFFFFFFu & ~(soft_volume ? 0 : UI_FEAT_VOLUME) & ~(bcast_rx ? 0 : UI_FEAT_BCAST) &
 	       ~(ref_trim ? 0 : UI_FEAT_REF_TRIM) &
 	       ~(knob_radio ? 0 : UI_FEAT_VOLUME_KNOB) & ~(p25_radio ? 0 : UI_FEAT_P25) &
-	       ~(nxdn_radio ? 0 : UI_FEAT_NXDN) & ~(prototype_gui ? 0 : UI_FEAT_GUI_PROFILES);
+	       ~(nxdn_radio ? 0 : UI_FEAT_NXDN);
 }
 // My radio's names (ui_svc_name_*): placeholders, as the user's own would be; a save writes at once
 static char sim_names[UI_NAME_COUNT][17];
@@ -2864,6 +2864,9 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_GUI_PROFILE, 0);
 	ui_svc_setting_set(UI_SET_GUI_NIGHT, 0);
 	ui_svc_setting_set(UI_SET_GPS_CLOCK, 0);
+	// The panels theme (the build's default) on the profile geometry only, so every other gallery class keeps the
+	// reference theme
+	ui_svc_setting_set(UI_SET_GUI_THEME, gui_profiles ? UI_THEME_ID_DEFAULT : UI_THEME_ID_REFERENCE);
 #endif
 	ui_svc_setting_set(UI_SET_ACCENT, 0);
 	ui_svc_setting_set(UI_SET_STRIP, 1);
@@ -3214,8 +3217,10 @@ static bool run_token(char *t, char *err, size_t len)
 			// Display rows differ between GUIs, so leave menus before changing the presentation.
 			ui_go_home();
 			prototype_gui = use_prototype;
-			// The theme of the presentation, as ui_app_init picks it, then its settings applied again
-			ui_theme_use(use_prototype ? ui_theme_pick(UI_THEME_ID_PANELS) : &ui_theme_reference);
+			// The theme of the presentation, stored and put in use as ui_app_init does, then its settings applied
+			// again
+			ui_svc_setting_set(UI_SET_GUI_THEME, use_prototype ? UI_THEME_ID_PANELS : UI_THEME_ID_REFERENCE);
+			ui_theme_use(ui_theme_pick((uint8_t)ui_svc_setting_get(UI_SET_GUI_THEME)));
 			ui_st.gui_profiles = ui_theme_cur() == &ui_theme_panels;
 			ui_apply_setting(UI_SET_THEME, ui_svc_setting_get(UI_SET_THEME));
 			ui_apply_setting(UI_SET_ACCENT, ui_svc_setting_get(UI_SET_ACCENT));

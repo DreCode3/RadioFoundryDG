@@ -1998,11 +1998,10 @@ void ui_app_init(void)
 	view = &view_none;
 	memset(&ui_st, 0, sizeof ui_st);
 #if UI_THEME_SELECT
-	// The theme for this display, once the splash (always the reference theme's) is up: the build's default theme
-	// where the services offer the profile layouts (UI_FEAT_GUI_PROFILES; the UI simulator offers them on one of its
-	// display classes only), else the reference theme
-	const ui_theme_t *theme = ui_theme_pick((ui_svc_features() & UI_FEAT_GUI_PROFILES) != 0 ? UI_THEME_ID_DEFAULT :
-						 UI_THEME_ID_REFERENCE);
+	// The stored theme, where this display fits it, once the splash (always the reference theme's) is up. 0, as a
+	// radio starts and as older settings read: the build's default theme
+	int32_t theme_id = ui_svc_setting_get(UI_SET_GUI_THEME);
+	const ui_theme_t *theme = ui_theme_pick(theme_id >= 0 && theme_id <= 0xFF ? (uint8_t)theme_id : UI_THEME_ID_DEFAULT);
 	if (theme != ui_theme_cur())
 		ui_theme_use(theme);
 #endif
