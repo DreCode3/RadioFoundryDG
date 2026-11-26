@@ -153,7 +153,7 @@ nothing reaches the user. The setting is `zs_offers` in the settings record: 0 (
 
 The offer shows as a banner, "Zone from <name or ID>" with "Zone <name>, <n> channels". **#** opens it. The banner
 has no timer: it stays until **#** opens it, **Back** hides it (on any screen), or the offer ends (it expires, or is answered from
-Messages, which also hides it). Another banner can take its place. While it waits it is also under **Messages > Zone offers**. The offer screen (Zone Share Received, or Channel Share Received) reads "Zone <name>, <n> channels, from <ID>" and
+Messages, which also hides it). Another banner can take its place. While it waits it is also under **Messages > Zone offers**. The offer screen (titled Zone offers, as the row that opens it) reads "Zone <name>, <n> channels, from <ID>" and
 how many are not in this radio's bands, with three choices:
 
 - **Import** imports it (5.3).

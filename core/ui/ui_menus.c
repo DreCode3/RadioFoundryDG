@@ -2043,15 +2043,10 @@ static const char *offer_body(void)
 }
 
 // The longest title that fits: a whole zone or one channel
+// Titled as Messages' row that opens it (the banner opens it too); its text says whether it is a zone or a channel
 static const char *offer_title(void)
 {
-	if (offer_get() && offer.channel)
-		return TR(SHARE_TITLE_CHANNEL_RECEIVED, TEXT_ALT_OPEN "Channel Share Received " GLYPH_DOWNLOAD
-			TEXT_ALT_NEXT "Ch Share Received "
-			  GLYPH_DOWNLOAD TEXT_ALT_NEXT "Ch Received " GLYPH_DOWNLOAD TEXT_ALT_NEXT "Ch Received" TEXT_ALT_CLOSE);
-	return TR(SHARE_TITLE_ZONE_RECEIVED, TEXT_ALT_OPEN "Zone Share Received " GLYPH_DOWNLOAD
-		TEXT_ALT_NEXT "Zone Received " GLYPH_DOWNLOAD
-		  TEXT_ALT_NEXT "Zone Received" TEXT_ALT_CLOSE);
+	return TR(MSG_ROW_ZONE_OFFERS, "Zone offers");
 }
 
 static const ui_scr_def_t offer_screen = {
@@ -4710,8 +4705,9 @@ static void chpick_select(uint16_t i, bool hold)
 	ui_pop();
 }
 
-static const char *chpick_title(void) { return ui_frame()->arg == 0 ? TR(CHAN_TITLE_TX_CONTACT, "TX Contact") :
-	TR(CHAN_TITLE_RX_GROUP_LIST, "RX Group List"); }
+// Titled as the row that opens it
+static const char *chpick_title(void) { return ui_frame()->arg == 0 ? TR(CHAN_LABEL_TX_CONTACT, "TX contact") :
+	TR(CHAN_LABEL_RX_GROUP_LIST, "RX group list"); }
 
 static const ui_scr_def_t chpick_screen = {
 	.name = "chpick", .flags = SF_LIST | SF_FILTER, .hint = TRN(HINT_OK_PICK_FIND_BACK, "OK pick  0-9 find  Back"),

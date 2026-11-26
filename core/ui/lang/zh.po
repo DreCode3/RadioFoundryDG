@@ -1479,6 +1479,11 @@ msgctxt "TITLE_ROAMING"
 msgid "Roaming"
 msgstr "漫游"
 
+#: core/ui/ui_find.c core/ui/ui_menus.c
+msgctxt "SET_ROW_DATA_SERVICES"
+msgid "Data services"
+msgstr "数据服务"
+
 #: core/ui/ui_find.c
 msgctxt "FIND_ROW_CH"
 msgid "Ch "
@@ -2190,16 +2195,6 @@ msgid " trunked channels unavailable: system not set up"
 msgstr " 个集群信道不可用：系统未设置"
 
 #: core/ui/ui_menus.c
-msgctxt "SHARE_TITLE_CHANNEL_RECEIVED"
-msgid "{Channel Share Received ⤓|Ch Share Received ⤓|Ch Received ⤓|Ch Received}"
-msgstr "{收到信道共享 ⤓|收到信道共享 ⤓|收到信道 ⤓|收到信道}"
-
-#: core/ui/ui_menus.c
-msgctxt "SHARE_TITLE_ZONE_RECEIVED"
-msgid "{Zone Share Received ⤓|Zone Received ⤓|Zone Received}"
-msgstr "{收到区域共享 ⤓|收到区域 ⤓|收到区域}"
-
-#: core/ui/ui_menus.c
 msgctxt "SHARE_EMPTY_NO_SHARE_WAITING"
 msgid "No share waiting"
 msgstr "无待处理共享"
@@ -2885,16 +2880,6 @@ msgid "OK choose  Back cancel"
 msgstr "OK 选  返回取消"
 
 #: core/ui/ui_menus.c
-msgctxt "CHAN_TITLE_TX_CONTACT"
-msgid "TX Contact"
-msgstr "发射联系人"
-
-#: core/ui/ui_menus.c
-msgctxt "CHAN_TITLE_RX_GROUP_LIST"
-msgid "RX Group List"
-msgstr "接收组列表"
-
-#: core/ui/ui_menus.c
 msgctxt "HINT_OK_PICK_FIND_BACK"
 msgid "OK pick  0-9 find  Back"
 msgstr "OK 选  0-9 查找  返回"
@@ -3263,11 +3248,6 @@ msgstr "无应答"
 msgctxt "DATA_BODY_ARS"
 msgid "ARS: "
 msgstr "ARS： "
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_DATA_SERVICES"
-msgid "Data services"
-msgstr "数据服务"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_FREQUENCY_TRIM"
@@ -3685,6 +3665,11 @@ msgid "Location settings"
 msgstr "位置设置"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_EMPTY_USE_QDMR"
+msgid "Set them with qdmr"
+msgstr "请用 qdmr 设置"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_ROW_PC_NETWORK"
 msgid "PC and network"
 msgstr "电脑与网络"
@@ -3698,6 +3683,16 @@ msgstr "网络"
 msgctxt "TOOLS_VALUE_USB_SERIAL"
 msgid "Serial"
 msgstr "串口"
+
+#: core/ui/ui_menus.c
+msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
+msgid "Channels: not in this build"
+msgstr "信道：本版本无"
+
+#: core/ui/ui_menus.c
+msgctxt "WHY_DIAGNOSTICS_NOT_IN_BUILD"
+msgid "Diagnostics: not in this build"
+msgstr "诊断：本版本无"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_VALUE_BACKLIGHT_10S_DIM"
@@ -4540,16 +4535,6 @@ msgid "DMR position: not in this build"
 msgstr "DMR 定位：本版本无"
 
 #: core/ui/ui_menus.c
-msgctxt "WHY_DIAGNOSTICS_NOT_IN_BUILD"
-msgid "Diagnostics: not in this build"
-msgstr "诊断：本版本无"
-
-#: core/ui/ui_menus.c
-msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
-msgid "Channels: not in this build"
-msgstr "信道：本版本无"
-
-#: core/ui/ui_menus.c
 msgctxt "GPS_POSITION_SAVED"
 msgid "GPS position saved"
 msgstr "GPS 位置已保存"
@@ -4593,11 +4578,6 @@ msgstr "重置：本版本无"
 msgctxt "RESET_ASK"
 msgid "Reset all settings to factory defaults? Channels stay. This can't be undone."
 msgstr "恢复所有设置为出厂值？信道保留，且无法撤销。"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_EMPTY_USE_QDMR"
-msgid "Set them with qdmr"
-msgstr "请用 qdmr 设置"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_CHIP_CURRENT"
@@ -4788,11 +4768,6 @@ msgstr "GPS/时间不可用"
 msgctxt "NO_PASSES_IN_NEXT_24H"
 msgid "No passes in next 24h"
 msgstr "未来 24 小时无过境"
-
-#: core/ui/ui_satellite.c
-msgctxt "NEXT_PASSES"
-msgid "Next passes"
-msgstr "后续过境"
 
 #: core/ui/ui_satellite.c
 msgctxt "UP_DOWN_PICK_BACK"

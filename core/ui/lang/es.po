@@ -1477,6 +1477,11 @@ msgctxt "TITLE_ROAMING"
 msgid "Roaming"
 msgstr "Roaming"
 
+#: core/ui/ui_find.c core/ui/ui_menus.c
+msgctxt "SET_ROW_DATA_SERVICES"
+msgid "Data services"
+msgstr "Servicios de datos"
+
 #: core/ui/ui_find.c
 msgctxt "FIND_ROW_CH"
 msgid "Ch "
@@ -2188,16 +2193,6 @@ msgid " trunked channels unavailable: system not set up"
 msgstr " canales troncales no disponibles: sistema sin configurar"
 
 #: core/ui/ui_menus.c
-msgctxt "SHARE_TITLE_CHANNEL_RECEIVED"
-msgid "{Channel Share Received ⤓|Ch Share Received ⤓|Ch Received ⤓|Ch Received}"
-msgstr "{Canal compartido recibido ⤓|Canal recibido ⤓|Can recibido ⤓|Can recibido}"
-
-#: core/ui/ui_menus.c
-msgctxt "SHARE_TITLE_ZONE_RECEIVED"
-msgid "{Zone Share Received ⤓|Zone Received ⤓|Zone Received}"
-msgstr "{Zona compartida recibida ⤓|Zona recibida ⤓|Zona recibida}"
-
-#: core/ui/ui_menus.c
 msgctxt "SHARE_EMPTY_NO_SHARE_WAITING"
 msgid "No share waiting"
 msgstr "Nada pendiente"
@@ -2883,16 +2878,6 @@ msgid "OK choose  Back cancel"
 msgstr "OK elegir  Atrás cancelar"
 
 #: core/ui/ui_menus.c
-msgctxt "CHAN_TITLE_TX_CONTACT"
-msgid "TX Contact"
-msgstr "Contacto TX"
-
-#: core/ui/ui_menus.c
-msgctxt "CHAN_TITLE_RX_GROUP_LIST"
-msgid "RX Group List"
-msgstr "Lista grupos RX"
-
-#: core/ui/ui_menus.c
 msgctxt "HINT_OK_PICK_FIND_BACK"
 msgid "OK pick  0-9 find  Back"
 msgstr "OK elegir  0-9 buscar  Atrás"
@@ -3261,11 +3246,6 @@ msgstr "Sin respuesta"
 msgctxt "DATA_BODY_ARS"
 msgid "ARS: "
 msgstr "ARS: "
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_DATA_SERVICES"
-msgid "Data services"
-msgstr "Servicios de datos"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_FREQUENCY_TRIM"
@@ -3683,6 +3663,11 @@ msgid "Location settings"
 msgstr "Ajustes de ubicación"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_EMPTY_USE_QDMR"
+msgid "Set them with qdmr"
+msgstr "Configúralos con qdmr"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_ROW_PC_NETWORK"
 msgid "PC and network"
 msgstr "PC y red"
@@ -3696,6 +3681,16 @@ msgstr "Red"
 msgctxt "TOOLS_VALUE_USB_SERIAL"
 msgid "Serial"
 msgstr "Serie"
+
+#: core/ui/ui_menus.c
+msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
+msgid "Channels: not in this build"
+msgstr "Canales: no disponible"
+
+#: core/ui/ui_menus.c
+msgctxt "WHY_DIAGNOSTICS_NOT_IN_BUILD"
+msgid "Diagnostics: not in this build"
+msgstr "Diagnóstico: no disponible"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_VALUE_BACKLIGHT_10S_DIM"
@@ -4538,16 +4533,6 @@ msgid "DMR position: not in this build"
 msgstr "Posición DMR: no disponible"
 
 #: core/ui/ui_menus.c
-msgctxt "WHY_DIAGNOSTICS_NOT_IN_BUILD"
-msgid "Diagnostics: not in this build"
-msgstr "Diagnóstico: no disponible"
-
-#: core/ui/ui_menus.c
-msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
-msgid "Channels: not in this build"
-msgstr "Canales: no disponible"
-
-#: core/ui/ui_menus.c
 msgctxt "GPS_POSITION_SAVED"
 msgid "GPS position saved"
 msgstr "Posición GPS guardada"
@@ -4591,11 +4576,6 @@ msgstr "Restablecer: no disponible"
 msgctxt "RESET_ASK"
 msgid "Reset all settings to factory defaults? Channels stay. This can't be undone."
 msgstr "¿Restablecer todos los ajustes de fábrica? Los canales se mantienen. No se puede deshacer."
-
-#: core/ui/ui_menus.c
-msgctxt "SET_EMPTY_USE_QDMR"
-msgid "Set them with qdmr"
-msgstr "Configúralos con qdmr"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_CHIP_CURRENT"
@@ -4786,11 +4766,6 @@ msgstr "GPS/hora no disponible"
 msgctxt "NO_PASSES_IN_NEXT_24H"
 msgid "No passes in next 24h"
 msgstr "Sin pasos en las próximas 24 h"
-
-#: core/ui/ui_satellite.c
-msgctxt "NEXT_PASSES"
-msgid "Next passes"
-msgstr "Próximos pasos"
 
 #: core/ui/ui_satellite.c
 msgctxt "UP_DOWN_PICK_BACK"

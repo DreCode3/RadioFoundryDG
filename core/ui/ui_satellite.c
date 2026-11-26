@@ -568,7 +568,7 @@ static bool satellite_passes_key(const input_event_t *ev)
 }
 
 const ui_scr_def_t ui_satellite_passes_screen = {
-	.name = "satellite-passes", .flags = SF_LIST | SF_FIELD, .prefix = TRN(NEXT_PASSES, "Next passes"),
+	.name = "satellite-passes", .flags = SF_LIST | SF_FIELD, .prefix = TRN(SATELLITE_2, "Satellite"),	// Location's row that opens it
 	.hint = TRN(UP_DOWN_PICK_BACK, "Up Down pick  Back"), .empty = TRN(NO_PASSES_IN_NEXT_24H, "No passes in next 24h"),
 	.count = satellite_pass_count, .item = satellite_pass_item, .select = satellite_pass_select,
 	.key = satellite_passes_key, .enter = satellite_passes_enter,
