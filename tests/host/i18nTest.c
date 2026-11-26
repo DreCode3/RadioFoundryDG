@@ -71,7 +71,7 @@ int main(void)
 	// One English, two keys, each with its own translation (here the same word)
 	CHECK(strcmp(TR(TITLE_MENU, "Menu"), "Men\xFA") == 0 && strcmp(TR(FIND_CHIP_MENU, "Menu"), "Men\xFA") == 0);
 	CHECK(strcmp(TR(QUICK_LABEL_POWER, TEXT_ALT_OPEN "Power" TEXT_ALT_NEXT "Pwr" TEXT_ALT_CLOSE),
-		     TEXT_ALT_OPEN "Pot" TEXT_ALT_NEXT "Pt" TEXT_ALT_CLOSE) == 0);
+		     TEXT_ALT_OPEN "Potencia" TEXT_ALT_NEXT "Pt" TEXT_ALT_CLOSE) == 0);
 	CHECK(strcmp(TR(MSG_BODY_CANNED_ON_MY_WAY, "On my way"), "En camino") == 0);	// a canned message: sent in the language in use
 	// Strings at other places in a stride of the table: the lookup steps over the ones before them
 	CHECK(strcmp(TR(GPS_TITLE_STATUS, "Status"), "Estado") == 0);
