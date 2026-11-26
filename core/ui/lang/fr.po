@@ -235,7 +235,7 @@ msgstr "Rapide"
 #: core/ui/themes/panels/panels.c core/ui/ui_screens.c
 msgctxt "QUICK_HINT_ALL_SETTINGS"
 msgid "0 All settings  Hold OK save"
-msgstr "0 Tous param.  Maint. OK enreg."
+msgstr "0 Paramètres  Maintenir OK sauver"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -245,7 +245,7 @@ msgstr "OK Menu  * Rapide"
 #: core/ui/ui_app.c
 msgctxt "HOME_HINT_MENU_HOLD_QUICK"
 msgid "OK Menu  Hold OK Quick"
-msgstr "OK Menu  Maint. OK Rapide"
+msgstr "OK Menu  Maintenir OK Rapide"
 
 #: core/ui/ui_app.c
 msgctxt "CPLUG_TOAST_NOT_SAVED"
@@ -2310,7 +2310,7 @@ msgstr "2 abc"
 #: core/ui/ui_menus.c
 msgctxt "TEXT_HINT_KEEP"
 msgid "{Back delete  # ABC/123/abc  OK keep|Back del  # mode  OK}"
-msgstr "{Retour effacer  # ABC/123/abc  OK garder|Retour eff.  # mode  OK}"
+msgstr "{Retour effacer  # ABC/123/abc  OK garder|Retour effacer  # mode  OK}"
 
 #: core/ui/ui_menus.c
 msgctxt "TEXT_HINT_SEND"
@@ -2335,7 +2335,7 @@ msgstr "Aucun canal libre"
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_LIST"
 msgid "{OK details  # go  0-9 find|OK details  # go}"
-msgstr "{OK détail  # aller  0-9 chercher|OK détail  # aller}"
+msgstr "{OK détails  # aller  0-9 chercher|OK détails  # aller}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_EMPTY_NO_CHANNELS"
@@ -2605,7 +2605,7 @@ msgstr "Canal vide"
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
 msgid "{OK change  hold OK save  Back|OK change  hold OK save}"
-msgstr "{OK modifier  maint. OK enregistrer  Retour|OK modifier  maint. OK enreg.}"
+msgstr "{OK modifier  maintenir OK enregistrer  Retour|OK modifier  maintenir OK sauver}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_TUNE"
@@ -3215,7 +3215,7 @@ msgstr "ID DMR et nom"
 #: core/ui/ui_menus.c
 msgctxt "HINT_TYPE_OK_EDIT_SAVE_BACK"
 msgid "0-9 type  OK edit/save  Back"
-msgstr "0-9 saisir  OK modif./valider  Retour"
+msgstr "0-9 saisir  OK modifier/valider  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_EDIT_BACK"
@@ -4645,7 +4645,7 @@ msgstr "{Groupe / Contact|TG / Contact}"
 #: core/ui/ui_menus.c
 msgctxt "PICKER_HINT"
 msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set}"
-msgstr "{PTT une fois  OK utiliser  Maint. OK définir|OK utiliser  Maint. OK définir}"
+msgstr "{PTT une fois  OK utiliser  Maintenir OK définir|OK utiliser  Maintenir OK définir}"
 
 #: core/ui/ui_menus.c
 msgctxt "SCAN_ROW_SKIP_FOR_NOW"
@@ -5475,7 +5475,7 @@ msgstr "OK accorder  Retour effacer"
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_SCANNING"
 msgid "# skip  Back stop scan"
-msgstr "# ignorer  Retour arrêt"
+msgstr "# ignorer  Retour arrêt du balayage"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_REPLY"
@@ -5490,17 +5490,17 @@ msgstr "Moniteur numérique  Retour arrêt"
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_UNSAVED"
 msgid "Back undo  Hold OK save"
-msgstr "Retour annuler  Maint. OK enreg."
+msgstr "Retour annuler  Maintenir OK sauver"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_VFO"
 msgid "{Back: VFO's talk target|Back default target}"
-msgstr "{Retour : cible du VFO|Retour cible par déf.}"
+msgstr "{Retour : cible du VFO|Retour cible par défaut}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_CHANNEL"
 msgid "{Back: channel's talkgroup|Back default target}"
-msgstr "{Retour : TG du canal|Retour cible par déf.}"
+msgstr "{Retour : TG du canal|Retour cible par défaut}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_VFO"
@@ -5740,7 +5740,7 @@ msgstr "Tous"
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT_SPLIT"
 msgid "{Up/Dn: +/- offset  Type: TX freq|Up/Dn +/- offset  0-9 TX freq|Up/Dn offset  0-9 TX freq|Up/Dn +/-  0-9 TX freq}"
-msgstr "{Haut/Bas : +/- écart  Saisie : fréq TX|Haut/Bas +/- écart  0-9 fréq TX|Haut/Bas écart  0-9 fréq TX|Haut/Bas +/-  0-9 TX}"
+msgstr "{Haut/Bas : +/- écart  0-9 fréquence TX|Haut/Bas +/- écart  0-9 fréquence TX|Haut/Bas écart  0-9 fréquence TX|Haut/Bas +/-  0-9 TX}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT_OK_SETS"
@@ -5750,7 +5750,7 @@ msgstr "  OK valide"
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"
 msgid "1-9 change  Hold OK save"
-msgstr "1-9 modifier  Maint. OK enreg."
+msgstr "1-9 modifier  Maintenir OK sauver"
 
 #: core/ui/ui_screens.c
 msgctxt "DIAG_VARIANT_MISMATCH"
