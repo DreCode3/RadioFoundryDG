@@ -175,6 +175,17 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),
    with a test that reproduces it, since this step exercises zone and channel editing. (shared; updates task flows,
    press budgets, IA and translations).
+   - Implemented in `7f1299eb`..(this step's last commit), awaiting QA. Not built yet, by design or for lack of a
+     decision: Contacts' Talkgroups / People / Listen lists / Manual dial split, Messages' Inbox / New / Quick text
+     / Sent / Drafts pages, the call log's Missed / Incoming / Outgoing filters and Scan's scan lists (none exists as
+     a function today); a Settings row to choose the theme (open, below). The VFO stays in Zones as well as in
+     Programming, and Volume (radios without a knob) is in Tones & alerts.
+   - Open for the user: where the theme choice goes (a radio with the reference theme stored can't get back to
+     panels). Candidates: Settings > Display's first row "Theme" when the build has two themes (the reference theme's
+     palette row is also named Theme, so one of them needs another name), or the last row of Display; on a build
+     with one theme the row is left out.
+   - For the layout step: the panels grid has no room for Zones' value (the zone's name) beside the label, so it is
+     left out there; Messages and Scan show a short form.
 4. Layout fixes in the second theme, to the Layout section above.
    - A first attempt is on the branch (`596fdd3e`..`55b2bac8`, not QA-approved). Keep: `compare.py`/`cc.sh
      --except`, the step 2 carry-overs (`uiThemeTestPanels` structural checks, `dual_style` restored, the

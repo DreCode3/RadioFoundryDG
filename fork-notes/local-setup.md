@@ -94,3 +94,7 @@ output outside the repository. `snapshot.py` uses one render thread per core.
 - [reports/](reports/): the theme inventory, step 1 reports and the QA reviews.
 - Steps 1 and 2 are QA-approved (step 2 at `70a91cc3`: [review](reports/theme-step2-review.md)). On Nov 26 the menu
   tree and naming moved ahead of the panels layout; gui-plan.md's order of work has what each step starts with.
+- Step 3 (menu tree) changed the menus on purpose, and `snapshot.py`'s Amateur and Night prefixes follow its paths
+  (Settings is Menu 8, Display profile and Day/Night are Display's first rows): a baseline from before it
+  (`46dad875`) differs in every menu, settings and title frame, and in Amateur Home (its talk line leads with the
+  number by default).
