@@ -637,7 +637,7 @@ static int panels_title(const radio_view_t *v, radio_state_t st, const ui_state_
 	const ui_layout_t *L = &ui_layout;
 	int y = L->strip_h + PANELS_TITLE_PAD;
 	if (draw) {
-		char title[64], fit[48];
+		char title[48], fit[40];	// on the UI task's deepest path (make stack-check): no larger
 		sbuf_t b;
 		sb_init(&b, title, sizeof title);
 		if (prefix)
