@@ -3792,6 +3792,17 @@ static void list_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t to
 // the bottom row. The theme places the cells and draws each one (ui_theme.h); only this function moves *l->top
 char ui_focus_drawn[36];
 
+// The focused label copied for the debug link, which reads it from its own task: only when it changed, and inside the
+// UI task's critical section, which the reader takes too, so a poll never sees half a label
+static void __attribute__((noinline)) focus_drawn(const char *label)
+{
+	if (strncmp(ui_focus_drawn, label, sizeof ui_focus_drawn - 1) == 0)
+		return;
+	ui_crit_enter();
+	str_copy(ui_focus_drawn, sizeof ui_focus_drawn, label);
+	ui_crit_exit();
+}
+
 void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l)
 {
 	gfx_clear(ui_col.bg);
@@ -3840,7 +3851,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		for (int k = 0; k < col; k++)
 			c.x += g.col_w[k] + g.col_gap;
 		if (c.focus)
-			str_copy(ui_focus_drawn, sizeof ui_focus_drawn, it.label);
+			focus_drawn(it.label);
 		list_cell(l, &g, &c, &it);
 	}
 	list_scroll(l, &g, top, l->count, true);

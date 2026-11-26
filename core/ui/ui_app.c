@@ -48,9 +48,7 @@
 #define UI_FILTER_MAX		128
 #define UI_FILTER_KEYS		10
 
-// Critical section around the event queue (ui.c: the RTOS's; the simulator: nothing)
-void ui_crit_enter(void);
-void ui_crit_exit(void);
+// ui_crit_enter / ui_crit_exit (ui_screens.h) guard the event queue too
 
 ui_state_t ui_st;
 ui_target_t ui_target;

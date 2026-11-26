@@ -237,3 +237,6 @@ bool ui_svc_ram_set(uint8_t id, int32_t value)
 WEAK int32_t ui_svc_setting_get(uint8_t id) { return ui_svc_ram_get(id); }
 WEAK bool ui_svc_setting_set(uint8_t id, int32_t value) { return ui_svc_ram_set(id, value); }
 WEAK bool ui_svc_settings_new(void) { return false; }
+// Single-task builds (host tests without ui.c): no critical section to take
+WEAK void ui_crit_enter(void) {}
+WEAK void ui_crit_exit(void) {}
