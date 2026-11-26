@@ -1014,11 +1014,13 @@
    "preview": true
   },
   {
-   "term": "Recent",
-   "aliases": [],
+   "term": "Call log",
+   "aliases": [
+    "Recent"
+   ],
    "category": "RadioFoundry and firmware",
    "scope": "user",
-   "definition": "RadioFoundry's list of stations heard and calls made.",
+   "definition": "RadioFoundry's list of stations heard and calls made (Menu 3).",
    "link": "",
    "preview": false
   },

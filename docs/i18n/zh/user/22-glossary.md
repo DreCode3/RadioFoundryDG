@@ -75,7 +75,7 @@
 |---|---|
 | <a id="t-aprs"></a>APRS | 自动分组报告系统：业余台站之间共享的位置和短消息。[更多](13-aprs.md) |
 | <a id="t-brandmeister"></a>BrandMeister | 由互联服务器和通话组组成的全球业余 DMR 网络。 |
-| <a id="t-cw-id"></a>CW 标识 | 以摩尔斯码发送的台站呼号。独立 SFR 中继信道在有通话后每隔几分钟以 FM 发送一次（设置 > 通话与收听 > SFR CW 标识）。[更多](14-hotspot.md) |
+| <a id="t-cw-id"></a>CW 标识 | 以摩尔斯码发送的台站呼号。独立 SFR 中继信道在有通话后每隔几分钟以 FM 发送一次（菜单 > 连接 > SFR > SFR CW 标识）。[更多](14-hotspot.md) |
 | <a id="t-dmr-id"></a>DMR ID（RadioID、DMR IDs） | 在 DMR 上标识你电台的号码。业余 ID 来自 RadioID.net。 |
 | <a id="t-hotspot"></a>热点（Hotspot） | 通过互联网把附近电台接入 DMR 网络的小型 DMR 调制解调器。[更多](14-hotspot.md) |
 | <a id="t-igate"></a>iGate | 在空中的 APRS 分组与 APRS-IS 互联网网络之间转发的台站。 |
@@ -90,6 +90,7 @@
 
 | 术语 | 含义 |
 |---|---|
+| <a id="t-call-log"></a>通话记录（Call log，Recent） | RadioFoundry 记录听到的台站和发起呼叫的列表（菜单 3）。 |
 | <a id="t-codeplug"></a>电台频率（Codeplug） | 电台的编程数据：信道、区域、联系人、通话组列表、DMR ID。[更多](../dev/cps-and-codeplug.md) |
 | <a id="t-contact"></a>联系人（Contact） | 电台频率中的一个人：名称和 DMR ID。 |
 | <a id="t-csv"></a>CSV | 逗号分隔值：以纯文本表示表格，编程软件导出时使用。 |
@@ -103,7 +104,6 @@
 | <a id="t-ptt"></a>PTT | 按讲发射：用于发射的按键。 |
 | <a id="t-qdmr"></a>qdmr | 面向 DMR 电台的免费开源电台频率编辑器。[更多](04-programming.md) |
 | <a id="t-radiofoundry"></a>RadioFoundry | RadioFoundry，即本固件。 |
-| <a id="t-recent"></a>最近（Recent） | RadioFoundry 记录听到的台站和发起呼叫的列表。 |
 | <a id="t-reply-window"></a>回复窗口（Reply window） | 呼叫结束后 PTT 可应答该呼叫的时间。 |
 | <a id="t-stock-firmware"></a>原厂固件（Stock firmware） | 电台出厂时附带的固件，在 RadioFoundry 之前。每款 RadioFoundry 电台都从其取得语音编解码器。 |
 | <a id="t-talk-target"></a>通话目标（Talk target） | PTT 的去向：通话组、个人或全呼。 |

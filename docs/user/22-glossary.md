@@ -90,6 +90,7 @@ Terms the user guide uses. In the web version, hover over, focus or tap a dotted
 
 | Term | Meaning |
 |---|---|
+| <a id="t-call-log"></a>Call log (Recent) | RadioFoundry's list of stations heard and calls made (Menu 3). |
 | <a id="t-codeplug"></a>Codeplug | The radio's programming: channels, zones, contacts, talkgroup lists, DMR ID. [More](../dev/cps-and-codeplug.md) |
 | <a id="t-contact"></a>Contact | A person in the codeplug: name and DMR ID. |
 | <a id="t-csv"></a>CSV | Comma separated values: a table as plain text, as programming software exports it. |
@@ -103,7 +104,6 @@ Terms the user guide uses. In the web version, hover over, focus or tap a dotted
 | <a id="t-ptt"></a>PTT | Push to talk: the key that transmits. |
 | <a id="t-qdmr"></a>qdmr | A free, open source codeplug editor for DMR radios. [More](04-programming.md) |
 | <a id="t-radiofoundry"></a>RadioFoundry | RadioFoundry, this firmware. |
-| <a id="t-recent"></a>Call log | RadioFoundry's list of stations heard and calls made (Menu 3). |
 | <a id="t-reply-window"></a>Reply window | The time after a call during which PTT answers it. |
 | <a id="t-stock-firmware"></a>Stock firmware | The firmware a radio shipped with, before RadioFoundry. Each RadioFoundry radio takes its voice codec from it. |
 | <a id="t-talk-target"></a>Talk target | Where PTT goes: a talkgroup, a person or all call. |
