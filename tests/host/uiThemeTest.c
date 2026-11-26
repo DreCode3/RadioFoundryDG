@@ -769,6 +769,19 @@ static bool picks(int w, int inset_right, int h, uint8_t bpp, uint8_t id, const 
 	return ok;
 }
 
+#if CONFIG_UI_THEME_PANELS
+// Talkgroup name first's start on this display: the theme a reset radio starts in declares it or not
+static bool name_first_on(int w, int inset_right, int h, uint8_t bpp)
+{
+	hal_display_t d = disp;
+	d.width = (uint16_t)w; d.height = (uint16_t)h; d.inset_right = (uint8_t)inset_right; d.bpp = bpp;
+	d.flush_indexed = d_flush_indexed;
+	bool on = gfx_init(&d) && ui_theme_starts_name_first();
+	CHECK(gfx_init(&disp));
+	return on;
+}
+#endif
+
 static void test_pick(void)
 {
 	const ui_theme_t *ref = &ui_theme_reference;
@@ -790,8 +803,15 @@ static void test_pick(void)
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
 	// Its palettes are Day and Night, with nothing past them: a palette out of range is Day
 	CHECK(ui_theme_panels.palette_count == 2 && ui_theme_panels.id == UI_THEME_ID_PANELS);
-	// Its appearance options: Day/Night, the Home layout and the GPS clock, none of the reference theme's
-	CHECK(ui_theme_panels.options == (UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK));
+	// Its appearance options: Day/Night, the Home layout and the GPS clock, none of the reference theme's; and the
+	// talkgroup's name first for a radio that starts in it
+	CHECK(ui_theme_panels.options == (UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK |
+					  UI_THEME_OPT_NAME_FIRST));
+	CHECK(!(ui_theme_reference.options & UI_THEME_OPT_NAME_FIRST));
+	// So a radio starts with it on where its display picks panels for the build's default, off where it picks the
+	// reference theme, panels built in either way
+	CHECK(name_first_on(320, 10, 240, 4) && name_first_on(320, 0, 240, 4));
+	CHECK(!name_first_on(320, 11, 240, 4) && !name_first_on(220, 0, 176, 4) && !name_first_on(320, 0, 240, 1));
 	CHECK(ui_theme_use(&ui_theme_panels) && !ui_theme_has(UI_THEME_OPT_PALETTE) &&
 	      ui_theme_has(UI_THEME_OPT_DAY_NIGHT));
 	ui_theme_use(&ui_theme_reference);
