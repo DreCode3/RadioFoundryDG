@@ -887,7 +887,8 @@ static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
 	// The hint row in the longest form that fits it; its last groups go, whole, before it is shortened
 	char form[64], row[64];
 	const font_t *rf = &font_aa_8x16;
-	int room = gfx_width() - 30;
+	// From the title's left edge, or across the panes' width where a row needs it before it would lose a group
+	int room = gfx_width() - 12;
 	unsigned keys = 0;
 	bool more = true;
 	for (int level = 0; more; level++) {
@@ -908,7 +909,7 @@ static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
 	}
 	if (row[0]) {
 		gfx_text_fit(rf, row, room, fit, sizeof fit);
-		gfx_text(rf, 15, panels_hint_top(), fit, ui_col.dim);
+		gfx_text(rf, gfx_text_width(rf, fit) <= gfx_width() - 30 ? 15 : 6, panels_hint_top(), fit, ui_col.dim);
 	}
 	const char *left = (flags & (PANELS_BAR_MENU | PANELS_BAR_IDLE)) ? TR(FIND_CHIP_MENU, "Menu") :
 		(keys & 1u) || (flags & PANELS_BAR_KEYS) || ((flags & UI_BAR_LIST) && (flags & UI_BAR_NUMBERED)) ? "OK" : NULL;
