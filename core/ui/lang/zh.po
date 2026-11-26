@@ -2805,6 +2805,11 @@ msgid "In"
 msgstr "在"
 
 #: core/ui/ui_menus.c
+msgctxt "ZONE_HINT_IN_ZONES"
+msgid "OK in/out  Back"
+msgstr "OK 加入/移出  返回"
+
+#: core/ui/ui_menus.c
 msgctxt "ZONE_ROW_RENAME"
 msgid "Rename"
 msgstr "重命名"

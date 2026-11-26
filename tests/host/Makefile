@@ -835,6 +835,7 @@ run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels gfxFbEdgeTest i18nTest i
 	./uiFlowTestSatellite
 	./uiSim --layout
 	UI_LANG=fr ./uiSimFr --geom 320x240iR10 --script "ok expect:screen=hub expect:shows=Arr expect:hides=sactiv back ok 8 1 expect:shows=sactiv" --out /dev/null
+	UI_LANG=fr ./uiSimFr --geom 320x240iR10 --script "ok 8 9 ok ok up up up up ok expect:screen=chzones expect:hides=Back expect:hides=retirer__Retour expect:shows=OK_ajouter/retirer" --out /dev/null
 	./uiSimNoSettings --script "ok 8 expect:screen=settings expect:shows=Set_them_with_qdmr expect:focus=Channels ok expect:screen=channels" --out /dev/null
 	./uiSimNoSettings --script "ok 8 row:Zones ok expect:screen=zones" --out /dev/null
 	./uiSimNoSettings --script "ok 8 row:VFO ok expect:screen=home expect:vfo=1" --out /dev/null

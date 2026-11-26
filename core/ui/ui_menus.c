@@ -4464,7 +4464,7 @@ static void chz_select(uint16_t i, bool hold)
 
 static const ui_scr_def_t chz_screen = {
 	.name = "chzones", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRX(ZONE_TITLE_IN_ZONES, "In zones"),
-	.hint = TRX(ZONE_HINT_IN_ZONES, "OK in/out  Back"),
+	.hint = TRN(ZONE_HINT_IN_ZONES, "OK in/out  Back"),
 	.empty = TRN(ZONE_EMPTY_NO_ZONES, "No zones"),
 	.count = chz_count, .item = chz_item, .select = chz_select,
 };

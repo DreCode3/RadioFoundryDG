@@ -2803,6 +2803,11 @@ msgid "In"
 msgstr "Présent"
 
 #: core/ui/ui_menus.c
+msgctxt "ZONE_HINT_IN_ZONES"
+msgid "OK in/out  Back"
+msgstr "OK ajouter/retirer  Retour"
+
+#: core/ui/ui_menus.c
 msgctxt "ZONE_ROW_RENAME"
 msgid "Rename"
 msgstr "Renommer"
