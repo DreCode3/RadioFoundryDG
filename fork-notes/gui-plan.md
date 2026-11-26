@@ -85,7 +85,7 @@ common abbreviations (VFO, SFR, DMR, GPS, APRS, TG, CTCSS, DCS).
 
 Decided Nov 26 (user):
 
-- "Talk to" goes everywhere, action rows included ("Talk to TG 91" in Find and caller actions gets other words).
+- "Talk to" goes everywhere, action rows included ("Talk to TG 91" in Find and caller actions becomes "Use TG 91", "Use Joe").
 - "DMR monitor at start" and Quick tile 8 "TG / Contact" are accepted for room; the picker title stays
   "Talkgroup / Contact".
 - The theme choice is Settings > Display's first row, named **Theme**, shown only on builds with more than one theme
