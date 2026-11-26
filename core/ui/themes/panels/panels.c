@@ -728,11 +728,15 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 // above it in the 8x16 font. A hint (groups separated by two spaces, ui_hint_split) declares its keys by structure:
 // a group starting with the OK key's name ("OK", which no catalog translates) is the OK key's, one starting with the
 // Back key's name (HINT_BACK, as ui_hint_split finds it) the Back key's. The bar names the two soft keys, OK and
-// Back (Home: Menu and its assigned key), where the hint declares them; the hint row has the other groups: the other
-// keys (#, *, the digits, PTT, Up/Down, a key held), sentences, and what OK and Back do where the hint says (OK save,
-// Back cancel). Nothing compares text a translation chose, so the bar is the same in every language
-#define PANELS_BAR_MENU 0x80u	// the theme's own flags: Home's idle hint, whose first group is OK's, the menu
+// Back (Home: Menu and its assigned key), where the hint declares them; the bar stays with Hint row off
+// (UI_THEME_OPT_SOFT_KEYS). The hint row has only what the bar can't say: the other keys' groups (#, *, the digits,
+// PTT, Up/Down, a key held), sentences, and what OK and Back do where it isn't their usual job. In a list OK opens or
+// picks the focused row and Back leaves, so its OK and Back groups are left out, unless the row's value editor is open
+// (UI_BAR_EDIT: "OK save  Back cancel"); elsewhere they stay ("Back undo", "Back stop scan"). Nothing compares text
+// a translation chose, so the bar and the row are the same in every language
+#define PANELS_BAR_MENU 0x20u	// the theme's own flags: Home, where OK opens the menu (ui_home_ok_menu): Menu on the left
 #define PANELS_BAR_KEYS 0x40u	// ... a screen of the theme's own where OK and Back both act (Quick)
+#define PANELS_BAR_IDLE 0x80u	// ... Home's idle hint, whose first group is the menu's (the label says it)
 
 static bool panels_group_ok(const char *g, size_t n)
 {
@@ -747,8 +751,7 @@ static bool panels_group_back(const char *g, size_t n)
 }
 
 // One form of a hint (the key names in) taken apart: the soft keys it declares (bit 0 OK, bit 1 Back), and into row
-// (NULL: only the keys) the groups the bar's labels don't say: all but a bare OK or Back, and Menu's on Home. Returns
-// the keys, and 4 when the row has a group
+// (NULL: only the keys) the groups the bar can't say (see above). Returns the keys, and 4 when the row has a group
 static unsigned panels_hint_parts(const char *form, uint8_t flags, char *row, size_t cap)
 {
 	unsigned keys = 0;
@@ -759,7 +762,9 @@ static unsigned panels_hint_parts(const char *form, uint8_t flags, char *row, si
 		size_t n = end != NULL ? (size_t)(end - g) : strlen(g);
 		bool ok = panels_group_ok(g, n), back = panels_group_back(g, n);
 		keys |= (ok ? 1u : 0u) | (back ? 2u : 0u);
-		bool said = (ok && n == 2) || (back && n == bn) || ((flags & PANELS_BAR_MENU) && first);
+		bool usual = (ok || back) && (flags & UI_BAR_LIST) && !(flags & UI_BAR_EDIT);
+		bool said = (ok && n == 2) || (back && n == bn) || usual || ((flags & PANELS_BAR_IDLE) && first) ||
+			(flags & UI_BAR_NO_HINTS);
 		if (!said && n) {
 			keys |= 4u;
 			if (row != NULL && rn + n + 3 < cap) {
@@ -904,11 +909,45 @@ static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
 		gfx_text_fit(rf, row, room, fit, sizeof fit);
 		gfx_text(rf, 15, panels_hint_top(), fit, ui_col.dim);
 	}
-	const char *left = (flags & PANELS_BAR_MENU) ? TR(FIND_CHIP_MENU, "Menu") :
+	const char *left = (flags & (PANELS_BAR_MENU | PANELS_BAR_IDLE)) ? TR(FIND_CHIP_MENU, "Menu") :
 		(keys & 1u) || (flags & PANELS_BAR_KEYS) || ((flags & UI_BAR_LIST) && (flags & UI_BAR_NUMBERED)) ? "OK" : NULL;
 	const char *right = soft_key != NULL ? soft_key :
 		(keys & 2u) || (flags & (UI_BAR_LIST | PANELS_BAR_KEYS)) ? TR(HINT_BACK, "Back") : NULL;
 	panels_bar_labels(left, right != NULL && right[0] ? right : NULL, top, panels_bar_fg);
+}
+
+// The bar with one sentence in place of the two labels (Home while the keys are locked: what unlocks them), in the
+// largest font one of its forms fits, whether Hint row is on or off
+static void panels_bar_sentence(const char *text)
+{
+	const ui_layout_t *L = &ui_layout;
+	const int inset = PANELS_HOME_INSET, margin = 4;	// a sentence spans the bar: "Locked: hold * to unlock" in 12x24
+	int top = panels_footer_top(), room = gfx_width() - 2 * inset - 2 * margin;
+	char form[64], names[64];
+	const font_t *fonts[] = { FONT_AA_LARGEST, &font_aa_12x24, L->small };
+	const char *line = NULL;
+	const font_t *f = L->small;
+#if CONFIG_VOLUME_BAR
+	ui_hint_draws++;
+#endif
+	panels_pane(top, PANELS_FOOTER_H, ui_col.hint_bg);
+	for (unsigned i = 0; i < sizeof fonts / sizeof fonts[0] && line == NULL; i++) {
+		bool more = true;
+		for (int level = 0; more; level++) {
+			gfx_text_alt(text, level, form, sizeof form, &more);
+			const char *named = ui_key_names(form, names, sizeof names, false);
+			if (gfx_text_width(fonts[i], named) <= room) {
+				line = named;
+				f = fonts[i];
+				break;
+			}
+		}
+	}
+	if (line == NULL)
+		line = ui_key_names(form, names, sizeof names, false);	// the shortest form, shortened
+	char fit[64];
+	gfx_text_fit(f, line, room, fit, sizeof fit);
+	gfx_text(f, inset + margin, top + (PANELS_FOOTER_H - f->h) / 2, fit, panels_bar_fg);
 }
 
 static void panels_center(const font_t *f, int y, const char *text, color_t c)
@@ -1195,18 +1234,20 @@ static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bot
 	return y;
 }
 
-// The flags of Home's bar: its idle hint (s->home_hint) starts with the menu's group
+// The flags of Home's bar: Menu on the left where OK opens it (ui_home_ok_menu), and its idle hint (s->home_hint) starts
+// with the menu's group; Hint row off leaves out the hints
 static uint8_t panels_home_bar(const ui_state_t *s, const char *hint)
 {
-	return hint != NULL && hint == s->home_hint ? PANELS_BAR_MENU : 0;
+	return (uint8_t)((ui_home_ok_menu(s) ? PANELS_BAR_MENU : 0) | (hint != NULL && hint == s->home_hint ? PANELS_BAR_IDLE : 0) |
+		(s->hints ? 0 : UI_BAR_NO_HINTS));
 }
 
 // Where Home's channel pane ends: above the hint row where the bar has one, or the knob's volume bar while it shows
 // (ui_draw_volume_bar, in the rows from the hint row's top)
 static int panels_home_bottom(const ui_state_t *s, const char *hint)
 {
-	bool row = s->volbar >= 0 ||
-		(s->toast == NULL && s->hints && hint != NULL && panels_hint_has_row(hint, panels_home_bar(s, hint)));
+	bool row = s->volbar >= 0 || (s->toast == NULL && s->hints && !s->locked && hint != NULL &&
+		panels_hint_has_row(hint, panels_home_bar(s, hint)));
 	return row ? panels_hint_top() - 2 : panels_footer_top() - PANELS_HOME_GAP;
 }
 
@@ -1216,8 +1257,10 @@ static void panels_home_footer(const ui_state_t *s, const char *hint, int bottom
 	ui_banner_box(s, bottom, PANELS_HOME_INSET + 5, PANELS_HOME_INSET + 5, ui_col.strip_bg);
 	if (s->toast != NULL)
 		ui_draw_hint(s->toast, true);
-	else if (s->hints && hint != NULL)
-		panels_bottom(hint, panels_home_bar(s, hint), ui_home_soft_key(s));
+	else if (s->locked && hint != NULL)
+		panels_bar_sentence(hint);	// what unlocks the keys, in large text (as in step 2), Hint row on or off
+	else if (hint != NULL)
+		panels_bottom(hint, panels_home_bar(s, hint), ui_home_soft_key(s));	// the soft keys stay with Hint row off
 }
 
 // Home: the frame, then in the channel pane the zone, the channel's name as the main line (larger in Commercial), the
@@ -1763,9 +1806,10 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 	if (s->toast != NULL)
 		ui_draw_hint(s->toast, true);
 	else if ((split = ui_quick_split_hint(v, s, label, sizeof label)) != NULL)
-		panels_bottom(split, PANELS_BAR_KEYS, NULL);
+		panels_bottom(split, PANELS_BAR_KEYS | (s->hints ? 0 : UI_BAR_NO_HINTS), NULL);
 	else
-		panels_bottom(TR(QUICK_HINT_ALL_SETTINGS, "0 All settings  Hold OK save"), PANELS_BAR_KEYS, NULL);
+		panels_bottom(TR(QUICK_HINT_ALL_SETTINGS, "0 All settings  Hold OK save"),
+			PANELS_BAR_KEYS | (s->hints ? 0 : UI_BAR_NO_HINTS), NULL);
 }
 
 // The banner on the strip's color. While dual watch runs its screen is read for a gap right of the pane tags, which
@@ -1814,7 +1858,9 @@ const ui_theme_t ui_theme_panels = {
 	.palette_count = sizeof panels_palettes / sizeof panels_palettes[0],
 	.id = UI_THEME_ID_PANELS,
 	// Its talk line leads with a talkgroup's name ("USA · TG 3100"), so a radio that starts in it starts so
-	.options = UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK | UI_THEME_OPT_NAME_FIRST,
+	// Its bottom row names the soft keys, so it stays with Hint row off (only the hint line goes)
+	.options = UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK | UI_THEME_OPT_NAME_FIRST |
+		UI_THEME_OPT_SOFT_KEYS,
 	.ops = &panels_ops,
 	.fits = panels_fits,
 };

@@ -816,9 +816,10 @@ static void test_pick(void)
 	// Its palettes are Day and Night, with nothing past them: a palette out of range is Day
 	CHECK(ui_theme_panels.palette_count == 2 && ui_theme_panels.id == UI_THEME_ID_PANELS);
 	// Its appearance options: Day/Night, the Home layout and the GPS clock, none of the reference theme's; and the
-	// talkgroup's name first for a radio that starts in it
+	// talkgroup's name first for a radio that starts in it; a bottom row of soft keys, kept with Hint row off
 	CHECK(ui_theme_panels.options == (UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK |
-					  UI_THEME_OPT_NAME_FIRST));
+					  UI_THEME_OPT_NAME_FIRST | UI_THEME_OPT_SOFT_KEYS));
+	CHECK(!(ui_theme_reference.options & UI_THEME_OPT_SOFT_KEYS));
 	CHECK(!(ui_theme_reference.options & UI_THEME_OPT_NAME_FIRST));
 	// So a radio starts with it on where its display picks panels for the build's default, off where it picks the
 	// reference theme, panels built in either way
@@ -976,9 +977,16 @@ static void bar(int line, const char *hint, uint8_t flags, const char *soft_key,
 static void test_panels_bar(void)
 {
 	base();
-	BAR("OK open  # reply  Back", UI_BAR_LIST, NULL, "OK", "Back", "OK open  # reply");
-	BAR("OK change  hold OK save  Back", UI_BAR_LIST, NULL, "OK", "Back", "OK change  hold OK save");
-	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back", "OK talk  # more");	// Back leaves every list
+	// In a list OK opens or picks the row and Back leaves: those groups say nothing more, only the other keys' do
+	BAR("OK open  # reply  Back", UI_BAR_LIST, NULL, "OK", "Back", "# reply");
+	BAR("OK change  hold OK save  Back", UI_BAR_LIST, NULL, "OK", "Back", "hold OK save");
+	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back", "# more");	// Back leaves every list
+	BAR("OK choose  Back", UI_BAR_LIST, NULL, "OK", "Back", NULL);			// nothing left: the row is empty
+	// ... unless the focused row's value editor is open: OK and Back do its jobs then
+	BAR("OK save  Back cancel", UI_BAR_LIST | UI_BAR_EDIT, NULL, "OK", "Back", "OK save  Back cancel");
+	// Hint row off: the two labels stay, the row goes
+	BAR("OK open  # reply  Back", UI_BAR_LIST | UI_BAR_NO_HINTS, NULL, "OK", "Back", NULL);
+	BAR("# skip  Back stop scan", UI_BAR_NO_HINTS, "Back", NULL, "Back", NULL);
 	BAR("1-7 open  Back", UI_BAR_LIST | UI_BAR_NUMBERED, NULL, "OK", "Back", NULL);	// (no digits on this radio)
 	BAR("OK save  Back cancel", 0, NULL, "OK", "Back", "OK save  Back cancel");	// the value editor
 	BAR("OK  Back", 0, NULL, "OK", "Back", NULL);				// bare: the labels say it all
@@ -1003,6 +1011,35 @@ static void test_panels_bar(void)
 	ui_draw_home(&view, &state);
 	int m = find_text("Menu"), j = find_text("# Joe");
 	CHECK(m >= 0 && j >= 0 && texts[j].y < texts[m].y);
+	// OK opens the menu on Home whatever the hint says (scanning, the reply window, dual watch): Menu on the left; the
+	// state's own groups in the hint row
+	state.scanning = true;
+	ui_draw_home(&view, &state);
+	CHECK(find_text("Menu") >= 0 && find_text("# skip  Back stop scan") >= 0);
+	state.scanning = false;
+	// Typing a frequency: OK tunes it
+	state.entry = true;
+	ui_draw_home(&view, &state);
+	CHECK(find_text("Menu") < 0 && find_text("OK") >= 0);
+	state.entry = false;
+	// Keys locked: the bar has what unlocks them, in large text, in place of the labels; Hint row off too
+	state.locked = true;
+	for (int hints = 0; hints < 2; hints++) {
+		state.hints = hints;
+		ui_draw_home(&view, &state);
+		int k = -1;
+		for (int i = 0; i < ntexts; i++)
+			if (strstr(texts[i].s, "unlock") != NULL)
+				k = i;
+		CHECK(k >= 0 && texts[k].h >= 24 && texts[k].y >= ui_layout.hint_y + 16 && find_text("Menu") < 0);
+	}
+	state.locked = false;
+	// Hint row off: Home's bar keeps its two labels, the hint row goes
+	state.hints = false;
+	state.home_hint = "OK Menu  * Quick";
+	ui_draw_home(&view, &state);
+	CHECK(find_text("Menu") >= 0 && find_text("* Quick") < 0);
+	state.hints = true;
 	base();
 }
 

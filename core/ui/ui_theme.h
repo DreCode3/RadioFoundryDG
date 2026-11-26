@@ -26,6 +26,8 @@ enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };
 #if CONFIG_UI_THEME_PANELS
 #define UI_BAR_LIST	0x02u	// under a list (ui_draw_list)
 #define UI_BAR_NUMBERED	0x04u	// ... whose rows the digit keys pick (ui_list_t.numbered)
+#define UI_BAR_EDIT	0x08u	// ... whose focused row has its value editor open: OK and Back do that editor's jobs
+#define UI_BAR_NO_HINTS	0x10u	// Hint row is off: a theme with UI_THEME_OPT_SOFT_KEYS draws the soft keys' labels only
 #endif
 
 // Where a list's cells go (ops->list_geom). The shared list code (ui_draw_list) picks the cells on screen from it and
@@ -112,6 +114,9 @@ typedef struct ui_theme_ops {
 #define UI_THEME_OPT_DAY_NIGHT	0x10u	// Day/Night (UI_SET_GUI_NIGHT): its palettes are UI_PALETTE_DAY and _NIGHT
 #define UI_THEME_OPT_LAYOUT	0x20u	// Display Profile (UI_SET_GUI_PROFILE): the Commercial or Amateur Home
 #define UI_THEME_OPT_GPS_CLOCK	0x40u	// GPS clock (UI_SET_GPS_CLOCK); the theme shows the GPS fix and time (ui_state_t)
+// Not a row: the theme's bottom row names the soft keys, so it stays with Hint row off (ui_draw_bottom_key and
+// ui_draw_list call the bottom op then too, with UI_BAR_NO_HINTS); only the hints go
+#define UI_THEME_OPT_SOFT_KEYS	0x80u
 // The palettes of a theme with UI_THEME_OPT_DAY_NIGHT
 enum { UI_PALETTE_DAY, UI_PALETTE_NIGHT };
 
@@ -163,6 +168,7 @@ void ui_hwopt_needed(sbuf_t *b);			// what a pending hardware option needs from 
 void ui_home_entry_text(const ui_state_t *s, char *buf, size_t len);	// the frequency being typed on Home
 const char *ui_home_hint(const radio_view_t *v, const ui_state_t *s);	// Home's key hints
 const char *ui_home_soft_key(const ui_state_t *s);	// the label of Home's assigned soft key, NULL without one
+bool ui_home_ok_menu(const ui_state_t *s);		// OK opens the menu on Home (ui_home_key): its soft key is Menu
 // The bottom row: a toast if one is up, else the hint (with the soft key's label) when hints are on
 void ui_draw_bottom_key(const ui_state_t *s, const char *hint, const char *soft_key);
 // Text shortened at its end to max_w
@@ -211,9 +217,11 @@ bool ui_theme_starts_name_first(void);
 // The theme in use honors appearance option opt (UI_THEME_OPT_*). With the reference theme alone every one of its
 // options is, so code that tests one is built only with UI_THEME_SELECT
 #define ui_theme_has(opt)	((ui_theme_cur()->options & (opt)) != 0)
+#define ui_theme_soft_keys()	ui_theme_has(UI_THEME_OPT_SOFT_KEYS)
 #else
 #define ui_theme_cur()	(&ui_theme_reference)
 #define ui_theme_starts_name_first()	false
+#define ui_theme_soft_keys()	false
 #endif
 
 #endif

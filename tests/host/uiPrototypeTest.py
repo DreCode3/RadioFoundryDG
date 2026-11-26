@@ -349,11 +349,11 @@ class PrototypeTest(unittest.TestCase):
         self.assertIn(bytes(3), gear)
         self.assertTrue(any(100 < min(rgb) < 180 and max(rgb) - min(rgb) <= 4 for rgb in gear))
     def test_inbox_hints_follow_the_focused_action(self):
-        # Two labels, one per soft key: OK and Back. What OK does and the # reply hint (not a soft key) are in the hint
-        # row, which follows the focused row
-        self.run_script("ok 2 expect:shows=OK expect:shows=OK_compose expect:hides=#_reply ok expect:screen=compose")
+        # Two labels, one per soft key: OK and Back. The # reply hint (not a soft key) is in the hint row, which follows
+        # the focused row; what OK does in a list (open, compose) is its usual job and isn't repeated there
+        self.run_script("ok 2 expect:shows=OK expect:hides=OK_compose expect:hides=#_reply ok expect:screen=compose")
         self.run_script("msg:9991234,Hello wait:9000 ok 2 expect:shows=OK expect:shows=Back expect:shows=#_reply down "
-                        "expect:shows=OK expect:shows=OK_compose expect:hides=#_reply expect:layout=0")
+                        "expect:shows=OK expect:hides=OK_compose expect:hides=#_reply expect:layout=0")
     def test_profile_menu_sections_use_roomy_headings_and_rows(self):
         sections = (
             ("ok 1", "Contacts", "contacts", 31),
@@ -418,8 +418,8 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("ok expect:shows=OK expect:shows=Back expect:shows=1-8_open expect:shows=Settings "
                         "down down down down down down down expect:focus=Settings ok expect:screen=settings "
                         "expect:shows=OK expect:shows=1-9_open 1 expect:screen=group "
-                        "expect:shows=OK expect:shows=OK_choose ok expect:screen=pick "
-                        "expect:shows=OK expect:shows=OK_pick")
+                        "expect:shows=OK expect:hides=OK_choose ok expect:screen=pick "
+                        "expect:shows=OK expect:hides=OK_pick")
         home = self.render_frame("")
         for screen in ("ok", "ok 8", "ok 8 1", "ok 8 1 ok"):
             frame = self.render_frame(screen + " expect:layout=0")
@@ -475,6 +475,30 @@ class PrototypeTest(unittest.TestCase):
         # The value editor: OK and Back on the bar, save and cancel in the hint row (not "Back cancel" on the bar)
         self.run_script("ok 8 1 row:Brightness ok expect:shows=OK expect:shows=Back expect:shows=OK_save "
                         "expect:shows=Back_cancel expect:layout=0")
+
+    def test_hint_row_off_keeps_the_soft_keys(self):
+        # Hint row off hides only the hint line: the bar and its two labels stay on every screen, and lists keep five rows
+        off = "ok 8 1 row:Hint_row ok long:back "
+        self.run_script(off + "expect:shows=Menu expect:shows=Back expect:layout=0 "
+                        "ok 1 expect:shows=OK expect:shows=Back expect:hides=#_more expect:layout=0")
+        self.run_script(off + "quick expect:shows=OK expect:shows=Back expect:hides=Hold_OK_save expect:layout=0")
+        frame = self.render_frame(off + "ok 8 1")
+        self.assertEqual(row_starts(frame, 16), [ROWS_Y + 2 + ROW_H * k for k in range(5)])
+        on = self.render_frame("ok 8 1")
+        for y in range(BAR_Y + 2, 234):
+            self.assertEqual(frame[y][150 * 3:151 * 3], on[y][150 * 3:151 * 3])
+
+    def test_home_menu_label_wherever_ok_opens_the_menu(self):
+        # OK opens the menu on Home in the reply window, while scanning, in dual watch and in digital monitor: the left
+        # label says Menu, whatever the hint names; the state's other groups are in the hint row
+        for script, row in (("call:9991234,91,g ", "#_caller"), ("scankey wait:2000 ", "#_skip"),
+                            ("quick 7 ctx 3 5 ok wait:3000 ", "#_options"), ("mon wait:3000 ", None)):
+            with self.subTest(script=script):
+                self.run_script(script + "expect:shows=Menu expect:shows=Back " +
+                                (f"expect:shows={row} " if row else "") + "expect:layout=0 ok expect:screen=hub")
+        # Keys locked: the bar has the unlock sentence in large text (as in step 2), Hint row on or off
+        for off in ("", "ok 8 1 row:Hint_row ok long:back "):
+            self.run_script(off + "lockkey wait:3000 expect:shows=to_unlock expect:hides=Menu expect:layout=0")
 
     def test_hint_structure_survives_translation(self):
         # The bar finds the OK and Back keys' groups by structure (ui_hint_split's two-space groups, a group starting

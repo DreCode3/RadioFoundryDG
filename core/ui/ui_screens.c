@@ -934,6 +934,15 @@ void ui_draw_hint(const char *text, bool toast)
 	draw_hint(text, toast ? UI_BAR_TOAST : 0, NULL);
 }
 
+#if CONFIG_UI_THEME_PANELS
+// OK opens the menu on Home, as ui_home_key's SELECT does: unless a frequency is being typed (OK tunes it); locked keys
+// do nothing
+bool ui_home_ok_menu(const ui_state_t *s)
+{
+	return !s->entry && !s->locked;
+}
+#endif
+
 UI_THEME_SHARED const char *ui_home_soft_key(const ui_state_t *s)
 {
 #if CONFIG_KEY_ASSIGN
@@ -951,6 +960,10 @@ UI_THEME_SHARED void ui_draw_bottom_key(const ui_state_t *s, const char *hint, c
 		ui_draw_hint(s->toast, true);
 	else if (s->hints && hint != NULL)
 		draw_hint(hint, 0, soft_key);
+#if CONFIG_UI_THEME_PANELS
+	else if (hint != NULL && ui_theme_soft_keys())
+		draw_hint(hint, UI_BAR_NO_HINTS, soft_key);	// the soft keys' labels stay
+#endif
 }
 
 // --- boot splash ---
@@ -3405,7 +3418,7 @@ static int list_top(const radio_view_t *v, const ui_state_t *s, const ui_list_t 
 
 static int list_bottom(const ui_state_t *s)
 {
-	return s == NULL || s->hints || s->toast ? ui_layout.hint_y : gfx_height();
+	return s == NULL || s->hints || s->toast || ui_theme_soft_keys() ? ui_layout.hint_y : gfx_height();
 }
 
 // One line of word-wrapped text: copies into line what fits in max_w pixels (breaking at the last space, or inside a
@@ -3835,6 +3848,9 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	if (l->count == 0 && l->empty != NULL)
 		wrap_text(g.font, l->empty, y + 1, y_end, true, ui_col.dim);
 	list_scroll(l, &g, top, l->count, false);
+#if CONFIG_UI_THEME_PANELS
+	bool editing = false;	// the focused row's value editor is open (UI_BAR_EDIT)
+#endif
 	for (int r = 0; r < visible && top + r < l->count; r++) {
 		uint16_t i = (uint16_t)(top + r);
 		ui_item_t it;
@@ -3851,18 +3867,23 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 			.focus = i == l->focus && !(it.flags & UI_ITEM_INFO) };
 		for (int k = 0; k < col; k++)
 			c.x += g.col_w[k] + g.col_gap;
-		if (c.focus)
+		if (c.focus) {
 			focus_drawn(it.label);
+#if CONFIG_UI_THEME_PANELS
+			editing = (it.flags & UI_ITEM_EDIT) != 0;
+#endif
+		}
 		list_cell(l, &g, &c, &it);
 	}
 	list_scroll(l, &g, top, l->count, true);
 	ui_draw_banner(s);
 	if (s->toast)
 		ui_draw_hint(s->toast, true);
-	else if (s->hints && l->hint) {
+	else if ((s->hints || ui_theme_soft_keys()) && l->hint) {
 		uint8_t bar = 0;
 #if CONFIG_UI_THEME_PANELS
-		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0);
+		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0) | (editing ? UI_BAR_EDIT : 0) |
+			(s->hints ? 0 : UI_BAR_NO_HINTS);
 #endif
 		draw_hint(l->hint, bar, NULL);
 	}
