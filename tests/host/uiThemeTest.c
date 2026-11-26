@@ -946,7 +946,9 @@ static void test_panels_bar(void)
 	BAR("OK acknowledge  Back hide", 0, NULL, "OK acknowledge", "Back hide");
 	BAR("0 All settings  Hold OK save", 0, NULL, "Hold OK save", NULL);
 	BAR("Menu  # Joe", 0, "Quick", "Menu", "Quick");			// Home with an assigned soft key
-	BAR("# caller  Back end reply", 0, "Back", "# caller", "Back");
+	BAR("# caller  Back end reply", 0, "Back", NULL, "Back");		// # is not a soft key
+	BAR("0-9 freq  * Quick  Up/Dn", 0, "Quick", NULL, "Quick");
+	BAR("PTT talk  # more  Back", UI_BAR_LIST, NULL, NULL, "Back");
 	BAR("OK Menu  * Quick", 0, NULL, "OK Menu", NULL);
 	BAR("Keys locked: hold Back to unlock", 0, NULL, "Keys locked: hold Back to unlock", NULL);
 	BAR("Release PTT to stop", 0, NULL, "Release PTT to stop", NULL);

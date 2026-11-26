@@ -337,11 +337,10 @@ static unsigned panels_power_level(const radio_view_t *v)
 	return level < 3 ? level : 2;
 }
 
+// Where the next mark of a row goes: x moves right, or left (reverse) from the right end
 typedef struct {
 	int x;
 	bool reverse;
-	bool measure;
-	bool tight;
 } panels_row_cursor_t;
 
 static int panels_slot(panels_row_cursor_t *row, int width)
@@ -385,8 +384,6 @@ static void panels_status_key(const radio_view_t *v, const ui_state_t *s, int y,
 	if (!row->reverse)
 		panels_slot(row, 2);
 	int key_x = panels_slot(row, key_w + (row->reverse ? 3 : 5));
-	if (row->measure)
-		return;
 	int kx = key_x + (key_w - panels_px(13, scale)) / 2;
 	color_t key_color = !warning ? ui_col.rx : s->gui_night ? RGB565(160, 168, 178) : RGB565(105, 114, 124);
 	panels_mask(kx, algorithm ? y - panels_px(4, scale) : y + 1, panels_key_19, panels_px(13, scale), 10, key_color);
