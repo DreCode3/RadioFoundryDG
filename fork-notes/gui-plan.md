@@ -254,6 +254,9 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    - QA review of the second attempt: [reports/theme-step4-review.md](reports/theme-step4-review.md), not
      approved (the GPS clock dropped from a strip with room, and ranked below VOX, IP and power). The user's answers
      to the open questions are in the Layout section ("Decided Nov 26, after step 4's second attempt").
+   - For the port step's translation pass: the older clipped Spanish and Italian hints, now in the panels hint row
+     (es "Mant OK guardar", "Atrás fin resp"; it "Tutte impost.", "Tieni OK", "fine risp.", "ferma scan."), and the
+     French hints longer than a 160 px row (above).
 5. Icons and palettes. Also: the VOX and dual watch A/B marks, large on step 2's Home and about 10 px bitmaps since
    step 4; the Settings gear's dark outline at night.
 6. Freeze on the GD-88, then port to other display classes.

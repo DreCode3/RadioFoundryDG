@@ -770,53 +770,54 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   no green, which would hide the RX pill. Gallery: `home_dmr*`, `home_plain`, `channels*` (section 7).
 - `CONFIG_UI_THEME_PANELS` builds the panels theme: Commercial (default) and Amateur on color displays with a 240 px
   drawable height and at least 310 px of drawable width after insets. Other geometries use the standard layout. The
-  radio picks the theme at start, after the splash, from the stored theme (`gui_theme` in
-  [the settings store](settings-store.md); 0, the default, is the build's default theme). Settings > Display's first
-  row, Theme (Original, Panels), is there when more than one theme fits the display (`ui_theme_fits`): the pick list
-  checks the theme in use, and a pick stores `gui_theme` and puts the theme in use at once (`ui_theme_use`), then
-  applies the appearance settings again, as at start. Day/Night switches the
-  palette across Home and menus. Day is the default. The profile menus use these palettes in place of Colors,
-  Highlight color and Filled status bar. With a board GPS, GPS clock (default Off) shows the UTC date and minute in
-  the status strip of every screen, where it has room, while a recent GPS fix has both date and time. The three choices are saved in
-  [the settings store](settings-store.md). Talkgroup name first (the setting and the TG name / number key) orders the
-  talk line as in the reference theme: "TG 91 · World" with it off, "World · TG 91" with it on, the default of a
-  radio that starts in this theme (`UI_THEME_OPT_NAME_FIRST`: a new radio or one installed over another firmware's
-  settings area, `ui_app_init`, kept in RAM until the next save; a factory reset,
-  `ui_svc_factory_reset`), not of a build that only has it; Commercial's target line,
-  where it shows one, has the name alone with it on and "TG 91 · World" with it off.
-  Layout on the 310 x 240 drawable area (`core/ui/themes/panels/panels.c`). Rounded panes on every screen are the
-  look; no text is smaller than 8x16 (the theme's tiny font is its small one, so the screens the shared code draws
-  follow), and a label too long for its room is shortened, never drawn smaller:
+  radio picks the theme at start, after the splash, from the stored theme (`gui_theme` in [the settings
+  store](settings-store.md); 0, the default, is the build's default theme). Settings > Display's first row, Theme
+  (Original, Panels), is there when more than one theme fits the display (`ui_theme_fits`): the pick list checks the
+  theme in use, and a pick stores `gui_theme` and puts the theme in use at once (`ui_theme_use`), then applies the
+  appearance settings again, as at start. Day/Night switches the palette across Home and menus. Day is the default. The
+  profile menus use these palettes in place of Colors, Highlight color and Filled status bar. With a board GPS, GPS
+  clock (default Off) shows the UTC date and minute in the status strip of every screen, where it has room, while a
+  recent GPS fix has both date and time. The three choices are saved in [the settings store](settings-store.md).
+  Talkgroup name first (the setting and the TG name / number key) orders the talk line as in the reference theme: "TG 91
+  · World" with it off, "World · TG 91" with it on, the default of a radio that starts in this theme
+  (`UI_THEME_OPT_NAME_FIRST`: a new radio or one installed over another firmware's settings area, `ui_app_init`, kept in
+  RAM until the next save; a factory reset, `ui_svc_factory_reset`), not of a build that only has it; Commercial's
+  target line, where it shows one, has the name alone with it on and "TG 91 · World" with it off.
+  Layout on the 310 x 240 drawable area (`core/ui/themes/panels/panels.c`). Rounded panes on every screen are the look;
+  no text is smaller than 8x16 (the theme's tiny font is its small one, so the screens the shared code draws follow),
+  and a label too long for its room is shortened, never drawn smaller:
   - **Status strip**, 29 px, a rounded pane at the top of every screen, Home included, the same items at the same size
-    on each, except that Home's has no mode word (its mode bar shows the mode): signal bars (only while receiving, from the audible pane during Dual Watch) and the mode on the left, then
-    roaming (an arrow around a fixed R, moving only while it searches or surveys), TX, TX APRS or NO TX, and the monitor
-    (a speaker with one wave), Dual Watch and VOX marks. On the right, from the edge: battery (an upright outline with
-    three segments), power (L, M, H), lock, GPS (a pin, dimmed while it searches), IP while USB is a network adapter
-    (dimmed until the computer connects), then the operating marks: the privacy key (green when DMR privacy is
-    configured, with an AES label in 8x16 under it on AES channels; a red X on encrypted receive activity without a
-    usable key; no key on a clear channel), unread mail, RX for a receive-only channel and the scan zigzag, whose
-    highlight follows the stroke and ends on the arrowhead. The GPS clock is centered in the room between. Nothing
-    overlaps: items get room in a fixed order, and a crowded strip gives up the last first: battery, TX/NO TX, signal,
-    mode, lock, privacy key, scan, monitor, unread, the GPS clock, GPS, IP, power, RX, VOX, Dual Watch, roaming. The
-    mode takes the 8x16 font (from 12x24) before anything goes, the clock counted. Where Home's strip has no room for
-    the clock, it is at the right end of Home's mode bar; another screen drops it in the worst crowd. Status marks are black in Day and light ink in Night.
-    The masks come from `tools/profile_icons.py` (`core/ui/themes/panels/panels_icons.h`); Bluetooth, recording, the
-    TA arrow and the D-STAR label are host simulator examples.
+    on each, except that Home's has no mode word (its mode bar shows the mode): signal bars (only while receiving, from
+    the audible pane during Dual Watch) and the mode on the left, then roaming (an arrow around a fixed R, moving only
+    while it searches or surveys), TX, TX APRS or NO TX, and the monitor (a speaker with one wave), Dual Watch and VOX
+    marks. On the right, from the edge: battery (an upright outline with three segments), power (L, M, H), lock, GPS (a
+    pin, dimmed while it searches), IP while USB is a network adapter (dimmed until the computer connects), then the
+    operating marks: the privacy key (green when DMR privacy is configured, with an AES label in 8x16 under it on AES
+    channels; a red X on encrypted receive activity without a usable key; no key on a clear channel), unread mail, RX
+    for a receive-only channel and the scan zigzag, whose highlight follows the stroke and ends on the arrowhead. The
+    GPS clock is centered in the room between. Nothing overlaps: items get room in a fixed order, and a crowded strip
+    gives up the last first: battery, TX/NO TX, signal, mode, lock, privacy key, scan, monitor, unread, the GPS clock,
+    GPS, IP, power, RX, VOX, Dual Watch, roaming. The mode takes the 8x16 font (from 12x24) before anything goes, the
+    clock counted. Where Home's strip has no room for the clock, it is at the right end of Home's mode bar; another
+    screen drops it in the worst crowd. Status marks are black in Day and light ink in Night. The masks come from
+    `tools/profile_icons.py` (`core/ui/themes/panels/panels_icons.h`); Bluetooth, recording, the TA arrow and the D-STAR
+    label are host simulator examples.
   - **Home**, on a darker gutter: the strip, the mode bar (a pane with the mode in the largest font, and the GPS clock
-    where the strip has no room for it), the channel pane and the soft key bar. In the channel pane: the zone, then the channel's codeplug name as the main line (the
-    frequency in the VFO, the digits while one is typed), enlarged in Commercial. Commercial shows the talk target only
-    where it isn't the channel's own: a target for now, the reply window's, a one-shot call's, and the VFO's (its main
-    line names no target). Amateur always shows it (name, then TG or ID) and a details row: receive frequency, timeslot
-    and color code, a VFO's TX frequency, a dot for a temporary change. Two lines under a rule at the foot of the pane
-    keep their place: during a DMR call the caller (talker alias with Show talker alias, else the contact name or the
-    ID, in the privacy blue) and the talkgroup; while transmitting the talk target and the time left; otherwise what
-    needs attention (a refused PTT's reason, a pending hardware option, No TX frequency, DMR modem off, Commercial's No
-    talk target). The pane ends above the hint row where the bar has one, and above the knob's volume bar while it
-    shows. Where the pane is short, in this order, the main line takes fewer quarters of enlargement, the target, the
-    zone and the foot's first line take the small font, then the details row and the zone line go, before anything
-    overlaps. Large text keeps the zone, the main line and the target, larger, without the details. Dual Watch uses its
-    two-pane view in the same frame. The palette entries of the panes and the bar are taken first (16-color display).
-    Trunked, single-frequency repeater and unsupported channels keep their operating views under this strip and bar.
+    where the strip has no room for it), the channel pane and the soft key bar. In the channel pane: the zone, then the
+    channel's codeplug name as the main line (the frequency in the VFO, the digits while one is typed), enlarged in
+    Commercial. Commercial shows the talk target only where it isn't the channel's own: a target for now, the reply
+    window's, a one-shot call's, and the VFO's (its main line names no target). Amateur always shows it (name, then TG
+    or ID) and a details row: receive frequency, timeslot and color code, a VFO's TX frequency, a dot for a temporary
+    change. Two lines under a rule at the foot of the pane keep their place: during a DMR call the caller (talker alias
+    with Show talker alias, else the contact name or the ID, in the privacy blue) and the talkgroup; while transmitting
+    the talk target and the time left; otherwise what needs attention (a refused PTT's reason, a pending hardware
+    option, No TX frequency, DMR modem off, Commercial's No talk target). The pane ends above the hint row where the bar
+    has one, and above the knob's volume bar while it shows. Where the pane is short, in this order, the main line takes
+    fewer quarters of enlargement, the target, the zone and the foot's first line take the small font, then the details
+    row and the zone line go, before anything overlaps. Large text keeps the zone, the main line and the target, larger,
+    without the details. Dual Watch uses its two-pane view in the same frame. The palette entries of the panes and the
+    bar are taken first (16-color display). Trunked, single-frequency repeater and unsupported channels keep their
+    operating views under this strip and bar.
   - **Lists**: the title in the medium font (8x16 where it doesn't fit), left-aligned under the strip; one row height,
     26 px, 5 rows above the hint row on 310 x 240; rows as rounded tinted panels inset from the edges; the focus a
     filled highlight with an accent bar at its rounded left end. Where a list has more entries than its screen, the
@@ -827,28 +828,32 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
     Down follow the numbers, then turn the page. A tile is two lines of the 8x16 font: in the menu its icon, digit and
     value (unread, scan, the zone's name shortened at its end) over its label; in Settings its icon, digit and label,
     which goes on to the second line at a space ("Security &" / "keypad lock"), a first word too long for the room
-    beside the icon going whole to the second line. Zones' tile has no value (Home shows the zone); the Scan tile's
-    Off is `HUB_VALUE_OFF`, so a translation can give a word short enough for a tile. Menu and Settings categories
-    have colored icons.
+    beside the icon going whole to the second line. Zones' tile has no value (Home shows the zone); the Scan tile's Off
+    is `HUB_VALUE_OFF`, so a translation can give a word short enough for a tile. Menu and Settings categories have
+    colored icons.
   - **Soft key bar**: a rounded pane the same height on every screen with two labels, one per soft key, in the largest
     native font that fits them: OK on the left and Back on the right where the hint declares those keys (a list: Back
     always, and OK in a numbered one; Quick: both; Home: Menu wherever OK opens the menu, `ui_home_ok_menu`, and its
     assigned soft key on the right). While the keys are locked Home's bar has the unlock sentence instead, in the
-    largest font one of its forms fits. The bar stays with Hint row off (`UI_THEME_OPT_SOFT_KEYS`: the shared code
-    calls the bottom op then too, with `UI_BAR_NO_HINTS`); only the hint row goes.
-    A hint declares a key by structure: one of its groups (ui_hint_split's, two spaces apart) starts with the key's name
-    ("OK", which no catalog translates; Back as `HINT_BACK`), never by the words a translation chose; every catalog keeps
-    each hint's groups and keys (`uiPrototypeTest`). With Hint row on, the line above the bar (8x16, the hint row) has
-    only what the bar can't say: the other keys' groups (#, \*, the digits, PTT, Up and Down, a key held), sentences,
-    and OK and Back groups where they aren't the usual jobs. In a list OK opens or picks the row and Back leaves, so its
-    OK and Back groups are left out unless the focused row's value editor is open (`UI_BAR_EDIT`: "OK save  Back
-    cancel"); elsewhere they stay ("Back undo", "Back stop scan"). In the longest form that fits, the last groups going
-    whole before it is shortened; empty when nothing is left, the layout the same. Toasts are centered on the bar, on two
-    lines where needed.
+    largest font one of its forms fits. The bar stays with Hint row off (`UI_THEME_OPT_SOFT_KEYS`: the shared code calls
+    the bottom op then too, with `UI_BAR_NO_HINTS`); only the hint row goes. A hint declares a key by structure: one of
+    its groups (ui_hint_split's, two spaces apart) starts with the key's name ("OK", which no catalog translates; Back
+    as `HINT_BACK`), never by the words a translation chose; every catalog keeps each hint's groups and keys
+    (`uiPrototypeTest`). With Hint row on, the line above the bar (8x16, the hint row) has only what the bar can't say:
+    the other keys' groups (#, \*, the digits, PTT, Up and Down, a key held), sentences, and OK and Back groups where
+    they aren't the usual jobs. In a list OK opens or picks the row and Back leaves, so its OK and Back groups are left
+    out (a plain "OK open", "OK choose") unless they do more (`UI_BAR_OK_ACTS`): the screen says so (`SF_OK_ACTS`,
+    `ui_list_t.ok_acts`: "OK send", "OK go", "OK add", "OK use", "OK talk", "OK change", "Back keep editing"), a built
+    hint says it for its focused row (`hint_fn`'s `ok_acts`: Settings' change and save), or the focused row's value
+    editor is open ("OK save  Back cancel"); elsewhere they stay ("Back undo", "Back stop scan"). In the longest form
+    that fits, from the title's edge or across the panes' width where it needs that, the last groups going whole before
+    it is shortened; empty when nothing is left, the layout the same. Toasts are centered on the bar, on two lines where
+    needed.
   - **Quick settings**: three rows of three rounded tiles in the list style, each two lines of the 8x16 font: its name
-    in whole words (Brightness, Color code, Bandwidth, TX frequency where the shared tile names are short), in the
-    tile's shorter word where the whole one doesn't fit a third of the screen (TX freq, TG; "DMR monitor" before the
-    tile's DMon), then its digit and its value; the typed TX frequency shows in its tile and in the hint row.
+    in whole words (Brightness, Color code, Bandwidth, TX frequency where the shared tile names are short), else the
+    theme's shorter form ("TG/Contact", the decided name without its spaces; "DMR monitor" before the tile's DMon), else
+    the tile's shorter word where the whole one doesn't fit a third of the screen (TX freq), then its digit and its
+    value; the typed TX frequency shows in its tile and in the hint row.
 - The VFO has a mode of its own (`dmr-voice.md` 2.1). The Mode tile (tile 4 in the VFO only) switches it FM / DMR ("VFO: DMR", no "for now": it is kept), and in a build with only one VFO kind the tile is dimmed ("VFO: one mode in this build"). On a channel tile 4 is "To VFO" (`dmr-voice.md` 2.2): it copies what is in effect on the channel to the VFO and opens it on Home ("Copied to VFO"); a channel the VFO can't hold is refused with a toast. A channel has no temporary mode change any more. In DMR the quick menu is the DMR one: Timeslot, Color code and TG / Contact change the VFO's own settings, with no dot on Home. The talk target picker lists the VFO's current target first ("Current"); both OK and hold OK keep the target for the VFO.
 - The privacy key types are named by key size with the key's range, "8-bit (1-255)" and "16-bit (0-65535)". The key
   is typed in decimal. Number rows take typed digits; a value outside the range or between steps is refused with the
