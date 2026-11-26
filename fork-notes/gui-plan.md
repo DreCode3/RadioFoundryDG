@@ -195,6 +195,10 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
      label buffers); the talk target picker's title is "Talkgroup / Contact"
    - The user's answers to what it left open are in Naming (Nov 26): theme row, Colors, "Talk to", the two short
      names, panels' talkgroup order. They go in with QA's findings.
+   - QA's findings on `46dad875..a8591c70` (QA's step 3 review, item 12) and the answers above went in from
+     `54699fd5` on, awaiting QA. Left for the port step: French labels that the 160 x 120 display cuts in the middle
+     ("Sécurité et…rrouillage", "Moniteu… départ", "Format…essage", "Tonalités de…gnalisation"), as other display
+     classes are judged after the freeze.
    - For the layout step: the panels grid has no room for Zones' value (the zone's name) beside the label, so it is
      left out there; Messages and Scan show a short form.
 4. Layout fixes in the second theme, to the Layout section above.
