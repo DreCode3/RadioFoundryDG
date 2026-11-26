@@ -315,7 +315,7 @@ void settings_end(uint32_t now_ms)
 	storage_quick_unlock();
 }
 
-#if CONFIG_UI_THEME_PANELS || (defined(UI_THEME_SELECT) && UI_THEME_SELECT)
+#if UI_THEME_SELECT
 void settings_end_default(void)
 {
 	// Still under the lock settings_begin took: before is this change's. Only the bits it changed go into saved, so

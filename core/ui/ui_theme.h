@@ -9,12 +9,7 @@
 
 #include "ui_screens.h"
 
-// 1: the build has more than one theme and the one in use is chosen at run time (ui_theme_use). 0: the reference
-// theme only. Set by the theme switches (CONFIG_UI_THEME_PANELS); the host test of the framework sets it for its own
-// themes (tests/host/uiThemeTest.c)
-#ifndef UI_THEME_SELECT
-#define UI_THEME_SELECT	CONFIG_UI_THEME_PANELS
-#endif
+// UI_THEME_SELECT (core/config.h): the build has more than one theme and the one in use is chosen at run time
 
 // A theme's number, as the settings store it: fixed, whichever themes a build has. 0 is the build's default theme
 enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };

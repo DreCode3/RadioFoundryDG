@@ -248,6 +248,12 @@
 #ifndef CONFIG_UI_THEME_PANELS
 #define CONFIG_UI_THEME_PANELS		0
 #endif
+// 1: the build has more than one theme and the one in use is chosen at run time (core/ui/ui_theme.h, ui_theme_use). 0:
+// the reference theme only. Set by the theme switches; the host test of the framework sets it for its own themes
+// (tests/host/uiThemeTest.c)
+#ifndef UI_THEME_SELECT
+#define UI_THEME_SELECT			CONFIG_UI_THEME_PANELS
+#endif
 #ifndef CONFIG_SCAN
 #define CONFIG_SCAN			1
 #endif
