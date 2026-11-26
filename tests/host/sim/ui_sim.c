@@ -1462,7 +1462,13 @@ static void t3_view(void)
 static void load_channel(void)
 {
 	zone_t z;
-	codeplug_zone(view.zone_index, &z);
+	if (!codeplug_zone(view.zone_index, &z) || z.count == 0) {
+		// A zone with no channels (a new one, or one the editor emptied): the radio core stays on the channel it
+		// has, as the request for such a zone does (radio_sm.c zone_request)
+		view.zone_size = 0;
+		changed();
+		return;
+	}
 	view.zone_size = z.count;
 	if (view.zone_pos >= z.count)
 		view.zone_pos = 0;
@@ -1512,11 +1518,23 @@ void radio_req_channel_step(int8_t dir)
 {
 	retune();
 	view.vfo = false;
+	if (view.zone_size == 0)
+		return;		// nothing to step to (load_channel)
 	view.zone_pos = (uint16_t)((view.zone_pos + view.zone_size + dir) % view.zone_size);
 	load_channel();
 }
 void radio_req_zone_pos(uint16_t pos) { retune(); view.vfo = false; view.zone_pos = pos; load_channel(); }
-void radio_req_zone(uint16_t index) { retune(); view.zone_index = index; view.zone_pos = 0; load_channel(); }
+void radio_req_zone(uint16_t index)
+{
+	zone_t z;
+	// As the radio core: a zone without a channel to tune isn't taken (radio_sm.c zone_request)
+	if (!codeplug_zone(index, &z) || z.count == 0)
+		return;
+	retune();
+	view.zone_index = index;
+	view.zone_pos = 0;
+	load_channel();
+}
 static void sim_vfo(bool on);
 void radio_req_vfo(bool on)
 {

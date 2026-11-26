@@ -1228,6 +1228,10 @@ static const flow_t flows[] = {
 	  "screen=zones writes=1 toast=Added_A focus=A count=6", 8, true },
 	{ "26 new zone: an empty name makes none", "ok 4 down down down ok", "back", "screen=zones writes=0", 1, false },
 	{ "26 new zone: its list adds channels", "ok 4 down down down ok 2 ok", "ctx", "screen=zone shows=A count=2 focus=Add_channel", 1, false },
+	// An empty zone has no channel to tune: the radio stays where it was, and Up on Home steps in that zone (the
+	// simulator divided by the empty zone's size here)
+	{ "26 new zone: OK on it while empty keeps the channel", "ok 4 down down down ok 2 ok", "ok up",
+	  "screen=home zone=0 pos=4", 2, false },
 	// Another task's zone delete (an import, through the same storage job) with a zone's screens open
 	{ "26 another task deletes the open zone: its screens close", "ok 4 down ctx", "zonejob:1",
 	  "screen=zones toast=That_zone_was_deleted", 0, true },
