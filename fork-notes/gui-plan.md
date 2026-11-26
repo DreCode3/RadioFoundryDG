@@ -147,6 +147,15 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    - Items 1-4 (rename, move to `core/ui/themes/panels/`, descriptor and pick, `gui_theme` at offset 407) are in
      `6590540a`..`83ec470d`. Theme numbers: 0 the build's default, 1 reference, 2 panels; a stored theme that is
      missing or doesn't fit falls back to the default, then the reference theme.
+   - Step 2 (the panels theme: items 1-7, every op moved, appearance options, `UI_THEME_PANELS` only where the
+     drawable area is color, >= 310 px wide and 240 px high): QA-approved at `70a91cc3`
+     ([review](reports/theme-step2-review.md)). Cost against `3f7ca184`: GD-88 +1912 B flash, +8 B RAM; the switch
+     off costs nothing; UI stack unchanged (GD-88 1664 deepest, 204 free).
+   - Step 3 starts with what step 2's QA logged (not blocking): a few panels frames or checksums in
+     `uiThemeTestPanels`, so the host suite holds the drawing-order rule without the external pixel baseline (finding
+     1); restore or pass down `dual_style` instead of a file-static pointer left set (3); a warning at the `UI_THEME_*`
+     enum that those palette numbers are the reference theme's only (4). For step 4: no Settings row sets the theme
+     yet, so a radio with theme 1 stored can't get back to panels (5).
 3. Layout fixes in the second theme.
 4. Menu tree, settings row behavior, naming. First: fix the UI simulator's division by zero on an empty zone
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),

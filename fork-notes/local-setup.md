@@ -92,5 +92,5 @@ output outside the repository. `snapshot.py` uses one render thread per core.
 
 - [gui-plan.md](gui-plan.md): the approved design, the process, testing sizes, order of work.
 - [reports/](reports/): the theme inventory, step 1 reports and the QA reviews.
-- Step 1 is QA-approved. Step 2 (selection and the second theme) had just started:
-  [reports/theme-step2-handoff.md](reports/theme-step2-handoff.md) has its plan, open questions and gotchas.
+- Steps 1 and 2 are QA-approved (step 2 at `70a91cc3`: [review](reports/theme-step2-review.md)). Step 3 (layout
+  fixes in the panels theme) is next; gui-plan.md lists what it starts with.
