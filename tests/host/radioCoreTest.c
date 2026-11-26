@@ -5179,7 +5179,10 @@ static void test_ui_glue(void)
 	CHECK(ui_svc_setting_set(UI_SET_AUTO_OFF_MIN, 30) && ui_svc_setting_set(UI_SET_LOW_BATTERY, 20));
 	settings_read(&sv);
 	CHECK(sv.ui_flags == (SETTINGS_UI_LARGE_TEXT | SETTINGS_UI_MESSAGE_TONE | SETTINGS_UI_ALIAS | SETTINGS_UI_HEAR_ALL));
-	CHECK(sv.theme == 2 && sv.updown_home == 1 && sv.auto_off_min == 30 && sv.low_batt_pct == 20);
+	CHECK(sv.theme == 2 && settings_updown_home(&sv) == 1 && sv.auto_off_min == 30 && sv.low_batt_pct == 20);
+	// Up / Down on Home shares its byte with Talkgroup name first (bit 7), on by default in this build: its default
+	// theme is panels (settings_defaults)
+	CHECK((sv.updown_home & SETTINGS_HOME_LABEL_FIRST) != 0 && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 1);
 	// Vibrate: on by default, kept as an "off" bit so records saved before it keep it on
 	CHECK(ui_svc_setting_get(UI_SET_VIBRATE) == 1);
 	CHECK(ui_svc_setting_set(UI_SET_VIBRATE, 0) && ui_svc_setting_get(UI_SET_VIBRATE) == 0);
