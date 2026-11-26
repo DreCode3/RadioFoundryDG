@@ -488,6 +488,11 @@ class PrototypeTest(unittest.TestCase):
                     self.run_script(profile + theme + "quick 7 ctx 3 5 ok wait:3000 expect:dual=1 battery:5 wait:2000 "
                                     "expect:shows=charge_soon expect:layout=0")
 
+    def test_quick_words_fit_a_third_of_the_screen(self):
+        # Tile 8 is the decided name without the spaces (TG/Contact, 80 px); tile 5 on DMR "DMR monitor" before the
+        # tile's abbreviation (DMon)
+        self.run_script("quick expect:shows=TG/Contact expect:shows=DMR_monitor expect:hides=DMon expect:layout=0")
+
     def test_list_hint_row_keeps_what_ok_does_where_it_does_more(self):
         # A list's plain open and choose aren't repeated in the hint row; a list whose OK does more says so (SF_OK_ACTS,
         # a flag on the list, or the hint function's for a row): send, go, talk, use, details, change
@@ -505,6 +510,8 @@ class PrototypeTest(unittest.TestCase):
         self.run_script(off + "expect:shows=Menu expect:shows=Back expect:layout=0 "
                         "ok 1 expect:shows=OK expect:shows=Back expect:hides=#_more expect:layout=0")
         self.run_script(off + "quick expect:shows=OK expect:shows=Back expect:hides=Hold_OK_save expect:layout=0")
+        # ... and on the screens drawn through ui_draw_bottom (the GPS pages, text pages, volume, freq trim)
+        self.run_script(off + "ok 6 1 expect:screen=gps expect:shows=Back expect:layout=0")
         frame = self.render_frame(off + "ok 8 1")
         self.assertEqual(row_starts(frame, 16), [ROWS_Y + 2 + ROW_H * k for k in range(5)])
         on = self.render_frame("ok 8 1")
@@ -519,9 +526,13 @@ class PrototypeTest(unittest.TestCase):
             with self.subTest(script=script):
                 self.run_script(script + "expect:shows=Menu expect:shows=Back " +
                                 (f"expect:shows={row} " if row else "") + "expect:layout=0 ok expect:screen=hub")
-        # Keys locked: the bar has the unlock sentence in large text (as in step 2), Hint row on or off
+        # Keys locked: the bar has the unlock sentence in large text (as in step 2), Hint row on or off; the sentence is
+        # the bar's, so the channel pane reaches the bar as with no hint row
         for off in ("", "ok 8 1 row:Hint_row ok long:back "):
             self.run_script(off + "lockkey wait:3000 expect:shows=to_unlock expect:hides=Menu expect:layout=0")
+        locked, unlocked = self.render_frame("lockkey wait:3000"), self.render_frame("")
+        for y in range(HINT_Y - 2, BAR_Y - 4):
+            self.assertEqual(locked[y][20 * 3:21 * 3], unlocked[y][20 * 3:21 * 3], y)
 
     def test_hint_structure_survives_translation(self):
         # The bar finds the OK and Back keys' groups by structure (ui_hint_split's two-space groups, a group starting

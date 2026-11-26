@@ -752,7 +752,7 @@ $(shell python3 $(ROOT)/tools/gen_about.py $(ROOT)/AUTHORS $(ROOT)/platform/stm3
 UIFLAGS := -std=gnu99 -Wall -Wextra -Wno-unused-parameter -Wshadow -g $(COVFLAGS) $(SANFLAGS) -I$(CORE) -I$(ROOT)/hal -I. -Iout/gen \
            '-DGFX_FB_BYTES=(320u*320u*2u)' -DGFX_MAX_ROWS=320 -DCONFIG_FONT_XL=1 -DFONT_BOTH -DGFX_INDEXED=1 -DGFX_FIT_TRACE
 UIDEPS  := $(UIAPP) $(ABOUT_H) $(LANG_H) $(CORE)/input/keyassign.h $(wildcard $(CORE)/ui/*.h $(CORE)/ui/themes/*/*.h $(CORE)/ui/fonts/*.inc sim/ui_sim.h)
-TESTS   += uiFlowTest uiFlowTestNoColor uiSim uiSimNoSettings
+TESTS   += uiFlowTest uiFlowTestNoColor uiSim uiSimNoSettings uiSimFr
 TESTS   += uiFlowTestSatellite
 
 uiFlowTest: uiFlowTest.c $(UIDEPS)
@@ -777,6 +777,11 @@ UI_LANG_FLAG := $(if $(UI_LANG),-DCONFIG_LANG_$(shell echo '$(UI_LANG)' | tr a-z
 # then lists Programming's pages, to each of them
 uiSimNoSettings: uiSim.c Makefile $(UIDEPS)
 	$(CC) $(UIFLAGS) -DCONFIG_UI_SETTINGS=0 -o $@ uiSim.c $(UIAPP) -lz
+
+# The simulator with French built in (CONFIG_LANG_FR): run-ui checks the panels theme's words whose English is the same
+# as another key's (the Menu Scan tile's Off, HUB_VALUE_OFF, is "Arret" there, the rows' "Desactive")
+uiSimFr: uiSim.c Makefile $(UIDEPS)
+	$(CC) $(UIFLAGS) -DCONFIG_LANG_FR=1 -DCONFIG_UI_THEME_PANELS=1 -o $@ uiSim.c $(UIAPP) -lz
 
 uiSim: uiSim.c Makefile $(UIDEPS) $(CJK)
 	$(CC) $(UIFLAGS) $(UI_LANG_FLAG) -DCONFIG_UI_THEME_PANELS=1 -DCONFIG_SATELLITE_TLE=1 -DCONFIG_P25=1 -DCONFIG_P25_TRUNK=1 -DCONFIG_NXDN=1 \
@@ -816,7 +821,7 @@ ui-sheets: uiSim
 	UI_GALLERY_COLORS="$(UI_GALLERY_COLORS)" ./uiSim --sheets out/sheets $(GEOM)
 
 run: run-ui
-run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim uiSimNoSettings beepReel
+run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim uiSimNoSettings uiSimFr beepReel
 	./gfxTest
 	./gfxTestZh
 	./uiThemeTest
@@ -829,6 +834,7 @@ run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels gfxFbEdgeTest i18nTest i
 	./uiFlowTestNoColor
 	./uiFlowTestSatellite
 	./uiSim --layout
+	UI_LANG=fr ./uiSimFr --geom 320x240iR10 --script "ok expect:screen=hub expect:shows=Arr expect:hides=sactiv back ok 8 1 expect:shows=sactiv" --out /dev/null
 	./uiSimNoSettings --script "ok 8 expect:screen=settings expect:shows=Set_them_with_qdmr expect:focus=Channels ok expect:screen=channels" --out /dev/null
 	./uiSimNoSettings --script "ok 8 row:Zones ok expect:screen=zones" --out /dev/null
 	./uiSimNoSettings --script "ok 8 row:VFO ok expect:screen=home expect:vfo=1" --out /dev/null

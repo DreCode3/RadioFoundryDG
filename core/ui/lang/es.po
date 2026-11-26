@@ -227,6 +227,11 @@ msgctxt "QUICK_LABEL_DMR_MONITOR"
 msgid "DMR monitor"
 msgstr "Monitor DMR"
 
+#: core/ui/themes/panels/panels.c
+msgctxt "QUICK_LABEL_TG_CONTACT"
+msgid "TG/Contact"
+msgstr "TG/Contacto"
+
 #: core/ui/themes/panels/panels.c core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "QUICK_TITLE"
 msgid "Quick"

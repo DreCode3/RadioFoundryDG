@@ -1716,7 +1716,7 @@ static void panels_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t 
 
 // A Quick tile's name: the theme's whole word where Quick's own name is a short one, else the tile's name, each in
 // the longest of its text alternates that fits room (the others are a narrow tile's shorter words); before the tile's
-// abbreviations, the theme's shorter real word where it has one (DMR monitor)
+// abbreviations, the theme's shorter form where it has one (DMR monitor, TG/Contact)
 static const char *panels_quick_word(uint8_t kind, const char *name, int room, char *out, size_t cap)
 {
 	const font_t *f = &font_aa_8x16;
@@ -1736,6 +1736,9 @@ static const char *panels_quick_word(uint8_t kind, const char *name, int room, c
 		break;
 	case QT_HEAR_ALL:
 		shorter = TR(QUICK_LABEL_DMR_MONITOR, "DMR monitor");
+		break;
+	case QT_TALK_TO:
+		shorter = TR(QUICK_LABEL_TG_CONTACT, "TG/Contact");	// the decided name without the spaces: 80 px
 		break;
 	default:
 		break;
