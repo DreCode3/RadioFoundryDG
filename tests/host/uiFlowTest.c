@@ -1281,12 +1281,18 @@ static const flow_t flows[] = {
 	  false },
 	{ "24 copy here asks before discarding", "ok 4 ctx ctx 3", "back", "screen=discard writes=0", 1, false },
 	{ "24 edit channel opens the editor", "ok 4 ctx ctx", "4", "screen=channel shows=COUNTY_DMR depth=4", 1, false },
-	// The deepest path (ui_app.c UI_STACK_MAX): Settings > Programming > Zones, a zone, Copy here, its name, and Back
-	// up through every level to Home. A smaller stack drops a level on the way down and fails here
+	// The deepest path through the menus (ui_app.c UI_STACK_MAX): Settings > Programming > Zones, a zone, Copy here,
+	// its name (depth 7), and Back up through every level to Home. A stack of 7 levels drops one and fails here
 	{ "Back along the deepest path", "ok 8 9 row:Zones ok ctx ctx 3 row:Name ok",
 	  "expect:screen=text expect:depth=7 ok expect:screen=channel back expect:screen=discard expect:depth=7 down ok "
 	  "expect:screen=zone back expect:screen=zones back expect:screen=group back expect:screen=settings back "
 	  "expect:screen=hub back", "screen=home depth=0", 10, false },
+	// Find's deepest path (ui_app.c UI_STACK_MAX): Settings > 0 (Find, which stays under what it opens) > APRS >
+	// Stations heard > a station > Message > To callsign at depth 8, OK back on the message, and Back through each
+	// level to Find. With 8 levels To callsign takes the message's place and OK lands on the station
+	{ "Find's deepest path", "ok 8 0 2 7 7 ok up up up ok ok ok",
+	  "expect:screen=compose ok expect:screen=aprs-to expect:depth=8 ok expect:screen=compose expect:depth=7 back "
+	  "expect:screen=aprs-station back expect:screen=aprs-heard back expect:screen=aprs back", "screen=find", 6, false },
 	{ "25 add channel 20 after the channel in use", "", "ok 4 ctx 2 ok 2 0 ok",
 	  "screen=zone writes=1 toast=Added_to focus=04_", 8, true },
 	{ "25 add channel offers only what the zone doesn't hold", "ok 4 ctx 2", "ok", "screen=zpick count=24", 1, false },
