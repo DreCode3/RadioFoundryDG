@@ -852,38 +852,14 @@ static bool msg_row(uint16_t row, bool *aprs, uint16_t *index)
 	return true;
 }
 
-#if CONFIG_ZONE_SHARE
-// The offer's row, apart from the messages': the offer's lookup reads the codeplug, so its frames stay off the deep
-// path of a message row's (make stack-check)
-static void __attribute__((noinline)) msgs_offer_item(ui_item_t *it)
-{
-	ui_zone_offer_t o;
-	str_copy(it->label, sizeof it->label, TR(MSG_ROW_ZONE_OFFERS, "Zone offers"));
-	if (ui_svc_zone_offer(&o)) {
-		sbuf_t b;
-		sb_init(&b, it->value, sizeof it->value);
-		sb_str(&b, TEXT_ALT_OPEN);	// the name where it fits beside the whole label, else none
-		sb_str(&b, o.name);
-		sb_str(&b, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
-	}
-}
-#endif
-
-static void __attribute__((noinline)) msgs_text_item(uint16_t i, ui_item_t *it);
-
 static void msgs_item(uint16_t i, ui_item_t *it)
 {
-#if CONFIG_ZONE_SHARE
 	if (msgs_is_offer(i)) {
-		msgs_offer_item(it);
+		// The label alone: the offer's name would read the codeplug (ui_svc_zone_offer) in this frame, which is on
+		// the UI task's deepest path (make stack-check); the offer's screen has it
+		str_copy(it->label, sizeof it->label, TR(MSG_ROW_ZONE_OFFERS, "Zone offers"));
 		return;
 	}
-#endif
-	msgs_text_item(i, it);
-}
-
-static void msgs_text_item(uint16_t i, ui_item_t *it)
-{
 	uint16_t dmr_count = ui_svc_msg_count();
 	uint16_t aprs_count = ui_svc_aprs_msg_count();
 	if (aprs_new_available() && i == dmr_count + aprs_count) {
@@ -2165,8 +2141,7 @@ static const ui_scr_def_t offer_zone_screen = {
 // Messages: the offer waiting, while it lasts (the banner may have gone unseen)
 static bool offer_waiting(void)
 {
-	ui_zone_offer_t o;
-	return ui_svc_zone_offer(&o);
+	return ui_svc_zone_offer_pending();
 }
 #endif
 
