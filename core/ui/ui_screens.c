@@ -164,20 +164,15 @@ void ui_strip_set(bool filled)
 	ui_theme_set(ui_palette);
 }
 
-static void layout_regions(ui_layout_t *L)
+// Home's regions and the list rows, between a status strip strip_h high and the bottom row at hint_y
+UI_THEME_SHARED void ui_layout_regions(ui_layout_t *L, int strip_h, int hint_y)
 {
 	int w = gfx_width(), h = gfx_height();
-	// A pixel between the status strip and what is below it, and a pixel between list rows on displays 100 px and
-	// higher (3 on tall ones, 6 in the 240 px class): easy to read comes before one more row
+	// A pixel between list rows on displays 100 px and higher (3 on tall ones, 6 in the 240 px class): easy to read
+	// comes before one more row
 	bool tall = h >= UI_TALL_PX;
-	L->strip_h = L->small->h + 1;
-	L->hint_y = h - L->small->h;
-#if CONFIG_UI_THEME_PANELS
-	if (profile_theme()) {
-		L->strip_h = PROFILE_BAND_H;
-		L->hint_y = profile_footer_top();
-	}
-#endif
+	L->strip_h = strip_h;
+	L->hint_y = hint_y;
 	int y = L->strip_h;
 	// Rows that are dropped when the display is short: the zone line, then the separator
 	int need = L->small->h + L->large->h + L->medium->h + L->small->h + 2 + L->small->h;
@@ -202,8 +197,8 @@ static void layout_regions(ui_layout_t *L)
 	L->row_h = L->small->h + (w >= 220 && tall ? 6 : tall ? 3 : h >= 100 ? 1 : 0);
 }
 
-// The reference theme's fonts by display class, and its regions
-static void reference_layout(ui_layout_t *L)
+// The reference theme's fonts by display class
+UI_THEME_SHARED void ui_layout_fonts(ui_layout_t *L)
 {
 	int w = gfx_width(), h = gfx_height();
 
@@ -258,8 +253,13 @@ static void reference_layout(ui_layout_t *L)
 		}
 	}
 #endif
+}
 
-	layout_regions(L);
+// ... and its regions: a pixel between the status strip and what is below it, the bottom row one line high
+static void reference_layout(ui_layout_t *L)
+{
+	ui_layout_fonts(L);
+	ui_layout_regions(L, L->small->h + 1, gfx_height() - L->small->h);
 }
 
 // The theme's fonts and regions. Every call of a theme op is written this way: through a local pointer to the ops

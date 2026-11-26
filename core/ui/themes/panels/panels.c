@@ -62,9 +62,17 @@ static bool panels_fits(void)
 	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
 }
 
+// The reference theme's fonts, its own strip and footer
+static void panels_layout(ui_layout_t *L)
+{
+	ui_layout_fonts(L);
+	ui_layout_regions(L, PROFILE_BAND_H, profile_footer_top());
+}
+
 // The ops left NULL are the reference theme's, which still draw this look where ui_state_t.gui_profiles (and a list's
 // roomy flag) says this theme is in use
 static const ui_theme_ops_t panels_ops = {
+	.layout = panels_layout,
 	.colors = panels_colors,
 };
 

@@ -114,6 +114,9 @@ enum { UI_PANELS_DAY, UI_PANELS_NIGHT };
 // reference theme alone they stay static there, so the compiler keeps inlining them where no LTO runs
 #if CONFIG_UI_THEME_PANELS
 #define UI_THEME_SHARED
+void ui_layout_fonts(ui_layout_t *L);			// the reference theme's fonts by display class
+// Home's regions and the list rows under a strip strip_h high, above the bottom row at hint_y
+void ui_layout_regions(ui_layout_t *L, int strip_h, int hint_y);
 uint8_t ui_rssi_bars(int16_t dbm);			// signal bars, 0-4
 const char *ui_mode_word(const radio_view_t *v);	// the mode word: AM, a channel kind's short name, the mode
 #if CONFIG_DUAL_WATCH
