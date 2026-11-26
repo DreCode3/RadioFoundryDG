@@ -32,7 +32,7 @@ The two looks differed in these places; each is now shared behavior, and a theme
 5. Menu tiles show their values (unread count, current zone, scanning), as a badge or a second line.
 6. Dual watch keeps its call history and the caller's contact name.
 7. Each theme declares its own appearance options; Settings > Display shows the active theme's rows (the reference
-   theme: Theme, Highlight color, Filled status bar; ours: Day/Night). Appearance options are not features.
+   theme: Colors, Highlight color, Filled status bar; ours: Day/Night). Appearance options are not features.
 
 Themes are layered (decided): data (palettes, fonts, metrics, icons) that most users can write, and an ops table
 for elements whose composition differs (Home, status strip, list cell, soft key bar) for advanced contributors. The
@@ -63,10 +63,10 @@ Settings (Settings > group > item, never deeper):
 
 | # | Group | Contents |
 |---|---|---|
-| 1 | Display | Display profile (Commercial / Amateur), Day/Night, GPS clock, Brightness, Backlight, Large text, Hint row, Talkgroup name first, Language, Battery saver, Auto power off, Low battery warning |
+| 1 | Display | Theme (builds with more than one theme; first row), the active theme's rows (reference: Colors, Highlight color, Filled status bar; panels: Display profile (Commercial / Amateur), Day/Night, GPS clock), Brightness, Backlight, Large text, Hint row, Talkgroup name first, Language, Battery saver, Auto power off, Low battery warning |
 | 2 | Tones & alerts | Tone volume, Key tones, Voice prompts, Vibrate; sub-pages Alert tones (the on/off tones) and Signaling tones |
 | 3 | Audio | Mic gain, Mic AGC, Mic noise reduction |
-| 4 | Call settings | Reply window, TX timeout, Show talker alias, Digital monitor at start, Answer radio checks, Answer call alerts, Message format, Accept zone shares |
+| 4 | Call settings | Reply window, TX timeout, Show talker alias, DMR monitor at start, Answer radio checks, Answer call alerts, Message format, Accept zone shares |
 | 5 | Receive & VFO | Default squelch, VFO step, FM broadcast step, Dual watch talk back, Dual watch delay |
 | 6 | Privacy | Encryption: key type, key |
 | 7 | Security & keypad lock | Auto lock, PTT when locked, Knob when locked (later: a PIN) |
@@ -82,6 +82,16 @@ Scan, Location and Programming take its items).
 Call log, Keypad lock, Radio info, Tones & alerts, Call settings, Talkgroup / Contact (not "Talk to"),
 Connections. Sentence case everywhere; a screen's title is the text of the row that opens it. Full words, except
 common abbreviations (VFO, SFR, DMR, GPS, APRS, TG, CTCSS, DCS).
+
+Decided Nov 26 (user):
+
+- "Talk to" goes everywhere, action rows included ("Talk to TG 91" in Find and caller actions gets other words).
+- "DMR monitor at start" and Quick tile 8 "TG / Contact" are accepted for room; the picker title stays
+  "Talkgroup / Contact".
+- The theme choice is Settings > Display's first row, named **Theme**, shown only on builds with more than one theme
+  that fits the display. The reference theme's palette row, named Theme until now, becomes **Colors**.
+- "Talkgroup name first" works the same in both themes; a build whose default theme is panels starts with it on, so
+  panels shows the name first by default ("USA · TG 3100").
 
 ## Behavior of settings rows
 
@@ -183,10 +193,8 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
      want of room, for the user to confirm: "DMR monitor at start" (the whole name doesn't fit beside its value on a
      160 px display, nor two forms in a row's 36-byte label) and Quick tile 8 "TG / Contact" (its 20- and 24-byte
      label buffers); the talk target picker's title is "Talkgroup / Contact"
-   - Open for the user: where the theme choice goes (a radio with the reference theme stored can't get back to
-     panels). Candidates: Settings > Display's first row "Theme" when the build has two themes (the reference theme's
-     palette row is also named Theme, so one of them needs another name), or the last row of Display; on a build
-     with one theme the row is left out.
+   - The user's answers to what it left open are in Naming (Nov 26): theme row, Colors, "Talk to", the two short
+     names, panels' talkgroup order. They go in with QA's findings.
    - For the layout step: the panels grid has no room for Zones' value (the zone's name) beside the label, so it is
      left out there; Messages and Scan show a short form.
 4. Layout fixes in the second theme, to the Layout section above.
