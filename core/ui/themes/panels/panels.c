@@ -62,29 +62,6 @@ static bool panels_fits(void)
 	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
 }
 
-// The reference theme's fonts, its own strip and footer
-static void panels_layout(ui_layout_t *L)
-{
-	ui_layout_fonts(L);
-	ui_layout_regions(L, PROFILE_BAND_H, profile_footer_top());
-}
-
-// The ops left NULL are the reference theme's, which still draw this look where ui_state_t.gui_profiles (and a list's
-// roomy flag) says this theme is in use
-static const ui_theme_ops_t panels_ops = {
-	.layout = panels_layout,
-	.colors = panels_colors,
-};
-
-const ui_theme_t ui_theme_panels = {
-	.palettes = profile_palettes,
-	.palette_count = sizeof profile_palettes / sizeof profile_palettes[0],
-	.id = UI_THEME_ID_PANELS,
-	.ops = &panels_ops,
-	.fits = panels_fits,
-};
-
-
 typedef struct { int x, y, scale; } profile_mark_pos_t;
 
 static unsigned profile_mask_coverage(const uint8_t *mask, int stride, int x, int y)
@@ -660,7 +637,7 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 		PROFILE_PIXELS(x, fy + 2, profile_vox_art, PROFILE_VOX_W, ink);
 }
 
-int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
+static int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
 	const char *prefix, const char *name)
 {
 	const ui_layout_t *L = &ui_layout;
@@ -674,6 +651,15 @@ int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_state_t *
 	ui_draw_title(L->small, 0, y + 1, w, prefix, name, ui_col.fg);
 	gfx_hline(0, y + L->small->h + 1, w, ui_col.line);
 	return y + L->small->h + 2;
+}
+
+// Its strip, and the title on a row of its own below it. Measuring returns before the strip's drawing and its buffers
+static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix,
+	const char *name, bool draw)
+{
+	if (!draw)
+		return ui_layout.strip_h + (prefix != NULL || name != NULL ? ui_layout.small->h + 2 : 0);
+	return draw_profile_top(v, st, s, prefix, name);
 }
 
 void compact_menu_hint(char *left, bool numbered)
@@ -1232,4 +1218,29 @@ void profile_row(int x, int y, int w, int h, color_t ink)
 	gfx_fill(x + 1, y + 1, w - 2, h - 2, ink);
 	gfx_fill(x, y + 3, w, h - 6, ink);
 }
+
+// --- The theme ---
+
+// The reference theme's fonts, its own strip and footer
+static void panels_layout(ui_layout_t *L)
+{
+	ui_layout_fonts(L);
+	ui_layout_regions(L, PROFILE_BAND_H, profile_footer_top());
+}
+
+// The ops left NULL are the reference theme's, which still draw this look where ui_state_t.gui_profiles (and a list's
+// roomy flag) says this theme is in use
+static const ui_theme_ops_t panels_ops = {
+	.layout = panels_layout,
+	.colors = panels_colors,
+	.top = panels_top,
+};
+
+const ui_theme_t ui_theme_panels = {
+	.palettes = profile_palettes,
+	.palette_count = sizeof profile_palettes / sizeof profile_palettes[0],
+	.id = UI_THEME_ID_PANELS,
+	.ops = &panels_ops,
+	.fits = panels_fits,
+};
 #endif

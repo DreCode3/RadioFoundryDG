@@ -436,10 +436,6 @@ static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state
 {
 	if (!draw)
 		return reference_top_y(prefix != NULL || name != NULL);
-#if CONFIG_UI_THEME_PANELS
-	if (s->gui_profiles)
-		return draw_profile_top(v, st, s, prefix, name);
-#endif
 	ui_strip_draws++;
 	const ui_layout_t *L = &ui_layout;
 	const font_t *f = L->small;
