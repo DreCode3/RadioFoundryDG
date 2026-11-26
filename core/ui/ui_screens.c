@@ -3682,6 +3682,7 @@ static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_ge
 	g->col_w[1] = 0;
 	g->col_gap = 0;
 	g->paged = false;
+	g->across = false;
 	g->rows = (uint8_t)rows;
 	g->col_w[0] = (int16_t)gfx_width();
 }
@@ -3844,9 +3845,9 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		it.icon = UI_MENU_ICON_NONE;
 #endif
 		l->item(i, &it);
-		// The first column is filled first, so Up and Down keep the order of a numbered menu
-		int col = r / g.rows;
-		ui_cell_t c = { .x = g.x, .y = (int16_t)(g.y + (r % g.rows) * g.pitch), .w = g.col_w[col], .h = g.pitch,
+		// The first column is filled first (or the first row, across), so Up and Down keep the order of a numbered menu
+		int col = g.across ? r % g.cols : r / g.rows, row = g.across ? r / g.cols : r % g.rows;
+		ui_cell_t c = { .x = g.x, .y = (int16_t)(g.y + row * g.pitch), .w = g.col_w[col], .h = g.pitch,
 			.focus = i == l->focus && !(it.flags & UI_ITEM_INFO) };
 		for (int k = 0; k < col; k++)
 			c.x += g.col_w[k] + g.col_gap;

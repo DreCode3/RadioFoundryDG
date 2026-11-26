@@ -29,17 +29,19 @@ enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };
 #endif
 
 // Where a list's cells go (ops->list_geom). The shared list code (ui_draw_list) picks the cells on screen from it and
-// moves the list; the first column is filled first. The op sets every field. rows is at least 1 and cols is 1 to
-// UI_LIST_COLS: ui_draw_list brings anything else into that range, so a theme's mistake shows as a wrong layout
-#define UI_LIST_COLS	2
+// moves the list; the first column is filled first, or the first row (across: a keypad's order). The op sets every
+// field. rows is at least 1 and cols is 1 to UI_LIST_COLS: ui_draw_list brings anything else into that range, so a
+// theme's mistake shows as a wrong layout. Small: it is on the stack of every list drawn
+#define UI_LIST_COLS	3
 typedef struct {
 	const font_t *font;	// the rows' text
 	int16_t x, y;		// the first cell's corner
 	int16_t pitch;		// from one row to the next: a cell's height
 	int16_t col_w[UI_LIST_COLS];	// each column's width
-	int16_t col_gap;	// between columns
+	int8_t col_gap;		// between columns
 	uint8_t rows, cols;	// cells on screen: rows * cols
-	bool paged;		// the list moves a page at a time, not a row
+	bool paged : 1;		// the list moves a page at a time, not a row
+	bool across : 1;	// the cells fill a row before the next (1 2 3 / 4 5 6), else a column (1 2 / 3 4 down)
 } ui_list_geom_t;
 
 // One cell of a list (ops->cell): its box, and whether it has the focus

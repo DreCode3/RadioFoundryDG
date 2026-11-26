@@ -583,11 +583,11 @@ static void test_no_palette(void)
 
 // --- the list frame over a theme's geometry: which cells, where, and *l->top
 
-static struct { uint8_t rows, cols; bool paged; } grid = { 3, 2, false };
+static struct { uint8_t rows, cols; bool paged, across; } grid = { 3, 2, false, false };
 #define GX	4
 #define GPITCH	10
 #define GGAP	6
-static const int16_t gw[UI_LIST_COLS] = { 70, 60 };
+static const int16_t gw[UI_LIST_COLS] = { 70, 60, 50 };
 static int geom_y;
 
 static void grid_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
@@ -600,12 +600,13 @@ static void grid_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 	g->x = GX;
 	g->y = (int16_t)y;
 	g->pitch = GPITCH;
-	g->col_w[0] = gw[0];
-	g->col_w[1] = gw[1];
+	for (int i = 0; i < UI_LIST_COLS; i++)
+		g->col_w[i] = gw[i];
 	g->col_gap = GGAP;
 	g->rows = grid.rows;
 	g->cols = grid.cols;
 	g->paged = grid.paged;
+	g->across = grid.across;
 }
 
 static struct { char label[sizeof ((ui_item_t *)0)->label]; int x, y, w, h; bool focus; } cells[32];
@@ -653,12 +654,15 @@ static void expect(int line, uint16_t count, uint16_t focus, uint16_t top_in, ui
 	ok = ok && strcmp(order, want) == 0 && top == first && ncells == n && geom_y == head_y;
 	ok = ok && scrolled[0].top == first && scrolled[0].count == count && scrolled[1].top == first &&
 		scrolled[1].count == count && scrolled[0].l == &l && scrolled[1].l == &l;	// the list, for its focus
+	int cols = grid.cols < 1 ? 1 : grid.cols > UI_LIST_COLS ? UI_LIST_COLS : grid.cols;
 	for (int r = 0; ok && r < n; r++) {
-		int col = r / rows;
+		int col = grid.across ? r % cols : r / rows, row = grid.across ? r / cols : r % rows, x = GX;
+		for (int k = 0; k < col; k++)
+			x += gw[k] + GGAP;
 		char label[16];
 		snprintf(label, sizeof label, "i%d", first + r);
-		ok = strcmp(cells[r].label, label) == 0 && cells[r].x == GX + col * (gw[0] + GGAP) && cells[r].w == gw[col] &&
-			cells[r].y == head_y + (r % rows) * GPITCH && cells[r].h == GPITCH &&
+		ok = strcmp(cells[r].label, label) == 0 && cells[r].x == x && cells[r].w == gw[col] &&
+			cells[r].y == head_y + row * GPITCH && cells[r].h == GPITCH &&
 			cells[r].focus == (first + r == focus && first + r != info_row);
 	}
 	if (!ok) {
@@ -708,6 +712,14 @@ static void test_list_frame(void)
 	EXPECT(20, 18, 0, 18, 2, 3);	// the last page, part filled
 	EXPECT(20, 19, 6, 18, 2, 3);
 	EXPECT(18, 17, 0, 12, 6, 3);	// a full last page
+
+	// Three columns in a keypad's order (across): a row is filled before the next, a page at a time
+	grid.rows = 3; grid.cols = 3; grid.paged = true; grid.across = true;
+	EXPECT(8, 0, 0, 0, 8, 3);	// 1 2 3 / 4 5 6 / 7 8: the last row part filled
+	EXPECT(8, 7, 0, 0, 8, 3);
+	EXPECT(20, 9, 0, 9, 9, 3);	// the second page
+	EXPECT(20, 19, 0, 18, 2, 3);
+	grid.across = false;
 
 	// One column, and no place to keep top (l->top NULL): the frame starts from 0 each time
 	grid.rows = 4; grid.cols = 1; grid.paged = false;
@@ -928,50 +940,147 @@ static void test_panels_scroll_position(void)
 	CHECK(find_text("2/3") < 0);
 }
 
-// The soft key bar: one label over each soft key, the OK group's on the left and Back's (or Home's soft key's) on the
-// right, inside the bar's pane with room at its ends and between them, none shortened; a hint with no soft key in it
-// (a sentence) shows whole
+// The soft key bar: one label over each soft key, OK on the left and Back (or Home's soft key) on the right where the
+// hint declares the key by structure (a group that starts with its name), never a label a translation chose; inside
+// the bar's pane with room at its ends and between them, none shortened. The hint row above it in the 8x16 font: the
+// groups the labels don't say (other keys, sentences, what OK and Back do), whole
 static void bar(int line, const char *hint, uint8_t flags, const char *soft_key, const char *want_left,
-	const char *want_right)
+	const char *want_right, const char *want_row)
 {
 	gfx_clear(ui_col.bg);
 	ntexts = 0;
 	nshortened = 0;
 	ui_theme_panels.ops->bottom(hint, flags, soft_key);
 	int l = want_left != NULL ? find_text(want_left) : -1, r = want_right != NULL ? find_text(want_right) : -1;
-	int want = (want_left != NULL) + (want_right != NULL);
-	bool ok = ntexts == want && nshortened == 0 && (want_left == NULL || l >= 0) && (want_right == NULL || r >= 0);
+	int w = want_row != NULL ? find_text(want_row) : -1;
+	int want = (want_left != NULL) + (want_right != NULL) + (want_row != NULL);
+	int bar_y = ui_layout.hint_y + ui_layout.small->h;	// the bar's pane, below the hint row
+	bool ok = ntexts == want && nshortened == 0 && (want_left == NULL || l >= 0) && (want_right == NULL || r >= 0) &&
+		(want_row == NULL || w >= 0);
 	for (int i = 0; ok && i < ntexts; i++)
-		ok = texts[i].x >= 10 && texts[i].x + texts[i].w <= gfx_width() - 10 && texts[i].y >= ui_layout.hint_y &&
-			texts[i].y + texts[i].h <= gfx_height();
+		ok = texts[i].x >= 10 && texts[i].x + texts[i].w <= gfx_width() - 10 && texts[i].h >= 16 &&
+			texts[i].y >= (i == w ? ui_layout.hint_y : bar_y - 2) && texts[i].y + texts[i].h <= gfx_height() &&
+			(i != w || texts[i].y + texts[i].h <= bar_y + 2);
 	if (ok && l >= 0 && r >= 0)
 		ok = texts[l].x + texts[l].w + 8 <= texts[r].x;
 	if (!ok) {
 		printf("FAIL %s:%d: bar \"%s\": %d texts, %d shortened:", __FILE__, line, hint, ntexts, nshortened);
 		for (int i = 0; i < ntexts; i++)
-			printf(" \"%s\" %d+%d", texts[i].s, texts[i].x, texts[i].w);
+			printf(" \"%s\" %d+%d %d+%d", texts[i].s, texts[i].x, texts[i].w, texts[i].y, texts[i].h);
 		printf("\n");
 		fails++;
 	}
 }
-#define BAR(hint, flags, soft_key, left, right) bar(__LINE__, hint, flags, soft_key, left, right)
+#define BAR(hint, flags, soft_key, left, right, row) bar(__LINE__, hint, flags, soft_key, left, right, row)
 
 static void test_panels_bar(void)
 {
 	base();
-	BAR("OK open  # reply  Back", UI_BAR_LIST, NULL, "OK", "Back");
-	BAR("OK change  hold OK save  Back", UI_BAR_LIST, NULL, "OK", "Back");
-	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back");	// Back leaves every list
-	BAR("1-7 open  Back", UI_BAR_LIST | UI_BAR_NUMBERED, NULL, "OK", "Back");
-	BAR("OK acknowledge  Back hide", 0, NULL, "OK acknowledge", "Back hide");
-	BAR("0 All settings  Hold OK save", 0, NULL, "Hold OK save", NULL);
-	BAR("Menu  # Joe", 0, "Quick", "Menu", "Quick");			// Home with an assigned soft key
-	BAR("# caller  Back end reply", 0, "Back", NULL, "Back");		// # is not a soft key
-	BAR("0-9 freq  * Quick  Up/Dn", 0, "Quick", NULL, "Quick");
-	BAR("PTT talk  # more  Back", UI_BAR_LIST, NULL, NULL, "Back");
-	BAR("OK Menu  * Quick", 0, NULL, "OK Menu", NULL);
-	BAR("Keys locked: hold Back to unlock", 0, NULL, "Keys locked: hold Back to unlock", NULL);
-	BAR("Release PTT to stop", 0, NULL, "Release PTT to stop", NULL);
+	BAR("OK open  # reply  Back", UI_BAR_LIST, NULL, "OK", "Back", "OK open  # reply");
+	BAR("OK change  hold OK save  Back", UI_BAR_LIST, NULL, "OK", "Back", "OK change  hold OK save");
+	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back", "OK talk  # more");	// Back leaves every list
+	BAR("1-7 open  Back", UI_BAR_LIST | UI_BAR_NUMBERED, NULL, "OK", "Back", NULL);	// (no digits on this radio)
+	BAR("OK save  Back cancel", 0, NULL, "OK", "Back", "OK save  Back cancel");	// the value editor
+	BAR("OK  Back", 0, NULL, "OK", "Back", NULL);				// bare: the labels say it all
+	BAR("OK acknowledge  Back hide", 0, NULL, "OK", "Back", "OK acknowledge  Back hide");
+	BAR("0 All settings  Hold OK save", 0, NULL, NULL, NULL, "Hold OK save");	// hold OK: not a soft key
+	BAR("# caller  Back end reply", 0, "Back", NULL, "Back", "# caller  Back end reply");	// Home's soft key
+	BAR("0-9 freq  * Quick  Up/Dn", 0, "Quick", NULL, "Quick", "* Quick  Up/Dn");
+	BAR("# skip  Back stop scan", 0, "", NULL, NULL, "# skip  Back stop scan");	// a soft key with no function
+	BAR("PTT talk  # more  Back", UI_BAR_LIST, NULL, NULL, "Back", "PTT talk  # more");
+	BAR("Back: channel's talkgroup", 0, NULL, NULL, "Back", "Back: channel's talkgroup");
+	BAR("Keys locked: hold Back to unlock", 0, NULL, NULL, NULL, "Keys locked: hold Back to unlock");
+	BAR("Release PTT to stop", 0, NULL, NULL, NULL, "Release PTT to stop");
+	// The longest form whose row fits
+	BAR(TEXT_ALT_OPEN "# find or ID  OK send now  Back from here to there and back" TEXT_ALT_NEXT
+	    "# or ID  OK send  Back" TEXT_ALT_CLOSE, 0, NULL, "OK", "Back", "# or ID  OK send");
+	// Home: its idle hint's first group is the menu's (OK opens it), Menu on the left; the rest in the hint row
+	view.ch.name[0] = 0;
+	state.home_hint = "OK Menu  * Quick";
+	ui_draw_home(&view, &state);
+	CHECK(find_text("Menu") >= 0 && find_text("* Quick") >= 0 && find_text("OK Menu") < 0);
+	state.home_hint = "Menu  # Joe";
+	ui_draw_home(&view, &state);
+	int m = find_text("Menu"), j = find_text("# Joe");
+	CHECK(m >= 0 && j >= 0 && texts[j].y < texts[m].y);
+	base();
+}
+
+// Text no smaller than 8x16 on any of the theme's frames, and a status strip whose items never overlap however many
+// there are (the order they get room in: panels_draw_status)
+static void test_panels_min_font(void)
+{
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(14, 3, &top);
+	for (int frame = 0; frame < 6; frame++) {
+		base();
+		if (frame == 3 || frame == 4) {	// a crowded strip: TX, monitor, VOX, unread, lock, USB, GPS, scan, AES
+			view.state = RS_TX;
+			view.monitor = view.vox_on = true;
+			state.unread = 2;
+			state.locked = state.scanning = state.gps_fix = state.gps_clock = true;
+			state.gps_utc_ymd = 20261126;
+			state.gps_utc_hms = 140800;
+			state.usb_net = UI_USB_NET_UP;
+			state.gui_sim_crypt = 2;
+			view.ch.rx_only = frame == 4;
+		}
+		if (frame == 0 || frame == 3)
+			ui_draw_home(&view, &state);
+		else if (frame == 4)
+			ui_draw_list(&view, &state, &l);
+		else {
+			l = list(14, 3, &top);
+			l.kind = frame == 1 ? UI_LIST_HUB : frame == 2 ? UI_LIST_MENU : UI_LIST_PLAIN;
+			l.item = menu_item;
+			l.numbered = true;
+			ui_draw_list(&view, &state, &l);
+		}
+		bool ok = true;
+		for (int i = 0; i < ntexts; i++)
+			if (texts[i].h < 16) {
+				printf("FAIL %s:%d: frame %d: \"%s\" %d px high\n", __FILE__, __LINE__, frame, texts[i].s, texts[i].h);
+				ok = false;
+			}
+		for (int i = 0; i < ntexts; i++)
+			for (int k = i + 1; k < ntexts; k++)
+				if (texts[i].y + texts[i].h / 2 < ui_layout.strip_h && texts[k].y + texts[k].h / 2 < ui_layout.strip_h &&
+				    texts[i].x < texts[k].x + texts[k].w && texts[k].x < texts[i].x + texts[i].w) {
+					printf("FAIL %s:%d: frame %d: \"%s\" over \"%s\" in the strip\n", __FILE__, __LINE__, frame,
+					       texts[i].s, texts[k].s);
+					ok = false;
+				}
+		if (!ok)
+			fails++;
+	}
+	base();
+}
+
+// Lists show five rows of one height between the title and the bar; the main menu is a grid of three columns in the
+// keypad's order (1 2 3 across), the first level of Settings one of two columns down, a page of three rows each, one
+// split for the whole list
+static void test_panels_geometry(void)
+{
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(30, 0, &top);
+	const ui_theme_ops_t *o = ui_theme_panels.ops;
+	ui_list_geom_t g;
+	int y = o->list_head(NULL, NULL, &l, false);
+	o->list_geom(&l, y, ui_layout.hint_y, &g);
+	CHECK(g.rows == 5 && g.cols == 1 && !g.paged && g.font->h >= 16 && y + 5 * g.pitch <= ui_layout.hint_y + 4);
+	l.kind = UI_LIST_HUB;
+	o->list_geom(&l, y, ui_layout.hint_y, &g);
+	CHECK(g.rows == 3 && g.cols == 3 && g.across && g.paged && g.col_w[0] == g.col_w[1] &&
+	      g.y + 3 * g.pitch <= ui_layout.hint_y && g.pitch >= 2 * g.font->h);
+	l.kind = UI_LIST_MENU;
+	o->list_geom(&l, y, ui_layout.hint_y, &g);
+	CHECK(g.rows == 3 && g.cols == 2 && !g.across && g.paged && g.pitch >= 2 * g.font->h);
+	// Without the bar (Hint row off) a list runs to the screen's foot
+	l.kind = UI_LIST_PLAIN;
+	o->list_geom(&l, y, gfx_height(), &g);
+	CHECK(g.rows == (gfx_height() - y) / g.pitch);
 }
 
 static void test_panels_frames(void)
@@ -981,6 +1090,8 @@ static void test_panels_frames(void)
 	ui_theme_set(UI_PALETTE_DAY);
 	test_panels_scroll_position();
 	test_panels_bar();
+	test_panels_min_font();
+	test_panels_geometry();
 	ui_theme_use(&ui_theme_reference);
 	CHECK(gfx_init(&disp));
 	ui_layout_init();
