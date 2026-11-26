@@ -104,7 +104,6 @@ typedef struct ui_theme_ops {
 #define UI_THEME_OPT_PALETTE	0x01u	// Theme (UI_SET_THEME): which of its palettes
 #define UI_THEME_OPT_ACCENT	0x02u	// Highlight color (UI_SET_ACCENT)
 #define UI_THEME_OPT_STRIP	0x04u	// Filled status bar (UI_SET_STRIP)
-#define UI_THEME_OPT_LABEL_FIRST 0x08u	// Talkgroup name first (UI_SET_LABEL_FIRST) and the key that switches it
 #define UI_THEME_OPT_DAY_NIGHT	0x10u	// Day/Night (UI_SET_GUI_NIGHT): its palettes are UI_PALETTE_DAY and _NIGHT
 #define UI_THEME_OPT_LAYOUT	0x20u	// Display Profile (UI_SET_GUI_PROFILE): the Commercial or Amateur Home
 #define UI_THEME_OPT_GPS_CLOCK	0x40u	// GPS clock (UI_SET_GPS_CLOCK); the theme shows the GPS fix and time (ui_state_t)
@@ -173,6 +172,9 @@ const char *ui_key_names(const char *text, char *out, size_t cap, bool hint);
 void ui_hint_split(const char *text, char *left, size_t lcap, char *right, size_t rcap);
 void ui_secondary_hint_split(char *left, char *right, size_t cap, bool quick_only);
 // A row's label from x and its value right-aligned at w, the label kept whole where it can be
+// A row with its value editor open: the value between markers in the color mark (the theme's accent)
+void ui_row_edit(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
+	color_t mark);
 void ui_row_text(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
 	color_t vfg, bool preview);
 // Quick settings' hint while the TX frequency tile edits, NULL while it doesn't (into buf)

@@ -15,14 +15,14 @@ for i, (nm, sc) in enumerate(entries):
     if seen[nm] > 1: entries[i] = ("%s__%d" % (nm, seen[nm]), sc)
 variants = {  # prefixes from docs/dev/testing.md (profile samples): Commercial Day is the start state
     "commercial_day": "",
-    "amateur_day": "ok 7 2 ok down ok long:back ",
-    "commercial_night": "ok 7 2 down ok down ok long:back ",
-    "amateur_night": "ok 7 2 ok down ok long:back ok 7 2 down ok down ok long:back ",
+    "amateur_day": "ok 8 1 ok down ok long:back ",
+    "commercial_night": "ok 8 1 down ok down ok long:back ",
+    "amateur_night": "ok 8 1 ok down ok long:back ok 8 1 down ok down ok long:back ",
 }
 os.makedirs(out, exist_ok=True)
-for g in range(12):        # every settings group, scrolled to five depths
+for g in range(10):        # every row of Settings (Settings > group, since the menu tree of step 3), five depths
     for k in (0, 3, 6, 9, 12):
-        entries.append(("set_g%02d_d%02d" % (g, k), ("ok 7" + " down" * g + " ok" + " down" * k)))
+        entries.append(("set_g%02d_d%02d" % (g, k), ("ok 8" + " down" * g + " ok" + " down" * k)))
 extra_geoms = ["160x128", "240x320i10x5"]
 r = subprocess.run([sim, "--gallery", os.path.join(out, "gallery")], capture_output=True, text=True,
                    env=dict(os.environ, UI_GALLERY_COLORS=""))

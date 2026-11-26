@@ -363,8 +363,9 @@ static void heard_item(uint16_t i, ui_item_t *it)
 	}
 }
 
+// Not a field-use screen (P4's three levels): it is Menu > Location > APRS > Heard, as it was under Tools
 const ui_scr_def_t ui_aprs_heard_screen = {
-	.name = "aprs-heard", .flags = SF_LIST | SF_FIELD, .prefix = TRN(APRS_TITLE_HEARD, "Heard"),
+	.name = "aprs-heard", .flags = SF_LIST, .prefix = TRN(APRS_TITLE_HEARD, "Heard"),
 	.hint = TRN(HINT_BACK, "Back"),
 	.empty = TRN(APRS_EMPTY_NOTHING_HEARD, "Nothing heard yet"),
 	.count = heard_count, .item = heard_item, .select = heard_select,
@@ -503,7 +504,8 @@ static void station_select(uint16_t i, bool hold)
 }
 #endif
 const ui_scr_def_t ui_aprs_station_screen = {
-	.name = "aprs-station", .flags = SF_LIST | SF_FIELD, .prefix = TRN(APRS_TITLE_HEARD, "Heard"),
+	// Not a field-use screen: it is under Heard (above)
+	.name = "aprs-station", .flags = SF_LIST, .prefix = TRN(APRS_TITLE_HEARD, "Heard"),
 	.hint = TRN(HINT_OK_CHOOSE_BACK, "OK choose  Back"),
 	.count = station_count, .item = station_item, .select = station_select, .title = station_title,
 };

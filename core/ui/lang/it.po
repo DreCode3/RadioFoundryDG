@@ -192,11 +192,6 @@ msgctxt "HOME_STATE_NO_TARGET"
 msgid "No talk target"
 msgstr "Nessun destinatario"
 
-#: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_find.c
-msgctxt "FIND_CHIP_MENU"
-msgid "Menu"
-msgstr "Menu"
-
 #: core/ui/themes/panels/panels.c core/ui/ui_menus.c
 msgctxt "SET_LABEL_BRIGHTNESS"
 msgid "Brightness"
@@ -231,6 +226,11 @@ msgstr "0 Tutte impost.  Tieni OK salva"
 msgctxt "HINT_BACK"
 msgid "Back"
 msgstr "Indietro"
+
+#: core/ui/ui_app.c core/ui/ui_find.c
+msgctxt "FIND_CHIP_MENU"
+msgid "Menu"
+msgstr "Menu"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -1397,9 +1397,9 @@ msgctxt "DUAL_ROW_STOP_ON_A"
 msgid "Stop, stay on A"
 msgstr "Ferma, resta su A"
 
-#: core/ui/ui_dual.c
-msgctxt "DUAL_TITLE"
-msgid "Dual Watch"
+#: core/ui/ui_dual.c core/ui/ui_menus.c
+msgctxt "WORD_DUAL_WATCH"
+msgid "Dual watch"
 msgstr "Doppio ascolto"
 
 #: core/ui/ui_dual.c core/ui/ui_menus.c
@@ -1443,19 +1443,29 @@ msgid "Messages"
 msgstr "Messaggi"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
-msgctxt "TITLE_RECENT"
-msgid "Recent"
-msgstr "Recenti"
+msgctxt "TITLE_CALL_LOG"
+msgid "Call log"
+msgstr "Registro chiamate"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "TITLE_CHANNELS"
 msgid "Channels"
 msgstr "Canali"
 
+#: core/ui/ui_find.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "WORD_SCAN"
+msgid "Scan"
+msgstr "Scansione"
+
 #: core/ui/ui_find.c core/ui/ui_menus.c
-msgctxt "TITLE_TOOLS"
-msgid "Tools"
-msgstr "Strumenti"
+msgctxt "TITLE_LOCATION"
+msgid "Location"
+msgstr "Posizione"
+
+#: core/ui/ui_find.c core/ui/ui_menus.c
+msgctxt "TITLE_CONNECTIONS"
+msgid "Connections"
+msgstr "Connessioni"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "TITLE_SETTINGS"
@@ -1572,12 +1582,12 @@ msgctxt "GPS_STATE_2D_FIX"
 msgid "2D Fix"
 msgstr "Fix 2D"
 
-#: core/ui/ui_gps.c
+#: core/ui/ui_gps.c core/ui/ui_menus.c
 msgctxt "GPS_STATE_FIX"
 msgid "Fix"
 msgstr "Fix"
 
-#: core/ui/ui_gps.c
+#: core/ui/ui_gps.c core/ui/ui_menus.c
 msgctxt "GPS_STATE_SEARCHING"
 msgid "Searching"
 msgstr "Ricerca"
@@ -1673,19 +1683,14 @@ msgid " new"
 msgstr " nuovi"
 
 #: core/ui/ui_menus.c
-msgctxt "HUB_VALUE_SCANNING"
-msgid "Scanning"
-msgstr "Scansione"
+msgctxt "TITLE_MENU"
+msgid "Menu"
+msgstr "Menu"
 
 #: core/ui/ui_menus.c
-msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
-msgid "Channels: not in this build"
-msgstr "Canali: non in questa build"
-
-#: core/ui/ui_menus.c
-msgctxt "HINT_1_7_OPEN_BACK"
-msgid "1-7 open  Back"
-msgstr "1-7 apri  Indietro"
+msgctxt "HINT_1_8_OPEN_BACK"
+msgid "1-8 open  Back"
+msgstr "1-8 apri  Indietro"
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_TALK_TO"
@@ -1888,6 +1893,11 @@ msgid "Contacts: not in this build"
 msgstr "Contatti: non in questa build"
 
 #: core/ui/ui_menus.c
+msgctxt "MSG_ROW_ZONE_OFFERS"
+msgid "Zone offers"
+msgstr "Zone offerte"
+
+#: core/ui/ui_menus.c
 msgctxt "MSG_ROW_NEW_APRS"
 msgid "New APRS message"
 msgstr "Nuovo messaggio APRS"
@@ -1899,12 +1909,12 @@ msgstr "OK apri  # rispondi  Indietro"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_OPEN_BACK"
-msgid "OK Open  Back"
+msgid "OK open  Back"
 msgstr "OK Apri  Indietro"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_NEW"
-msgid "OK Compose  Back"
+msgid "OK compose  Back"
 msgstr "OK Scrivi  Indietro"
 
 #: core/ui/ui_menus.c
@@ -1979,7 +1989,7 @@ msgstr "PTT parla  # altro  Indietro"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_ROW_CREATE"
-msgid "Create New Zone"
+msgid "Create new zone"
 msgstr "Crea nuova zona"
 
 #: core/ui/ui_menus.c
@@ -2099,7 +2109,7 @@ msgstr "Invio"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_TITLE_TO"
-msgid "Share To"
+msgid "Share to"
 msgstr "Condividi con"
 
 #: core/ui/ui_menus.c
@@ -2219,7 +2229,7 @@ msgstr "{ canali| can}"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_TITLE_ADD_TO_ZONE"
-msgid "Add to Zone"
+msgid "Add to zone"
 msgstr "Aggiungi a zona"
 
 #: core/ui/ui_menus.c
@@ -2329,7 +2339,7 @@ msgstr "Nessun canale"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_TITLE_NEW"
-msgid "New Channel"
+msgid "New channel"
 msgstr "Nuovo canale"
 
 #: core/ui/ui_menus.c
@@ -2431,11 +2441,6 @@ msgstr "Alias parlante TS2"
 msgctxt "CHAN_LABEL_TX_TIMEOUT"
 msgid "TX time-out"
 msgstr "Timeout TX"
-
-#: core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "WORD_SCAN"
-msgid "Scan"
-msgstr "Scansione"
 
 #: core/ui/ui_menus.c
 msgctxt "LABEL_BATTERY_SAVER"
@@ -2634,7 +2639,7 @@ msgstr "Scartare le modifiche a questo canale?"
 
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_TITLE"
-msgid "Unsaved Changes"
+msgid "Unsaved changes"
 msgstr "Modifiche non salvate"
 
 #: core/ui/ui_menus.c
@@ -2704,7 +2709,7 @@ msgstr "Gli ID arrivano a 16777214"
 
 #: core/ui/ui_menus.c
 msgctxt "CONTACT_TITLE_NEW"
-msgid "New Contact"
+msgid "New contact"
 msgstr "Nuovo contatto"
 
 #: core/ui/ui_menus.c
@@ -2769,7 +2774,7 @@ msgstr "Aggiunto a "
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_TITLE_ADD_CHANNEL"
-msgid "Add Channel"
+msgid "Add channel"
 msgstr "Aggiungi canale"
 
 #: core/ui/ui_menus.c
@@ -2869,7 +2874,7 @@ msgstr "? I canali restano."
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_TITLE_DELETE"
-msgid "Delete Zone"
+msgid "Delete zone"
 msgstr "Elimina zona"
 
 #: core/ui/ui_menus.c
@@ -2897,6 +2902,11 @@ msgctxt "CHAN_EMPTY_NONE_STORED"
 msgid "None stored"
 msgstr "Nessuno salvato"
 
+#: core/ui/ui_menus.c
+msgctxt "TITLE_GPS_STATUS"
+msgid "GPS status"
+msgstr "Stato GPS"
+
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "TITLE_HOTSPOT"
 msgid "Hotspot"
@@ -2913,14 +2923,14 @@ msgid "Codeplug"
 msgstr "Codeplug"
 
 #: core/ui/ui_menus.c
-msgctxt "USBNET_TITLE"
-msgid "USB Network"
+msgctxt "CONN_ROW_USB_NETWORK"
+msgid "USB network"
 msgstr "Rete USB"
 
 #: core/ui/ui_menus.c
-msgctxt "SFR_TITLE"
-msgid "Single-Freq Repeater"
-msgstr "Ripetitore freq. unica"
+msgctxt "SET_ROW_SFR_STATUS"
+msgid "SFR status"
+msgstr "Stato SFR"
 
 #: core/ui/ui_menus.c
 msgctxt "SFR_VALUE_USER"
@@ -3203,9 +3213,9 @@ msgid "Typing: not in this build"
 msgstr "Digitazione: non in questa build"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_TITLE_MY_RADIO"
-msgid "My Radio"
-msgstr "Mia radio"
+msgctxt "SET_ROW_DMR_ID_AND_NAME"
+msgid "DMR ID and name"
+msgstr "ID DMR e nome"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_TYPE_OK_EDIT_SAVE_BACK"
@@ -3253,14 +3263,14 @@ msgid "ARS: "
 msgstr "ARS: "
 
 #: core/ui/ui_menus.c
-msgctxt "DATA_TITLE"
-msgid "Data Services"
+msgctxt "SET_ROW_DATA_SERVICES"
+msgid "Data services"
 msgstr "Servizi dati"
 
 #: core/ui/ui_menus.c
-msgctxt "TRIM_TITLE"
-msgid "Freq Trim"
-msgstr "Trim freq."
+msgctxt "SET_ROW_FREQUENCY_TRIM"
+msgid "Frequency trim"
+msgstr "Taratura frequenza"
 
 #: core/ui/ui_menus.c
 msgctxt "TRIM_BODY_AT"
@@ -3623,8 +3633,8 @@ msgid "Crash record cleared"
 msgstr "Registro crash cancellato"
 
 #: core/ui/ui_menus.c
-msgctxt "CRASH_TITLE"
-msgid "Crash Log"
+msgctxt "SET_ROW_CRASH_LOG"
+msgid "Crash log"
 msgstr "Log crash"
 
 #: core/ui/ui_menus.c
@@ -3639,7 +3649,7 @@ msgstr "questo contatto"
 
 #: core/ui/ui_menus.c
 msgctxt "CRASH_TITLE_SEND_TO"
-msgid "Send To"
+msgid "Send to"
 msgstr "Invia a"
 
 #: core/ui/ui_menus.c
@@ -3658,34 +3668,24 @@ msgid "Crash report not sent"
 msgstr "Rapporto crash non inviato"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_HINT_OPEN_BACK"
+msgctxt "MENU_HINT_OPEN_BACK"
 msgid " open  Back"
 msgstr " apri  Indietro"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_ROW_USB_NETWORK"
-msgid "USB network"
-msgstr "Rete USB"
+msgctxt "HUB_VALUE_SCANNING"
+msgid "Scanning"
+msgstr "Scansione"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_ROW_SFR"
-msgid "Single-freq repeater"
-msgstr "Ripetitore freq. unica"
-
-#: core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "TITLE_DIAGNOSTICS"
-msgid "Diagnostics"
-msgstr "Diagnostica"
+msgctxt "SET_ROW_LOCATION_SETTINGS"
+msgid "Location settings"
+msgstr "Impostazioni posizione"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_ROW_SHARES_RECEIVED"
-msgid "Zones/Chs Received"
-msgstr "Zone/Can. ricevuti"
-
-#: core/ui/ui_menus.c
-msgctxt "WORD_DUAL_WATCH"
-msgid "Dual watch"
-msgstr "Doppio ascolto"
+msgctxt "SET_ROW_PC_NETWORK"
+msgid "PC and network"
+msgstr "PC e rete"
 
 #: core/ui/ui_menus.c
 msgctxt "TOOLS_VALUE_USB_NETWORK"
@@ -3848,9 +3848,9 @@ msgid "Next zone"
 msgstr "Zona succ."
 
 #: core/ui/ui_menus.c
-msgctxt "KEYFN_VALUE_PREV_ZONE"
-msgid "Prev zone"
-msgstr "Zona prec."
+msgctxt "KEYFN_VALUE_PREVIOUS_ZONE"
+msgid "Previous zone"
+msgstr "Zona precedente"
 
 #: core/ui/ui_menus.c
 msgctxt "KEYFN_VALUE_SCAN_SKIP"
@@ -3863,9 +3863,9 @@ msgid "Monitor toggle"
 msgstr "Monitor fisso"
 
 #: core/ui/ui_menus.c
-msgctxt "WORD_KEY_LOCK"
-msgid "Key lock"
-msgstr "Blocco tasti"
+msgctxt "WORD_KEYPAD_LOCK"
+msgid "Keypad lock"
+msgstr "Blocco tastiera"
 
 #: core/ui/ui_menus.c
 msgctxt "KEYFN_VALUE_HOME_ZONE"
@@ -3952,10 +3952,75 @@ msgctxt "SIG_VALUE_SPEAKER_AIR"
 msgid "Speaker + air"
 msgstr "Altoparlante + onda"
 
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GUI_PROFILE"
+msgid "Display profile"
+msgstr "Profilo display"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_DAY_NIGHT"
+msgid "Day/Night"
+msgstr "Giorno/notte"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GPS_CLOCK"
+msgid "GPS clock"
+msgstr "Orologio GPS"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_THEME"
+msgid "Theme"
+msgstr "Tema"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_HIGHLIGHT_COLOR"
+msgid "Highlight color"
+msgstr "Colore evidenz."
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_FILLED_STATUS_BAR"
+msgid "Filled status bar"
+msgstr "Barra stato piena"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_BACKLIGHT"
+msgid "Backlight"
+msgstr "Retroilluminazione"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_LARGE_TEXT"
+msgid "Large text"
+msgstr "Testo grande"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_HINT_ROW"
+msgid "Hint row"
+msgstr "Riga suggerim."
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_LANGUAGE"
+msgid "Language"
+msgstr "Lingua/Language"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_AUTO_POWER_OFF"
+msgid "Auto power off"
+msgstr "Spegnim. auto"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_LOW_BATTERY_WARNING"
+msgid "Low battery warning"
+msgstr "Avviso batt. scarica"
+
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "TITLE_VOLUME"
 msgid "Volume"
 msgstr "Volume"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_TONE_VOLUME"
+msgid "Tone volume"
+msgstr "Volume toni"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_KEY_TONES"
@@ -3963,9 +4028,24 @@ msgid "Key tones"
 msgstr "Toni tasti"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_TONE_VOLUME"
-msgid "Tone volume"
-msgstr "Volume toni"
+msgctxt "SET_LABEL_VOICE_PROMPTS"
+msgid "Voice prompts"
+msgstr "Voce guida"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_VIBRATE"
+msgid "Vibrate"
+msgstr "Vibrazione"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_ALERT_TONES"
+msgid "Alert tones"
+msgstr "Toni di avviso"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_SIGNALING_TONES"
+msgid "Signaling tones"
+msgstr "Toni di segnalazione"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_TALK_PERMIT_TONE"
@@ -3978,9 +4058,9 @@ msgid "Call end tone"
 msgstr "Tono fine chiamata"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_TOT_WARNING_TONE"
-msgid "TOT warning tone"
-msgstr "Tono avviso TOT"
+msgctxt "SET_LABEL_TIMEOUT_WARNING_TONE"
+msgid "Timeout warning tone"
+msgstr "Tono avviso timeout"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_BATTERY_TONE"
@@ -4003,19 +4083,9 @@ msgid "Emergency tone"
 msgstr "Tono emergenza"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_VOICE_PROMPTS"
-msgid "Voice prompts"
-msgstr "Voce guida"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_MESSAGE_TONE"
 msgid "Message tone"
 msgstr "Tono messaggio"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_VIBRATE"
-msgid "Vibrate"
-msgstr "Vibrazione"
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_ROW_DMR_START_TONE"
@@ -4063,54 +4133,19 @@ msgid "Idle steps"
 msgstr "Passi libero"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_GUI_PROFILE"
-msgid "Display Profile"
-msgstr "Profilo display"
+msgctxt "SET_LABEL_MIC_GAIN"
+msgid "Mic gain"
+msgstr "Guadagno mic"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_DAY_NIGHT"
-msgid "Day/Night"
-msgstr "Giorno/notte"
+msgctxt "SET_LABEL_MIC_AGC"
+msgid "Mic AGC"
+msgstr "AGC mic"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_GPS_CLOCK"
-msgid "GPS clock"
-msgstr "Orologio GPS"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_BACKLIGHT_DIM_OFF"
-msgid "Backlight Dim/Off"
-msgstr "Retroill. Dim/Off"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_THEME"
-msgid "Theme"
-msgstr "Tema"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_HIGHLIGHT_COLOR"
-msgid "Highlight color"
-msgstr "Colore evidenz."
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_FILLED_STATUS_BAR"
-msgid "Filled status bar"
-msgstr "Barra stato piena"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_LARGE_TEXT"
-msgid "Large text"
-msgstr "Testo grande"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_HINT_ROW"
-msgid "Hint row"
-msgstr "Riga suggerim."
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_LANGUAGE"
-msgid "Language"
-msgstr "Lingua/Language"
+msgctxt "SET_LABEL_MIC_NOISE_REDUCTION"
+msgid "Mic noise reduction"
+msgstr "Riduz. rumore mic"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_REPLY_WINDOW"
@@ -4121,6 +4156,36 @@ msgstr "Finestra risposta"
 msgctxt "SET_LABEL_TX_TIMEOUT"
 msgid "TX timeout"
 msgstr "Timeout TX"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_SHOW_TALKER_ALIAS"
+msgid "Show talker alias"
+msgstr "Mostra alias"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_DIGITAL_MONITOR_AT_START"
+msgid "{Digital monitor at start|DMR monitor at start}"
+msgstr "{Monitor digitale all'avvio|Monitor DMR all'avvio}"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_ANSWER_RADIO_CHECKS"
+msgid "Answer radio checks"
+msgstr "Rispondi ai controlli"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_ANSWER_CALL_ALERTS"
+msgid "Answer call alerts"
+msgstr "Rispondi agli avvisi"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_MESSAGE_FORMAT"
+msgid "Message format"
+msgstr "Formato messaggi"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_ACCEPT_ZONE_SHARES"
+msgid "Accept zone shares"
+msgstr "Accetta zone condiv."
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_DEFAULT_SQUELCH"
@@ -4138,31 +4203,6 @@ msgid "FM broadcast step"
 msgstr "Passo FM broadc."
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MIC_GAIN"
-msgid "Mic gain"
-msgstr "Guadagno mic"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MIC_AGC"
-msgid "Mic AGC"
-msgstr "AGC mic"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MIC_NOISE_REDUCTION"
-msgid "Mic noise reduction"
-msgstr "Riduz. rumore mic"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MONITOR_BY_DEFAULT"
-msgid "Monitor by default"
-msgstr "Monitor predef."
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_SHOW_TALKER_ALIAS"
-msgid "Show talker alias"
-msgstr "Mostra alias"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_DUAL_TALK_BACK"
 msgid "Dual watch talk back"
 msgstr "Risp. doppio asc."
@@ -4171,16 +4211,6 @@ msgstr "Risp. doppio asc."
 msgctxt "SET_LABEL_DUAL_DELAY"
 msgid "Dual watch delay"
 msgstr "Ritardo dop. asc."
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_SFR_RECEIVE"
-msgid "SFR receive"
-msgstr "Ricezione SFR"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_SFR_CW_ID"
-msgid "SFR CW ID"
-msgstr "ID CW SFR"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_PRIVACY_KEY_TYPE"
@@ -4243,34 +4273,24 @@ msgid "Save GPS position"
 msgstr "Salva posizione GPS"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_LABEL_SFR_RECEIVE"
+msgid "SFR receive"
+msgstr "Ricezione SFR"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_SFR_CW_ID"
+msgid "SFR CW ID"
+msgstr "ID CW SFR"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_HOTSPOT_ALLOWED"
 msgid "Hotspot allowed"
 msgstr "Hotspot permesso"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_ANSWER_RADIO_CHECKS"
-msgid "Answer radio checks"
-msgstr "Rispondi ai controlli"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_ANSWER_CALL_ALERTS"
-msgid "Answer call alerts"
-msgstr "Rispondi agli avvisi"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_TFTP_CODEPLUG_WRITE"
 msgid "TFTP codeplug write"
 msgstr "Scrittura codeplug TFTP"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MESSAGE_FORMAT"
-msgid "Message format"
-msgstr "Formato messaggi"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_ACCEPT_ZONE_SHARES"
-msgid "Accept zone shares"
-msgstr "Accetta zone condiv."
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_USB_NETWORK_AT_START"
@@ -4286,21 +4306,6 @@ msgstr "PC risponde dati"
 msgctxt "SET_LABEL_USB_ADDRESS"
 msgid "USB address"
 msgstr "Indirizzo USB"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_DATA_SERVICES"
-msgid "Data services"
-msgstr "Servizi dati"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_AUTO_POWER_OFF"
-msgid "Auto power off"
-msgstr "Spegnim. auto"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_LOW_BATTERY_WARNING"
-msgid "Low battery warning"
-msgstr "Avviso batt. scarica"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_RIGHT_SOFT_KEY"
@@ -4332,20 +4337,10 @@ msgctxt "SET_LABEL_UP_DOWN_ON_HOME"
 msgid "Up/Down on Home"
 msgstr "Su/Giù in Home"
 
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_DMR_ID_AND_NAME"
-msgid "DMR ID and name"
-msgstr "ID DMR e nome"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_FACTORY_RESET"
-msgid "Factory reset"
-msgstr "Ripristino fabbrica"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_CRASH_LOG"
-msgid "Crash log"
-msgstr "Log crash"
+#: core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "TITLE_DIAGNOSTICS"
+msgid "Diagnostics"
+msgstr "Diagnostica"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_RX_PAST_BANDS"
@@ -4353,14 +4348,14 @@ msgid "RX past bands"
 msgstr "RX fuori banda"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_FREQ_TRIM"
-msgid "Freq trim"
-msgstr "Trim freq."
+msgctxt "SET_ROW_FACTORY_RESET"
+msgid "Factory reset"
+msgstr "Ripristino fabbrica"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_SOUND"
-msgid "Sound"
-msgstr "Suono"
+msgctxt "SET_ROW_BATTERY"
+msgid "Battery"
+msgstr "Batteria"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_DISPLAY"
@@ -4368,14 +4363,24 @@ msgid "Display"
 msgstr "Schermo"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_TALK_LISTEN"
-msgid "Talk & listen"
-msgstr "Parla e ascolta"
+msgctxt "SET_ROW_TONES_ALERTS"
+msgid "Tones & alerts"
+msgstr "Toni e avvisi"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_TITLE_TALK_LISTEN"
-msgid "Talk & Listen"
-msgstr "Parla e ascolta"
+msgctxt "SET_ROW_AUDIO"
+msgid "Audio"
+msgstr "Audio"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_CALL_SETTINGS"
+msgid "Call settings"
+msgstr "Impostazioni chiamata"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_RECEIVE_VFO"
+msgid "Receive & VFO"
+msgstr "Ricezione e VFO"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_PRIVACY"
@@ -4383,54 +4388,29 @@ msgid "Privacy"
 msgstr "Privacy"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_LOCATION"
-msgid "Location"
-msgstr "Posizione"
+msgctxt "SET_ROW_SECURITY_LOCK"
+msgid "Security & keypad lock"
+msgstr "Sicurezza e blocco"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_CONNECTIONS"
-msgid "Connections"
-msgstr "Connessioni"
+msgctxt "SET_ROW_BUTTONS"
+msgid "Buttons"
+msgstr "Pulsanti"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_POWER_SAVING"
-msgid "Power"
-msgstr "Alimentazione"
+msgctxt "SET_ROW_PROGRAMMING"
+msgid "Programming"
+msgstr "Programmazione"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_TITLE_POWER_SAVING"
-msgid "Power"
-msgstr "Alimentazione"
+msgctxt "SET_ROW_RADIO_INFO"
+msgid "Radio info"
+msgstr "Informazioni radio"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_KEYS"
-msgid "Keys"
-msgstr "Tasti"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_MY_RADIO"
-msgid "My radio"
-msgstr "Mia radio"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_SIGNALING_TONES"
-msgid "Signaling tones"
-msgstr "Toni di segnalazione"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_TITLE_SIGNALING_TONES"
-msgid "Signaling Tones"
-msgstr "Toni di Segnalazione"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_ADVANCED"
-msgid "Advanced"
-msgstr "Avanzate"
-
-#: core/ui/ui_menus.c
-msgctxt "HINT_0_9_OPEN_BACK"
-msgid "0-9 open  Back"
-msgstr "0-9 apri  Indietro"
+msgctxt "SET_HINT_OPEN_FIND_BACK"
+msgid "{1-9 open  0 find  Back|1-9 open  Back}"
+msgstr "{1-9 apri  0 cerca  Indietro|1-9 apri  Indietro}"
 
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "HOME_LABEL_STEP"
@@ -4446,21 +4426,6 @@ msgstr "Suono standard"
 msgctxt "SIG_LABEL_LENGTH"
 msgid "Length: "
 msgstr "Durata: "
-
-#: core/ui/ui_menus.c
-msgctxt "SIG_TITLE_START_TONE"
-msgid "Start Tone"
-msgstr "Tono di Inizio"
-
-#: core/ui/ui_menus.c
-msgctxt "SIG_TITLE_END_TONE"
-msgid "End Tone"
-msgstr "Tono di Fine"
-
-#: core/ui/ui_menus.c
-msgctxt "SIG_TITLE_IDLE_TONE"
-msgid "Idle Tone"
-msgstr "Tono Libero"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_TOAST_NOT_CHANGED"
@@ -4578,6 +4543,11 @@ msgid "Diagnostics: not in this build"
 msgstr "Diagnostica: non in questa build"
 
 #: core/ui/ui_menus.c
+msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
+msgid "Channels: not in this build"
+msgstr "Canali: non in questa build"
+
+#: core/ui/ui_menus.c
 msgctxt "GPS_POSITION_SAVED"
 msgid "GPS position saved"
 msgstr "Posizione GPS salvata"
@@ -4623,11 +4593,6 @@ msgid "Reset all settings to factory defaults? Channels stay. This can't be undo
 msgstr "Ripristinare tutte le impostazioni di fabbrica? I canali restano. Non si annulla."
 
 #: core/ui/ui_menus.c
-msgctxt "RESET_TITLE"
-msgid "Factory Reset"
-msgstr "Ripristino fabbrica"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_EMPTY_USE_QDMR"
 msgid "Set them with qdmr"
 msgstr "Impostale con qdmr"
@@ -4659,8 +4624,8 @@ msgstr "Scegli un contatto..."
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_TITLE"
-msgid "Talk to"
-msgstr "Parla a"
+msgid "{Talkgroup / Contact|TG / Contact}"
+msgstr "{Gruppo / Contatto|TG / Contatto}"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_HINT"
@@ -5733,9 +5698,9 @@ msgid "{Privacy|Priv}"
 msgstr "{Privacy|Priv}"
 
 #: core/ui/ui_screens.c
-msgctxt "QUICK_LABEL_TALK_TO"
-msgid "{Talk to|Talk}"
-msgstr "{Parla a|Parla}"
+msgctxt "QUICK_LABEL_TALKGROUP_CONTACT"
+msgid "{Talkgroup / Contact|TG / Contact|TG}"
+msgstr "{Gruppo / Contatto|TG / Contatto|TG}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_LABEL_COPY_TO_VFO"

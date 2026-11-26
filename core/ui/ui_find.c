@@ -27,7 +27,7 @@
 #define FIND_KEYS	12
 #define FIND_MAX	16
 
-// Places Find opens by name or synonym; the Tools pages hold settings of their own that aren't in Settings. The
+// Places Find opens by name or synonym (Menu's entries and pages with settings of their own that aren't in Settings). The
 // synonyms are English search words, not shown
 static const struct {
 	tr_id_t name;
@@ -36,8 +36,11 @@ static const struct {
 } places[] = {
 	{ TRN(TITLE_CONTACTS, "Contacts"), NULL, SCR_CONTACTS }, { TRN(TITLE_MESSAGES, "Messages"), NULL,
 		SCR_MESSAGES },
-	{ TRN(TITLE_RECENT, "Recent"), NULL, SCR_RECENT }, { TRN(TITLE_CHANNELS, "Channels"), NULL, SCR_ZONES },
-		{ TRN(TITLE_TOOLS, "Tools"), NULL, SCR_TOOLS },
+	{ TRN(TITLE_CALL_LOG, "Call log"), "recent heard missed calls", SCR_RECENT },
+	{ TRN(TITLE_CHANNELS, "Channels"), NULL, SCR_ZONES },
+	{ TRN(WORD_SCAN, "Scan"), NULL, SCR_SCAN_MENU },
+	{ TRN(TITLE_LOCATION, "Location"), "position GPS", SCR_LOCATION },
+	{ TRN(TITLE_CONNECTIONS, "Connections"), "hotspot USB network SFR tools", SCR_CONNECTIONS },
 	{ TRN(TITLE_SETTINGS, "Settings"), NULL, SCR_SETTINGS },
 	{ TRX(WORD_VFO, "VFO"), NULL, SCR_ZONES },
 #if CONFIG_DMR_ROAMING
@@ -105,7 +108,9 @@ bool ui_t9_match(const char *text, const char *keys)
 		return true;
 	bool start = true;
 	for (const char *p = text; *p; p++) {
-		bool sep = *p == ' ' || *p == '-' || *p == '.' || *p == '/' || *p == '_';
+		// Text alternates' marks too: each alternate's words are found (font.h)
+		bool sep = *p == ' ' || *p == '-' || *p == '.' || *p == '/' || *p == '_' || *p == TEXT_ALT_OPEN[0] ||
+			   *p == TEXT_ALT_NEXT[0] || *p == TEXT_ALT_CLOSE[0];
 		if (start && !sep && word_match(p, keys))
 			return true;
 		start = sep;

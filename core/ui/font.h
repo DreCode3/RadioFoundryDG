@@ -23,6 +23,7 @@
 #define GLYPH_REPLY	"\x86"	// a return arrow: down the right side and back to the left
 #define GLYPH_UP	"\x87"	// up arrow
 #define GLYPH_DOWN	"\x88"	// down arrow
+#define GLYPH_CHECK	"\x89"	// check mark: the value in use in a pick list
 // Text alternates: TEXT_ALT_OPEN "14min ago" TEXT_ALT_NEXT "14m ago" ... TEXT_ALT_CLOSE offers the same text at
 // falling lengths. Drawing and measuring use the first; gfx_text_fit uses the longest that fits (gfx.c)
 #define TEXT_ALT_OPEN	"\x1d"

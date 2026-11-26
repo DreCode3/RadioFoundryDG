@@ -812,9 +812,9 @@ static void test_pick(void)
 #endif
 	CHECK(ui_theme_reference.id == UI_THEME_ID_REFERENCE && ui_theme_reference.fits == NULL &&
 	      ui_theme_reference.ops->animate == NULL);
-	// The reference theme's appearance options: Theme, Highlight color, Filled status bar, Talkgroup name first
-	CHECK(ui_theme_reference.options == (UI_THEME_OPT_PALETTE | UI_THEME_OPT_ACCENT | UI_THEME_OPT_STRIP |
-					    UI_THEME_OPT_LABEL_FIRST));
+	// The reference theme's appearance options: Theme, Highlight color, Filled status bar (Talkgroup name first is no
+	// theme's option: it works in every theme)
+	CHECK(ui_theme_reference.options == (UI_THEME_OPT_PALETTE | UI_THEME_OPT_ACCENT | UI_THEME_OPT_STRIP));
 	CHECK(ui_theme_cur() == ref && ui_theme_has(UI_THEME_OPT_ACCENT) && !ui_theme_has(UI_THEME_OPT_LAYOUT));
 }
 

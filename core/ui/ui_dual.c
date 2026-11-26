@@ -1276,7 +1276,7 @@ static void actions_select(uint16_t i, bool hold)
 }
 
 const ui_scr_def_t ui_dual_screen = {
-	.name = "dual", .flags = SF_LIST | SF_NUMBERED | SF_FIELD, .prefix = TRN(DUAL_TITLE, "Dual Watch"),
+	.name = "dual", .flags = SF_LIST | SF_NUMBERED | SF_FIELD, .prefix = TRN(WORD_DUAL_WATCH, "Dual watch"),
 	.hint = TRN(HINT_1_5_PICK_BACK, "1-5 pick  Back"),
 	.count = actions_count, .item = actions_item, .select = actions_select,
 };

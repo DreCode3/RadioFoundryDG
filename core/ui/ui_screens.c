@@ -646,6 +646,14 @@ void ui_draw_title(const font_t *f, int x, int y, int max_w, const char *prefix,
 	int pw = 0, gap = 0, nw = 0, room = max_w;
 	if (prefix != NULL) {
 		gfx_text_fit(f, prefix, room, pfit, sizeof pfit);
+		// A prefix with text alternates takes the longest one that leaves the name its whole width
+		bool more = true;
+		int name_w = name != NULL ? gfx_text_width(f, name) : 0;
+		for (int level = 0; name != NULL && more && strchr(prefix, TEXT_ALT_OPEN[0]) != NULL; level++) {
+			gfx_text_alt(prefix, level, pfit, sizeof pfit, &more);
+			if (gfx_text_width(f, pfit) + f->w + name_w <= max_w)
+				break;
+		}
 		pw = gfx_text_width(f, pfit);
 		room -= pw + f->w;
 		if (room < 3 * f->w)
@@ -858,7 +866,7 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 			memcpy(second, rest, n);
 			second[n] = 0;
 			y -= f->h;
-			top = ui_overlay_top(y, 0, 0);
+			top = ui_overlay_top(y, 0, 3);	// not the list's scroll marks, at its right edge
 		}
 		gfx_fill(0, top, w, gfx_height() - top, bg);
 		gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
@@ -3624,6 +3632,19 @@ UI_THEME_SHARED void ui_row_text(const font_t *f, int x, int y, int w, const cha
 	}
 }
 
+// A row whose value editor is open: the label from x, the value right-aligned at w between a left and a right marker in
+// the color mark (the theme's accent), the label shortened where they need its room
+UI_THEME_SHARED void ui_row_edit(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
+	color_t mark)
+{
+	int mw = gfx_text_width(f, "<"), vw = gfx_text_width(f, value);
+	int vx = w - mw - vw;
+	gfx_text(f, w - mw, y, ">", mark);
+	gfx_text(f, vx - mw, y, "<", mark);
+	gfx_text(f, vx, y, value, fg);
+	ui_row_text(f, x, y, vx - mw - (f->w / 2 + 1), label, "", fg, fg, false);
+}
+
 // Where a list's body ends: half the room below y (a message keeps its replies in view), all of it without rows
 static int list_body_end(const ui_list_t *l, int y, int y_end)
 {
@@ -3681,10 +3702,15 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 	color_t vfg = (it->flags & UI_ITEM_DIM) && gfx_bpp() != 1 ? disabled : ui_col.dim;
 	if (it->flags & UI_ITEM_TEMP)
 		vfg = ui_col.warn;
-	if (focus) {
-		color_t bg = (it->flags & UI_ITEM_EDIT) ? ui_col.warn : ui_col.focus;
-		gfx_fill(c->x, c->y, c->w, pitch, bg);
-		fg = gfx_bpp() == 1 ? ui_col.bg : (it->flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
+	// The value editor on a color display: the row framed in the accent color, the value between its markers
+	// (ui_row_edit). A monochrome one has no accent: the focus bar, the value between < and >
+	bool edit = focus && (it->flags & UI_ITEM_EDIT) && gfx_bpp() != 1;
+	if (edit) {
+		gfx_rect(c->x, c->y, c->w, pitch, ui_col.focus);
+		fg = vfg = ui_col.fg;
+	} else if (focus) {
+		gfx_fill(c->x, c->y, c->w, pitch, ui_col.focus);
+		fg = gfx_bpp() == 1 ? ui_col.bg : ui_col.focus_fg;
 		vfg = fg;
 	}
 	int x = 1;
@@ -3698,6 +3724,10 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 		char n[3] = { it->num, ' ', 0 };
 		color_t num_ink = focus || gfx_bpp() == 1 ? fg : ui_col.dim;
 		x = gfx_text(f, x, ty, n, num_ink);
+	}
+	if (edit) {
+		ui_row_edit(f, x, ty, right - 1, it->label, it->value, fg, ui_col.focus);
+		return;
 	}
 	if (it->flags & UI_ITEM_EDIT) {
 		sbuf_t b;
@@ -4026,7 +4056,8 @@ bool ui_quick_tile(int tile, const radio_view_t *v, const ui_state_t *s, char *l
 		[QT_HEAR_ALL] = TRN(QUICK_LABEL_DMON, TEXT_ALT_OPEN "Digital monitor"
 			TEXT_ALT_NEXT "DMon" TEXT_ALT_CLOSE),
 		[QT_PRIVACY] = TRN(QUICK_LABEL_PRIVACY, TEXT_ALT_OPEN "Privacy" TEXT_ALT_NEXT "Priv" TEXT_ALT_CLOSE),
-		[QT_TALK_TO] = TRN(QUICK_LABEL_TALK_TO, TEXT_ALT_OPEN "Talk to" TEXT_ALT_NEXT "Talk" TEXT_ALT_CLOSE),
+		[QT_TALK_TO] = TRN(QUICK_LABEL_TALKGROUP_CONTACT,
+		TEXT_ALT_OPEN "Talkgroup / Contact" TEXT_ALT_NEXT "TG / Contact" TEXT_ALT_NEXT "TG" TEXT_ALT_CLOSE),
 		[QT_TO_VFO] = TRN(QUICK_LABEL_COPY_TO_VFO, TEXT_ALT_OPEN "Copy to VFO"
 			TEXT_ALT_NEXT "To VFO" TEXT_ALT_CLOSE),
 		[QT_SPLIT] = TRN(QUICK_LABEL_TX_FREQ, TEXT_ALT_OPEN "TX freq" TEXT_ALT_NEXT "TXFreq" TEXT_ALT_CLOSE),
@@ -4421,6 +4452,6 @@ const ui_theme_t ui_theme_reference = {
 	.palettes = palettes,
 	.palette_count = sizeof palettes / sizeof palettes[0],
 	.id = UI_THEME_ID_REFERENCE,
-	.options = UI_THEME_OPT_PALETTE | UI_THEME_OPT_ACCENT | UI_THEME_OPT_STRIP | UI_THEME_OPT_LABEL_FIRST,
+	.options = UI_THEME_OPT_PALETTE | UI_THEME_OPT_ACCENT | UI_THEME_OPT_STRIP,
 	.ops = &reference_ops,
 };

@@ -11,8 +11,9 @@ import zlib
 
 SIM = Path(__file__).resolve().with_name("uiSim")
 GEOMETRY = "320x240iR10"
-AMATEUR = "ok 7 2 ok down ok long:back "
-NIGHT = "ok 7 2 down ok down ok long:back "
+# Settings > Display's first rows: Display profile and Day/Night, each a pick list
+AMATEUR = "ok 8 1 ok down ok long:back "
+NIGHT = "ok 8 1 down ok down ok long:back "
 # The panels theme's layout on the 310 x 240 drawable area: the status strip, a list's title row, one row height
 STRIP_H = 29
 ROWS_Y = 59
@@ -35,26 +36,26 @@ def row_starts(frame, x):
 
 class PrototypeTest(unittest.TestCase):
     def test_right_soft_key_opens_quick_only_on_home(self):
-        self.run_script("back expect:screen=home ok 7 8 up up "
-                        "expect:focus=Right_soft_key ok ok expect:shows=Quick "
+        self.run_script("back expect:screen=home ok 8 8 up up "
+                        "expect:focus=Right_soft_key ok down down ok expect:shows=Quick "
                         "back expect:screen=settings back expect:screen=hub "
                         "back expect:screen=home back expect:screen=quick back expect:screen=home "
                         "reboot back expect:screen=quick back expect:screen=home "
                         "quick expect:screen=quick")
 
     def test_home_footer_follows_the_right_soft_key_assignment(self):
-        settings = "ok 7 8 up up "
+        settings = "ok 8 8 up up "
         home = "back back back "
         self.run_script("expect:shows=Back expect:hides=*_Quick " +
-                        settings + "ok ok " + home + "expect:shows=Quick expect:hides=*_Quick "
+                        settings + "ok down down ok " + home + "expect:shows=Quick expect:hides=*_Quick "
                         "expect:shows=Menu expect:hides=OK_Menu expect:layout=0 "
                         "ok expect:shows=OK expect:shows=Back")
-        self.run_script(settings + "ok ok ok ok " + home +
+        self.run_script(settings + "ok down down down down ok " + home +
                         "expect:shows=Power_level expect:layout=0 long:dualkey wait:2000 "
                         "expect:dual=1 expect:shows=Power_level expect:layout=0 "
                         "gui:original expect:shows=Power_level")
-        for profile in ("", "ok 7 2 ok down ok long:back "):
-            frame = self.render_frame(profile + settings + "ok " + home +
+        for profile in ("", AMATEUR):
+            frame = self.render_frame(profile + settings + "ok down ok " + home +
                                       "expect:shows=Menu expect:hides=OK_Menu "
                                       "expect:hides=Nothing expect:hides=Quick expect:layout=0")
             self.assertTrue(all(row[570:870] == row[570:573] * 100 for row in frame[208:230]))
@@ -159,10 +160,10 @@ class PrototypeTest(unittest.TestCase):
             for theme in ("", NIGHT):
                 with self.subTest(profile=profile or "Commercial", theme=theme or "Day"):
                     home = ink_map(self.render_frame(profile + theme + "gps:fix expect:layout=0")[:STRIP_H])
-                    for screen in ("ok", "ok 7", "ok 7 2", "ok 1", "quick"):
+                    for screen in ("ok", "ok 8", "ok 8 1", "ok 1", "quick"):
                         frame = self.render_frame(profile + theme + "gps:fix " + screen + " expect:layout=0")
                         self.assertEqual(ink_map(frame[:STRIP_H]), home, screen)
-        self.run_script("expect:shows=DMR down expect:shows=FM ok 7 expect:shows=FM")
+        self.run_script("expect:shows=DMR down expect:shows=FM ok 8 expect:shows=FM")
     def test_dstar_preview_uses_full_mode_label(self):
         self.run_script("prototype:dstar_on expect:shows=D-STAR expect:layout=0 "
                         "aprstx expect:hides=D-STAR aprsend expect:shows=D-STAR "
@@ -209,20 +210,20 @@ class PrototypeTest(unittest.TestCase):
         self.assertGreater(sum(n for x, n in key_columns if x < middle),
                            sum(n for x, n in key_columns if x > middle))
     def test_profile_display_has_a_left_heading_and_roomier_rows(self):
-        frame = self.render_frame("ok 7 2 expect:layout=0")
+        frame = self.render_frame("ok 8 1 expect:layout=0")
         heading = [(x, y) for y in range(STRIP_H, ROWS_Y) for x in range(8, 124)
                    if frame[y][x * 3] < 110]
         self.assertLess(min(x for x, _ in heading), 26)
         self.assertGreaterEqual(max(y for _, y in heading) - min(y for _, y in heading), 14)
         # One row height, five rows on the display: the row panels start every ROW_H pixels.
         self.assertEqual(row_starts(frame, 16), [ROWS_Y + 2 + ROW_H * k for k in range(5)])
-        self.run_script("ok 7 2 expect:count=8 up expect:focus=Language "
-                        "up expect:focus=Hint_row up expect:focus=Large_text "
-                        "up expect:focus=Backlight_Dim/Off expect:layout=0")
+        self.run_script("ok 8 1 expect:count=12 up expect:focus=Low_battery_warning "
+                        "up expect:focus=Auto_power_off up expect:focus=Battery_saver "
+                        "up expect:focus=Language up expect:focus=Talkgroup_name_first expect:layout=0")
     def test_colored_icons_are_on_settings_categories_only(self):
-        first = self.render_frame("ok 7 expect:layout=0")
-        second = self.render_frame("ok 7 up expect:layout=0")
-        display = self.render_frame("ok 7 2 expect:layout=0")
+        first = self.render_frame("ok 8 expect:layout=0")
+        second = self.render_frame("ok 8 up expect:layout=0")
+        display = self.render_frame("ok 8 1 expect:layout=0")
 
         def saturated(frame, top, bottom, left):
             return any(max(rgb) - min(rgb) > 70 for y in range(top, bottom)
@@ -242,35 +243,36 @@ class PrototypeTest(unittest.TestCase):
         digit_rows = [y for y in range(row3, row3 + ROW_H) for x in range(32, 42)
                       if max(first[y][x * 3:x * 3 + 3]) < 150]
         self.assertLess(abs(sum(digit_rows) / len(digit_rows) - (row3 + ROW_H / 2)), 3)
-        # The privacy key (4) has its bow on the left
-        key_top = ROWS_Y + 3 * ROW_H + 7
+        # The privacy key (6, the second column's first row) has its bow on the left
+        key_top = ROWS_Y + 7
         key_sides = [set(), set()]
         for y in range(key_top, key_top + 13):
-            for x in range(left_icon, left_icon + 13):
+            for x in range(right_icon, right_icon + 13):
                 red, green, blue = first[y][x * 3:x * 3 + 3]
                 if red > blue + 40 and green > blue + 30:
-                    key_sides[x >= left_icon + 6].add(y)
+                    key_sides[x >= right_icon + 6].add(y)
         self.assertGreater(len(key_sides[0]), len(key_sides[1]))
         self.assertFalse(saturated(display, ROWS_Y, 202, 12))
-        self.run_script("ok 7 expect:shows=1/12 expect:shows=OK expect:hides=OK_Open expect:hides=0-9_open "
-                        "expect:shows=Sound expect:shows=Connections expect:shows=My_radio "
-                        "expect:hides=Advanced expect:layout=0 "
-                        "down down down down down expect:focus=Connections "
-                        "down expect:focus=Power expect:shows=Power expect:hides=Power_saving "
-                        "expect:shows=7/12 expect:shows=Sound expect:layout=0 "
-                        "up up up up up up up expect:focus=Advanced expect:shows=12/12 expect:hides=Sound "
-                        "expect:shows=Signaling_tones expect:layout=0 down expect:shows=1/12 "
-                        "7 expect:screen=group expect:shows=Power expect:hides=Power_Saving "
-                        "back expect:shows=7/12 expect:focus=Power")
+        # One page: groups 1-9 and Radio info (no digit), in shortcut order down the left column, then the right
+        self.run_script("ok 8 expect:hides=1/10 expect:shows=OK expect:hides=OK_open expect:hides=1-9_open "
+                        "expect:shows=Display expect:shows=Programming expect:shows=Radio_info expect:layout=0 "
+                        "down down down down down expect:focus=Privacy "
+                        "down expect:focus=Security_&_keypad_lock expect:layout=0 "
+                        "up up up up up up up expect:focus=Radio_info expect:shows=Display "
+                        "expect:layout=0 down expect:focus=Display "
+                        "7 expect:screen=group expect:shows=Security_&_keypad_lock "
+                        "back expect:focus=Security_&_keypad_lock")
     def test_profile_settings_submenus_use_roomy_headings(self):
-        groups = [("1", 12), ("2", 8), ("3", 13), ("4", 2), ("5", 8), ("6", 10),
-                  ("7", 3), ("8", 11), ("9", 2), ("0", 2), ("up up ok", 9), ("up ok", 5)]
+        groups = [("8 1", 12), ("8 2", 6), ("8 3", 3), ("8 4", 8), ("8 5", 4), ("8 6", 2), ("8 7", 2), ("8 8", 11),
+                  ("8 9", 7), ("8 up ok", 6), ("8 2 row:Alert_tones ok", 8), ("8 2 row:Signaling_tones ok", 9),
+                  ("6 4", 8), ("7 3", 3), ("7 5", 5)]
         for shortcut, count in groups:
             with self.subTest(shortcut=shortcut):
-                self.run_script(f"ok 7 {shortcut} expect:screen=group expect:count={count} expect:layout=0 "
+                self.run_script(f"ok {shortcut} expect:screen=group expect:count={count} expect:layout=0 "
                                 "up expect:layout=0")
-        self.run_script("ok 7 2 ok expect:screen=display-choice expect:layout=0")
-        sound = self.render_frame("ok 7 1")
+        self.run_script("ok 8 1 ok expect:screen=pick expect:layout=0")
+        self.run_script("ok 8 1 row:Brightness ok expect:screen=group expect:layout=0")
+        sound = self.render_frame("ok 8 2")
         heading_ink = sum(sound[y][x * 3] < 110 for y in range(39, 49) for x in range(16, 100))
         self.assertGreater(heading_ink, 75)
 
@@ -285,37 +287,40 @@ class PrototypeTest(unittest.TestCase):
         tint = menu[top + ROW_H + 10][100 * 3:101 * 3]
         self.assertLess(tint[0], 230)
         self.assertNotEqual(tint, menu[top + ROW_H + 10][:3])
-        self.run_script("ok expect:count=7 up expect:focus=Settings 7 expect:screen=settings")
-        self.run_script("ok expect:shows=Contacts expect:shows=Messages expect:shows=Recent "
-                        "expect:shows=Zones expect:shows=Channels expect:shows=Tools "
-                        "expect:shows=Settings expect:hides=1/7 expect:layout=0")
+        self.run_script("ok expect:count=8 up expect:focus=Settings 8 expect:screen=settings")
+        self.run_script("ok expect:shows=Menu expect:shows=Contacts expect:shows=Messages expect:shows=Call_log "
+                        "expect:shows=Zones expect:shows=Scan expect:shows=Location expect:shows=Connections "
+                        "expect:shows=Settings expect:hides=1/8 expect:layout=0")
+        # The tiles show their values, as in every theme: unread messages and a scan, in their short forms where the
+        # whole one doesn't fit beside the name (the zone's name has no short form, so a tile this narrow leaves it out)
         self.run_script("msg:9991234,Hello scankey wait:9000 ok "
-                        "expect:shows=Messages expect:shows=Tools "
-                        "expect:hides=Scanning expect:hides=1_new expect:layout=0")
-        self.run_script("ok 7 2 down down down down down down down ok down ok long:back ok "
-                        "expect:shows=Herramientas expect:layout=0")
-        self.run_script("ok down down down down down down expect:focus=Settings expect:layout=0")
-        self.run_script("ok expect:shows=Zones expect:hides=Local_repeaters 4 "
+                        "expect:shows=Messages expect:showsraw=1 expect:shows=On expect:layout=0")
+        self.run_script("ok 8 1 row:Language ok down ok long:back ok "
+                        "expect:shows=Conexiones expect:layout=0")
+        self.run_script("ok down down down down down down down expect:focus=Settings expect:layout=0")
+        self.run_script("ok expect:shows=Zones 4 "
                         "expect:screen=zones expect:shows=Local_repeaters")
         settings = self.render_frame("ok up expect:focus=Settings expect:layout=0")
-        # Settings is the second column's second row
-        gy = ROWS_Y + ROW_H + 7
+        # Settings is the second column's third row
+        gy = ROWS_Y + 2 * ROW_H + 7
         gear = {row[x * 3:x * 3 + 3] for row in settings[gy:gy + 13] for x in range(169, 182)}
         self.assertIn(bytes(3), gear)
         self.assertTrue(any(100 < min(rgb) < 180 and max(rgb) - min(rgb) <= 4 for rgb in gear))
     def test_inbox_hints_follow_the_focused_action(self):
         # Two labels, one per soft key: OK and Back. The # reply hint is not a soft key and stays off the bar
-        self.run_script("ok 2 expect:shows=OK expect:hides=OK_Compose expect:hides=#_reply ok expect:screen=compose")
+        self.run_script("ok 2 expect:shows=OK expect:hides=OK_compose expect:hides=#_reply ok expect:screen=compose")
         self.run_script("msg:9991234,Hello wait:9000 ok 2 expect:shows=OK expect:shows=Back expect:hides=#_reply down "
-                        "expect:shows=OK expect:hides=OK_Compose expect:hides=#_reply expect:layout=0")
+                        "expect:shows=OK expect:hides=OK_compose expect:hides=#_reply expect:layout=0")
     def test_profile_menu_sections_use_roomy_headings_and_rows(self):
         sections = (
             ("ok 1", "Contacts", "contacts", 31),
             ("msg:9991234,Meet_at_the_north_lot wait:9000 ok 2", "Messages", "messages", 2),
-            ("call:9991234,3100,g wait:11000 ok 3", "Recent", "recent", 1),
+            ("call:9991234,3100,g wait:11000 ok 3", "Call_log", "recent", 1),
             ("ok 4", "Zones", "zones", 5),
-            ("ok 5", "Channels", "channels", 41),
-            ("ok 6", "Tools", "tools", 9),
+            ("ok 5", "Scan", "scan-menu", 2),
+            ("ok 6", "Location", "location", 4),
+            ("ok 7", "Connections", "connections", 5),
+            ("ok 8 9 ok", "Channels", "channels", 41),
         )
         top = ROWS_Y + 2
         for script, heading, screen, count in sections:
@@ -332,8 +337,8 @@ class PrototypeTest(unittest.TestCase):
                 self.run_script(f"{script} down up expect:count={count} expect:layout=0 " +
                                 (f"expect:shows=/{count}" if count > 5 else f"expect:hides=/{count}"))
     def test_nested_profile_lists_share_the_roomy_heading(self):
-        for script, screen in (("ok 1 down ctx", "actions"), ("ok 5 ok", "channel"),
-                               ("ok 4 down ctx", "zone"), ("ok 6 6", "roaming")):
+        for script, screen in (("ok 1 down ctx", "actions"), ("ok 8 9 ok ok", "channel"),
+                               ("ok 4 down ctx", "zone"), ("ok 5 2", "roaming")):
             with self.subTest(screen=screen):
                 frame = self.render_frame(f"{script} expect:screen={screen} expect:layout=0")
                 ink = sum(frame[y][x * 3] < 110 for y in range(39, 49) for x in range(16, 100))
@@ -352,32 +357,32 @@ class PrototypeTest(unittest.TestCase):
                       if any(min(frame[y][x * 3:x * 3 + 3]) > 220 for x in range(15, 99))]
         self.assertGreaterEqual(max(label_rows) - min(label_rows) + 1, 18)
     def test_menu_pages_and_footer_match_home(self):
-        self.run_script("ok expect:shows=OK expect:shows=Back expect:hides=1-7_open expect:shows=Settings "
-                        "down down down down down down expect:focus=Settings ok expect:screen=settings "
-                        "expect:shows=OK expect:hides=OK_Open 2 expect:screen=group "
-                        "expect:shows=OK expect:hides=OK_change ok expect:screen=display-choice "
+        self.run_script("ok expect:shows=OK expect:shows=Back expect:hides=1-8_open expect:shows=Settings "
+                        "down down down down down down down expect:focus=Settings ok expect:screen=settings "
+                        "expect:shows=OK expect:hides=OK_open 1 expect:screen=group "
+                        "expect:shows=OK expect:hides=OK_change ok expect:screen=pick "
                         "expect:shows=OK expect:hides=OK_pick")
         home = self.render_frame("")
-        for screen in ("ok", "ok 7", "ok 7 2", "ok 7 2 ok"):
+        for screen in ("ok", "ok 8", "ok 8 1", "ok 8 1 ok"):
             frame = self.render_frame(screen + " expect:layout=0")
             for y in range(198, 240):
                 self.assertEqual(frame[y][450:453] == home[216][450:453], 202 <= y < 236)
     def test_menu_status_uses_larger_mode_and_device_marks(self):
-        for screen in ("ok", "ok 7", "ok 7 2 ok"):
+        for screen in ("ok", "ok 8", "ok 8 1 ok"):
             frame = self.render_frame("gps:fix " + screen + " expect:layout=0")
             for x0, x1, height in ((5, 60, 14), (246, 270, 15), (277, 305, 22)):
                 ink = [y for y in range(1, 28) if any(
                     max(frame[y][x * 3:x * 3 + 3]) < 180 for x in range(x0, x1))]
                 self.assertGreaterEqual(max(ink) - min(ink) + 1, height)
         self.run_script("gps:fix prototype:bt_connected mon vox:on roam:ready "
-                        "msg:9991234,Hello wait:9000 prototype:crypt_aes ok 7 "
+                        "msg:9991234,Hello wait:9000 prototype:crypt_aes ok 8 "
                         "rx:9991234,3100,g,Morgan_Reed expect:shows=DMR expect:hides=RX "
                         "expect:shows=AES expect:layout=0")
 
     def test_submenu_rows_align_with_main_menu_edges(self):
         for screen in ("ok", "ok 1", "ok 1 down ctx", "ok 2",
                        "call:9991234,3100,g wait:11000 ok 3", "ok 4", "ok 4 down ctx",
-                       "ok 5", "ok 5 ok", "ok 6", "ok 6 6", "ok 7", "ok 7 2", "ok 7 2 ok"):
+                       "ok 5", "ok 5 2", "ok 6", "ok 7", "ok 8", "ok 8 1", "ok 8 1 ok", "ok 8 9 ok", "ok 8 9 ok ok"):
             with self.subTest(screen=screen):
                 frame = self.render_frame(screen + " expect:layout=0")
                 for outside, inside in ((6, 7), (303, 302)):
@@ -387,8 +392,8 @@ class PrototypeTest(unittest.TestCase):
 
     def test_soft_key_bar_has_two_labels(self):
         # Exactly two labels, one per soft key: screens whose hints name other keys too keep only OK and Back
-        for script, hidden in (("ok 1", "#_more"), ("ok 5 ok", "hold_OK_save"), ("ok 4", "#_channels"),
-                               ("ok 5", "0-9_find"), ("msg:9991234,Hello wait:9000 ok 2", "#_reply")):
+        for script, hidden in (("ok 1", "#_more"), ("ok 8 9 ok ok", "hold_OK_save"), ("ok 4", "#_channels"),
+                               ("ok 8 9 ok", "0-9_find"), ("msg:9991234,Hello wait:9000 ok 2", "#_reply")):
             with self.subTest(screen=script):
                 self.run_script(f"{script} expect:shows=OK expect:shows=Back expect:hides={hidden} expect:layout=0")
         # A hint without an OK group: Back alone, the PTT and # groups off the bar
@@ -402,30 +407,39 @@ class PrototypeTest(unittest.TestCase):
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
     def test_display_choices_are_native_and_survive_reboot(self):
+        # Display profile and Day/Night open a pick list with the value in use checked; GPS clock flips on OK
         self.run_script(
-            "ok 7 2 expect:shows=Display_Profile expect:hides=GUI_profile ok expect:screen=display-choice "
-            "expect:shows=Commercial expect:shows=Amateur down ok "
+            "ok 8 1 expect:shows=Display_profile expect:hides=GUI_profile ok expect:screen=pick "
+            "expect:shows=Commercial expect:shows=Amateur expect:focus=Commercial down ok expect:screen=group "
             "down ok expect:shows=Day expect:shows=Night down ok "
-            "down ok expect:shows=Off expect:shows=On down ok reboot "
-            "expect:screen=home ok 7 2 expect:shows=Amateur expect:shows=Night down down ok expect:focus=On"
+            "down expect:focus=GPS_clock ok expect:shows=On reboot "
+            "expect:screen=home ok 8 1 expect:shows=Amateur expect:shows=Night down down expect:focus=GPS_clock "
+            "expect:shows=On"
         )
-        self.run_script("ok 7 2 expect:hides=Display_Profile", "320x240")
+        self.run_script("ok 8 1 expect:hides=Display_profile expect:shows=Theme", "320x240")
 
-    def test_talkgroup_order_key_only_applies_to_legacy_home(self):
-        self.run_script("labelkey expect:toast=none")
-        self.run_script("labelkey expect:toast=Talkgroup_name_first", "320x240")
-        after_call_back = "ok 7 8 " + "down " * 8 + "ok " * 14
-        self.run_script(after_call_back + "expect:set47=12 ok expect:set47=16")
-        self.run_script(after_call_back + "expect:set47=12 ok expect:set47=19", "320x240")
+    def test_talkgroup_order_key_and_setting_in_both_themes(self):
+        # Talkgroup name first (the key and Settings > Display) works in every theme: Amateur Home's talk line reads
+        # "TG 3100 · USA", then "USA · TG 3100"
+        for geometry in (GEOMETRY, "320x240"):
+            with self.subTest(geometry=geometry):
+                self.run_script("labelkey expect:toast=Talkgroup_name_first", geometry)
+        self.run_script(AMATEUR + "expect:shows=3100_ expect:hides=USA_ "
+                        "labelkey expect:shows=USA_ expect:hides=3100_ "
+                        "ok 8 1 row:Talkgroup_name_first expect:shows=On ok long:back expect:shows=3100_")
+        after_call_back = "ok 8 8 row:SK3_hold ok " + "down " * 14 + "ok "
+        for geometry in (GEOMETRY, "320x240"):
+            with self.subTest(geometry=geometry):
+                self.run_script(after_call_back + "expect:set47=12 ok down ok expect:set47=19", geometry)
 
     def test_gps_clock_obeys_fix_and_native_receiver_setting(self):
         self.run_script(
-            "ok 7 2 down down ok down ok back back back expect:hides=14:08 "
-            "gps:fix expect:shows=14:08 ok 7 2 expect:hides=14:08 back back back "
+            "ok 8 1 down down ok back back back expect:hides=14:08 "
+            "gps:fix expect:shows=14:08 ok 8 1 expect:hides=14:08 back back back "
             "gps:searching expect:hides=14:08 gps:fix "
-            "ok 7 5 expect:focus=GPS ok back back back expect:hides=14:08"
+            "ok 6 4 expect:focus=GPS ok back back back expect:hides=14:08"
         )
-        setup = "ok 7 2 down down ok down ok long:back gps:fix "
+        setup = "ok 8 1 down down ok long:back gps:fix "
         for profile in ("", AMATEUR):
             with self.subTest(profile=profile or "Commercial"):
                 clock = self.render_frame(profile + setup +
@@ -442,13 +456,13 @@ class PrototypeTest(unittest.TestCase):
             "expect:centered=COUNTY_DMR expect:centered=Local_repeaters expect:hides=USA expect:hides=TS1 "
             "rx:9991234,3100,g,Morgan_Reed expect:centered=COUNTY_DMR expect:centered=Morgan_Reed "
             "expect:shows=TG_3100 expect:hides=Receiving rxend expect:hides=Morgan_Reed "
-            "ok 7 2 ok down ok long:back expect:centered=COUNTY_DMR expect:centered=USA expect:shows=TG_3100 "
+            + AMATEUR + "expect:centered=COUNTY_DMR expect:centered=USA expect:shows=TG_3100 "
             "expect:shows=TS1"
         )
         # The reply window's target differs from the channel's: Commercial shows it
         self.run_script("call:9991234,91,g expect:centered=COUNTY_DMR expect:centered=World")
     def test_layout_with_crowded_status_bar_and_notifications(self):
-        for theme in ("", "ok 7 2 down ok down ok long:back "):
+        for theme in ("", NIGHT):
             with self.subTest(theme="Night" if theme else "Day"):
                 self.run_script(
                     theme + "expect:layout=0 "
@@ -460,7 +474,7 @@ class PrototypeTest(unittest.TestCase):
                     "wait:9000 expect:layout=0"
                 )
         self.run_script(
-            "ok 7 2 down down ok down ok long:back gps:fix mon vox:on roam:searching "
+            "ok 8 1 down down ok long:back gps:fix mon vox:on roam:searching "
             "prototype:bt_connected prototype:record_on prototype:dstar_on prototype:crypt_arc4 "
             "prototype:talkaround_on msg:9991234,Hello rxonly:on scankey wait:9000 "
             "expect:shows=D-STAR expect:shows=ARC4 expect:shows=14:08 expect:layout=0"
@@ -468,7 +482,7 @@ class PrototypeTest(unittest.TestCase):
 
     def test_commercial_crowded_status_keeps_the_clock_and_device_icons(self):
         setup = (
-            "ok 7 2 down down ok down ok long:back gps:fix quick 7 ctx 3 5 ok wait:3000 "
+            "ok 8 1 down down ok long:back gps:fix quick 7 ctx 3 5 ok wait:3000 "
             "expect:dual=1 mon roam:ready prototype:bt_connected prototype:dstar_on "
             "prototype:crypt_arc4 prototype:talkaround_on msg:9991234,Hello wait:9000 lockkey wait:3000"
         )
@@ -484,10 +498,10 @@ class PrototypeTest(unittest.TestCase):
 
     def test_gui_switch_keeps_channel_and_display_preferences(self):
         self.run_script(
-            "down ok 7 2 ok down ok gui:original expect:screen=home "
+            "down ok 8 1 ok down ok gui:original expect:screen=home "
             "expect:shows=Valley_rpt expect:freq=147060000 "
-            "ok 7 2 expect:hides=Display_Profile gui:prototype expect:screen=home "
-            "expect:centered=Valley_rpt ok 7 2 expect:shows=Amateur"
+            "ok 8 1 expect:hides=Display_profile gui:prototype expect:screen=home "
+            "expect:centered=Valley_rpt ok 8 1 expect:shows=Amateur"
         )
 
     def test_session_keeps_native_menu_state_and_reports_bad_input(self):

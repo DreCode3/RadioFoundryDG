@@ -733,7 +733,8 @@ static void satellite_leave(void)
 }
 
 const ui_scr_def_t ui_satellite_screen = {
-	.name = "satellite", .flags = SF_FIELD, .draw = satellite_draw, .key = satellite_key, .enter = satellite_enter,
+	// Not a field-use screen (P4's three levels): it is Menu > Location > Satellite > a pass, as it was under Tools
+	.name = "satellite", .flags = 0, .draw = satellite_draw, .key = satellite_key, .enter = satellite_enter,
 	.leave = satellite_leave,
 };
 #endif

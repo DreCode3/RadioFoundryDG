@@ -16,7 +16,7 @@
 
 typedef enum {
 	SCR_HOME, SCR_QUICK, SCR_HUB, SCR_FIND, SCR_ACTIONS, SCR_CONTACTS, SCR_MESSAGES, SCR_MESSAGE, SCR_COMPOSE,
-	SCR_RECENT, SCR_ZONES, SCR_ZONE, SCR_TOOLS, SCR_SETTINGS, SCR_GROUP, SCR_PICKER, SCR_INFO, SCR_CONFIRM,
+	SCR_RECENT, SCR_ZONES, SCR_ZONE, SCR_SETTINGS, SCR_GROUP, SCR_PICKER, SCR_INFO, SCR_CONFIRM,
 	SCR_DIAG, SCR_EMERGENCY, SCR_INCOMING_CALL, SCR_SCAN, SCR_ROAM, SCR_APRS, SCR_APRS_HEARD, SCR_FIXED_POS, SCR_ABOUT,
 	SCR_VOLUME,			// the volume editor (VOL key, radios without a knob)
 	SCR_CHANNELS, SCR_CHANNEL,	// every codeplug channel by number; one channel's settings (arg = its number)
@@ -49,8 +49,9 @@ typedef enum {
 #if CONFIG_BACKLIGHT_TEST
 	SCR_BL_TEST,			// Settings > Advanced > Backlight tests
 #endif
-#if CONFIG_UI_SETTINGS && CONFIG_UI_THEME_PANELS
-	SCR_DISPLAY_CHOICE,		// Settings > Display: one of the profile, Day/Night or GPS clock pickers
+	SCR_SCAN_MENU, SCR_LOCATION, SCR_CONNECTIONS,	// Menu 5, 6 and 7
+#if CONFIG_UI_SETTINGS
+	SCR_SET_PICK,			// a setting's values to pick from (arg: its group << 8 | its row in the group's table)
 #endif
 	SCR_COUNT
 } ui_scr_t;
@@ -160,7 +161,7 @@ void ui_talk(const ui_target_t *t, bool permanent);
 bool ui_has_action(uint8_t action);
 // A setting the UI acts on itself changed (brightness, hints, large text, theme, lock, Home keys, ...)
 void ui_apply_setting(uint8_t id, int32_t v);
-// Scan on / off (quick 7, Tools 1, long SK2), with a toast that says what scans: the zone, or the band in the VFO
+// Scan on / off (quick 7, Menu > Scan 1, long SK2), with a toast that says what scans: the zone, or the band in the VFO
 void ui_scan_toggle(void);
 void ui_monitor_toggle(void);	// a side key set to Monitor toggle: what quick tile 5 does
 void ui_scan_skip(void);	// a side key set to Scan skip: skip the channel that stopped the scan

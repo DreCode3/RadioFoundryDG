@@ -33,7 +33,9 @@
 #include "hotspot/hotspot.h"
 #endif
 
-#define UI_STACK_MAX		6
+// The deepest path: Home, Menu, Settings, Programming, Zones, a zone, Channel actions, Copy here (the channel editor)
+// and its name entry. 8 bytes a level
+#define UI_STACK_MAX		9
 #define TOAST_MS		1800
 #define VOLUME_MS		3000	// the volume screen closes this long after the last key, the knob's bar after its last turn
 #define ENTRY_TIMEOUT_MS	10000
@@ -2344,10 +2346,6 @@ void ui_app_key(const input_event_t *ev)
 			return;
 #if CONFIG_DMR
 		case ACT_TALK_LABEL:
-#if UI_THEME_SELECT
-			if (!ui_theme_has(UI_THEME_OPT_LABEL_FIRST))
-				return;		// the theme's own order (both panels layouts lead with the talkgroup name)
-#endif
 			// Saved like Settings > Display > Talkgroup name first, so the choice survives a power cycle
 			ui_svc_setting_set(UI_SET_LABEL_FIRST, !ui_st.label_first);
 			ui_apply_setting(UI_SET_LABEL_FIRST, !ui_st.label_first);
@@ -2896,7 +2894,11 @@ static const char *focus_label(void)
 	if (!(d->flags & SF_LIST) || d->count == NULL || stack[sp].focus >= d->count())
 		return "";
 	list_item(d, stack[sp].focus, &it);
-	return it.label;
+	// A label with text alternates by its longest, the whole text
+	static char label[sizeof it.label];
+	bool more;
+	gfx_text_alt(it.label, 0, label, sizeof label, &more);
+	return label;
 }
 
 const char *ui_app_focus_label(void)

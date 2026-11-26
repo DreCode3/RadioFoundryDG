@@ -753,10 +753,19 @@ static void panels_target(sbuf_t *b, uint32_t id, bool private_call)
 	}
 }
 
-// The talk target as Home names it: its name, else TG or ID and the number; with_number puts the number after a name
-static void panels_target_text(sbuf_t *b, uint32_t id, bool private_call, const char *label, bool with_number)
+// The talk target as Home names it. Talkgroup name first (Settings > Display, a side key; name_first): its name, with
+// the number after it where with_number asks; else, as the reference theme's talk line reads, TG or ID and the number,
+// then the name. Without a name, the number alone
+static void panels_target_text(sbuf_t *b, uint32_t id, bool private_call, const char *label, bool with_number,
+	bool name_first)
 {
 	bool named = id != 0xFFFFFFu && label[0] && !ui_name_is_id(label, id, private_call);
+	if (named && !name_first) {
+		panels_target(b, id, private_call);
+		sb_str(b, " " GLYPH_DOT " ");
+		sb_str(b, label);
+		return;
+	}
 	if (named)
 		sb_str(b, label);
 	if (named && !with_number)
@@ -853,7 +862,7 @@ static void panels_home_lines(const radio_view_t *v, const ui_state_t *s, int bo
 		const char *label;
 		uint32_t id = voice ? panels_talk_id(v, &private_call, &label) : 0;
 		if (id && v->ch.mode == RADIO_MODE_DMR) {
-			panels_target_text(&b, id, private_call, label, false);
+			panels_target_text(&b, id, private_call, label, false, s->label_first);
 			text = buf;
 			c = ui_col.fg;
 		}
@@ -885,7 +894,7 @@ static void panels_home_lines(const radio_view_t *v, const ui_state_t *s, int bo
 		text = buf;
 		c = ui_col.priv;
 		if (call->group)
-			panels_target_text(&b2, call->dst, false, call->dst_name, true);
+			panels_target_text(&b2, call->dst, false, call->dst_name, true, true);
 		else
 			sb_str(&b2, call->to_us ? TR(ACT_ROW_PRIVATE_CALL, "Private call") : "");
 		text2 = buf2[0] ? buf2 : NULL;
@@ -958,7 +967,7 @@ static void __attribute__((noinline)) panels_draw_home(const radio_view_t *v, co
 	if (s->entry || v->ch.rx_only || (commercial && !panels_target_differs(v))) {
 		// no target line
 	} else if (id) {
-		panels_target_text(&b, id, private_call, label, !commercial && !large);
+		panels_target_text(&b, id, private_call, label, !commercial && !large, s->label_first);
 #if CONFIG_DMR
 	} else if (!commercial && v->ch.mode == RADIO_MODE_DMR && v->dmr.active) {
 		sb_str(&b, TR(HOME_STATE_NO_TARGET, "No talk target"));
@@ -1087,9 +1096,9 @@ static void panels_cell_panel(int x, int y, int w, int h, bool focus, bool edit)
 		panels_row(x, y, w, h, panels_row_bg);
 		return;
 	}
-	panels_row(x, y, w, h, edit ? ui_col.warn : panels_row_focus);
-	if (!edit)
-		panels_accent_bar(x, y, h);
+	(void)edit;	// the value editor is a focused row; its markers carry the accent (panels_cell)
+	panels_row(x, y, w, h, panels_row_focus);
+	panels_accent_bar(x, y, h);
 }
 
 // One row height for every list and grid: the small font and its padding
@@ -1167,7 +1176,7 @@ static void panels_list_colors(bool icons)
 
 static bool panels_titled(const ui_list_t *l)
 {
-	return l->prefix || l->name || l->kind == UI_LIST_HUB;
+	return l->prefix || l->name;
 }
 
 // The scroll position, "n/N" in the tiny font: the n-th entry of the list's count. Returns its width
@@ -1181,8 +1190,8 @@ static int panels_badge(const ui_list_t *l, unsigned n, char *out, size_t cap)
 	return gfx_text_width(ui_layout.tiny, out);
 }
 
-// A list's palette entries, then its heading: the strip and the title (the main menu's is Menu), with room kept at its
-// right for the scroll position, or the strip alone for a list without a title
+// A list's palette entries, then its heading: the strip and the title, with room kept at its right for the scroll
+// position, or the strip alone for a list without a title
 static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
 	if (draw)
@@ -1196,8 +1205,7 @@ static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui
 	}
 	char badge[16];
 	int reserve = l->count > 1 ? panels_badge(l, l->count, badge, sizeof badge) + 8 : 0;
-	const char *prefix = l->kind == UI_LIST_HUB ? TR(FIND_CHIP_MENU, "Menu") : l->prefix;	// the main menu: Menu
-	return panels_title(v, draw ? v->state : RS_IDLE, s, prefix, l->name, reserve, draw);
+	return panels_title(v, draw ? v->state : RS_IDLE, s, l->prefix, l->name, reserve, draw);
 }
 
 // Rows of one height, inset from the edges, as many as fit; the first level of a menu as a grid of two equal columns
@@ -1220,14 +1228,12 @@ static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_
 }
 
 // Each row a rounded panel, the focus filled with its accent bar, an icon on the first level of a menu, the key's
-// digit, the label and the value. A label too long for its grid column takes the tiny font, never a second line. The
-// main menu's tiles show no values
+// digit, the label and the value. A label too long for its grid column takes the tiny font, never a second line
 static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
 {
-	bool main_menu = l->kind == UI_LIST_HUB;
 	color_t disabled = ui_col.dim;
-	uint8_t flags = main_menu ? it->flags & ~UI_ITEM_WARN : it->flags;
-	const char *value = main_menu ? "" : it->value;
+	uint8_t flags = it->flags;
+	const char *value = it->value;
 	bool focus = c->focus;
 	color_t fg = (flags & UI_ITEM_DIM) ? disabled : (flags & UI_ITEM_WARN) ? ui_col.warn : ui_col.fg;
 	if (flags & UI_ITEM_INFO)
@@ -1239,7 +1245,7 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 		panels_cell_panel(c->x, c->y + PANELS_ROW_GAP, c->w, c->h - 2 * PANELS_ROW_GAP, focus,
 			(flags & UI_ITEM_EDIT) != 0);
 	if (focus) {
-		fg = (flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
+		fg = ui_col.focus_fg;
 		vfg = fg;
 	}
 	int x = c->x + PANELS_TEXT_X;
@@ -1259,17 +1265,11 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 		char n[3] = { it->num, ' ', 0 };
 		x = gfx_text(f, x, ty, n, focus ? fg : ui_col.dim);
 	}
-	char val[48];
-	if (flags & UI_ITEM_EDIT) {
-		sbuf_t b;
-		sb_init(&b, val, sizeof val);
-		sb_chr(&b, '<');
-		sb_str(&b, value);
-		sb_chr(&b, '>');
-	} else {
-		str_copy(val, sizeof val, value);
+	if (focus && (flags & UI_ITEM_EDIT)) {
+		ui_row_edit(f, x, ty, right, it->label, value, fg, panels_accent);
+		return;
 	}
-	ui_row_text(f, x, ty, right, it->label, val, fg, vfg, (flags & UI_ITEM_PREVIEW) != 0);
+	ui_row_text(f, x, ty, right, it->label, value, fg, vfg, (flags & UI_ITEM_PREVIEW) != 0);
 }
 
 // The scroll position in the title's row, "n/N" for the focused entry, where the list has more entries than its screen

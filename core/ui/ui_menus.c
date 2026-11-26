@@ -80,57 +80,85 @@ void item_num_set(ui_item_t *it, uint16_t n)
 	item_num(it, n);
 }
 
-// ======================= Hub =======================
+// ======================= Menu (the hub) =======================
+// A 3x3 grid that matches the keypad (fork-notes/gui-plan.md, information-architecture.md 4): each entry keeps its
+// digit on every radio and build. 9 is left for a favorite the user picks later, so the list ends at 8
 
-enum { HUB_LAST_CALLER, HUB_CONTACTS, HUB_MESSAGES, HUB_RECENT, HUB_ZONES, HUB_CHANNELS, HUB_TOOLS, HUB_SETTINGS };
+enum { HUB_LAST_CALLER, HUB_CONTACTS, HUB_MESSAGES, HUB_CALL_LOG, HUB_ZONES, HUB_SCAN, HUB_LOCATION, HUB_CONNECTIONS,
+       HUB_SETTINGS };
 
 static bool hub_has_last(void)
 {
 	return !ui_has_action(ACT_CONTEXT);	// few-key boards: "Last caller" stands in for CONTEXT (7.5)
 }
 
-static uint16_t hub_count(void) { return hub_has_last() ? 8 : 7; }
+static uint16_t hub_count(void) { return hub_has_last() ? 9 : 8; }
 
 static uint8_t hub_entry(uint16_t i)
 {
 	return (uint8_t)(hub_has_last() ? i : i + 1u);
 }
 
+static const char *scan_menu_value(void);
+
+// Dual watch runs (its scan is a scan the user didn't start)
+static bool scan_dual(void)
+{
+#if CONFIG_DUAL_WATCH
+	return ui_st.dual.on;
+#else
+	return false;
+#endif
+}
+
 static void hub_item(uint16_t i, ui_item_t *it)
 {
 	static const tr_id_t names[] = { TRN(HUB_ROW_LAST_CALLER, "Last caller"), TRN(TITLE_CONTACTS, "Contacts"),
-		TRN(TITLE_MESSAGES, "Messages"), TRN(TITLE_RECENT, "Recent"), TRN(TITLE_ZONES, "Zones"),
-		TRN(TITLE_CHANNELS, "Channels"), TRN(TITLE_TOOLS, "Tools"), TRN(TITLE_SETTINGS, "Settings") };
+		TRN(TITLE_MESSAGES, "Messages"), TRN(TITLE_CALL_LOG, "Call log"), TRN(TITLE_ZONES, "Zones"),
+		TRN(WORD_SCAN, "Scan"), TRN(TITLE_LOCATION, "Location"), TRN(TITLE_CONNECTIONS, "Connections"),
+		TRN(TITLE_SETTINGS, "Settings") };
 	uint8_t e = hub_entry(i);
 	str_copy(it->label, sizeof it->label, tr(names[e]));
 	item_num(it, e);
 #if CONFIG_UI_THEME_PANELS
 	static const uint8_t icons[] = {
 		UI_MENU_ICON_CALLER, UI_MENU_ICON_CONTACTS, UI_MENU_ICON_MESSAGES, UI_MENU_ICON_RECENT,
-		UI_MENU_ICON_ZONES, UI_MENU_ICON_CHANNELS, UI_MENU_ICON_TOOLS, UI_MENU_ICON_SETTINGS,
+		UI_MENU_ICON_ZONES, UI_MENU_ICON_TOOLS, UI_MENU_ICON_LOCATION, UI_MENU_ICON_CONNECTIONS,
+		UI_MENU_ICON_SETTINGS,
 	};
 	it->icon = icons[e];
 #endif
 	sbuf_t b;
 	sb_init(&b, it->value, sizeof it->value);
+	// Each value gives way to the label where both don't fit: a shorter form, or none (an empty last alternate)
 	if (e == HUB_MESSAGES && ui_st.unread) {
+		sb_str(&b, TEXT_ALT_OPEN);
 		sb_u32(&b, ui_st.unread, 1);
 		sb_str(&b, TR(HUB_VALUE_NEW, " new"));
+		sb_str(&b, TEXT_ALT_NEXT);
+		sb_u32(&b, ui_st.unread, 1);
+		sb_str(&b, TEXT_ALT_CLOSE);
 		it->flags |= UI_ITEM_WARN;
 	} else if (e == HUB_ZONES) {
 		// The zone (or VFO), left out where it doesn't fit beside the label (an empty last alternate)
 		sb_str(&b, TEXT_ALT_OPEN);
 		sb_str(&b, ui_view()->vfo ? "VFO" : ui_view()->zone_name);
 		sb_str(&b, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
-	} else if (e == HUB_TOOLS && ui_st.scanning) {
-		sb_str(&b, TR(HUB_VALUE_SCANNING, "Scanning"));
+	} else if (e == HUB_SCAN) {
+		sb_str(&b, TEXT_ALT_OPEN);
+		sb_str(&b, scan_menu_value());
+		if (ui_st.scanning && !scan_dual()) {
+			sb_str(&b, TEXT_ALT_NEXT);
+			sb_str(&b, TR(VALUE_ON, "On"));
+		}
+		sb_str(&b, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
 	}
 }
 
 static void hub_select(uint16_t i, bool hold)
 {
-	static const uint8_t scr[] = { SCR_RECENT, SCR_CONTACTS, SCR_MESSAGES, SCR_RECENT, SCR_ZONES, SCR_CHANNELS,
-				       SCR_TOOLS, SCR_SETTINGS };
+	static const uint8_t scr[] = { SCR_RECENT, SCR_CONTACTS, SCR_MESSAGES, SCR_RECENT, SCR_ZONES, SCR_SCAN_MENU,
+				       SCR_LOCATION, SCR_CONNECTIONS, SCR_SETTINGS };
 	(void)hold;
 	uint8_t e = hub_entry(i);
 	if (e == HUB_LAST_CALLER) {
@@ -143,16 +171,12 @@ static void hub_select(uint16_t i, bool hold)
 		ui_open_actions(&t);
 		return;
 	}
-	if (!CONFIG_CHANNEL_LIST && e == HUB_CHANNELS) {
-		// the numbers stay the same in every build
-		ui_toast(TR(WHY_CHANNELS_NOT_IN_BUILD, "Channels: not in this build"));
-		return;
-	}
 	ui_push(scr[e], 0);
 }
 
 static const ui_scr_def_t hub_screen = {
-	.name = "hub", .flags = SF_LIST | SF_NUMBERED | SF_FIELD, .hint = TRN(HINT_1_7_OPEN_BACK, "1-7 open  Back"),
+	.name = "hub", .flags = SF_LIST | SF_NUMBERED | SF_FIELD, .prefix = TRN(TITLE_MENU, "Menu"),
+	.hint = TRN(HINT_1_8_OPEN_BACK, "1-8 open  Back"),
 	.count = hub_count, .item = hub_item, .select = hub_select,
 };
 
@@ -776,9 +800,27 @@ static bool aprs_new_available(void)
 #endif
 }
 
+#if CONFIG_ZONE_SHARE
+static bool offer_waiting(void);
+#endif
+
+// The rows after the messages: New APRS message, then the zone or channel another radio offers while it waits (the
+// banner may have gone unseen)
+static uint16_t msgs_texts(void) { return ui_svc_msg_count() + ui_svc_aprs_msg_count(); }
+
+// The offer's row: the one after the texts and New APRS message, which the list counts only while an offer waits
+static bool msgs_is_offer(uint16_t i)
+{
+	return CONFIG_ZONE_SHARE && i == msgs_texts() + (aprs_new_available() ? 1u : 0u);
+}
+
 static uint16_t msgs_count(void)
 {
-	return ui_svc_msg_count() + ui_svc_aprs_msg_count() + (aprs_new_available() ? 1u : 0u);
+	uint16_t n = msgs_texts() + (aprs_new_available() ? 1u : 0u);
+#if CONFIG_ZONE_SHARE
+	n += offer_waiting();
+#endif
+	return n;
 }
 
 // Both inboxes are newest first. Merge their small RAM lists by age for the shared Messages screen.
@@ -810,7 +852,37 @@ static bool msg_row(uint16_t row, bool *aprs, uint16_t *index)
 	return true;
 }
 
+#if CONFIG_ZONE_SHARE
+// The offer's row, apart from the messages': the offer's lookup reads the codeplug, so its frames stay off the deep
+// path of a message row's (make stack-check)
+static void __attribute__((noinline)) msgs_offer_item(ui_item_t *it)
+{
+	ui_zone_offer_t o;
+	str_copy(it->label, sizeof it->label, TR(MSG_ROW_ZONE_OFFERS, "Zone offers"));
+	if (ui_svc_zone_offer(&o)) {
+		sbuf_t b;
+		sb_init(&b, it->value, sizeof it->value);
+		sb_str(&b, TEXT_ALT_OPEN);	// the name where it fits beside the whole label, else none
+		sb_str(&b, o.name);
+		sb_str(&b, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
+	}
+}
+#endif
+
+static void __attribute__((noinline)) msgs_text_item(uint16_t i, ui_item_t *it);
+
 static void msgs_item(uint16_t i, ui_item_t *it)
+{
+#if CONFIG_ZONE_SHARE
+	if (msgs_is_offer(i)) {
+		msgs_offer_item(it);
+		return;
+	}
+#endif
+	msgs_text_item(i, it);
+}
+
+static void msgs_text_item(uint16_t i, ui_item_t *it)
 {
 	uint16_t dmr_count = ui_svc_msg_count();
 	uint16_t aprs_count = ui_svc_aprs_msg_count();
@@ -859,7 +931,9 @@ static void msgs_item(uint16_t i, ui_item_t *it)
 static void msgs_select(uint16_t i, bool hold)
 {
 	(void)hold;
-	if (aprs_new_available() && i == ui_svc_msg_count() + ui_svc_aprs_msg_count())
+	if (msgs_is_offer(i))
+		ui_push(SCR_OFFER, 0);
+	else if (aprs_new_available() && i == ui_svc_msg_count() + ui_svc_aprs_msg_count())
 		ui_aprs_compose("");
 	else {
 		bool aprs;
@@ -906,10 +980,12 @@ static const char *msgs_hint(void)
 		ui_msg_t message;
 		if (aprs || (ui_svc_msg_get(index, &message) && !message.sent))
 			return TR(MSG_HINT_LIST, "OK open  # reply  Back");
-		return TR(HINT_OK_OPEN_BACK, "OK Open  Back");
+		return TR(HINT_OK_OPEN_BACK, "OK open  Back");
 	}
+	if (focus < msgs_count() && msgs_is_offer(focus))
+		return TR(HINT_OK_OPEN_BACK, "OK open  Back");
 	if (aprs_new_available())
-		return TR(MSG_HINT_NEW, "OK Compose  Back");
+		return TR(MSG_HINT_NEW, "OK compose  Back");
 	return TR(HINT_BACK, "Back");
 }
 
@@ -1199,7 +1275,7 @@ static void recent_context(uint16_t i)
 }
 
 static const ui_scr_def_t recent_screen = {
-	.name = "recent", .flags = SF_LIST | SF_FIELD, .prefix = TRN(TITLE_RECENT, "Recent"),
+	.name = "recent", .flags = SF_LIST | SF_FIELD, .prefix = TRN(TITLE_CALL_LOG, "Call log"),
 	.hint = TRN(RECENT_HINT, "PTT talk  # more  Back"),
 	.empty = TRN(EMPTY_NO_CALLS_HEARD, "No calls heard yet"),
 	.count = recent_count, .item = recent_item, .select = recent_select, .context = recent_context,
@@ -1226,7 +1302,7 @@ static bool chans_raw_label(uint16_t raw, char *buf, uint8_t len)
 		return true;
 	}
 	if (chans_is_new(raw)) {
-		str_copy(buf, len, TR(ZONE_ROW_CREATE, "Create New Zone"));
+		str_copy(buf, len, TR(ZONE_ROW_CREATE, "Create new zone"));
 		return true;
 	}
 	if (!codeplug_zone_name((uint16_t)(raw - CH_VFO), name))
@@ -1259,7 +1335,7 @@ static void chans_item(uint16_t i, ui_item_t *it)
 		return;
 	}
 	if (chans_is_new(raw)) {
-		str_copy(it->label, sizeof it->label, TR(ZONE_ROW_CREATE, "Create New Zone"));
+		str_copy(it->label, sizeof it->label, TR(ZONE_ROW_CREATE, "Create new zone"));
 		return;
 	}
 	uint16_t zi = (uint16_t)(raw - CH_VFO);
@@ -1875,7 +1951,7 @@ static void share_to_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t share_to_screen = {
-	.name = "zone_share_to", .flags = SF_LIST | SF_FILTER, .prefix = TRN(SHARE_TITLE_TO, "Share To"),
+	.name = "zone_share_to", .flags = SF_LIST | SF_FILTER, .prefix = TRN(SHARE_TITLE_TO, "Share to"),
 	.hint = TRN(SHARE_HINT_TO, TEXT_ALT_OPEN "0-9 find or ID  OK send  Back"
 		TEXT_ALT_NEXT "0-9 find or ID  OK send" TEXT_ALT_CLOSE),
 	.empty = TRN(SHARE_EMPTY_TYPE_AN_ID, "No contacts: type an ID"),
@@ -2080,13 +2156,13 @@ static void offer_zone_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t offer_zone_screen = {
-	.name = "zone_offer_zone", .flags = SF_LIST, .prefix = TRN(SHARE_TITLE_ADD_TO_ZONE, "Add to Zone"),
+	.name = "zone_offer_zone", .flags = SF_LIST, .prefix = TRN(SHARE_TITLE_ADD_TO_ZONE, "Add to zone"),
 	.hint = TRN(SHARE_HINT_ADD_TO_ZONE, "OK add  Back"),
 	.empty = TRN(ZONE_EMPTY_NO_ZONES, "No zones"),
 	.count = offer_zone_count, .item = offer_zone_item, .select = offer_zone_select,
 };
 
-// Tools: the offer waiting, while it lasts (the banner may have gone unseen)
+// Messages: the offer waiting, while it lasts (the banner may have gone unseen)
 static bool offer_waiting(void)
 {
 	ui_zone_offer_t o;
@@ -2455,7 +2531,7 @@ static const ui_scr_def_t message_text_screen = {
 #endif
 
 #if CONFIG_CHANNEL_LIST
-// ======================= Channels: every codeplug channel by number (hub 5) =======================
+// ======================= Channels: every codeplug channel by number (Settings > Programming) =======================
 // The raw row is the channel number - 1 (with CONFIG_CHANNEL_EDIT, raw 0 is "New from current" and the raw
 // row is the channel number); empty slots have no label, so the filter leaves them out
 #define CHLIST_NEW	(CONFIG_CHANNEL_EDIT ? 1u : 0u)
@@ -2630,7 +2706,8 @@ static void chlist_context(uint16_t i)
 }
 
 static const ui_scr_def_t chlist_screen = {
-	.name = "channels", .flags = SF_LIST | SF_FILTER | SF_FIELD, .prefix = TRN(TITLE_CHANNELS, "Channels"),
+	// Settings > Programming > Channels: programming, not field use (P4's three levels)
+	.name = "channels", .flags = SF_LIST | SF_FILTER, .prefix = TRN(TITLE_CHANNELS, "Channels"),
 	.hint = TRN(CHAN_HINT_LIST, TEXT_ALT_OPEN "OK details  # go  0-9 find"
 		TEXT_ALT_NEXT "OK details  # go" TEXT_ALT_CLOSE),
 	.empty = TRN(CHAN_EMPTY_NO_CHANNELS, "No channels"),
@@ -3042,7 +3119,7 @@ static uint16_t chinfo_count(void)
 
 static const char *chinfo_title(void)
 {
-	return ced_ch.name[0] != 0 ? ced_ch.name : TR(CHAN_TITLE_NEW, "New Channel");
+	return ced_ch.name[0] != 0 ? ced_ch.name : TR(CHAN_TITLE_NEW, "New channel");
 }
 
 static zone_t chz_z;	// a zone read to find a channel in it (the Zones row, the channel editor's Zones)
@@ -3861,7 +3938,7 @@ static void chinfo_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t chinfo_screen = {
-	.name = "channel", .flags = SF_LIST | SF_FIELD, .empty = TRN(CHAN_EMPTY_CHANNEL, "Empty channel"),
+	.name = "channel", .flags = SF_LIST, .empty = TRN(CHAN_EMPTY_CHANNEL, "Empty channel"),
 #if CONFIG_CHANNEL_EDIT
 	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  hold OK save  Back"
 		TEXT_ALT_NEXT "OK change  hold OK save" TEXT_ALT_CLOSE),
@@ -3921,7 +3998,7 @@ static const char *discard_body(void)
 static const char *discard_title(void)
 {
 	if (!discard_kind || ced_ch.kind != CODEPLUG_KIND_NONE)	// another kind: the body says what goes
-		return TR(DISCARD_TITLE, "Unsaved Changes");
+		return TR(DISCARD_TITLE, "Unsaved changes");
 	return ced_ch.mode == RADIO_MODE_DMR ? TR(DISCARD_TITLE_DMR, "Save as DMR?") :
 		TR(DISCARD_TITLE_FM, "Save as FM?");
 }
@@ -4165,7 +4242,7 @@ static bool ct_key(const input_event_t *ev)
 }
 
 static const ui_scr_def_t contact_edit_screen = {
-	.name = "contactedit", .flags = SF_LIST | SF_FIELD, .prefix = TRN(CONTACT_TITLE_NEW, "New Contact"),
+	.name = "contactedit", .flags = SF_LIST | SF_FIELD, .prefix = TRN(CONTACT_TITLE_NEW, "New contact"),
 	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  hold OK save  Back"
 		TEXT_ALT_NEXT "OK change  hold OK save" TEXT_ALT_CLOSE),
 	.count = ct_count, .item = ct_item, .select = ct_select, .key = ct_key,
@@ -4356,7 +4433,7 @@ static void zpick_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t zpick_screen = {
-	.name = "zpick", .flags = SF_LIST | SF_FILTER, .prefix = TRN(ZONE_TITLE_ADD_CHANNEL, "Add Channel"),
+	.name = "zpick", .flags = SF_LIST | SF_FILTER, .prefix = TRN(ZONE_TITLE_ADD_CHANNEL, "Add channel"),
 	.hint = TRN(ZONE_HINT_ADD_CHANNEL, TEXT_ALT_OPEN "OK add  0-9 find  Back"
 		TEXT_ALT_NEXT "OK add  Back" TEXT_ALT_CLOSE),
 	.empty = TRN(ZONE_EMPTY_ALL_CHANNELS_IN, "Every channel is in it"),
@@ -4404,7 +4481,7 @@ static void chz_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t chz_screen = {
-	.name = "chzones", .flags = SF_LIST, .prefix = TRX(ZONE_TITLE_IN_ZONES, "In Zones"),
+	.name = "chzones", .flags = SF_LIST, .prefix = TRX(ZONE_TITLE_IN_ZONES, "In zones"),
 	.hint = TRX(ZONE_HINT_IN_ZONES, "OK in/out  Back"),
 	.empty = TRN(ZONE_EMPTY_NO_ZONES, "No zones"),
 	.count = chz_count, .item = chz_item, .select = chz_select,
@@ -4575,7 +4652,7 @@ static const char *zdel_body(void)
 }
 
 static const ui_scr_def_t zdel_screen = {
-	.name = "zonedel", .flags = SF_LIST, .prefix = TRN(ZONE_TITLE_DELETE, "Delete Zone"),
+	.name = "zonedel", .flags = SF_LIST, .prefix = TRN(ZONE_TITLE_DELETE, "Delete zone"),
 	.hint = TRN(HINT_OK_CHOOSE_BACK_CANCELS, "OK choose  Back cancel"),
 	.count = zdel_count, .item = zdel_item, .select = zdel_select, .body = zdel_body,
 };
@@ -4678,9 +4755,9 @@ static const ui_scr_def_t chpick_screen = {
 
 enum { INFO_POSITION, INFO_HOTSPOT, INFO_FIRMWARE, INFO_CODEPLUG, INFO_USB_NET, INFO_SFR };
 
-static const tr_id_t info_titles[] = { TRN(TITLE_POSITION, "Position"), TRN(TITLE_HOTSPOT, "Hotspot"),
-	TRN(TITLE_ABOUT, "About"), TRN(TITLE_CODEPLUG, "Codeplug"), TRN(USBNET_TITLE, "USB Network"),
-	TRN(SFR_TITLE, "Single-Freq Repeater") };
+static const tr_id_t info_titles[] = { TRN(TITLE_GPS_STATUS, "GPS status"), TRN(TITLE_HOTSPOT, "Hotspot"),
+	TRN(TITLE_ABOUT, "About"), TRN(TITLE_CODEPLUG, "Codeplug"), TRN(CONN_ROW_USB_NETWORK, "USB network"),
+	TRN(SET_ROW_SFR_STATUS, "SFR status") };
 
 // The USB personality can be switched here (the host link's network adapter, CONFIG_USB_NETWORK)
 #define USB_NET_UI	(CONFIG_USB_NETWORK && CONFIG_HOSTLINK)
@@ -5126,7 +5203,7 @@ static void dmr_id_enter(void)
 }
 
 static const ui_scr_def_t dmr_id_screen = {
-	.name = "dmr-id", .flags = SF_LIST | SF_FIELD, .prefix = TRN(SET_TITLE_MY_RADIO, "My Radio"),
+	.name = "dmr-id", .flags = SF_LIST | SF_FIELD, .prefix = TRN(SET_ROW_DMR_ID_AND_NAME, "DMR ID and name"),
 #if CONFIG_DMR
 	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, "0-9 type  OK edit/save  Back"),
 #else
@@ -5295,7 +5372,7 @@ static void ds_enter(void)
 }
 
 static const ui_scr_def_t ds_screen = {
-	.name = "data-services", .flags = SF_LIST, .prefix = TRN(DATA_TITLE, "Data Services"),
+	.name = "data-services", .flags = SF_LIST, .prefix = TRN(SET_ROW_DATA_SERVICES, "Data services"),
 	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, "0-9 type  OK edit/save  Back"),
 	.count = ds_count, .item = ds_item, .select = ds_select, .key = ds_key, .enter = ds_enter, .body = ds_body,
 };
@@ -5363,7 +5440,7 @@ static void trim_draw(void)
 	char buf[24];
 	sbuf_t b;
 	gfx_clear(ui_col.bg);
-	int y = ui_draw_top(ui_view(), &ui_st, TR(TRIM_TITLE, "Freq Trim"), NULL) + 2;
+	int y = ui_draw_top(ui_view(), &ui_st, TR(SET_ROW_FREQUENCY_TRIM, "Frequency trim"), NULL) + 2;
 	bool roomy = L->hint_y - y >= L->large->h + 3 * L->medium->h + 24;	// room for the scale and the hint line
 
 	// The value, centered: the number large, " ppm" smaller on its baseline; typing shows a cursor
@@ -6337,7 +6414,7 @@ static void crash_enter(void)
 }
 
 static const ui_scr_def_t crash_screen = {
-	.name = "crash", .flags = SF_LIST | SF_NUMBERED, .prefix = TRN(CRASH_TITLE, "Crash Log"),
+	.name = "crash", .flags = SF_LIST | SF_NUMBERED, .prefix = TRN(SET_ROW_CRASH_LOG, "Crash log"),
 	.hint = TRN(HINT_OK_PICK_BACK, "OK pick  Back"),
 	.count = crash_count, .item = crash_item, .select = crash_select, .body = crash_body, .enter = crash_enter,
 };
@@ -6366,7 +6443,7 @@ static void crash_to_select(uint16_t i, bool hold)
 static void crash_to_raw_each(ui_raw_fn fn, void *ctx, bool labels) { (void)labels; contacts_rows(0, fn, ctx, true); }
 
 static const ui_scr_def_t crash_to_screen = {
-	.name = "crash_to", .flags = SF_LIST | SF_FILTER, .prefix = TRN(CRASH_TITLE_SEND_TO, "Send To"),
+	.name = "crash_to", .flags = SF_LIST | SF_FILTER, .prefix = TRN(CRASH_TITLE_SEND_TO, "Send to"),
 	.hint = TRN(HINT_FIND_OK_PICK_BACK, "0-9 find  OK pick  Back"),
 	.empty = TRN(EMPTY_NO_CONTACTS_USE_QDMR, "No contacts: add them in qdmr"),
 	.count = ui_filter_count, .item = contacts_item, .select = crash_to_select,
@@ -6425,140 +6502,130 @@ void ui_crash_tick(uint32_t now_ms)
 }
 #endif
 
-// ======================= Tools =======================
+// ======================= Menu > Scan, Location, Connections =======================
+// Numbered lists whose entries keep their digit on every radio and build, so a key path (OK 8 9 ...: Settings >
+// Programming) is the same everywhere; an entry a build doesn't have is left out and the others keep their numbers.
+// What the old Tools list held is here (and Diagnostics in Settings > Programming)
 
-// Every tool keeps its number on every radio and build, so a key path (OK 6 7: Diagnostics; tests/hil/test_ui.py and the
-// user guide) is the same everywhere. A build without diagnostics skips 7, and one without satellite skips 9.
-enum { T_SCAN, T_POSITION, T_HOTSPOT, T_USB_NET, T_SFR, T_ROAM, T_DIAG, T_APRS, T_SATELLITE, T_ZONE_OFFER, T_COUNT };
+typedef struct {
+	tr_id_t name;
+	bool (*shown)(void);	// NULL: always
+} menu_entry_t;
 
-// A tool this build doesn't have is left out of the list
-static bool tool_shown(uint16_t i)
+// Row `row` of a menu of n entries: the entry, n past the end
+static uint16_t menu_entry_of(const menu_entry_t *m, uint16_t n, uint16_t row)
 {
-#if CONFIG_ZONE_SHARE
-	if (i == T_ZONE_OFFER)
-		return offer_waiting();	// 0 on the keypad: only while another radio's zone waits
-#endif
-	return (i != T_DIAG || CONFIG_DIAG) && i != T_ZONE_OFFER && (i != T_SATELLITE || CONFIG_SATELLITE_TLE);
-}
-
-static uint16_t tools_last;	// the highest tool's number, found on each count (the list counts before the hint)
-
-static uint16_t tools_count(void)
-{
-	uint16_t n = 0, last = 0;
-	for (uint16_t i = 0; i < T_COUNT; i++) {
-		if (tool_shown(i)) {
-			n++;
-			last = (uint16_t)(i + 1u);
-		}
+	for (uint16_t i = 0; i < n; i++) {
+		if ((m[i].shown == NULL || m[i].shown()) && row-- == 0)
+			return i;
 	}
-	tools_last = last;
 	return n;
 }
 
-// The hint names the last number ("1-9 open"): the highest tool this radio has, from the keys and the translated rest
-static const char *tools_hint(void)
+static uint16_t menu_row_of(const menu_entry_t *m, uint16_t n, uint16_t entry)
+{
+	uint16_t row = 0;
+	for (uint16_t i = 0; i < entry && i < n; i++)
+		row += m[i].shown == NULL || m[i].shown();
+	return row;
+}
+
+static uint16_t menu_count(const menu_entry_t *m, uint16_t n)
+{
+	return menu_row_of(m, n, n);
+}
+
+static uint16_t menu_last;	// the highest number of the menu on screen, found on each count (before the hint)
+
+// The hint names the last number ("1-5 open"), from the keys and the translated rest
+static const char *menu_hint(void)
 {
 	static char hint[24];
-	uint16_t last = tools_last;
 	sbuf_t b;
 	sb_init(&b, hint, sizeof hint);
 	sb_str(&b, "1-");
-	sb_chr(&b, (char)('0' + (last < 9 ? last : 9)));	// "1-9": the zone offer's 0 isn't named
-	sb_str(&b, TR(TOOLS_HINT_OPEN_BACK, " open  Back"));
+	sb_chr(&b, (char)('0' + (menu_last < 9 ? menu_last : 9)));
+	sb_str(&b, TR(MENU_HINT_OPEN_BACK, " open  Back"));
 	return hint;
 }
 
-// The tool on list row `row`
-static uint16_t tools_row(uint16_t row)
+// A menu row: its name and its entry's own digit (not its row)
+static uint16_t menu_item(const menu_entry_t *m, uint16_t n, uint16_t row, ui_item_t *it)
 {
-	for (uint16_t i = 0; i < T_COUNT; i++) {
-		if (tool_shown(i) && row-- == 0)
-			return i;
+	uint16_t e = menu_entry_of(m, n, row);
+	if (e < n) {
+		str_copy(it->label, sizeof it->label, tr(m[e].name));
+		item_num(it, (uint16_t)(e + 1u));
 	}
-	return T_COUNT;
+	return e;
 }
 
-static void tools_item(uint16_t row, ui_item_t *it)
+static uint16_t menu_counted(const menu_entry_t *m, uint16_t n)
 {
-	static const tr_id_t names[] = { TRN(WORD_SCAN, "Scan"), TRN(TITLE_POSITION, "Position"), TRN(TITLE_HOTSPOT, "Hotspot"),
-					 TRN(TOOLS_ROW_USB_NETWORK, "USB network"), TRN(TOOLS_ROW_SFR, "Single-freq repeater"),
-					 TRN(TITLE_ROAMING, "Roaming"), TRN(TITLE_DIAGNOSTICS, "Diagnostics"), TRX(WORD_APRS, "APRS"),
-					 TRN(SATELLITE_2, "Satellite"), TRN(TOOLS_ROW_SHARES_RECEIVED, "Zones/Chs Received") };
-	uint16_t i = tools_row(row);
-	if (i >= T_COUNT)
-		return;
-	str_copy(it->label, sizeof it->label, tr(names[i]));
-	item_num(it, (uint16_t)(i + 1u));	// the tool's own number, not its row (see the enum)
+	uint16_t c = menu_count(m, n);
+	menu_last = 0;
+	for (uint16_t i = 0; i < n; i++) {
+		if (m[i].shown == NULL || m[i].shown())
+			menu_last = (uint16_t)(i + 1u);
+	}
+	return c;
+}
+
+// The rows of Settings (G_SETTINGS of them: 1-9, then Radio info), then the pages reached from elsewhere: a group's
+// sub-page, or a page of Menu > Location or Connections (ui_open_setting finds the way to each)
+enum { G_DISPLAY, G_TONES, G_AUDIO, G_CALL, G_RECEIVE, G_PRIVACY, G_LOCK, G_BUTTONS, G_PROGRAMMING, G_RADIO_INFO,
+       G_SETTINGS, G_ALERT = G_SETTINGS,
+#if CONFIG_SIG_TONES
+       G_SIG,
+#endif
+       G_LOCATION, G_SFR, G_PC_NETWORK };
+
+// --- Scan: scanning on and off, and roaming
+
+enum { SCAN_ON, SCAN_ROAMING, SCAN_COUNT };
+static const menu_entry_t scan_menu[SCAN_COUNT] = {
+	{ TRN(WORD_SCAN, "Scan"), NULL }, { TRN(TITLE_ROAMING, "Roaming"), NULL },
+};
+
+// What scans now: Menu's Scan entry and the Scan row show it
+static const char *scan_menu_value(void)
+{
+#if CONFIG_DUAL_WATCH
+	if (scan_dual())
+		return TR(WORD_DUAL_WATCH, "Dual watch");
+#endif
+	return ui_st.scanning ? TR(HUB_VALUE_SCANNING, "Scanning") : TR(VALUE_OFF, "Off");
+}
+
+static uint16_t scan_menu_count(void) { return menu_counted(scan_menu, SCAN_COUNT); }
+
+static void scan_menu_item(uint16_t row, ui_item_t *it)
+{
 	sbuf_t b;
 	sb_init(&b, it->value, sizeof it->value);
-	switch (i) {
-	case T_SCAN:
-#if CONFIG_DUAL_WATCH
-		if (ui_st.dual.on) {
-			sb_str(&b, TR(WORD_DUAL_WATCH, "Dual watch"));
-			break;
-		}
-#endif
-		sb_str(&b, ui_st.scanning ? TR(VALUE_ON, "On") : TR(VALUE_OFF, "Off"));
+	switch (menu_item(scan_menu, SCAN_COUNT, row, it)) {
+	case SCAN_ON:
+		sb_str(&b, scan_menu_value());
 		if (!(feats() & UI_FEAT_SCAN))
 			it->flags |= UI_ITEM_DIM;
 		break;
-	case T_POSITION:
-		if (!(feats() & UI_FEAT_GPS))
-			it->flags |= UI_ITEM_DIM;
-		break;
-	case T_HOTSPOT:
-#if CONFIG_HOTSPOT
-		sb_str(&b, hostlink_mode() == HOSTLINK_HOTSPOT ? TR(VALUE_ON, "On") : TR(VALUE_OFF, "Off"));
-#else
-		it->flags |= UI_ITEM_DIM;
-#endif
-		break;
-	case T_USB_NET:
-#if USB_NET_UI
-		sb_str(&b, hostlink_network_mode() ? TR(TOOLS_VALUE_USB_NETWORK, "Network") :
-			TR(TOOLS_VALUE_USB_SERIAL, "Serial"));
-#else
-		it->flags |= UI_ITEM_DIM;
-#endif
-		break;
-	case T_SFR:
-		if (!CONFIG_SFR)
-			it->flags |= UI_ITEM_DIM;
-		break;
-	case T_ROAM:
+	case SCAN_ROAMING:
 #if CONFIG_DMR_ROAMING
 		sb_str(&b, ui_view()->roam.zone_on ? TR(VALUE_ON, "On") : TR(VALUE_OFF, "Off"));
 #else
 		it->flags |= UI_ITEM_DIM;
 #endif
 		break;
-	case T_APRS:
-		if (!CONFIG_APRS)
-			it->flags |= UI_ITEM_DIM;
-		break;
-#if CONFIG_ZONE_SHARE
-	case T_ZONE_OFFER: {
-		ui_zone_offer_t o;
-		if (ui_svc_zone_offer(&o)) {
-			sb_str(&b, TEXT_ALT_OPEN);	// the name where it fits beside the whole label, else none
-			sb_str(&b, o.name);
-			sb_str(&b, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
-		}
-		break;
-	}
-#endif
 	default:
 		break;
 	}
 }
 
-static void tools_select(uint16_t row, bool hold)
+static void scan_menu_select(uint16_t row, bool hold)
 {
 	(void)hold;
-	switch (tools_row(row)) {
-	case T_SCAN:
+	switch (menu_entry_of(scan_menu, SCAN_COUNT, row)) {
+	case SCAN_ON:
 		if (!(feats() & UI_FEAT_SCAN)) {
 			ui_toast(TR(WHY_SCAN_NOT_IN_BUILD, "Scan: not in this build"));
 		} else {
@@ -6566,53 +6633,177 @@ static void tools_select(uint16_t row, bool hold)
 			ui_scan_toggle();	// says what scans: the zone, or the band in the VFO (dual watch ends)
 		}
 		break;
-	case T_POSITION: ui_push(CONFIG_GPS_SKY ? SCR_GPS : SCR_INFO, INFO_POSITION); break;
-	case T_HOTSPOT: ui_push(SCR_INFO, INFO_HOTSPOT); break;
-	case T_USB_NET: ui_push(SCR_INFO, INFO_USB_NET); break;
-	case T_SFR: ui_push(SCR_INFO, INFO_SFR); break;
-	case T_DIAG: ui_push(SCR_DIAG, 0); break;
-	case T_ROAM: ui_push(SCR_ROAM, 0); break;
-	case T_APRS: ui_push(SCR_APRS, 0); break;
-	case T_ZONE_OFFER: ui_push(SCR_OFFER, 0); break;
-	case T_SATELLITE: ui_push(SCR_SATELLITE_PASSES, 0); break;
+	case SCAN_ROAMING: ui_push(SCR_ROAM, 0); break;
 	default: break;
 	}
 }
 
-static const ui_scr_def_t tools_screen = {
-	.name = "tools", .flags = SF_LIST | SF_NUMBERED | SF_FIELD | SF_HINT_FN, .prefix = TRN(TITLE_TOOLS, "Tools"),
-	.hint_fn = tools_hint,
-	.count = tools_count, .item = tools_item, .select = tools_select,
+static const ui_scr_def_t scan_menu_screen = {
+	.name = "scan-menu", .flags = SF_LIST | SF_NUMBERED | SF_FIELD | SF_HINT_FN, .prefix = TRN(WORD_SCAN, "Scan"),
+	.hint_fn = menu_hint, .count = scan_menu_count, .item = scan_menu_item, .select = scan_menu_select,
+};
+
+// --- Location: the GPS, APRS, satellites, then its settings
+
+enum { LOC_GPS, LOC_APRS, LOC_SATELLITE, LOC_SETTINGS, LOC_COUNT };
+
+static bool loc_satellite(void) { return CONFIG_SATELLITE_TLE; }
+static const menu_entry_t loc_menu[LOC_COUNT] = {
+	[LOC_GPS] = { TRN(TITLE_GPS_STATUS, "GPS status"), NULL }, [LOC_APRS] = { TRX(WORD_APRS, "APRS"), NULL },
+	[LOC_SATELLITE] = { TRN(SATELLITE_2, "Satellite"), loc_satellite },
+	[LOC_SETTINGS] = { TRN(SET_ROW_LOCATION_SETTINGS, "Location settings"), NULL },
+};
+
+static uint16_t loc_row_of(uint16_t entry) { return menu_row_of(loc_menu, LOC_COUNT, entry); }
+static uint16_t loc_count(void) { return menu_counted(loc_menu, LOC_COUNT); }
+
+static void loc_item(uint16_t row, ui_item_t *it)
+{
+	switch (menu_item(loc_menu, LOC_COUNT, row, it)) {
+	case LOC_GPS:
+		if (!(feats() & UI_FEAT_GPS))
+			it->flags |= UI_ITEM_DIM;
+		break;
+	case LOC_APRS:
+		if (!CONFIG_APRS)
+			it->flags |= UI_ITEM_DIM;
+		break;
+	default:
+		break;
+	}
+}
+
+static void loc_select(uint16_t row, bool hold)
+{
+	(void)hold;
+	switch (menu_entry_of(loc_menu, LOC_COUNT, row)) {
+	case LOC_GPS: ui_push(CONFIG_GPS_SKY ? SCR_GPS : SCR_INFO, INFO_POSITION); break;
+	case LOC_APRS: ui_push(SCR_APRS, 0); break;
+	case LOC_SATELLITE: ui_push(SCR_SATELLITE_PASSES, 0); break;
+	case LOC_SETTINGS:
+#if CONFIG_UI_SETTINGS
+		ui_push(SCR_GROUP, G_LOCATION);
+#else
+		ui_push(SCR_SETTINGS, 0);	// the page that says the settings menu isn't in this build
+#endif
+		break;
+	default: break;
+	}
+}
+
+static const ui_scr_def_t location_screen = {
+	.name = "location", .flags = SF_LIST | SF_NUMBERED | SF_FIELD | SF_HINT_FN,
+	.prefix = TRN(TITLE_LOCATION, "Location"),
+	.hint_fn = menu_hint, .count = loc_count, .item = loc_item, .select = loc_select,
+};
+
+// --- Connections: the computer's and the repeater's links, then their settings
+
+enum { CONN_HOTSPOT, CONN_USB_NET, CONN_SFR, CONN_DATA, CONN_PC_NETWORK, CONN_COUNT };
+
+static bool conn_data(void) { return DATA_IDS; }
+static const menu_entry_t conn_menu[CONN_COUNT] = {
+	[CONN_HOTSPOT] = { TRN(TITLE_HOTSPOT, "Hotspot"), NULL },
+	[CONN_USB_NET] = { TRN(CONN_ROW_USB_NETWORK, "USB network"), NULL },
+	[CONN_SFR] = { TRX(CONN_ROW_SFR, "SFR"), NULL },
+	[CONN_DATA] = { TRN(SET_ROW_DATA_SERVICES, "Data services"), conn_data },
+	[CONN_PC_NETWORK] = { TRN(SET_ROW_PC_NETWORK, "PC and network"), NULL },
+};
+
+static uint16_t conn_row_of(uint16_t entry) { return menu_row_of(conn_menu, CONN_COUNT, entry); }
+static uint16_t conn_count(void) { return menu_counted(conn_menu, CONN_COUNT); }
+
+static void conn_item(uint16_t row, ui_item_t *it)
+{
+	sbuf_t b;
+	sb_init(&b, it->value, sizeof it->value);
+	switch (menu_item(conn_menu, CONN_COUNT, row, it)) {
+	case CONN_HOTSPOT:
+#if CONFIG_HOTSPOT
+		sb_str(&b, hostlink_mode() == HOSTLINK_HOTSPOT ? TR(VALUE_ON, "On") : TR(VALUE_OFF, "Off"));
+#else
+		it->flags |= UI_ITEM_DIM;
+#endif
+		break;
+	case CONN_USB_NET:
+#if USB_NET_UI
+		sb_str(&b, hostlink_network_mode() ? TR(TOOLS_VALUE_USB_NETWORK, "Network") :
+			TR(TOOLS_VALUE_USB_SERIAL, "Serial"));
+#else
+		it->flags |= UI_ITEM_DIM;
+#endif
+		break;
+	case CONN_SFR:
+		if (!CONFIG_SFR)
+			it->flags |= UI_ITEM_DIM;
+		break;
+	default:
+		break;
+	}
+}
+
+static void conn_select(uint16_t row, bool hold)
+{
+	(void)hold;
+	switch (menu_entry_of(conn_menu, CONN_COUNT, row)) {
+	case CONN_HOTSPOT: ui_push(SCR_INFO, INFO_HOTSPOT); break;
+	case CONN_USB_NET: ui_push(SCR_INFO, INFO_USB_NET); break;
+	case CONN_SFR:
+		// Its status page and settings; without SFR in the build the status page says so
+#if CONFIG_UI_SETTINGS && CONFIG_SFR
+		ui_push(SCR_GROUP, G_SFR);
+#else
+		ui_push(SCR_INFO, INFO_SFR);
+#endif
+		break;
+#if DATA_IDS
+	case CONN_DATA: ui_push(SCR_DATA_SERVICES, 0); break;
+#endif
+	case CONN_PC_NETWORK:
+#if CONFIG_UI_SETTINGS
+		ui_push(SCR_GROUP, G_PC_NETWORK);
+#else
+		ui_push(SCR_SETTINGS, 0);
+#endif
+		break;
+	default: break;
+	}
+}
+
+static const ui_scr_def_t connections_screen = {
+	.name = "connections", .flags = SF_LIST | SF_NUMBERED | SF_FIELD | SF_HINT_FN,
+	.prefix = TRN(TITLE_CONNECTIONS, "Connections"),
+	.hint_fn = menu_hint, .count = conn_count, .item = conn_item, .select = conn_select,
 };
 
 // ======================= Settings by intent (information-architecture.md 6) =======================
 // CONFIG_UI_SETTINGS=n leaves the whole menu out (the settings keep their stored values; qdmr sets them)
 #if CONFIG_UI_SETTINGS
 
-typedef enum {
-	ST_TOGGLE, ST_LIST, ST_NUMBER, ST_ACTION,
-#if CONFIG_UI_THEME_PANELS
-	ST_CHOICE,
-#endif
-} set_type_t;
+// A row: on/off (OK flips it), one of several values (OK opens a pick list), a number (OK opens its value editor), or
+// an action (OK opens a page)
+typedef enum { ST_TOGGLE, ST_LIST, ST_NUMBER, ST_ACTION } set_type_t;
 enum { SA_DIAG, SA_FIRMWARE, SA_CODEPLUG, SA_RESET, SA_MY_RADIO, SA_CRASH, SA_LANGUAGE, SA_HARDWARE, SA_FIXED_POS,
-       SA_SAVE_GPS_POS, SA_DATA_SERVICES,
+       SA_SAVE_GPS_POS,
        SA_BL_TEST,
-       SA_SIG_BEGIN, SA_SIG_END, SA_SIG_IDLE };	// the three: a signaling tone's steps, by sig_event_t
+       SA_SIG_BEGIN, SA_SIG_END, SA_SIG_IDLE,	// the three: a signaling tone's steps, by sig_event_t
+       SA_PAGE_ALERT, SA_PAGE_SIG,		// Tones & alerts' two pages
+       SA_CHANNELS, SA_ZONES, SA_VFO, SA_SFR_STATUS,
+       SA_INFO_BATTERY, SA_INFO_DMR_ID, SA_INFO_NAME, SA_INFO_GPS };	// Radio info's rows without a page of their own
 
 typedef struct {
 	tr_id_t name;			// TRN; TR_NONE for a key's row (set_name)
 	const char *syn;		// another name Find knows it by, in English (never shown)
 	uint8_t type;			// set_type_t
 	uint8_t id;			// ui_setting_t, or SA_* for an action
-	uint8_t n;			// ST_LIST / ST_CHOICE: how many values
+	uint8_t n;			// ST_LIST: how many values
 	// By type, in the same bytes (24 a row, not 32: there are about 80 rows)
 	union {
 		struct {			// ST_NUMBER
 			int16_t min, max, step;
 			const char *unit;	// after the number, or NULL
 		};
-		struct {			// ST_LIST / ST_CHOICE
+		struct {			// ST_LIST
 			const int16_t *values;
 			const tr_id_t *names;	// TRN, or TRX for one never translated
 		};
@@ -6621,8 +6812,7 @@ typedef struct {
 _Static_assert(sizeof(void *) != 4 || sizeof(set_item_t) <= 24, "a settings row grew (on the radios; the host's is larger)");
 
 typedef struct {
-	tr_id_t name;
-	tr_id_t title;		// the group's page title, in Title Case (the name is its row in Settings)
+	tr_id_t name;		// its row where one opens it, and its page's title
 	const set_item_t *items;
 	uint8_t count;
 #if CONFIG_UI_THEME_PANELS
@@ -6654,9 +6844,6 @@ static const int16_t v_display_choice[] = { 0, 1 };
 static const tr_id_t n_gui_profile[] = { TRN(SET_VALUE_PROFILE_COMMERCIAL, "Commercial"),
 	TRN(SET_VALUE_PROFILE_AMATEUR, "Amateur") };
 static const tr_id_t n_gui_mode[] = { TRN(SET_VALUE_DISPLAY_DAY, "Day"), TRN(SET_VALUE_DISPLAY_NIGHT, "Night") };
-static const tr_id_t n_gps_clock[] = { TRN(VALUE_OFF, "Off"), TRN(VALUE_ON, "On") };
-#define DISPLAY_CHOICE(nm, sy, i, ns) \
-	{ .name = nm, .syn = sy, .type = ST_CHOICE, .id = i, .n = 2, .values = v_display_choice, .names = ns }
 #endif
 static const int16_t v_tot[] = { 0, 30, 60, 120, 180, 300, 600 };
 static const tr_id_t n_tot[] = { TRN(VALUE_OFF, "Off"), TRX(VALUE_30_S, "30 s"), TRN(VALUE_1_MIN, "1 min"),
@@ -6706,9 +6893,9 @@ static const tr_id_t n_keyfn_press[] = { TRN(VALUE_DEFAULT, "Default"), TRN(KEYF
 	TRN(QUICK_TITLE, "Quick"), TRN(KEYFN_VALUE_MONITOR, "Monitor"), TRN(KEYFN_VALUE_TALK_TARGET, "Talk target"),
 					     TRN(KEYFN_VALUE_POWER_LEVEL, "Power level"),
 					TRN(KEYFN_VALUE_NEXT_ZONE, "Next zone"),
-					TRN(KEYFN_VALUE_PREV_ZONE, "Prev zone"), TRN(WORD_SCAN, "Scan"),
+					TRN(KEYFN_VALUE_PREVIOUS_ZONE, "Previous zone"), TRN(WORD_SCAN, "Scan"),
 					     TRN(KEYFN_VALUE_SCAN_SKIP, "Scan skip"), TRN(KEYFN_VALUE_MONITOR_TOGGLE, "Monitor toggle"),
-					     TRN(WORD_KEY_LOCK, "Key lock"), TRN(KEYFN_VALUE_HOME_ZONE, "Home zone"),
+					     TRN(WORD_KEYPAD_LOCK, "Keypad lock"), TRN(KEYFN_VALUE_HOME_ZONE, "Home zone"),
 #if CONFIG_FM_TX_TONES
 					     TRN(WORD_TONE_BURST, "Tone burst"),
 #endif
@@ -6777,12 +6964,12 @@ static const int16_t v_keyfn_hold[] = { KEYFN_DEFAULT, KEYFN_NONE, KEYFN_TALK_TA
 static const tr_id_t n_keyfn_hold[] = { TRN(VALUE_DEFAULT, "Default"), TRN(KEYFN_VALUE_NOTHING, "Nothing"),
 	TRN(KEYFN_VALUE_TALK_TARGET, "Talk target"), TRN(KEYFN_VALUE_POWER_LEVEL, "Power level"),
 					    TRN(KEYFN_VALUE_NEXT_ZONE, "Next zone"),
-					TRN(KEYFN_VALUE_PREV_ZONE, "Prev zone"), TRN(WORD_SCAN, "Scan"),
+					TRN(KEYFN_VALUE_PREVIOUS_ZONE, "Previous zone"), TRN(WORD_SCAN, "Scan"),
 					TRN(KEYFN_VALUE_SCAN_SKIP, "Scan skip"), TRN(KEYFN_VALUE_MONITOR_TOGGLE, "Monitor toggle"),
 #if CONFIG_DMR_EMERGENCY
 					    TRN(TITLE_EMERGENCY, "Emergency"),
 #endif
-					    TRN(WORD_KEY_LOCK, "Key lock"), TRN(KEYFN_VALUE_HOME_ZONE, "Home zone"),
+					    TRN(WORD_KEYPAD_LOCK, "Keypad lock"), TRN(KEYFN_VALUE_HOME_ZONE, "Home zone"),
 #if CONFIG_VFO_FM || CONFIG_VFO_DMR
 					    TRN(KEYFN_VALUE_COPY_TO_VFO, "Copy to VFO"),
 					TRN(KEYFN_VALUE_VFO_CHANNEL, "VFO/Channel"),
@@ -6873,25 +7060,61 @@ static const tr_id_t n_sigout_local[] = { TRN(VALUE_DEFAULT, "Default"), TRN(VAL
 #define LIST(nm, syn_, sid, v, nms) { nm, syn_, ST_LIST, sid, sizeof v / sizeof v[0], { .values = v, .names = nms } }
 #define ACTION(nm, syn_, a) { nm, syn_, ST_ACTION, a, 0, { { 0, 0, 0, NULL } } }
 
-static const set_item_t s_sound[] = {
+// Settings > Display: the appearance rows of the theme in use first (its options, ui_theme.h), then the rest
+static const set_item_t s_display[] = {
+#if CONFIG_UI_THEME_PANELS
+	LIST(TRN(SET_LABEL_GUI_PROFILE, "Display profile"), "home layout gui profile commercial amateur",
+		UI_SET_GUI_PROFILE, v_display_choice, n_gui_profile),
+	LIST(TRN(SET_LABEL_DAY_NIGHT, "Day/Night"), "theme palette contrast", UI_SET_GUI_NIGHT, v_display_choice,
+		n_gui_mode),
+	TOGGLE(TRN(SET_LABEL_GPS_CLOCK, "GPS clock"), "date time UTC", UI_SET_GPS_CLOCK),
+#endif
+#if CONFIG_UI_COLOR	// a radio whose only screen is monochrome has no colors to set: no rows for them
+	LIST(TRN(SET_LABEL_THEME, "Theme"), "contrast", UI_SET_THEME, v_theme, n_theme),
+	LIST(TRN(SET_LABEL_HIGHLIGHT_COLOR, "Highlight color"), "accent", UI_SET_ACCENT, v_accent, n_accent),
+	TOGGLE(TRN(SET_LABEL_FILLED_STATUS_BAR, "Filled status bar"), "top line", UI_SET_STRIP),
+#endif
+	NUMBER(TRN(SET_LABEL_BRIGHTNESS, "Brightness"), "backlight", UI_SET_BRIGHTNESS, 10, 100, 10, "%"),
+	LIST(TRN(SET_LABEL_BACKLIGHT, "Backlight"), "timeout dim off", UI_SET_BACKLIGHT_S, v_backlight, n_backlight),
+	TOGGLE(TRN(SET_LABEL_LARGE_TEXT, "Large text"), "accessibility", UI_SET_LARGE_TEXT),
+	TOGGLE(TRN(SET_LABEL_HINT_ROW, "Hint row"), "help", UI_SET_HINTS),
+#if CONFIG_DMR
+	TOGGLE(TRN(SET_LABEL_TG_NAME_FIRST, "Talkgroup name first"), "talk line label TG number Home",
+		UI_SET_LABEL_FIRST),
+#endif
+	// Its search words are "language" in other languages, for a user who can't read the English
+	ACTION(TRN(SET_LABEL_LANGUAGE, "Language"), "idioma langue sprache lingua taal jezyk", SA_LANGUAGE),
+	TOGGLE(TRN(LABEL_BATTERY_SAVER, "Battery saver"), "power", UI_SET_BATTERY_SAVER),
+	LIST(TRN(SET_LABEL_AUTO_POWER_OFF, "Auto power off"), NULL, UI_SET_AUTO_OFF_MIN, v_autooff, n_autooff),
+	NUMBER(TRN(SET_LABEL_LOW_BATTERY_WARNING, "Low battery warning"), NULL, UI_SET_LOW_BATTERY, 5, 30, 5, "%"),
+};
+// Settings > Tones & alerts: the levels and the general switches, then its two pages
+static const set_item_t s_tones[] = {
 	NUMBER(TRN(TITLE_VOLUME, "Volume"), "speaker loudness", UI_SET_VOLUME, 0, RADIO_VOLUME_MAX, 1, NULL),
-	TOGGLE(TRN(SET_LABEL_KEY_TONES, "Key tones"), "beep", UI_SET_KEY_TONES),
 	NUMBER(TRN(SET_LABEL_TONE_VOLUME, "Tone volume"), NULL, UI_SET_TONE_VOLUME, 0, 10, 1, NULL),
+	TOGGLE(TRN(SET_LABEL_KEY_TONES, "Key tones"), "beep", UI_SET_KEY_TONES),
+	TOGGLE(TRN(SET_LABEL_VOICE_PROMPTS, "Voice prompts"), "speech", UI_SET_VOICE_PROMPTS),
+#if CONFIG_VIBRATE
+	TOGGLE(TRN(SET_LABEL_VIBRATE, "Vibrate"), "vibration motor silent", UI_SET_VIBRATE),
+#endif
+	ACTION(TRN(SET_ROW_ALERT_TONES, "Alert tones"), "beeps sound", SA_PAGE_ALERT),
+#if CONFIG_SIG_TONES
+	ACTION(TRN(SET_ROW_SIGNALING_TONES, "Signaling tones"), "roger talk permit idle chain", SA_PAGE_SIG),
+#endif
+};
+// Settings > Tones & alerts > Alert tones: each of the radio's own beeps on or off
+static const set_item_t s_alert[] = {
 	TOGGLE(TRN(SET_LABEL_TALK_PERMIT_TONE, "Talk permit tone"), NULL, UI_SET_TALK_PERMIT),
 	TOGGLE(TRN(SET_LABEL_CALL_END_TONE, "Call end tone"), NULL, UI_SET_CALL_END_TONE),
-	TOGGLE(TRN(SET_LABEL_TOT_WARNING_TONE, "TOT warning tone"), "time-out", UI_SET_TOT_WARN_TONE),
+	TOGGLE(TRN(SET_LABEL_TIMEOUT_WARNING_TONE, "Timeout warning tone"), "TOT time-out", UI_SET_TOT_WARN_TONE),
 	TOGGLE(TRN(SET_LABEL_BATTERY_TONE, "Battery tone"), "low battery", UI_SET_BATTERY_TONE),
 	TOGGLE(TRN(SET_LABEL_TX_DENIED_TONE, "TX denied tone"), "refused", UI_SET_TX_DENY_TONE),
 	TOGGLE(TRN(SET_LABEL_SCAN_STOP_TONE, "Scan stop tone"), NULL, UI_SET_SCAN_TONE),
 	TOGGLE(TRN(SET_LABEL_EMERGENCY_TONE, "Emergency tone"), "alarm", UI_SET_EMERGENCY_TONE),
-	TOGGLE(TRN(SET_LABEL_VOICE_PROMPTS, "Voice prompts"), "speech", UI_SET_VOICE_PROMPTS),
 	TOGGLE(TRN(SET_LABEL_MESSAGE_TONE, "Message tone"), NULL, UI_SET_MESSAGE_TONE),
-#if CONFIG_VIBRATE
-	TOGGLE(TRN(SET_LABEL_VIBRATE, "Vibrate"), "vibration motor silent", UI_SET_VIBRATE),
-#endif
 };
 #if CONFIG_SIG_TONES
-// Settings > Signaling tones: where each event sounds, then a row per event that opens its chain's steps (SCR_SIG_CHAIN:
+// Settings > Tones & alerts > Signaling tones: where each event sounds, then a row per event that opens its chain's steps (SCR_SIG_CHAIN:
 // a step is a frequency and a length; a step of 0 ms ends the chain and no step is the event's standard sound)
 static const set_item_t s_sigtones[] = {
 #if CONFIG_DMR
@@ -6915,33 +7138,32 @@ static const set_item_t s_sigtones[] = {
 	ACTION(TRN(SIG_ROW_IDLE_STEPS, "Idle steps"), "signaling chain frequency length pitch channel free", SA_SIG_IDLE),
 };
 #endif
-static const set_item_t s_display[] = {
-#if CONFIG_UI_THEME_PANELS
-	DISPLAY_CHOICE(TRN(SET_LABEL_GUI_PROFILE, "Display Profile"), "home layout gui profile", UI_SET_GUI_PROFILE, n_gui_profile),
-	DISPLAY_CHOICE(TRN(SET_LABEL_DAY_NIGHT, "Day/Night"), "theme palette contrast", UI_SET_GUI_NIGHT, n_gui_mode),
-	DISPLAY_CHOICE(TRN(SET_LABEL_GPS_CLOCK, "GPS clock"), "date time UTC", UI_SET_GPS_CLOCK, n_gps_clock),
-#endif
-	NUMBER(TRN(SET_LABEL_BRIGHTNESS, "Brightness"), "backlight", UI_SET_BRIGHTNESS, 10, 100, 10, "%"),
-	LIST(TRN(SET_LABEL_BACKLIGHT_DIM_OFF, "Backlight Dim/Off"), "timeout", UI_SET_BACKLIGHT_S, v_backlight,
-		n_backlight),
-#if CONFIG_UI_COLOR	// a radio whose only screen is monochrome has no colors to set: no rows for them
-	LIST(TRN(SET_LABEL_THEME, "Theme"), "contrast", UI_SET_THEME, v_theme, n_theme),
-	LIST(TRN(SET_LABEL_HIGHLIGHT_COLOR, "Highlight color"), "accent", UI_SET_ACCENT, v_accent, n_accent),
-	TOGGLE(TRN(SET_LABEL_FILLED_STATUS_BAR, "Filled status bar"), "top line", UI_SET_STRIP),
-#endif
-	TOGGLE(TRN(SET_LABEL_LARGE_TEXT, "Large text"), "accessibility", UI_SET_LARGE_TEXT),
-	TOGGLE(TRN(SET_LABEL_HINT_ROW, "Hint row"), "help", UI_SET_HINTS),
-#if CONFIG_DMR
-	TOGGLE(TRN(SET_LABEL_TG_NAME_FIRST, "Talkgroup name first"), "talk line label TG number Home",
-		UI_SET_LABEL_FIRST),
-#endif
-	// Last, so the rows above keep their places; its search words are "language" in other languages, for a user who
-	// can't read the English
-	ACTION(TRN(SET_LABEL_LANGUAGE, "Language"), "idioma langue sprache lingua taal jezyk", SA_LANGUAGE),
+static const set_item_t s_audio[] = {
+	NUMBER(TRN(SET_LABEL_MIC_GAIN, "Mic gain"), NULL, UI_SET_MIC_GAIN, 0, 10, 1, NULL),
+	TOGGLE(TRN(SET_LABEL_MIC_AGC, "Mic AGC"), "automatic gain level", UI_SET_MIC_AGC),
+	TOGGLE(TRN(SET_LABEL_MIC_NOISE_REDUCTION, "Mic noise reduction"), "noise suppression background",
+		UI_SET_NOISE_REDUCTION),
 };
-static const set_item_t s_talk[] = {
+static const set_item_t s_call[] = {
 	NUMBER(TRN(SET_LABEL_REPLY_WINDOW, "Reply window"), NULL, UI_SET_REPLY_S, 0, 30, 1, " s"),
 	LIST(TRN(SET_LABEL_TX_TIMEOUT, "TX timeout"), "TOT", UI_SET_TOT_S, v_tot, n_tot),
+	TOGGLE(TRN(SET_LABEL_SHOW_TALKER_ALIAS, "Show talker alias"), NULL, UI_SET_ALIAS_SHOW),
+	// The shorter form where the whole one doesn't fit beside the value
+	TOGGLE(TRN(SET_LABEL_DIGITAL_MONITOR_AT_START, TEXT_ALT_OPEN "Digital monitor at start" TEXT_ALT_NEXT
+		"DMR monitor at start" TEXT_ALT_CLOSE),
+		"promiscuous hear all monitor by default", UI_SET_HEAR_ALL_DEFAULT),
+	TOGGLE(TRN(SET_LABEL_ANSWER_RADIO_CHECKS, "Answer radio checks"), NULL, UI_SET_CHECK_REPLY),
+	TOGGLE(TRN(SET_LABEL_ANSWER_CALL_ALERTS, "Answer call alerts"), NULL, UI_SET_ALERT_ANSWER),
+#if CONFIG_DMR_SMS
+	LIST(TRN(SET_LABEL_MESSAGE_FORMAT, "Message format"), "SMS text ETSI TMS", UI_SET_MSG_FORMAT, v_msgfmt,
+		n_msgfmt),
+#endif
+#if CONFIG_ZONE_SHARE
+	TOGGLE(TRN(SET_LABEL_ACCEPT_ZONE_SHARES, "Accept zone shares"), "zone offers sharing receive import channel",
+		UI_SET_ZONE_OFFERS),
+#endif
+};
+static const set_item_t s_receive[] = {
 	NUMBER(TRN(SET_LABEL_DEFAULT_SQUELCH, "Default squelch"), NULL, UI_SET_SQUELCH, 0, 9, 1, NULL),
 #if CONFIG_VFO
 	LIST(TRN(SET_LABEL_VFO_STEP, "VFO step"), "frequency tuning channel spacing", UI_SET_VFO_STEP, v_step, n_step),
@@ -6950,25 +7172,10 @@ static const set_item_t s_talk[] = {
 	LIST(TRN(SET_LABEL_FM_BROADCAST_STEP, "FM broadcast step"), "VFO tuning radio station 200 kHz odd",
 		UI_SET_BCAST_STEP, v_bcast_step, n_bcast_step),
 #endif
-	NUMBER(TRN(SET_LABEL_MIC_GAIN, "Mic gain"), NULL, UI_SET_MIC_GAIN, 0, 10, 1, NULL),
-	TOGGLE(TRN(SET_LABEL_MIC_AGC, "Mic AGC"), "automatic gain level", UI_SET_MIC_AGC),
-	TOGGLE(TRN(SET_LABEL_MIC_NOISE_REDUCTION, "Mic noise reduction"), "noise suppression background",
-		UI_SET_NOISE_REDUCTION),
-	TOGGLE(TRN(SET_LABEL_MONITOR_BY_DEFAULT, "Monitor by default"), "digital monitor promiscuous hear all",
-		UI_SET_HEAR_ALL_DEFAULT),
-	TOGGLE(TRN(SET_LABEL_SHOW_TALKER_ALIAS, "Show talker alias"), NULL, UI_SET_ALIAS_SHOW),
 #if CONFIG_DUAL_WATCH
 	TOGGLE(TRN(SET_LABEL_DUAL_TALK_BACK, "Dual watch talk back"), "reply other channel A B", UI_SET_DUAL_TALK_BACK),
 	LIST(TRN(SET_LABEL_DUAL_DELAY, "Dual watch delay"), "resume wait reply A B", UI_SET_DUAL_DELAY_MS, v_dual_wait,
 		n_dual_wait),
-#endif
-#if CONFIG_SFR
-	LIST(TRN(SET_LABEL_SFR_RECEIVE, "SFR receive"), "single frequency repeater both copies dual-path rx",
-		UI_SET_SFR_RX, v_sfrrx, n_sfrrx),
-#endif
-#if CONFIG_SFR_CWID
-	LIST(TRN(SET_LABEL_SFR_CW_ID, "SFR CW ID"), "single frequency repeater morse callsign identify",
-		UI_SET_SFR_CWID, v_sfrcwid, n_sfrcwid),
 #endif
 };
 #if CONFIG_DMR && CONFIG_DMR_PRIVACY
@@ -6984,6 +7191,7 @@ static const set_item_t s_lock[] = {
 	TOGGLE(TRN(SET_LABEL_PTT_WHEN_LOCKED, "PTT when locked"), NULL, UI_SET_PTT_LOCKED),
 	TOGGLE(TRN(SET_LABEL_KNOB_WHEN_LOCKED, "Knob when locked"), "volume knob key lock", UI_SET_KNOB_WHEN_LOCKED),
 };
+// Menu > Location > Location settings
 static const set_item_t s_location[] = {
 	TOGGLE(TRX(WORD_GPS, "GPS"), NULL, UI_SET_GPS),
 	LIST(TRN(SET_LABEL_POSITION_FORMAT, "Position format"), NULL, UI_SET_POS_FORMAT, v_posfmt, n_posfmt),
@@ -7002,20 +7210,23 @@ static const set_item_t s_location[] = {
 #endif
 #endif
 };
-static const set_item_t s_connections[] = {
+// Menu > Connections > SFR: the repeater's state (its page sets the VFO's role) and its settings
+static const set_item_t s_sfr[] = {
+	ACTION(TRN(SET_ROW_SFR_STATUS, "SFR status"), "single frequency repeater role", SA_SFR_STATUS),
+#if CONFIG_SFR
+	LIST(TRN(SET_LABEL_SFR_RECEIVE, "SFR receive"), "single frequency repeater both copies dual-path rx",
+		UI_SET_SFR_RX, v_sfrrx, n_sfrrx),
+#endif
+#if CONFIG_SFR_CWID
+	LIST(TRN(SET_LABEL_SFR_CW_ID, "SFR CW ID"), "single frequency repeater morse callsign identify",
+		UI_SET_SFR_CWID, v_sfrcwid, n_sfrcwid),
+#endif
+};
+// Menu > Connections > PC and network: what the radio does on a computer's link
+static const set_item_t s_pc_network[] = {
 	TOGGLE(TRN(SET_LABEL_HOTSPOT_ALLOWED, "Hotspot allowed"), "MMDVM", UI_SET_HOTSPOT_AUTO),
-	TOGGLE(TRN(SET_LABEL_ANSWER_RADIO_CHECKS, "Answer radio checks"), NULL, UI_SET_CHECK_REPLY),
-	TOGGLE(TRN(SET_LABEL_ANSWER_CALL_ALERTS, "Answer call alerts"), NULL, UI_SET_ALERT_ANSWER),
 #if CONFIG_TFTP
 	TOGGLE(TRN(SET_LABEL_TFTP_CODEPLUG_WRITE, "TFTP codeplug write"), "network USB programming", UI_SET_TFTP_WRITE),
-#endif
-#if CONFIG_DMR_SMS
-	LIST(TRN(SET_LABEL_MESSAGE_FORMAT, "Message format"), "SMS text ETSI TMS", UI_SET_MSG_FORMAT, v_msgfmt,
-		n_msgfmt),
-#endif
-#if CONFIG_ZONE_SHARE
-	TOGGLE(TRN(SET_LABEL_ACCEPT_ZONE_SHARES, "Accept zone shares"), "zone offers sharing receive import channel",
-		UI_SET_ZONE_OFFERS),
 #endif
 #if CONFIG_USB_NETWORK && CONFIG_HOSTLINK
 	TOGGLE(TRN(SET_LABEL_USB_NETWORK_AT_START, "USB network at start"), "dispatch control station",
@@ -7027,18 +7238,9 @@ static const set_item_t s_connections[] = {
 	LIST(TRN(SET_LABEL_USB_ADDRESS, "USB address"), "dispatch IP link", UI_SET_USB_FIXED_LINK, v_netlink,
 		n_netlink),
 #endif
-#if DATA_IDS	// last, so the rows above keep their places
-	ACTION(TRN(SET_ROW_DATA_SERVICES, "Data services"), "ARS registration presence server IP gateway off-net",
-		SA_DATA_SERVICES),
-#endif
-};
-static const set_item_t s_power[] = {
-	TOGGLE(TRN(LABEL_BATTERY_SAVER, "Battery saver"), NULL, UI_SET_BATTERY_SAVER),
-	LIST(TRN(SET_LABEL_AUTO_POWER_OFF, "Auto power off"), NULL, UI_SET_AUTO_OFF_MIN, v_autooff, n_autooff),
-	NUMBER(TRN(SET_LABEL_LOW_BATTERY_WARNING, "Low battery warning"), NULL, UI_SET_LOW_BATTERY, 5, 30, 5, "%"),
 };
 #if CONFIG_KEY_ASSIGN
-// Settings > Keys: a row pair per key the board lets the user reassign, named as on the radio ("SK1", "SK1 hold")
+// Settings > Buttons: a row pair per key the board lets the user reassign, named as on the radio ("SK1", "SK1 hold")
 _Static_assert(UI_KEY_ROLES == 9, "KEY_ROWS below");
 static char key_label[2 * UI_KEY_ROLES][20];
 static uint8_t key_label_lang = 0xFF;	// the language they were built in: rebuilt when the user picks another
@@ -7088,37 +7290,46 @@ static const set_item_t s_keys[] = {
 	KEY_ROWS(8),
 #endif
 };
-static const set_item_t s_my_radio[] = {
-	ACTION(TRN(SET_ROW_DMR_ID_AND_NAME, "DMR ID and name"), "callsign", SA_MY_RADIO),
-	// Also in Advanced, where users didn't look for it
-	ACTION(TRN(TITLE_ABOUT, "About"), "firmware version release build date", SA_FIRMWARE),
-};
-static const set_item_t s_advanced[] = {
-	ACTION(TRN(TITLE_ABOUT, "About"), "firmware version license authors", SA_FIRMWARE),
-	ACTION(TRN(TITLE_CODEPLUG, "Codeplug"), NULL, SA_CODEPLUG),
+// Settings > Programming: what changes the codeplug or the radio itself, Factory reset last
+static const set_item_t s_programming[] = {
+	ACTION(TRN(TITLE_CHANNELS, "Channels"), "channel edit new memory", SA_CHANNELS),
+#if CONFIG_ZONE_EDIT
+	ACTION(TRN(TITLE_ZONES, "Zones"), "zone edit new create rename delete", SA_ZONES),
+#endif
+#if CONFIG_VFO_FM || CONFIG_VFO_DMR
+	ACTION(TRX(WORD_VFO, "VFO"), "frequency tune", SA_VFO),
+#endif
+	ACTION(TRN(SET_ROW_DMR_ID_AND_NAME, "DMR ID and name"), "callsign my radio boot", SA_MY_RADIO),
 	ACTION(TRN(TITLE_DIAGNOSTICS, "Diagnostics"), "debug", SA_DIAG),
 #if CONFIG_BACKLIGHT_TEST
-	// Beside Diagnostics, so it moves the rows below it down one: the flows that reach them count the presses
-	// (tests/host/uiFlowTest.c ADV_BELOW_DIAG). Not ideal; rows found by name instead of position would end that
 	ACTION(TRX(TITLE_BACKLIGHT_TESTS, "Backlight tests"), "brightness PWM duty rate", SA_BL_TEST),
 #endif
-	ACTION(TRN(SET_ROW_FACTORY_RESET, "Factory reset"), "erase", SA_RESET),
-	// After Factory reset, so its place (and its tests' key presses) stays
 #if CONFIG_CRASH_SCREEN
 	ACTION(TRN(SET_ROW_CRASH_LOG, "Crash log"), "crash report fault debug", SA_CRASH),
+#endif
+#if CONFIG_REF_TRIM
+	NUMBER(TRN(SET_ROW_FREQUENCY_TRIM, "Frequency trim"), "freq offset reference oscillator calibration ppm",
+		UI_SET_REF_TRIM, -REF_TRIM_MAX_PPB, REF_TRIM_MAX_PPB, REF_TRIM_STEP_PPB, NULL),	// its own page
 #endif
 #if CONFIG_RX_EXT
 	TOGGLE(TRN(SET_LABEL_RX_PAST_BANDS, "RX past bands"), "extended out of band receive range", UI_SET_RX_EXT),
 #endif
-#if CONFIG_REF_TRIM
-	NUMBER(TRN(SET_ROW_FREQ_TRIM, "Freq trim"), "frequency offset reference oscillator calibration ppm",
-		UI_SET_REF_TRIM, -REF_TRIM_MAX_PPB,
-	       REF_TRIM_MAX_PPB, REF_TRIM_STEP_PPB, NULL),	// its own page (trim_screen); last: Up from the top
-#endif
 #if RFOUNDRY_HWOPTS
-	// Only on radios with hardware options (hal_hwopt.h): last, so the rows above keep their places
+	// Only on radios with hardware options (hal_hwopt.h)
 	ACTION(TRX(HW_TITLE, "Hardware"), "board revision", SA_HARDWARE),
 #endif
+	ACTION(TRN(SET_ROW_FACTORY_RESET, "Factory reset"), "erase", SA_RESET),	// last (fork-notes/gui-plan.md)
+};
+// Settings > Radio info: read only, each row a value; OK opens the page behind a row that has one
+static const set_item_t s_radio_info[] = {
+	ACTION(TRN(SET_ROW_BATTERY, "Battery"), "voltage charge", SA_INFO_BATTERY),
+#if CONFIG_DMR
+	ACTION(TRN(MYID_LABEL_DMR_ID, "DMR ID"), "my ID", SA_INFO_DMR_ID),
+#endif
+	ACTION(TRN(MYID_LABEL_RADIO_NAME, "Radio name"), "callsign", SA_INFO_NAME),
+	ACTION(TRN(TITLE_ABOUT, "About"), "firmware version release build date license authors", SA_FIRMWARE),
+	ACTION(TRX(WORD_GPS, "GPS"), "position fix satellites", SA_INFO_GPS),
+	ACTION(TRN(TITLE_CODEPLUG, "Codeplug"), NULL, SA_CODEPLUG),
 };
 
 #if CONFIG_UI_THEME_PANELS
@@ -7126,26 +7337,29 @@ static const set_item_t s_advanced[] = {
 #else
 #define GROUP_ICON(icon)
 #endif
-#define GROUP(nm, a, icon)	{ nm, nm, a, sizeof a / sizeof a[0] GROUP_ICON(icon) }
-#define GROUP_T(nm, t, a, icon)	{ nm, t, a, sizeof a / sizeof a[0] GROUP_ICON(icon) }
+#define GROUP(nm, a, icon)	{ nm, a, sizeof a / sizeof a[0] GROUP_ICON(icon) }
 static const set_group_t groups[] = {
-	GROUP(TRN(SET_ROW_SOUND, "Sound"), s_sound, SOUND), GROUP(TRN(SET_ROW_DISPLAY, "Display"), s_display, DISPLAY),
-	GROUP_T(TRN(SET_ROW_TALK_LISTEN, "Talk & listen"), TRN(SET_TITLE_TALK_LISTEN, "Talk & Listen"), s_talk, TALK),
+	[G_DISPLAY] = GROUP(TRN(SET_ROW_DISPLAY, "Display"), s_display, DISPLAY),
+	[G_TONES] = GROUP(TRN(SET_ROW_TONES_ALERTS, "Tones & alerts"), s_tones, TONES),
+	[G_AUDIO] = GROUP(TRN(SET_ROW_AUDIO, "Audio"), s_audio, SOUND),
+	[G_CALL] = GROUP(TRN(SET_ROW_CALL_SETTINGS, "Call settings"), s_call, TALK),
+	[G_RECEIVE] = GROUP(TRN(SET_ROW_RECEIVE_VFO, "Receive & VFO"), s_receive, CHANNELS),
 #if CONFIG_DMR && CONFIG_DMR_PRIVACY
-	GROUP(TRN(SET_ROW_PRIVACY, "Privacy"), s_privacy, PRIVACY),
+	[G_PRIVACY] = GROUP(TRN(SET_ROW_PRIVACY, "Privacy"), s_privacy, PRIVACY),
 #else
-	{ TRN(SET_ROW_PRIVACY, "Privacy"), TRN(SET_ROW_PRIVACY, "Privacy"), NULL, 0 GROUP_ICON(PRIVACY) },
+	[G_PRIVACY] = { TRN(SET_ROW_PRIVACY, "Privacy"), NULL, 0 GROUP_ICON(PRIVACY) },
 #endif
-	GROUP(TRN(SET_ROW_LOCATION, "Location"), s_location, LOCATION),
-	GROUP(TRN(SET_ROW_CONNECTIONS, "Connections"), s_connections, CONNECTIONS),
-	GROUP_T(TRN(SET_ROW_POWER_SAVING, "Power"), TRN(SET_TITLE_POWER_SAVING, "Power"), s_power, POWER),
-	GROUP(TRN(SET_ROW_KEYS, "Keys"), s_keys, KEYS), GROUP(TRN(WORD_KEY_LOCK, "Key lock"), s_lock, LOCK),
-	GROUP_T(TRN(SET_ROW_MY_RADIO, "My radio"), TRN(SET_TITLE_MY_RADIO, "My Radio"), s_my_radio, RADIO),
+	[G_LOCK] = GROUP(TRN(SET_ROW_SECURITY_LOCK, "Security & keypad lock"), s_lock, LOCK),
+	[G_BUTTONS] = GROUP(TRN(SET_ROW_BUTTONS, "Buttons"), s_keys, KEYS),
+	[G_PROGRAMMING] = GROUP(TRN(SET_ROW_PROGRAMMING, "Programming"), s_programming, ADVANCED),
+	[G_RADIO_INFO] = GROUP(TRN(SET_ROW_RADIO_INFO, "Radio info"), s_radio_info, RADIO),
+	[G_ALERT] = GROUP(TRN(SET_ROW_ALERT_TONES, "Alert tones"), s_alert, TONES),
 #if CONFIG_SIG_TONES
-	GROUP_T(TRN(SET_ROW_SIGNALING_TONES, "Signaling tones"), TRN(SET_TITLE_SIGNALING_TONES, "Signaling Tones"),
-		s_sigtones, TONES),
+	[G_SIG] = GROUP(TRN(SET_ROW_SIGNALING_TONES, "Signaling tones"), s_sigtones, TONES),
 #endif
-	GROUP(TRN(SET_ROW_ADVANCED, "Advanced"), s_advanced, ADVANCED),
+	[G_LOCATION] = GROUP(TRN(SET_ROW_LOCATION_SETTINGS, "Location settings"), s_location, LOCATION),
+	[G_SFR] = GROUP(TRX(CONN_ROW_SFR, "SFR"), s_sfr, CONNECTIONS),
+	[G_PC_NETWORK] = GROUP(TRN(SET_ROW_PC_NETWORK, "PC and network"), s_pc_network, CONNECTIONS),
 };
 #define GROUPS	(sizeof groups / sizeof groups[0])
 
@@ -7176,7 +7390,6 @@ static uint8_t appearance_option(uint8_t id)
 	case UI_SET_THEME: return UI_THEME_OPT_PALETTE;
 	case UI_SET_ACCENT: return UI_THEME_OPT_ACCENT;
 	case UI_SET_STRIP: return UI_THEME_OPT_STRIP;
-	case UI_SET_LABEL_FIRST: return UI_THEME_OPT_LABEL_FIRST;
 #if CONFIG_UI_THEME_PANELS
 	case UI_SET_GUI_NIGHT: return UI_THEME_OPT_DAY_NIGHT;
 	case UI_SET_GUI_PROFILE: return UI_THEME_OPT_LAYOUT;
@@ -7196,11 +7409,11 @@ static bool set_hidden(const set_item_t *s)
 		return true;
 #endif
 #if CONFIG_UI_THEME_PANELS
-	if (s->type == ST_CHOICE && s->id == UI_SET_GPS_CLOCK)
+	if (s->type != ST_ACTION && s->id == UI_SET_GPS_CLOCK)
 		return !(feats() & UI_FEAT_GPS);
-	if (s->type == ST_CHOICE)
-		return false;
 #endif
+	if (s->type == ST_ACTION && s->id == SA_INFO_BATTERY)
+		return !board_has_battery();
 #if RFOUNDRY_HWOPTS
 	if (s->type == ST_ACTION && s->id == SA_HARDWARE)
 		return hwopt_visible() == 0;	// none, or every one detected
@@ -7268,20 +7481,57 @@ const char *ui_set_item_name(uint8_t g, uint8_t i, bool english, const char **sy
 	return s != NULL ? set_name(s, english) : "";
 }
 
-void ui_open_setting(uint8_t g, uint8_t i)
+// The row of group g's parent that opens the page with action a (a group's sub-page), for the focus on the way there
+static uint16_t set_row_of(uint8_t g, uint8_t a)
 {
-	ui_push(SCR_SETTINGS, 0);
-	ui_frame()->focus = g;
-	ui_push(SCR_GROUP, g);
-	ui_frame()->focus = i;
+	for (uint16_t i = 0; i < ui_set_item_count(g); i++) {
+		const set_item_t *s = set_nth(g, i);
+		if (s->type == ST_ACTION && s->id == a)
+			return i;
+	}
+	return 0;
 }
 
-static uint16_t settings_count(void) { return GROUPS; }
+static void push_focus(uint8_t scr, uint16_t arg, uint16_t focus)
+{
+	ui_push(scr, arg);
+	ui_frame()->focus = focus;
+}
+
+// Find opens a setting where it lives, with the screens on the way under it, so Back goes up through them
+void ui_open_setting(uint8_t g, uint8_t i)
+{
+	switch (g) {
+	case G_LOCATION:
+		push_focus(SCR_HUB, 0, (uint16_t)(HUB_LOCATION - (hub_has_last() ? 0u : 1u)));
+		push_focus(SCR_LOCATION, 0, loc_row_of(LOC_SETTINGS));
+		break;
+	case G_SFR:
+	case G_PC_NETWORK:
+		push_focus(SCR_HUB, 0, (uint16_t)(HUB_CONNECTIONS - (hub_has_last() ? 0u : 1u)));
+		push_focus(SCR_CONNECTIONS, 0, conn_row_of(g == G_SFR ? CONN_SFR : CONN_PC_NETWORK));
+		break;
+	default:
+		push_focus(SCR_SETTINGS, 0, g < G_SETTINGS ? g : G_TONES);
+		if (g == G_ALERT)
+			push_focus(SCR_GROUP, G_TONES, set_row_of(G_TONES, SA_PAGE_ALERT));
+#if CONFIG_SIG_TONES
+		if (g == G_SIG)
+			push_focus(SCR_GROUP, G_TONES, set_row_of(G_TONES, SA_PAGE_SIG));
+#endif
+		break;
+	}
+	push_focus(SCR_GROUP, g, i);
+}
+
+// Settings: the groups 1-9, then Radio info (no digit: Up / Down reach it); 0 is Find
+static uint16_t settings_count(void) { return G_SETTINGS; }
 
 static void settings_item(uint16_t i, ui_item_t *it)
 {
 	str_copy(it->label, sizeof it->label, tr(groups[i].name));
-	item_num(it, (uint16_t)(i + 1u));
+	if (i < G_RADIO_INFO)
+		item_num(it, (uint16_t)(i + 1u));
 #if !(CONFIG_DMR && CONFIG_DMR_PRIVACY)
 	if (groups[i].items == NULL)
 		it->flags |= UI_ITEM_DIM;	// the Privacy placeholder
@@ -7303,10 +7553,20 @@ static void settings_select(uint16_t i, bool hold)
 	ui_push(SCR_GROUP, i);
 }
 
+static bool settings_key(const input_event_t *ev)
+{
+	if (ev->action != ACT_DIGIT_0 || ev->gesture != GESTURE_PRESS)
+		return false;
+	ui_push(SCR_FIND, 0);	// Find over everything, settings among it, by name
+	ui_find_set("");
+	return true;
+}
+
 static const ui_scr_def_t settings_screen = {
 	.name = "settings", .flags = SF_LIST | SF_NUMBERED, .prefix = TRN(TITLE_SETTINGS, "Settings"),
-	.hint = TRN(HINT_0_9_OPEN_BACK, "0-9 open  Back"),
-	.count = settings_count, .item = settings_item, .select = settings_select,
+	.hint = TRN(SET_HINT_OPEN_FIND_BACK, TEXT_ALT_OPEN "1-9 open  0 find  Back" TEXT_ALT_NEXT "1-9 open  Back"
+		TEXT_ALT_CLOSE),
+	.count = settings_count, .item = settings_item, .select = settings_select, .key = settings_key,
 };
 
 #if CONFIG_SIG_TONES
@@ -7394,7 +7654,9 @@ static const char *sc_body(void)
 
 static const char *sc_title(void)
 {
-	static const tr_id_t names[SIG_EV_COUNT] = { TRN(SIG_TITLE_START_TONE, "Start Tone"), TRN(SIG_TITLE_END_TONE, "End Tone"), TRN(SIG_TITLE_IDLE_TONE, "Idle Tone") };
+	// The row that opens it (a screen's title is its row's text)
+	static const tr_id_t names[SIG_EV_COUNT] = { TRN(SIG_ROW_START_STEPS, "Start steps"),
+		TRN(SIG_ROW_END_STEPS, "End steps"), TRN(SIG_ROW_IDLE_STEPS, "Idle steps") };
 	return tr(names[sc_event()]);
 }
 
@@ -7523,16 +7785,6 @@ static const set_item_t *set_item_at(uint16_t i)
 }
 
 #if CONFIG_KEY_ASSIGN
-static uint8_t set_key_next(const set_item_t *s, uint8_t at)
-{
-	uint8_t next = (uint8_t)((at + 1u) % s->n);
-#if UI_THEME_SELECT
-	if (!ui_theme_has(UI_THEME_OPT_LABEL_FIRST) && s->values[next] == KEYFN_TALK_LABEL)
-		next = (uint8_t)((next + 1u) % s->n);
-#endif
-	return next;
-}
-
 // Name the usual action for a home key left at Default when it makes the setting clearer.
 static const char *home_key_default(uint8_t id, int32_t v)
 {
@@ -7542,7 +7794,7 @@ static const char *home_key_default(uint8_t id, int32_t v)
 		return NULL;
 	uint8_t a = home_key_action(k / 2u - board.side_key_count, (k & 1u) != 0);
 	if (a == ACT_NAV_LEFT || a == ACT_USER_1 || a == ACT_ZONE_DOWN)
-		return TR(KEYFN_VALUE_PREV_ZONE, "Prev zone");
+		return TR(KEYFN_VALUE_PREVIOUS_ZONE, "Previous zone");
 	if (a == ACT_NAV_RIGHT || a == ACT_USER_4 || a == ACT_ZONE_UP)
 		return TR(KEYFN_VALUE_NEXT_ZONE, "Next zone");
 	if (a == ACT_BACK && !(k & 1u))
@@ -7564,9 +7816,6 @@ static void set_value_text(const set_item_t *s, int32_t v, char *out, size_t len
 		sb_str(&b, v ? TR(VALUE_ON, "On") : TR(VALUE_OFF, "Off"));
 		break;
 	case ST_LIST:
-#if CONFIG_UI_THEME_PANELS
-	case ST_CHOICE:
-#endif
 #if CONFIG_KEY_ASSIGN
 		{
 			const char *home = home_key_default(s->id, v);
@@ -7708,6 +7957,8 @@ static void set_range(const set_item_t *s, int32_t *lo, int32_t *hi)
 
 }
 
+static void info_row_value(uint8_t a, sbuf_t *b);
+
 static void group_item(uint16_t i, ui_item_t *it)
 {
 	const set_item_t *s = set_item_at(i);
@@ -7719,6 +7970,11 @@ static void group_item(uint16_t i, ui_item_t *it)
 		set_value_text(s, edit ? set_value : ui_svc_setting_get(s->id), it->value, sizeof it->value);
 	else if (s->id == SA_LANGUAGE)
 		str_copy(it->value, sizeof it->value, lang_name(lang_current()));
+	else if (ui_frame()->arg == G_RADIO_INFO) {
+		sbuf_t b;
+		sb_init(&b, it->value, sizeof it->value);
+		info_row_value(s->id, &b);
+	}
 #if CONFIG_SIG_TONES
 	else if (s->id >= SA_SIG_BEGIN && s->id <= SA_SIG_IDLE)
 		sc_summary(it->value, sizeof it->value, (uint8_t)(s->id - SA_SIG_BEGIN));
@@ -7766,31 +8022,10 @@ static void group_select(uint16_t i, bool hold)
 	case ST_TOGGLE:
 		set_store(s, !v);
 		break;
-#if CONFIG_UI_THEME_PANELS
-	case ST_CHOICE:
-		ui_push(SCR_DISPLAY_CHOICE, (uint16_t)(s - s_display));
+	case ST_LIST:
+		// Its values to pick from, the one in use checked (the row's index in its table, so the pick list finds it)
+		ui_push(SCR_SET_PICK, (uint16_t)(ui_frame()->arg << 8 | (uint16_t)(s - groups[ui_frame()->arg].items)));
 		return;
-#endif
-	case ST_LIST: {
-		uint8_t k = 0;
-		while (k < s->n && s->values[k] != v)
-			k++;
-		uint8_t next = (uint8_t)((k + 1u) % s->n);
-#if CONFIG_KEY_ASSIGN
-		// Skip functions unavailable for the key's slot or the Home layout.
-		if (s->id >= UI_SET_KEY_FIRST && s->id <= UI_SET_KEY_LAST) {
-			uint8_t first = set_key_next(s, k);
-			next = first;
-			while (!ui_svc_key_offered(s->id, s->values[next])) {
-				next = set_key_next(s, next);
-				if (next == first)
-					break;
-			}
-		}
-#endif
-		set_store(s, s->values[next]);
-		break;
-	}
 	case ST_NUMBER:
 		if (set_editing) {
 			set_editing = false;
@@ -7817,12 +8052,34 @@ static void group_select(uint16_t i, bool hold)
 #if CONFIG_SIG_TONES
 		case SA_SIG_BEGIN ... SA_SIG_IDLE: ui_push(SCR_SIG_CHAIN, (uint16_t)(s->id - SA_SIG_BEGIN)); break;
 #endif
-#if DATA_IDS
-		case SA_DATA_SERVICES: ui_push(SCR_DATA_SERVICES, 0); break;
 #if CONFIG_BACKLIGHT_TEST
 		case SA_BL_TEST: ui_push(SCR_BL_TEST, 0); break;
 #endif
+		case SA_PAGE_ALERT: ui_push(SCR_GROUP, G_ALERT); break;
+#if CONFIG_SIG_TONES
+		case SA_PAGE_SIG: ui_push(SCR_GROUP, G_SIG); break;
 #endif
+		case SA_CHANNELS:
+#if CONFIG_CHANNEL_LIST
+			ui_push(SCR_CHANNELS, 0);
+#else
+			ui_toast(TR(WHY_CHANNELS_NOT_IN_BUILD, "Channels: not in this build"));
+#endif
+			break;
+		case SA_ZONES: ui_push(SCR_ZONES, 0); break;
+#if CONFIG_VFO_FM || CONFIG_VFO_DMR
+		case SA_VFO: {
+			// As the VFO row of Zones: to the VFO, or back to the channels
+			bool was = ui_view()->vfo;
+			radio_req_vfo(!was);
+			ui_go_home();
+			ui_toast(was ? TR(VFO_TOAST_BACK_TO_CHANNELS, "Back to channels") :
+				TR(ZONE_TOAST_VFO_TYPE_FREQUENCY, "VFO: type a frequency"));
+			break;
+		}
+#endif
+		case SA_SFR_STATUS: ui_push(SCR_INFO, INFO_SFR); break;
+		case SA_INFO_GPS: ui_push(CONFIG_GPS_SKY ? SCR_GPS : SCR_INFO, INFO_POSITION); break;
 #if CONFIG_CRASH_SCREEN
 		case SA_CRASH: ui_push(SCR_CRASH, 0); break;
 #endif
@@ -7845,6 +8102,64 @@ static void group_select(uint16_t i, bool hold)
 	}
 	if (hold && !set_editing && s->type != ST_ACTION)
 		ui_toast(TR(SET_TOAST_SAVED_AS_YOU_CHANGE, "Settings are saved as you change them"));
+}
+
+// Radio info's values: read only, from the radio as it is now
+static void info_row_value(uint8_t a, sbuf_t *b)
+{
+	switch (a) {
+	case SA_INFO_BATTERY: {
+		uint16_t mv = ui_view()->battery_mv;
+		sb_str(b, TEXT_ALT_OPEN);
+		if (ui_st.battery_pct)
+			sb_u32(b, ui_st.battery_pct, 1), sb_str(b, "%  ");
+		if (mv) {
+			sb_u32(b, mv / 1000u, 1);
+			sb_chr(b, '.');
+			sb_u32(b, (mv % 1000u) / 100u, 1);
+			sb_str(b, " V");
+		}
+		sb_str(b, TEXT_ALT_NEXT);
+		if (ui_st.battery_pct)
+			sb_u32(b, ui_st.battery_pct, 1), sb_chr(b, '%');
+		sb_str(b, TEXT_ALT_CLOSE);
+		break;
+	}
+#if CONFIG_DMR
+	case SA_INFO_DMR_ID: {
+		uint32_t id = (uint32_t)ui_svc_setting_get(UI_SET_DMR_ID);
+		if (id != 0)
+			sb_u32(b, id, 1);
+		else
+			sb_str(b, TR(VALUE_NOT_SET, "Not set"));
+		break;
+	}
+#endif
+	case SA_INFO_NAME: {
+		char name[17];
+		ui_svc_name_get(UI_NAME_RADIO, name);
+		if (name[0])
+			sb_str(b, name);
+		else
+			sb_str(b, TR(VALUE_NOT_SET, "Not set"));
+		break;
+	}
+	case SA_FIRMWARE:
+		sb_str(b, RFOUNDRY_RELEASE[0] != '\0' ? RFOUNDRY_RELEASE : RFOUNDRY_GIT);
+		break;
+	case SA_INFO_GPS: {
+		ui_position_t p;
+		if (!board_has_gps())
+			sb_str(b, TR(VALUE_NONE, "None"));
+		else if (!ui_svc_position(&p))
+			sb_str(b, TR(VALUE_OFF, "Off"));
+		else
+			sb_str(b, p.fix ? TR(GPS_STATE_FIX, "Fix") : TR(GPS_STATE_SEARCHING, "Searching"));
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 static bool group_key(const input_event_t *ev)
@@ -7913,13 +8228,104 @@ static void group_enter(void) { set_editing = false; }
 static const char *group_title(void)
 {
 	uint8_t g = (uint8_t)ui_frame()->arg;
-	return g < GROUPS ? tr(groups[g].title) : "";
+	return g < GROUPS ? tr(groups[g].name) : "";
+}
+
+static const char *group_hint(void)
+{
+	// Radio info changes nothing: its rows open pages
+	return ui_frame()->arg == G_RADIO_INFO ? TR(HINT_OK_OPEN_BACK, "OK open  Back") :
+		TR(HINT_OK_CHANGE_BACK, "OK change  Back");
 }
 
 static const ui_scr_def_t group_screen = {
-	.name = "group", .flags = SF_LIST, .hint = TRN(HINT_OK_CHANGE_BACK, "OK change  Back"),
+	.name = "group", .flags = SF_LIST | SF_HINT_FN, .hint_fn = group_hint,
 	.count = group_count, .item = group_item, .select = group_select, .key = group_key, .enter = group_enter,
 	.title = group_title,
+};
+
+// ======================= A setting's pick list (a row with several values) =======================
+// Every value of the row (arg: its group << 8 | its index in the group's table), the one in use checked. OK takes the
+// focused one and goes back to the row, Back leaves the setting as it was. A programmable key's list has only the
+// functions its slot offers
+
+static const set_item_t *pick_item(void)
+{
+	uint16_t arg = ui_frame()->arg;
+	uint8_t g = (uint8_t)(arg >> 8);
+	return g < GROUPS && (arg & 0xFFu) < groups[g].count ? &groups[g].items[arg & 0xFFu] : NULL;
+}
+
+static bool pick_offered(const set_item_t *s, uint8_t k)
+{
+#if CONFIG_KEY_ASSIGN
+	if (s->id >= UI_SET_KEY_FIRST && s->id <= UI_SET_KEY_LAST)
+		return ui_svc_key_offered(s->id, s->values[k]);
+#endif
+	(void)s;
+	(void)k;
+	return true;
+}
+
+// The value of pick list row i (its index in the row's tables), s->n past the end
+static uint8_t pick_value(const set_item_t *s, uint16_t i)
+{
+	for (uint8_t k = 0; k < s->n; k++) {
+		if (pick_offered(s, k) && i-- == 0)
+			return k;
+	}
+	return s->n;
+}
+
+static uint16_t pick_count(void)
+{
+	const set_item_t *s = pick_item();
+	uint16_t n = 0;
+	for (uint8_t k = 0; s != NULL && k < s->n; k++)
+		n += pick_offered(s, k);
+	return n;
+}
+
+static void pick_list_item(uint16_t i, ui_item_t *it)
+{
+	const set_item_t *s = pick_item();
+	uint8_t k = s != NULL ? pick_value(s, i) : 0;
+	if (s == NULL || k >= s->n)
+		return;
+	str_copy(it->label, sizeof it->label, tr(s->names[k]));
+	if (ui_svc_setting_get(s->id) == s->values[k])
+		str_copy(it->value, sizeof it->value, GLYPH_CHECK);
+}
+
+static void pick_enter(void)
+{
+	const set_item_t *s = pick_item();
+	for (uint16_t i = 0; s != NULL && i < pick_count(); i++) {
+		if (ui_svc_setting_get(s->id) == s->values[pick_value(s, i)]) {
+			ui_frame()->focus = i;
+			break;
+		}
+	}
+}
+
+static void pick_select(uint16_t i, bool hold)
+{
+	(void)hold;
+	const set_item_t *s = pick_item();
+	uint8_t k = s != NULL ? pick_value(s, i) : 0;
+	if (s != NULL && k < s->n && set_store(s, s->values[k]))
+		ui_pop();
+}
+
+static const char *pick_title(void)
+{
+	const set_item_t *s = pick_item();
+	return s != NULL ? set_name(s, false) : "";
+}
+
+static const ui_scr_def_t pick_screen = {
+	.name = "pick", .flags = SF_LIST, .hint = TRN(HINT_OK_PICK_BACK, "OK pick  Back"),
+	.title = pick_title, .count = pick_count, .item = pick_list_item, .enter = pick_enter, .select = pick_select,
 };
 
 #if RFOUNDRY_HWOPTS
@@ -8034,7 +8440,7 @@ static const char *confirm_body(void)
 }
 
 static const ui_scr_def_t confirm_screen = {
-	.name = "confirm", .flags = SF_LIST, .prefix = TRN(RESET_TITLE, "Factory Reset"),
+	.name = "confirm", .flags = SF_LIST, .prefix = TRN(SET_ROW_FACTORY_RESET, "Factory reset"),
 	.hint = TRN(HINT_OK_CHOOSE_BACK_CANCELS, "OK choose  Back cancel"),
 	.count = confirm_count, .item = confirm_item, .select = confirm_select, .body = confirm_body,
 };
@@ -8151,7 +8557,7 @@ static void picker_enter(void)
 			memset(&t, 0, sizeof t);
 			t.id = r->dst;
 			t.group = true;
-			pick_add(&t, TRN(TITLE_RECENT, "Recent"));
+			pick_add(&t, TRN(TITLE_CALL_LOG, "Call log"));
 		}
 	}
 	// Focus the reply target when there is one (task-flows.md 3: "TG 91 Reply" second)
@@ -8214,7 +8620,7 @@ static const char *picker_title(void)
 }
 
 static const ui_scr_def_t picker_screen = {
-	.name = "picker", .flags = SF_LIST | SF_FIELD, .prefix = TRN(PICKER_TITLE, "Talk to"),
+	.name = "picker", .flags = SF_LIST | SF_FIELD, .prefix = TRN(PICKER_TITLE, TEXT_ALT_OPEN "Talkgroup / Contact" TEXT_ALT_NEXT "TG / Contact" TEXT_ALT_CLOSE),
 	.hint = TRN(PICKER_HINT, TEXT_ALT_OPEN "PTT once  OK use  Hold OK set"
 		TEXT_ALT_NEXT "OK use  Hold OK set" TEXT_ALT_CLOSE),
 	.count = picker_count, .item = picker_item, .select = picker_select, .context = picker_context,
@@ -8323,40 +8729,6 @@ static const ui_scr_def_t lang_screen = {
 	.count = lang_list_count, .item = lang_list_item, .select = lang_list_select, .enter = lang_list_enter,
 };
 
-#if CONFIG_UI_SETTINGS && CONFIG_UI_THEME_PANELS
-static const set_item_t *display_choice(void) { return &s_display[ui_frame()->arg]; }
-static const char *display_choice_title(void) { return tr(display_choice()->name); }
-static uint16_t display_choice_count(void) { return display_choice()->n; }
-
-static void display_choice_item(uint16_t i, ui_item_t *it)
-{
-	const set_item_t *s = display_choice();
-	str_copy(it->label, sizeof it->label, tr(s->names[i]));
-	if (ui_svc_setting_get(s->id) == s->values[i])
-		str_copy(it->value, sizeof it->value, TR(LANG_VALUE_IN_USE, "In use"));
-}
-
-static void display_choice_enter(void)
-{
-	const set_item_t *s = display_choice();
-	ui_frame()->focus = ui_svc_setting_get(s->id) == s->values[1] ? 1u : 0u;
-}
-
-static void display_choice_select(uint16_t i, bool hold)
-{
-	(void)hold;
-	const set_item_t *s = display_choice();
-	if (set_store(s, s->values[i]))
-		ui_pop();
-}
-
-static const ui_scr_def_t display_choice_screen = {
-	.name = "display-choice", .flags = SF_LIST, .hint = TRN(HINT_OK_PICK_BACK, "OK pick  Back"),
-	.title = display_choice_title, .count = display_choice_count, .item = display_choice_item,
-	.enter = display_choice_enter, .select = display_choice_select,
-};
-#endif
-
 // ======================= Another firmware's codeplug: the first edit asks (defaults to Cancel; P7) ===============
 // ui_svc_codeplug_answer: the rows are UI_CP_CANCEL, UI_CP_NEW, UI_CP_USE. BACK is Cancel (ui_pop drops the write)
 
@@ -8402,7 +8774,8 @@ const ui_scr_def_t *const ui_scr[SCR_COUNT] = {
 	[SCR_MESSAGES] = &messages_screen, [SCR_MESSAGE] = &message_screen, [SCR_COMPOSE] = &compose_screen,
 	[SCR_MESSAGE_READ] = &message_read_screen,
 	[SCR_RECENT] = &recent_screen, [SCR_ZONES] = &channels_screen, [SCR_ZONE] = &zone_screen,
-	[SCR_TOOLS] = &tools_screen, [SCR_SETTINGS] = &settings_screen, [SCR_GROUP] = &group_screen,
+	[SCR_SCAN_MENU] = &scan_menu_screen, [SCR_LOCATION] = &location_screen,
+	[SCR_CONNECTIONS] = &connections_screen, [SCR_SETTINGS] = &settings_screen, [SCR_GROUP] = &group_screen,
 	[SCR_PICKER] = &picker_screen, [SCR_INFO] = &info_screen, [SCR_CONFIRM] = &confirm_screen,
 #if CONFIG_DMR_TRUNK
 	[SCR_INCOMING_CALL] = &incoming_call_screen,
@@ -8429,8 +8802,8 @@ const ui_scr_def_t *const ui_scr[SCR_COUNT] = {
 #if CONFIG_UI_SETTINGS && CONFIG_SIG_TONES
 	[SCR_SIG_CHAIN] = &sc_screen,
 #endif
-#if CONFIG_UI_SETTINGS && CONFIG_UI_THEME_PANELS
-	[SCR_DISPLAY_CHOICE] = &display_choice_screen,
+#if CONFIG_UI_SETTINGS
+	[SCR_SET_PICK] = &pick_screen,
 #endif
 #if CONFIG_APRS_AFSK
 	[SCR_APRS_TO] = &aprs_to_screen,

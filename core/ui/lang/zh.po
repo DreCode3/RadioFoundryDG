@@ -194,11 +194,6 @@ msgctxt "HOME_STATE_NO_TARGET"
 msgid "No talk target"
 msgstr "无通话目标"
 
-#: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_find.c
-msgctxt "FIND_CHIP_MENU"
-msgid "Menu"
-msgstr "菜单"
-
 #: core/ui/themes/panels/panels.c core/ui/ui_menus.c
 msgctxt "SET_LABEL_BRIGHTNESS"
 msgid "Brightness"
@@ -233,6 +228,11 @@ msgstr "0 所有设置  长按 OK 保存"
 msgctxt "HINT_BACK"
 msgid "Back"
 msgstr "返回"
+
+#: core/ui/ui_app.c core/ui/ui_find.c
+msgctxt "FIND_CHIP_MENU"
+msgid "Menu"
+msgstr "菜单"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -1399,9 +1399,9 @@ msgctxt "DUAL_ROW_STOP_ON_A"
 msgid "Stop, stay on A"
 msgstr "停止，留在 A"
 
-#: core/ui/ui_dual.c
-msgctxt "DUAL_TITLE"
-msgid "Dual Watch"
+#: core/ui/ui_dual.c core/ui/ui_menus.c
+msgctxt "WORD_DUAL_WATCH"
+msgid "Dual watch"
 msgstr "双守候"
 
 #: core/ui/ui_dual.c core/ui/ui_menus.c
@@ -1445,19 +1445,29 @@ msgid "Messages"
 msgstr "消息"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
-msgctxt "TITLE_RECENT"
-msgid "Recent"
-msgstr "最近"
+msgctxt "TITLE_CALL_LOG"
+msgid "Call log"
+msgstr "通话记录"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "TITLE_CHANNELS"
 msgid "Channels"
 msgstr "信道"
 
+#: core/ui/ui_find.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "WORD_SCAN"
+msgid "Scan"
+msgstr "扫描"
+
 #: core/ui/ui_find.c core/ui/ui_menus.c
-msgctxt "TITLE_TOOLS"
-msgid "Tools"
-msgstr "工具"
+msgctxt "TITLE_LOCATION"
+msgid "Location"
+msgstr "位置"
+
+#: core/ui/ui_find.c core/ui/ui_menus.c
+msgctxt "TITLE_CONNECTIONS"
+msgid "Connections"
+msgstr "连接"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "TITLE_SETTINGS"
@@ -1574,12 +1584,12 @@ msgctxt "GPS_STATE_2D_FIX"
 msgid "2D Fix"
 msgstr "2D 定位"
 
-#: core/ui/ui_gps.c
+#: core/ui/ui_gps.c core/ui/ui_menus.c
 msgctxt "GPS_STATE_FIX"
 msgid "Fix"
 msgstr "定位"
 
-#: core/ui/ui_gps.c
+#: core/ui/ui_gps.c core/ui/ui_menus.c
 msgctxt "GPS_STATE_SEARCHING"
 msgid "Searching"
 msgstr "搜索中"
@@ -1675,19 +1685,14 @@ msgid " new"
 msgstr " 新建"
 
 #: core/ui/ui_menus.c
-msgctxt "HUB_VALUE_SCANNING"
-msgid "Scanning"
-msgstr "扫描中"
+msgctxt "TITLE_MENU"
+msgid "Menu"
+msgstr "菜单"
 
 #: core/ui/ui_menus.c
-msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
-msgid "Channels: not in this build"
-msgstr "信道：本版本无"
-
-#: core/ui/ui_menus.c
-msgctxt "HINT_1_7_OPEN_BACK"
-msgid "1-7 open  Back"
-msgstr "1-7 打开  返回"
+msgctxt "HINT_1_8_OPEN_BACK"
+msgid "1-8 open  Back"
+msgstr "1-8 打开  返回"
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_TALK_TO"
@@ -1890,6 +1895,11 @@ msgid "Contacts: not in this build"
 msgstr "联系人：本版本无"
 
 #: core/ui/ui_menus.c
+msgctxt "MSG_ROW_ZONE_OFFERS"
+msgid "Zone offers"
+msgstr "区域分享"
+
+#: core/ui/ui_menus.c
 msgctxt "MSG_ROW_NEW_APRS"
 msgid "New APRS message"
 msgstr "新 APRS 消息"
@@ -1901,12 +1911,12 @@ msgstr "OK 打开  # 回复  返回"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_OPEN_BACK"
-msgid "OK Open  Back"
+msgid "OK open  Back"
 msgstr "OK 打开  返回"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_NEW"
-msgid "OK Compose  Back"
+msgid "OK compose  Back"
 msgstr "OK 写消息  返回"
 
 #: core/ui/ui_menus.c
@@ -1981,7 +1991,7 @@ msgstr "PTT 通话  # 更多  返回"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_ROW_CREATE"
-msgid "Create New Zone"
+msgid "Create new zone"
 msgstr "新建区域"
 
 #: core/ui/ui_menus.c
@@ -2101,7 +2111,7 @@ msgstr "发送中"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_TITLE_TO"
-msgid "Share To"
+msgid "Share to"
 msgstr "共享至"
 
 #: core/ui/ui_menus.c
@@ -2221,7 +2231,7 @@ msgstr "{ 个信道| 信道}"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_TITLE_ADD_TO_ZONE"
-msgid "Add to Zone"
+msgid "Add to zone"
 msgstr "添加到区域"
 
 #: core/ui/ui_menus.c
@@ -2331,7 +2341,7 @@ msgstr "无信道"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_TITLE_NEW"
-msgid "New Channel"
+msgid "New channel"
 msgstr "新建信道"
 
 #: core/ui/ui_menus.c
@@ -2433,11 +2443,6 @@ msgstr "主叫别名 TS2"
 msgctxt "CHAN_LABEL_TX_TIMEOUT"
 msgid "TX time-out"
 msgstr "发射超时"
-
-#: core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "WORD_SCAN"
-msgid "Scan"
-msgstr "扫描"
 
 #: core/ui/ui_menus.c
 msgctxt "LABEL_BATTERY_SAVER"
@@ -2636,7 +2641,7 @@ msgstr "放弃本信道的更改？"
 
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_TITLE"
-msgid "Unsaved Changes"
+msgid "Unsaved changes"
 msgstr "未保存的更改"
 
 #: core/ui/ui_menus.c
@@ -2706,7 +2711,7 @@ msgstr "ID 最大 16777214"
 
 #: core/ui/ui_menus.c
 msgctxt "CONTACT_TITLE_NEW"
-msgid "New Contact"
+msgid "New contact"
 msgstr "新建联系人"
 
 #: core/ui/ui_menus.c
@@ -2771,7 +2776,7 @@ msgstr "已加入 "
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_TITLE_ADD_CHANNEL"
-msgid "Add Channel"
+msgid "Add channel"
 msgstr "添加信道"
 
 #: core/ui/ui_menus.c
@@ -2871,7 +2876,7 @@ msgstr "？信道保留。"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_TITLE_DELETE"
-msgid "Delete Zone"
+msgid "Delete zone"
 msgstr "删除区域"
 
 #: core/ui/ui_menus.c
@@ -2899,6 +2904,11 @@ msgctxt "CHAN_EMPTY_NONE_STORED"
 msgid "None stored"
 msgstr "未存储"
 
+#: core/ui/ui_menus.c
+msgctxt "TITLE_GPS_STATUS"
+msgid "GPS status"
+msgstr "GPS 状态"
+
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "TITLE_HOTSPOT"
 msgid "Hotspot"
@@ -2915,14 +2925,14 @@ msgid "Codeplug"
 msgstr "电台频率"
 
 #: core/ui/ui_menus.c
-msgctxt "USBNET_TITLE"
-msgid "USB Network"
+msgctxt "CONN_ROW_USB_NETWORK"
+msgid "USB network"
 msgstr "USB 网络"
 
 #: core/ui/ui_menus.c
-msgctxt "SFR_TITLE"
-msgid "Single-Freq Repeater"
-msgstr "单频中继"
+msgctxt "SET_ROW_SFR_STATUS"
+msgid "SFR status"
+msgstr "SFR 状态"
 
 #: core/ui/ui_menus.c
 msgctxt "SFR_VALUE_USER"
@@ -3205,9 +3215,9 @@ msgid "Typing: not in this build"
 msgstr "输入：本版本无"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_TITLE_MY_RADIO"
-msgid "My Radio"
-msgstr "我的电台"
+msgctxt "SET_ROW_DMR_ID_AND_NAME"
+msgid "DMR ID and name"
+msgstr "DMR ID 和名称"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_TYPE_OK_EDIT_SAVE_BACK"
@@ -3255,13 +3265,13 @@ msgid "ARS: "
 msgstr "ARS： "
 
 #: core/ui/ui_menus.c
-msgctxt "DATA_TITLE"
-msgid "Data Services"
+msgctxt "SET_ROW_DATA_SERVICES"
+msgid "Data services"
 msgstr "数据服务"
 
 #: core/ui/ui_menus.c
-msgctxt "TRIM_TITLE"
-msgid "Freq Trim"
+msgctxt "SET_ROW_FREQUENCY_TRIM"
+msgid "Frequency trim"
 msgstr "频率微调"
 
 #: core/ui/ui_menus.c
@@ -3625,8 +3635,8 @@ msgid "Crash record cleared"
 msgstr "崩溃记录已清除"
 
 #: core/ui/ui_menus.c
-msgctxt "CRASH_TITLE"
-msgid "Crash Log"
+msgctxt "SET_ROW_CRASH_LOG"
+msgid "Crash log"
 msgstr "崩溃日志"
 
 #: core/ui/ui_menus.c
@@ -3641,7 +3651,7 @@ msgstr "此联系人"
 
 #: core/ui/ui_menus.c
 msgctxt "CRASH_TITLE_SEND_TO"
-msgid "Send To"
+msgid "Send to"
 msgstr "发送至"
 
 #: core/ui/ui_menus.c
@@ -3660,34 +3670,24 @@ msgid "Crash report not sent"
 msgstr "崩溃报告未发送"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_HINT_OPEN_BACK"
+msgctxt "MENU_HINT_OPEN_BACK"
 msgid " open  Back"
 msgstr " 打开  返回"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_ROW_USB_NETWORK"
-msgid "USB network"
-msgstr "USB 网络"
+msgctxt "HUB_VALUE_SCANNING"
+msgid "Scanning"
+msgstr "扫描中"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_ROW_SFR"
-msgid "Single-freq repeater"
-msgstr "单频中继"
-
-#: core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "TITLE_DIAGNOSTICS"
-msgid "Diagnostics"
-msgstr "诊断"
+msgctxt "SET_ROW_LOCATION_SETTINGS"
+msgid "Location settings"
+msgstr "位置设置"
 
 #: core/ui/ui_menus.c
-msgctxt "TOOLS_ROW_SHARES_RECEIVED"
-msgid "Zones/Chs Received"
-msgstr "收到的区域/信道"
-
-#: core/ui/ui_menus.c
-msgctxt "WORD_DUAL_WATCH"
-msgid "Dual watch"
-msgstr "双守候"
+msgctxt "SET_ROW_PC_NETWORK"
+msgid "PC and network"
+msgstr "电脑与网络"
 
 #: core/ui/ui_menus.c
 msgctxt "TOOLS_VALUE_USB_NETWORK"
@@ -3850,8 +3850,8 @@ msgid "Next zone"
 msgstr "下一区域"
 
 #: core/ui/ui_menus.c
-msgctxt "KEYFN_VALUE_PREV_ZONE"
-msgid "Prev zone"
+msgctxt "KEYFN_VALUE_PREVIOUS_ZONE"
+msgid "Previous zone"
 msgstr "上一区域"
 
 #: core/ui/ui_menus.c
@@ -3865,9 +3865,9 @@ msgid "Monitor toggle"
 msgstr "锁定监听"
 
 #: core/ui/ui_menus.c
-msgctxt "WORD_KEY_LOCK"
-msgid "Key lock"
-msgstr "按键锁"
+msgctxt "WORD_KEYPAD_LOCK"
+msgid "Keypad lock"
+msgstr "键盘锁"
 
 #: core/ui/ui_menus.c
 msgctxt "KEYFN_VALUE_HOME_ZONE"
@@ -3954,10 +3954,75 @@ msgctxt "SIG_VALUE_SPEAKER_AIR"
 msgid "Speaker + air"
 msgstr "扬声器+空中"
 
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GUI_PROFILE"
+msgid "Display profile"
+msgstr "显示配置"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_DAY_NIGHT"
+msgid "Day/Night"
+msgstr "日间/夜间"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_GPS_CLOCK"
+msgid "GPS clock"
+msgstr "GPS 时钟"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_THEME"
+msgid "Theme"
+msgstr "主题"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_HIGHLIGHT_COLOR"
+msgid "Highlight color"
+msgstr "高亮颜色"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_FILLED_STATUS_BAR"
+msgid "Filled status bar"
+msgstr "状态栏填充"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_BACKLIGHT"
+msgid "Backlight"
+msgstr "背光"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_LARGE_TEXT"
+msgid "Large text"
+msgstr "大字体"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_HINT_ROW"
+msgid "Hint row"
+msgstr "提示行"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_LANGUAGE"
+msgid "Language"
+msgstr "语言"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_AUTO_POWER_OFF"
+msgid "Auto power off"
+msgstr "自动关机"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_LOW_BATTERY_WARNING"
+msgid "Low battery warning"
+msgstr "低电量提示"
+
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "TITLE_VOLUME"
 msgid "Volume"
 msgstr "音量"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_TONE_VOLUME"
+msgid "Tone volume"
+msgstr "提示音音量"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_KEY_TONES"
@@ -3965,9 +4030,24 @@ msgid "Key tones"
 msgstr "按键音"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_TONE_VOLUME"
-msgid "Tone volume"
-msgstr "提示音音量"
+msgctxt "SET_LABEL_VOICE_PROMPTS"
+msgid "Voice prompts"
+msgstr "语音提示"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_VIBRATE"
+msgid "Vibrate"
+msgstr "振动"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_ALERT_TONES"
+msgid "Alert tones"
+msgstr "提示音"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_SIGNALING_TONES"
+msgid "Signaling tones"
+msgstr "信令音"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_TALK_PERMIT_TONE"
@@ -3980,8 +4060,8 @@ msgid "Call end tone"
 msgstr "通话结束音"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_TOT_WARNING_TONE"
-msgid "TOT warning tone"
+msgctxt "SET_LABEL_TIMEOUT_WARNING_TONE"
+msgid "Timeout warning tone"
 msgstr "超时警告音"
 
 #: core/ui/ui_menus.c
@@ -4005,19 +4085,9 @@ msgid "Emergency tone"
 msgstr "紧急提示音"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_VOICE_PROMPTS"
-msgid "Voice prompts"
-msgstr "语音提示"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_MESSAGE_TONE"
 msgid "Message tone"
 msgstr "消息提示音"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_VIBRATE"
-msgid "Vibrate"
-msgstr "振动"
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_ROW_DMR_START_TONE"
@@ -4065,54 +4135,19 @@ msgid "Idle steps"
 msgstr "空闲步骤"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_GUI_PROFILE"
-msgid "Display Profile"
-msgstr "显示配置"
+msgctxt "SET_LABEL_MIC_GAIN"
+msgid "Mic gain"
+msgstr "麦克风增益"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_DAY_NIGHT"
-msgid "Day/Night"
-msgstr "日间/夜间"
+msgctxt "SET_LABEL_MIC_AGC"
+msgid "Mic AGC"
+msgstr "麦克风 AGC"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_GPS_CLOCK"
-msgid "GPS clock"
-msgstr "GPS 时钟"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_BACKLIGHT_DIM_OFF"
-msgid "Backlight Dim/Off"
-msgstr "背光变暗/关闭"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_THEME"
-msgid "Theme"
-msgstr "主题"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_HIGHLIGHT_COLOR"
-msgid "Highlight color"
-msgstr "高亮颜色"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_FILLED_STATUS_BAR"
-msgid "Filled status bar"
-msgstr "状态栏填充"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_LARGE_TEXT"
-msgid "Large text"
-msgstr "大字体"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_HINT_ROW"
-msgid "Hint row"
-msgstr "提示行"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_LANGUAGE"
-msgid "Language"
-msgstr "语言"
+msgctxt "SET_LABEL_MIC_NOISE_REDUCTION"
+msgid "Mic noise reduction"
+msgstr "麦克风降噪"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_REPLY_WINDOW"
@@ -4123,6 +4158,36 @@ msgstr "回复窗口"
 msgctxt "SET_LABEL_TX_TIMEOUT"
 msgid "TX timeout"
 msgstr "发射超时"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_SHOW_TALKER_ALIAS"
+msgid "Show talker alias"
+msgstr "显示主叫别名"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_DIGITAL_MONITOR_AT_START"
+msgid "{Digital monitor at start|DMR monitor at start}"
+msgstr "{开机数字监听|开机 DMR 监听}"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_ANSWER_RADIO_CHECKS"
+msgid "Answer radio checks"
+msgstr "应答电台检查"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_ANSWER_CALL_ALERTS"
+msgid "Answer call alerts"
+msgstr "应答呼叫提示"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_MESSAGE_FORMAT"
+msgid "Message format"
+msgstr "消息格式"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_ACCEPT_ZONE_SHARES"
+msgid "Accept zone shares"
+msgstr "接受区域共享"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_DEFAULT_SQUELCH"
@@ -4140,31 +4205,6 @@ msgid "FM broadcast step"
 msgstr "调频广播步进"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MIC_GAIN"
-msgid "Mic gain"
-msgstr "麦克风增益"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MIC_AGC"
-msgid "Mic AGC"
-msgstr "麦克风 AGC"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MIC_NOISE_REDUCTION"
-msgid "Mic noise reduction"
-msgstr "麦克风降噪"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MONITOR_BY_DEFAULT"
-msgid "Monitor by default"
-msgstr "默认监听"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_SHOW_TALKER_ALIAS"
-msgid "Show talker alias"
-msgstr "显示主叫别名"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_DUAL_TALK_BACK"
 msgid "Dual watch talk back"
 msgstr "双守候回话"
@@ -4173,16 +4213,6 @@ msgstr "双守候回话"
 msgctxt "SET_LABEL_DUAL_DELAY"
 msgid "Dual watch delay"
 msgstr "双守候延时"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_SFR_RECEIVE"
-msgid "SFR receive"
-msgstr "单频中继接收"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_SFR_CW_ID"
-msgid "SFR CW ID"
-msgstr "单频中继 CW ID"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_PRIVACY_KEY_TYPE"
@@ -4245,34 +4275,24 @@ msgid "Save GPS position"
 msgstr "保存 GPS 位置"
 
 #: core/ui/ui_menus.c
+msgctxt "SET_LABEL_SFR_RECEIVE"
+msgid "SFR receive"
+msgstr "单频中继接收"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_LABEL_SFR_CW_ID"
+msgid "SFR CW ID"
+msgstr "单频中继 CW ID"
+
+#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_HOTSPOT_ALLOWED"
 msgid "Hotspot allowed"
 msgstr "允许热点"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_LABEL_ANSWER_RADIO_CHECKS"
-msgid "Answer radio checks"
-msgstr "应答电台检查"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_ANSWER_CALL_ALERTS"
-msgid "Answer call alerts"
-msgstr "应答呼叫提示"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_LABEL_TFTP_CODEPLUG_WRITE"
 msgid "TFTP codeplug write"
 msgstr "TFTP 写入电台频率"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_MESSAGE_FORMAT"
-msgid "Message format"
-msgstr "消息格式"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_ACCEPT_ZONE_SHARES"
-msgid "Accept zone shares"
-msgstr "接受区域共享"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_USB_NETWORK_AT_START"
@@ -4288,21 +4308,6 @@ msgstr "PC 应答数据"
 msgctxt "SET_LABEL_USB_ADDRESS"
 msgid "USB address"
 msgstr "USB 地址"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_DATA_SERVICES"
-msgid "Data services"
-msgstr "数据服务"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_AUTO_POWER_OFF"
-msgid "Auto power off"
-msgstr "自动关机"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_LOW_BATTERY_WARNING"
-msgid "Low battery warning"
-msgstr "低电量提示"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_RIGHT_SOFT_KEY"
@@ -4334,20 +4339,10 @@ msgctxt "SET_LABEL_UP_DOWN_ON_HOME"
 msgid "Up/Down on Home"
 msgstr "主页上下键"
 
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_DMR_ID_AND_NAME"
-msgid "DMR ID and name"
-msgstr "DMR ID 和名称"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_FACTORY_RESET"
-msgid "Factory reset"
-msgstr "恢复出厂设置"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_CRASH_LOG"
-msgid "Crash log"
-msgstr "崩溃日志"
+#: core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "TITLE_DIAGNOSTICS"
+msgid "Diagnostics"
+msgstr "诊断"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_RX_PAST_BANDS"
@@ -4355,14 +4350,14 @@ msgid "RX past bands"
 msgstr "超频段接收"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_FREQ_TRIM"
-msgid "Freq trim"
-msgstr "频率微调"
+msgctxt "SET_ROW_FACTORY_RESET"
+msgid "Factory reset"
+msgstr "恢复出厂设置"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_SOUND"
-msgid "Sound"
-msgstr "声音"
+msgctxt "SET_ROW_BATTERY"
+msgid "Battery"
+msgstr "电池"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_DISPLAY"
@@ -4370,14 +4365,24 @@ msgid "Display"
 msgstr "显示"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_TALK_LISTEN"
-msgid "Talk & listen"
-msgstr "通话与收听"
+msgctxt "SET_ROW_TONES_ALERTS"
+msgid "Tones & alerts"
+msgstr "音调与提示"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_TITLE_TALK_LISTEN"
-msgid "Talk & Listen"
-msgstr "通话与收听"
+msgctxt "SET_ROW_AUDIO"
+msgid "Audio"
+msgstr "音频"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_CALL_SETTINGS"
+msgid "Call settings"
+msgstr "呼叫设置"
+
+#: core/ui/ui_menus.c
+msgctxt "SET_ROW_RECEIVE_VFO"
+msgid "Receive & VFO"
+msgstr "接收与 VFO"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_ROW_PRIVACY"
@@ -4385,54 +4390,29 @@ msgid "Privacy"
 msgstr "加密"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_LOCATION"
-msgid "Location"
-msgstr "位置"
+msgctxt "SET_ROW_SECURITY_LOCK"
+msgid "Security & keypad lock"
+msgstr "安全与键盘锁"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_CONNECTIONS"
-msgid "Connections"
-msgstr "连接"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_POWER_SAVING"
-msgid "Power"
-msgstr "电源"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_TITLE_POWER_SAVING"
-msgid "Power"
-msgstr "电源"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_KEYS"
-msgid "Keys"
+msgctxt "SET_ROW_BUTTONS"
+msgid "Buttons"
 msgstr "按键"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_MY_RADIO"
-msgid "My radio"
-msgstr "我的电台"
+msgctxt "SET_ROW_PROGRAMMING"
+msgid "Programming"
+msgstr "写频"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_ROW_SIGNALING_TONES"
-msgid "Signaling tones"
-msgstr "信令音"
+msgctxt "SET_ROW_RADIO_INFO"
+msgid "Radio info"
+msgstr "电台信息"
 
 #: core/ui/ui_menus.c
-msgctxt "SET_TITLE_SIGNALING_TONES"
-msgid "Signaling Tones"
-msgstr "信令音"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_ROW_ADVANCED"
-msgid "Advanced"
-msgstr "高级"
-
-#: core/ui/ui_menus.c
-msgctxt "HINT_0_9_OPEN_BACK"
-msgid "0-9 open  Back"
-msgstr "0-9 打开  返回"
+msgctxt "SET_HINT_OPEN_FIND_BACK"
+msgid "{1-9 open  0 find  Back|1-9 open  Back}"
+msgstr "{1-9 打开  0 查找  返回|1-9 打开  返回}"
 
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "HOME_LABEL_STEP"
@@ -4448,21 +4428,6 @@ msgstr "标准音"
 msgctxt "SIG_LABEL_LENGTH"
 msgid "Length: "
 msgstr "长度: "
-
-#: core/ui/ui_menus.c
-msgctxt "SIG_TITLE_START_TONE"
-msgid "Start Tone"
-msgstr "起始音"
-
-#: core/ui/ui_menus.c
-msgctxt "SIG_TITLE_END_TONE"
-msgid "End Tone"
-msgstr "结束音"
-
-#: core/ui/ui_menus.c
-msgctxt "SIG_TITLE_IDLE_TONE"
-msgid "Idle Tone"
-msgstr "空闲音"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_TOAST_NOT_CHANGED"
@@ -4580,6 +4545,11 @@ msgid "Diagnostics: not in this build"
 msgstr "诊断：本版本无"
 
 #: core/ui/ui_menus.c
+msgctxt "WHY_CHANNELS_NOT_IN_BUILD"
+msgid "Channels: not in this build"
+msgstr "信道：本版本无"
+
+#: core/ui/ui_menus.c
 msgctxt "GPS_POSITION_SAVED"
 msgid "GPS position saved"
 msgstr "GPS 位置已保存"
@@ -4625,11 +4595,6 @@ msgid "Reset all settings to factory defaults? Channels stay. This can't be undo
 msgstr "恢复所有设置为出厂值？信道保留，且无法撤销。"
 
 #: core/ui/ui_menus.c
-msgctxt "RESET_TITLE"
-msgid "Factory Reset"
-msgstr "恢复出厂设置"
-
-#: core/ui/ui_menus.c
 msgctxt "SET_EMPTY_USE_QDMR"
 msgid "Set them with qdmr"
 msgstr "请用 qdmr 设置"
@@ -4661,8 +4626,8 @@ msgstr "选择联系人……"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_TITLE"
-msgid "Talk to"
-msgstr "通话对象"
+msgid "{Talkgroup / Contact|TG / Contact}"
+msgstr "{通话组 / 联系人|TG / 联系人}"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_HINT"
@@ -5735,9 +5700,9 @@ msgid "{Privacy|Priv}"
 msgstr "{加密|加密}"
 
 #: core/ui/ui_screens.c
-msgctxt "QUICK_LABEL_TALK_TO"
-msgid "{Talk to|Talk}"
-msgstr "{通话对象|通话}"
+msgctxt "QUICK_LABEL_TALKGROUP_CONTACT"
+msgid "{Talkgroup / Contact|TG / Contact|TG}"
+msgstr "{通话组 / 联系人|TG / 联系人|TG}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_LABEL_COPY_TO_VFO"
