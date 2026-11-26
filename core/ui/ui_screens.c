@@ -13,9 +13,6 @@
 #include "cjk_font.h"	// CJK_FONT_H: the line height a CJK language needs (CONFIG_LANG_ZH)
 #include "config.h"
 #include "codeplug/codeplug_modes.h"	// channel kinds: the mode word
-#if CONFIG_UI_THEME_PANELS
-#include "themes/panels/panels.h"	// the panels look, which the reference ops still choose (ui_state_t.gui_profiles)
-#endif
 #if CONFIG_DMR_TRUNK
 #include "dmr/trunk/t3_ms.h"	// the engine's states, for the trunked status words
 #endif
@@ -2767,16 +2764,20 @@ static void dual_arrow(int x, int y, int ah, int aw, color_t c)
 	}
 }
 
-static int dual_home_inset(const ui_state_t *s)
-{
+// The reference theme's style: the panes from the screen's edges, the calls heard listed under them
+static const ui_dual_style_t dual_reference = { .calls = true };
+// The style the panes are drawn in, set by ui_home_dual_body. Without a theme of its own in the build, the reference
+// theme's as constants
 #if CONFIG_UI_THEME_PANELS
-	if (s->gui_profiles)
-		return 12;
+static const ui_dual_style_t *dual_style = &dual_reference;
+#define DUAL_INSET()		dual_style->inset
+#define DUAL_TARGET_LABEL()	dual_style->target_label
+#define DUAL_CALLS()		dual_style->calls
 #else
-	(void)s;
+#define DUAL_INSET()		0
+#define DUAL_TARGET_LABEL()	false
+#define DUAL_CALLS()		true
 #endif
-	return 0;
-}
 
 static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, int h, int pad, const dual_fit_t *ft)
 {
@@ -2784,13 +2785,10 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	const ui_dual_t *d = &s->dual;
 	const ui_dual_pane_t *p = &d->pane[i];
 	const font_t *nf = ft->name, *sm = L->small;
-	int inset = dual_home_inset(s), w = gfx_width() - inset;
+	int inset = DUAL_INSET(), w = gfx_width() - inset;
 	bool tx = v->state == RS_TX && d->sel == i, rx = !tx && p->rx, sel = d->sel == i;
 	bool entry = s->entry && sel && p->vfo;
-	bool commercial = false;
-#if CONFIG_UI_THEME_PANELS
-	commercial = s->gui_profiles && s->gui_profile == 0;
-#endif
+	bool commercial = DUAL_TARGET_LABEL();
 	bool quiet = !rx && d->pane[!i].rx;	// the other pane has a call: this one steps back
 	color_t fg = quiet ? ui_col.dim : ui_col.fg;
 	char buf[48], fit[48];
@@ -3004,7 +3002,7 @@ static void dual_large(const radio_view_t *v, const ui_state_t *s, int top, int 
 {
 	const ui_layout_t *L = &ui_layout;
 	const ui_dual_t *d = &s->dual;
-	int inset = dual_home_inset(s), w = gfx_width() - 2 * inset;
+	int inset = DUAL_INSET(), w = gfx_width() - 2 * inset;
 	int y = top + 2;
 	int room = (bottom - y) / 2;
 	for (int i = 0; i < 2; i++) {
@@ -3066,20 +3064,32 @@ static void dual_call(int y, uint8_t pane, const char *caller, uint32_t age_ms, 
 	gfx_text(sm, tw + sm->w / 2, y, fit, c);
 }
 
+#if CONFIG_UI_THEME_PANELS
+// A refused PTT's reason centered across the screen, shortened at its end margin from either edge. noinline: its
+// buffer stays out of dual_activity's frame
+static void __attribute__((noinline)) dual_deny(const font_t *f, int y, const char *text, int margin)
+{
+	char fit[64];
+	int w = gfx_width();
+	ui_fit_end(f, text, w - 2 * margin, fit, sizeof fit);
+	gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, ui_col.warn);
+}
+#endif
+
 // The lines under the panes: what is happening, then the last calls, each with its pane
 static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int lines)
 {
 	const ui_layout_t *L = &ui_layout;
 	const ui_dual_t *d = &s->dual;
 	const font_t *sm = L->small;
-	int inset = dual_home_inset(s), w = gfx_width() - inset;
+	int inset = DUAL_INSET(), w = gfx_width() - inset;
 	char buf[64];
 	sbuf_t b;
 	if (lines <= 0)
 		return;
 #if CONFIG_UI_THEME_PANELS
-	if (s->gui_profiles && v->state == RS_TX_DENIED) {
-		profile_center(sm, y, ui_deny_text(v, v->tx_deny, buf, sizeof buf), ui_col.warn);
+	if (dual_style->deny_margin && v->state == RS_TX_DENIED) {
+		dual_deny(sm, y, ui_deny_text(v, v->tx_deny, buf, sizeof buf), dual_style->deny_margin);
 		return;
 	}
 #endif
@@ -3125,17 +3135,15 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 		}
 	}
 	// Then the calls heard, newest first, as many as fit
-#if CONFIG_UI_THEME_PANELS
-	if (s->gui_profiles)
-		return;	// the current alias is only a live receiving indication on the profile Homes
-#endif
+	if (!DUAL_CALLS())
+		return;
 	if (lines > 0 && d->calls == 0)
 		gfx_text(sm, 0, y, TR(EMPTY_NO_CALLS_HEARD, "No calls heard yet"), ui_col.dim);
 	for (int k = 0; k < d->calls && k < lines; k++, y += sm->h)
 		dual_call(y, d->hist[k].pane, d->hist[k].caller, s->now_ms - d->hist[k].ms, k ? ui_col.dim : ui_col.fg);
 }
 
-static const char *dual_hint(const radio_view_t *v, const ui_state_t *s)
+UI_THEME_SHARED const char *ui_dual_hint(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_dual_t *d = &s->dual;
 	if (v->state == RS_TX_DENIED)
@@ -3193,33 +3201,22 @@ static void __attribute__((noinline)) dual_choose(int avail, int gap, bool comme
 	*out = *ft;
 }
 
-static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
+// The two panes and the lines under them, between top and bottom, in a theme's style. Large text: the two channels only
+UI_THEME_SHARED void ui_home_dual_body(const radio_view_t *v, const ui_state_t *s, int top, int bottom,
+	const ui_dual_style_t *style)
 {
-	const ui_layout_t *L = &ui_layout;
-	int bottom = L->hint_y;
 #if CONFIG_UI_THEME_PANELS
-	gfx_clear(s->gui_profiles ? profile_home_gutter : ui_col.bg);
-	int top = draw_home_status(v, s);
-	if (s->gui_profiles) {
-		bottom = profile_footer_top() - PROFILE_HOME_GAP;
-		profile_pane(top, bottom - top, ui_col.bg);
-		top += 4;
-		bottom -= 4;
-	}
+	dual_style = style;
 #else
-	gfx_clear(ui_col.bg);
-	int top = ui_draw_top(v, s, NULL, NULL);
+	(void)style;
 #endif
+	const ui_layout_t *L = &ui_layout;
 	if (s->large_text) {
 		dual_large(v, s, top, bottom);
 	} else {
 		int gap = gfx_height() >= UI_TALL_PX ? 6 : 2, pad;
 		dual_fit_t fit;
-		bool commercial = false;
-#if CONFIG_UI_THEME_PANELS
-		commercial = s->gui_profiles && s->gui_profile == 0;
-#endif
-		dual_choose(bottom - top, gap, commercial, &fit, &pad);
+		dual_choose(bottom - top, gap, DUAL_TARGET_LABEL(), &fit, &pad);
 		const dual_fit_t *ft = &fit;
 		const font_t *sm = L->small;
 		int ph = dual_pane_h(ft) + 2 * pad;
@@ -3228,20 +3225,21 @@ static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
 		if (dual_nf->h < ft->target->h)
 			dual_nf = ft->target;	// never smaller than the row under it: a long name is shortened instead
 		dual_pane(v, s, 0, top, ph, pad, ft);
-		int inset = dual_home_inset(s);
+		int inset = DUAL_INSET();
 		gfx_hline(inset, top + ph + gap / 2, gfx_width() - 2 * inset, ui_col.line);
 		dual_pane(v, s, 1, top + ph + gap, ph, pad, ft);
 		int ay = top + 2 * ph + gap + 2;
 		dual_activity(v, s, ay, ft->act ? (bottom - ay) / sm->h : 0);
 	}
-#if CONFIG_UI_THEME_PANELS
-	if (s->gui_profiles) {
-		profile_home_footer(s, dual_hint(v, s));
-		return;
-	}
-#endif
+}
+
+static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
+{
+	gfx_clear(ui_col.bg);
+	int top = ui_draw_top(v, s, NULL, NULL);
+	ui_home_dual_body(v, s, top, ui_layout.hint_y, &dual_reference);
 	ui_draw_banner(s);
-	ui_draw_bottom_key(s, dual_hint(v, s), ui_home_soft_key(s));
+	ui_draw_bottom_key(s, ui_dual_hint(v, s), ui_home_soft_key(s));
 }
 
 void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)

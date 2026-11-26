@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 The RadioFoundry Authors
 // The panels theme (CONFIG_UI_THEME_PANELS): rows and Home regions as rounded panels, a status strip of drawn marks,
-// Day and Night palettes, the Commercial and Amateur Home layouts. Moved from ui_screens.c as it was; the reference
-// ops there still choose this look (ui_state_t.gui_profiles, l->roomy) and call into it through panels.h
+// Day and Night palettes, the Commercial and Amateur Home layouts. Its ops (ui_theme.h) are at the end; what they
+// share with the reference theme's comes from ui_screens.c
 #include "config.h"
 #if CONFIG_UI_THEME_PANELS
 #include <string.h>
@@ -14,14 +14,19 @@
 #include "ui/ui_svc.h"
 #include "ui/cjk_font.h"
 #include "codeplug/codeplug_modes.h"
-#include "panels.h"
 #include "panels_icons.h"
+
+#define PROFILE_BAND_H 29
+#define PROFILE_COMMERCIAL_STATUS_H 36
+#define PROFILE_HOME_GAP 3
+#define PROFILE_HOME_INSET 4
+#define PROFILE_FOOTER_H 34
 
 #define PROFILE_GEAR_OUTLINE RGB565(0, 0, 0)
 #define PROFILE_GEAR_FILL RGB565(148, 148, 148)
 
 static color_t profile_bar_fg;	// the bottom row's text
-color_t profile_home_gutter;
+static color_t profile_home_gutter;
 static color_t profile_row_bg, profile_row_focus;
 
 // The profile look's Day and Night palettes, and its colors outside the shared tokens (index: night)
@@ -100,7 +105,7 @@ static void profile_round_fill(int x, int y, int w, int h, color_t ink)
 	}
 }
 
-void profile_pane(int y, int h, color_t ink)
+static void profile_pane(int y, int h, color_t ink)
 {
 	static const uint8_t corner[] = { 5, 3, 2, 1, 1 };
 	const int x = PROFILE_HOME_INSET, w = gfx_width() - 2 * x;
@@ -117,7 +122,7 @@ void profile_pane(int y, int h, color_t ink)
 	}
 }
 
-int profile_footer_top(void)
+static int profile_footer_top(void)
 {
 	return gfx_height() - PROFILE_HOME_INSET - PROFILE_FOOTER_H;
 }
@@ -685,7 +690,7 @@ static void compact_menu_hint(char *left, bool numbered)
 	}
 }
 
-void profile_center(const font_t *f, int y, const char *text, color_t c)
+static void profile_center(const font_t *f, int y, const char *text, color_t c)
 {
 	char fit[64];
 	int w = gfx_width();
@@ -1041,10 +1046,8 @@ static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t
 	}
 }
 
-int draw_home_status(const radio_view_t *v, const ui_state_t *s)
+static int draw_home_status(const radio_view_t *v, const ui_state_t *s)
 {
-	if (!s->gui_profiles)
-		return ui_draw_top(v, s, NULL, NULL);
 	int strip_h = s->gui_profile ? ui_layout.strip_h : PROFILE_COMMERCIAL_STATUS_H;
 	int operating_top = strip_h + PROFILE_HOME_GAP;
 	ui_strip_draws++;
@@ -1054,7 +1057,7 @@ int draw_home_status(const radio_view_t *v, const ui_state_t *s)
 	return operating_top + PROFILE_HOME_OPERATING_H + PROFILE_HOME_GAP;
 }
 
-void profile_home_footer(const ui_state_t *s, const char *hint)
+static void profile_home_footer(const ui_state_t *s, const char *hint)
 {
 	// Above the footer pane; what it reads of the screen under it stays clear of the panes' rounded corners
 	ui_banner_box(s, profile_footer_top() - PROFILE_HOME_GAP, PROFILE_HOME_INSET + 5, PROFILE_HOME_INSET + 5,
@@ -1233,6 +1236,26 @@ static void panels_home(const radio_view_t *v, const ui_state_t *s)
 	else
 		draw_profile_home(v, s);
 }
+
+#if CONFIG_DUAL_WATCH
+// Dual watch's Home in the theme's regions: its panes inset in the channel pane, no list of calls (the alias is a live
+// receiving indication only), a refused PTT's reason centered. Commercial names the talk target where the channel
+// number would be
+static const ui_dual_style_t panels_dual[] = {
+	{ .inset = 12, .deny_margin = 15, .target_label = true },	// Commercial
+	{ .inset = 12, .deny_margin = 15 },				// Amateur
+};
+
+static void panels_home_dual(const radio_view_t *v, const ui_state_t *s)
+{
+	gfx_clear(profile_home_gutter);
+	int top = draw_home_status(v, s);
+	int bottom = profile_footer_top() - PROFILE_HOME_GAP;
+	profile_pane(top, bottom - top, ui_col.bg);
+	ui_home_dual_body(v, s, top + 4, bottom - 4, &panels_dual[s->gui_profile != 0]);
+	profile_home_footer(s, ui_dual_hint(v, s));
+}
+#endif
 
 // A list's palette entries, then its heading: a larger left-aligned title (the main menu's is Menu), or the strip
 // alone for a list without a title
@@ -1554,6 +1577,9 @@ static const ui_theme_ops_t panels_ops = {
 	.bottom = panels_bottom,
 	.banner = panels_banner,
 	.home = panels_home,
+#if CONFIG_DUAL_WATCH
+	.home_dual = panels_home_dual,
+#endif
 	.list_head = panels_list_head,
 	.list_geom = panels_list_geom,
 	.cell = panels_cell,

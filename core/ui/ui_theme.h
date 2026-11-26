@@ -104,6 +104,16 @@ typedef struct ui_theme {
 
 // Today's look (ui_screens.c)
 extern const ui_theme_t ui_theme_reference;
+
+#if CONFIG_DUAL_WATCH
+// How the dual watch Home's panes and the lines under them look (ui_home_dual_body)
+typedef struct {
+	uint8_t inset;		// the panes' text from the screen's edges
+	uint8_t deny_margin;	// 0: a refused PTT is an activity line; else its reason centered, this far from the edges
+	bool target_label;	// row 2 is the talk target's label and row 1 has no channel number; a call shows its alias
+	bool calls;		// the calls heard, listed under the activity
+} ui_dual_style_t;
+#endif
 #if CONFIG_UI_THEME_PANELS
 // Rounded panels, Day and Night, the Commercial and Amateur Home layouts (themes/panels/panels.c). Its palettes:
 extern const ui_theme_t ui_theme_panels;
@@ -122,6 +132,9 @@ const char *ui_mode_word(const radio_view_t *v);	// the mode word: AM, a channel
 #if CONFIG_DUAL_WATCH
 const char *ui_dual_mode_word(const ui_dual_pane_t *p);	// ... of a dual watch pane
 int ui_dual_tag_w(const font_t *nf);			// the width of a dual watch pane's letter tag
+const char *ui_dual_hint(const radio_view_t *v, const ui_state_t *s);	// its Home's key hints
+// Its Home's panes and the lines under them between top and bottom, in a theme's style
+void ui_home_dual_body(const radio_view_t *v, const ui_state_t *s, int top, int bottom, const ui_dual_style_t *style);
 #endif
 bool ui_sending_data(const radio_view_t *v);		// on the air without PTT: a data burst
 void ui_hwopt_needed(sbuf_t *b);			// what a pending hardware option needs from a person
