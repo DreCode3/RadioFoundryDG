@@ -4,7 +4,9 @@
 // reaches the reference theme's and draws the same frame, a palette without a colors op stays as it is, a theme's own
 // ops are the ones called, a strip of the theme's own is measured where it is drawn, and the list frame (ui_draw_list)
 // scrolls and places the cells of a geometry the reference theme doesn't have, also when that geometry is out of bounds,
-// and the theme picked for a display (ui_theme_pick). Built a second time with the panels theme (uiThemeTestPanels)
+// and the theme picked for a display (ui_theme_pick). Built a second time with the panels theme (uiThemeTestPanels),
+// which also checks the panels theme's own frames by their structure: the scroll position drawn before the cells and
+// the soft key bar's two labels
 #include <stdio.h>
 #include <string.h>
 #include "board.h"
@@ -816,6 +818,153 @@ static void test_pick(void)
 	CHECK(ui_theme_cur() == ref && ui_theme_has(UI_THEME_OPT_ACCENT) && !ui_theme_has(UI_THEME_OPT_LAYOUT));
 }
 
+#if CONFIG_UI_THEME_PANELS
+// --- the panels theme's own frames on the display it is for: structure, not pixels, so the checks hold through layout
+// changes. Built with GFX_FIT_TRACE (uiThemeTestPanels): every text drawn and every text shortened is seen here
+
+static struct { int x, y, w, h; char s[48]; } texts[64];
+static int ntexts, nshortened;
+
+void gfx_fit_trace(const char *src, const char *out)
+{
+	(void)src;
+	(void)out;
+	nshortened++;
+}
+
+void gfx_draw_trace(gfx_trace_kind_t kind, int x, int y, int w, int h, const int clip[4], const char *s)
+{
+	(void)clip;
+	if (kind == GFX_TRACE_CLEAR)
+		ntexts = 0;
+	if (kind != GFX_TRACE_TEXT || ntexts >= (int)(sizeof texts / sizeof texts[0]))
+		return;
+	texts[ntexts].x = x;
+	texts[ntexts].y = y;
+	texts[ntexts].w = w;
+	texts[ntexts].h = h;
+	snprintf(texts[ntexts].s, sizeof texts[0].s, "%s", s);
+	ntexts++;
+}
+
+static int find_text(const char *s)
+{
+	for (int i = 0; i < ntexts; i++)
+		if (strcmp(texts[i].s, s) == 0)
+			return i;
+	return -1;
+}
+
+// The GD-88's panel: 16 colors, its right edge behind the bezel
+static hal_display_t panel = { .width = 320, .height = 240, .inset_right = 10, .bpp = 4, .init = d_init,
+	.flush = d_flush, .flush_indexed = d_flush_indexed, .set_backlight = d_backlight };
+
+// The first level of a menu with more entries than a screen: an icon, a digit and a short label each
+static void menu_item(uint16_t i, ui_item_t *it)
+{
+	snprintf(it->label, sizeof it->label, "Entry %u", (unsigned)i);
+	it->num = (char)('0' + (i + 1) % 10);
+	it->icon = (uint8_t)(UI_MENU_ICON_SOUND + i % (UI_MENU_ICON_COUNT - UI_MENU_ICON_SOUND));
+}
+
+// The scroll position is drawn before the cells (the scroll op's first call), so on a 16-color display its color and its
+// anti-aliased edges take palette entries ahead of the cells' (theme step 2 review, finding 1); the second call draws
+// nothing. In a whole frame it is in the title's row, in its own color
+static void test_panels_scroll_position(void)
+{
+	uint16_t top = 0;
+	ui_list_t l = list(14, 3, &top);
+	l.kind = UI_LIST_MENU;
+	l.numbered = true;
+	l.item = menu_item;
+	base();
+	const ui_theme_ops_t *o = ui_theme_panels.ops;
+	int rows_y = o->list_head(NULL, NULL, &l, false);
+	ui_list_geom_t g;
+	o->list_geom(&l, rows_y, ui_layout.hint_y, &g);
+	CHECK(g.rows * g.cols < l.count);
+	gfx_clear(ui_col.bg);
+	ntexts = 0;
+	o->scroll(&l, &g, 0, l.count, false);
+	CHECK(ntexts == 1 && find_text("4/14") == 0);
+	ntexts = 0;
+	o->scroll(&l, &g, 0, l.count, true);
+	CHECK(ntexts == 0);
+
+	ui_draw_list(&view, &state, &l);
+	int b = find_text("4/14");
+	CHECK(b >= 0);
+	if (b < 0)
+		return;
+	CHECK(texts[b].y >= ui_layout.strip_h && texts[b].y + texts[b].h <= rows_y);
+	int exact = 0;
+	for (int y = texts[b].y; y < texts[b].y + texts[b].h; y++)
+		for (int x = texts[b].x; x < texts[b].x + texts[b].w; x++)
+			exact += gfx_get_pixel(x, y) == ui_col.dim;
+	CHECK(exact > 0);
+	// A list that fits on its screen has none
+	l = list(3, 1, &top);
+	ui_draw_list(&view, &state, &l);
+	CHECK(find_text("2/3") < 0);
+}
+
+// The soft key bar: one label over each soft key, the OK group's on the left and Back's (or Home's soft key's) on the
+// right, inside the bar's pane with room at its ends and between them, none shortened; a hint with no soft key in it
+// (a sentence) shows whole
+static void bar(int line, const char *hint, uint8_t flags, const char *soft_key, const char *want_left,
+	const char *want_right)
+{
+	gfx_clear(ui_col.bg);
+	ntexts = 0;
+	nshortened = 0;
+	ui_theme_panels.ops->bottom(hint, flags, soft_key);
+	int l = want_left != NULL ? find_text(want_left) : -1, r = want_right != NULL ? find_text(want_right) : -1;
+	int want = (want_left != NULL) + (want_right != NULL);
+	bool ok = ntexts == want && nshortened == 0 && (want_left == NULL || l >= 0) && (want_right == NULL || r >= 0);
+	for (int i = 0; ok && i < ntexts; i++)
+		ok = texts[i].x >= 10 && texts[i].x + texts[i].w <= gfx_width() - 10 && texts[i].y >= ui_layout.hint_y &&
+			texts[i].y + texts[i].h <= gfx_height();
+	if (ok && l >= 0 && r >= 0)
+		ok = texts[l].x + texts[l].w + 8 <= texts[r].x;
+	if (!ok) {
+		printf("FAIL %s:%d: bar \"%s\": %d texts, %d shortened:", __FILE__, line, hint, ntexts, nshortened);
+		for (int i = 0; i < ntexts; i++)
+			printf(" \"%s\" %d+%d", texts[i].s, texts[i].x, texts[i].w);
+		printf("\n");
+		fails++;
+	}
+}
+#define BAR(hint, flags, soft_key, left, right) bar(__LINE__, hint, flags, soft_key, left, right)
+
+static void test_panels_bar(void)
+{
+	base();
+	BAR("OK open  # reply  Back", UI_BAR_LIST, NULL, "OK", "Back");
+	BAR("OK change  hold OK save  Back", UI_BAR_LIST, NULL, "OK", "Back");
+	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back");	// Back leaves every list
+	BAR("1-7 open  Back", UI_BAR_LIST | UI_BAR_NUMBERED, NULL, "OK", "Back");
+	BAR("OK acknowledge  Back hide", 0, NULL, "OK acknowledge", "Back hide");
+	BAR("0 All settings  Hold OK save", 0, NULL, "Hold OK save", NULL);
+	BAR("Menu  # Joe", 0, "Quick", "Menu", "Quick");			// Home with an assigned soft key
+	BAR("# caller  Back end reply", 0, "Back", "# caller", "Back");
+	BAR("OK Menu  * Quick", 0, NULL, "OK Menu", NULL);
+	BAR("Keys locked: hold Back to unlock", 0, NULL, "Keys locked: hold Back to unlock", NULL);
+	BAR("Release PTT to stop", 0, NULL, "Release PTT to stop", NULL);
+}
+
+static void test_panels_frames(void)
+{
+	CHECK(gfx_init(&panel));
+	CHECK(ui_theme_use(&ui_theme_panels));
+	ui_theme_set(UI_PALETTE_DAY);
+	test_panels_scroll_position();
+	test_panels_bar();
+	ui_theme_use(&ui_theme_reference);
+	CHECK(gfx_init(&disp));
+	ui_layout_init();
+}
+#endif
+
 int main(void)
 {
 	CHECK(gfx_init(&disp));
@@ -838,6 +987,9 @@ int main(void)
 	test_list_frame();
 	test_geometry_bounds();
 	test_pick();
+#if CONFIG_UI_THEME_PANELS
+	test_panels_frames();
+#endif
 	ui_layout_init();
 
 	// Back on the reference theme: its layout, its colors and its frames again

@@ -708,12 +708,13 @@ TESTS   += uiThemeTest
 uiThemeTest: uiThemeTest.c $(UI) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(CORE)/ui/fonts/*.inc)
 	$(CC) $(CFLAGS) -fsanitize=address -fno-omit-frame-pointer -I$(ROOT)/hal -Iout/gen -Wshadow -DGFX_INDEXED=1 \
 	      -DGFX_MAX_ROWS=240u -DCONFIG_NET_WEBCTL=1 -DUI_THEME_SELECT=1 -o $@ uiThemeTest.c $(UI)
-# The same with the panels theme built (CONFIG_UI_THEME_PANELS): the reference theme's frames are the same, and the
-# panels theme is picked where it fits
+# The same with the panels theme built (CONFIG_UI_THEME_PANELS): the reference theme's frames are the same, the
+# panels theme is picked where it fits, and its own frames hold their structure (GFX_FIT_TRACE: the test sees every text
+# drawn and every text shortened)
 TESTS   += uiThemeTestPanels
 uiThemeTestPanels: uiThemeTest.c $(UI) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(CORE)/ui/themes/*/*.h $(CORE)/ui/fonts/*.inc)
 	$(CC) $(CFLAGS) -fsanitize=address -fno-omit-frame-pointer -I$(ROOT)/hal -Iout/gen -Wshadow -DGFX_INDEXED=1 \
-	      -DGFX_MAX_ROWS=240u -DCONFIG_NET_WEBCTL=1 -DCONFIG_UI_THEME_PANELS=1 -o $@ uiThemeTest.c $(UI)
+	      -DGFX_MAX_ROWS=240u -DCONFIG_NET_WEBCTL=1 -DCONFIG_UI_THEME_PANELS=1 -DGFX_FIT_TRACE -o $@ uiThemeTest.c $(UI)
 
 # The frame buffer's last bytes with a GFX_FB_BYTES that is not a multiple of 4 (the DM-32UV's, sized from its insets):
 # a safe area of exactly that size, drawn to its bottom right corner. Always under AddressSanitizer, which is what sees

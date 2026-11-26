@@ -11,6 +11,26 @@ import zlib
 
 SIM = Path(__file__).resolve().with_name("uiSim")
 GEOMETRY = "320x240iR10"
+AMATEUR = "ok 7 2 ok down ok long:back "
+NIGHT = "ok 7 2 down ok down ok long:back "
+# The panels theme's layout on the 310 x 240 drawable area: the status strip, a list's title row, one row height
+STRIP_H = 29
+ROWS_Y = 59
+ROW_H = 28
+
+
+def ink_map(frame):
+    """Each pixel as dark, light or between: the solid strokes, which a 16-color palette keeps whatever else the
+    screen shows (only anti-aliased edges take the nearest of the colors in use)."""
+    return [b"".join(b"d" if max(row[x:x + 3]) < 60 else b"l" if min(row[x:x + 3]) > 200 else b"."
+                     for x in range(0, len(row), 3)) for row in frame]
+
+
+def row_starts(frame, x):
+    """The rows where a row panel starts in column x, between the title and the bottom row."""
+    paper = frame[ROWS_Y][:3]
+    column = [row[x * 3:x * 3 + 3] for row in frame]
+    return [y for y in range(ROWS_Y + 1, 202) if column[y - 1] == paper and column[y] != paper]
 
 
 class PrototypeTest(unittest.TestCase):
@@ -57,29 +77,29 @@ class PrototypeTest(unittest.TestCase):
         return [pixels[start + 1:start + stride] for start in range(0, len(pixels), stride)]
 
     def test_home_signal_bars_follow_reception_in_both_profiles(self):
-        for select in ("", "ok 7 2 ok down ok long:back "):
+        # The bars sit at the strip's left end and push the mode word right: the strip's start differs from idle's.
+        for select in ("", AMATEUR):
             with self.subTest(profile=select or "commercial"):
+                idle = self.render_frame(select)
+
                 def meter(script):
                     frame = self.render_frame(select + script)
-                    return [row[15 * 3:38 * 3] != row[50 * 3:51 * 3] * 23 for row in frame[:20]]
+                    return any(frame[y][5 * 3:34 * 3] != idle[y][5 * 3:34 * 3] for y in range(STRIP_H - 1))
 
-                self.assertFalse(any(meter("")), "idle RSSI must not draw signal bars")
-                self.assertTrue(any(meter("fmrx")), "an active FM signal must draw bars")
-                self.assertFalse(any(meter("fmrx fmrxend")), "the last RSSI sample must not leave bars behind")
-                self.assertTrue(any(meter("rx:9991234,3100,g,Morgan_Reed")), "a DMR call must draw bars")
-                self.assertFalse(any(meter("rx:9991234,3100,g,Morgan_Reed rxend")))
-
+                self.assertTrue(meter("fmrx"), "an active FM signal must draw bars")
+                self.assertFalse(meter("fmrx fmrxend"), "the last RSSI sample must not leave bars behind")
+                self.assertTrue(meter("rx:9991234,3100,g,Morgan_Reed"), "a DMR call must draw bars")
+                self.assertFalse(meter("rx:9991234,3100,g,Morgan_Reed rxend"))
     def test_gps_pin_has_an_antialiased_tip_in_both_profiles(self):
-        for select, strip_end in (("", 35), ("ok 7 2 ok down ok long:back ", 27)):
+        for select in ("", AMATEUR):
             before = self.render_frame(select)
             fixed = self.render_frame(select + "gps:fix")
-            rows = [[fixed[y][x * 3:x * 3 + 3] for x in range(215, 250)
+            rows = [[fixed[y][x * 3:x * 3 + 3] for x in range(240, 272)
                      if fixed[y][x * 3:x * 3 + 3] != before[y][x * 3:x * 3 + 3]]
-                    for y in range(strip_end)]
+                    for y in range(STRIP_H - 1)]
             tip = next(row for row in reversed(rows) if row)
             self.assertLessEqual(len(tip), 3)
             self.assertTrue(all(0 < max(pixel) < 230 for pixel in tip))
-
     def test_profile_day_uses_vertical_battery_and_black_receive_only_mark(self):
         frame = self.render_frame("rxonly:on")
         idle = self.render_frame("")
@@ -87,20 +107,21 @@ class PrototypeTest(unittest.TestCase):
         def black(x, y):
             return frame[y][x * 3:x * 3 + 3] == bytes(3)
 
-        battery = [(x, y) for y in range(35) for x in range(280, 303) if black(x, y)]
+        battery = [(x, y) for y in range(STRIP_H) for x in range(285, 308) if black(x, y)]
         xs, ys = zip(*battery)
         self.assertLess(max(xs) - min(xs), max(ys) - min(ys))
-        receive_only = {(x, y) for y in range(36, 64) for x in range(15, 300)
+        # The receive-only mark is in the strip, with the operating marks
+        receive_only = {(x, y) for y in range(STRIP_H) for x in range(120, 285)
                         if black(x, y) and idle[y][x * 3:x * 3 + 3] != bytes(3)}
         left = min(x for x, _ in receive_only)
         # The R keeps its solid stem and the X is separated by a blank column.
         self.assertGreaterEqual(sum(x == left for x, _ in receive_only), 11)
         self.assertFalse(any(x == left + 11 for x, _ in receive_only))
-
     def test_monitor_uses_separate_speaker_and_sound_wave(self):
         idle = self.render_frame("")
         monitor = self.render_frame("mon wait:3000")
-        pixels = {(x, y) for y in range(36, 64) for x in range(15, 300)
+        # In the strip, right of the mode word (the signal bars are left of it)
+        pixels = {(x, y) for y in range(STRIP_H) for x in range(42, 200)
                   if monitor[y][x * 3:x * 3 + 3] == bytes(3) and idle[y][x * 3:x * 3 + 3] != bytes(3)}
         left = min(x for x, _ in pixels)
         # A solid cone with a stem on the left and a separate wave on the right.
@@ -109,67 +130,61 @@ class PrototypeTest(unittest.TestCase):
         self.assertTrue(any(x >= left + 14 for x, _ in pixels))
 
         # Look for an intermediate edge color around the speaker's native pixels.
-        edges = [monitor[y][x * 3:x * 3 + 3] for y in range(36, 64)
+        edges = [monitor[y][x * 3:x * 3 + 3] for y in range(STRIP_H)
                  for x in range(left, left + 19)
                  if monitor[y][x * 3:x * 3 + 3] != idle[y][x * 3:x * 3 + 3]]
         self.assertTrue(any(0 < max(edge) < 220 for edge in edges))
-
     def test_talkgroup_is_larger_and_home_text_holds_position_during_rx(self):
+        # The main line is the channel's name; a call adds its lines below a rule and moves nothing above them.
         call = "rx:9991234,3100,g,Morgan_Reed expect:centered=Morgan_Reed expect:layout=0"
-        commercial = self.render_frame("expect:centered=USA")
-        title_rows = [y for y in range(115, 155)
-                      if sum(commercial[y][x * 3] < 120 for x in range(110, 200)) >= 6]
-        self.assertGreaterEqual(max(title_rows) - min(title_rows) + 1, 24)
-        amateur = "ok 7 2 ok down ok long:back "
-        for idle, receiving in ((commercial[75:158], self.render_frame(call)[75:158]),
-                                (self.render_frame(amateur)[64:166],
-                                 self.render_frame(amateur + call)[64:166])):
+        commercial = self.render_frame("expect:centered=COUNTY_DMR")
+        amateur = self.render_frame(AMATEUR + "expect:centered=COUNTY_DMR")
+
+        def main_rows(frame):
+            # The main line's ink: the first run of inked rows below the zone line
+            ink = [sum(frame[y][x * 3] < 120 for x in range(40, 270)) >= 6 for y in range(62, 130)]
+            first = ink.index(True)
+            return ink[first:].index(False) if False in ink[first:] else len(ink) - first
+
+        self.assertGreaterEqual(main_rows(commercial), 30)
+        self.assertGreater(main_rows(commercial), main_rows(amateur))
+        for idle, receiving in ((commercial, self.render_frame(call)),
+                                (amateur, self.render_frame(AMATEUR + call))):
             # The indexed palette can shift antialiased edge colors by one 4-bit step.
-            self.assertLessEqual(max(abs(a - b) for idle_row, rx_row in zip(idle, receiving)
+            self.assertLessEqual(max(abs(a - b) for idle_row, rx_row in zip(idle[STRIP_H:148], receiving[STRIP_H:148])
                                      for a, b in zip(idle_row, rx_row)), 17)
-
-    def test_commercial_home_has_larger_status_and_title(self):
-        commercial = self.render_frame("expect:layout=0")
-        amateur = self.render_frame("ok 7 2 ok down ok long:back expect:layout=0")
-        # Commercial's device strip is still taller than Amateur's.
-        self.assertNotEqual(commercial[35][300:303], commercial[36][300:303])
-        self.assertEqual(amateur[35][300:303], amateur[36][300:303])
-        ink_rows = [y for y in range(115, 166)
-                    if sum(commercial[y][x * 3] < 120 for x in range(110, 200)) >= 6]
-        self.assertGreaterEqual(max(ink_rows) - min(ink_rows) + 1, 29)
-        frame = self.render_frame("gps:fix prototype:bt_connected lockkey wait:3000 expect:layout=0")
-        heights = []
-        for first_x in range(164, 304, 28):
-            rows = [y for y, row in enumerate(frame[:35])
-                    if any(row[x * 3:x * 3 + 3] != row[150:153]
-                           for x in range(first_x, min(first_x + 28, 300)))]
-            heights.append(max(rows) - min(rows) + 1)
-        self.assertGreaterEqual(min(heights), 19)
-        self.assertLessEqual(max(heights) - min(heights), 10)
-
+    def test_home_strip_is_the_strip_of_every_screen(self):
+        # One status strip: Home's is the menus' and the lists', pixel for pixel, in both layouts and palettes.
+        for profile in ("", AMATEUR):
+            for theme in ("", NIGHT):
+                with self.subTest(profile=profile or "Commercial", theme=theme or "Day"):
+                    home = ink_map(self.render_frame(profile + theme + "gps:fix expect:layout=0")[:STRIP_H])
+                    for screen in ("ok", "ok 7", "ok 7 2", "ok 1", "quick"):
+                        frame = self.render_frame(profile + theme + "gps:fix " + screen + " expect:layout=0")
+                        self.assertEqual(ink_map(frame[:STRIP_H]), home, screen)
+        self.run_script("expect:shows=DMR down expect:shows=FM ok 7 expect:shows=FM")
     def test_dstar_preview_uses_full_mode_label(self):
         self.run_script("prototype:dstar_on expect:shows=D-STAR expect:layout=0 "
                         "aprstx expect:hides=D-STAR aprsend expect:shows=D-STAR "
                         "prototype:dstar_off expect:hides=D-STAR")
-        for profile, top in (("", 36), ("ok 7 2 ok down ok long:back ", 29)):
+        for profile in ("", AMATEUR):
             with self.subTest(profile=profile or "Commercial"):
                 frame = self.render_frame(profile + "prototype:dstar_on expect:layout=0")
-                # The first 60 pixels of the operating row hold only the mode.
-                mode_rows = [y for y in range(top, top + 28)
-                             if any(max(frame[y][x * 3:x * 3 + 3]) < 100 for x in range(15, 60))]
-                self.assertGreaterEqual(max(mode_rows) - min(mode_rows) + 1, 19)
-                self.assertGreaterEqual(min(mode_rows) - top, 1)
-                self.assertLessEqual(max(mode_rows) - top, 26)
-
+                # The strip's first 80 pixels hold only the mode, in its largest font.
+                mode_rows = [y for y in range(STRIP_H - 1)
+                             if any(max(frame[y][x * 3:x * 3 + 3]) < 100 for x in range(5, 80))]
+                self.assertGreaterEqual(max(mode_rows) - min(mode_rows) + 1, 12)
+                self.assertGreaterEqual(min(mode_rows), 1)
     def test_crossed_key_is_only_a_receive_warning(self):
         plain = "rx:9991234,3100,g"
         encrypted = "rx:9991234,3100,e"
         incompatible = "rx:9991234,3100,i"
-        for profile in ("", "ok 7 2 ok down ok long:back "):
+        for profile in ("", AMATEUR):
             def key_colors(script):
                 frame = self.render_frame(profile + script + " expect:layout=0")
+                # The operating marks: the strip's right half, left of the GPS pin
                 pixels = [frame[y][x * 3:x * 3 + 3]
-                          for y in range(28, 65) for x in range(65, 110)]
+                          for y in range(STRIP_H - 1) for x in range(150, 245)]
                 return (any(r > 140 and g < 100 and b < 100 for r, g, b in pixels),
                         any(g > r + 20 and g > b + 10 for r, g, b in pixels))
 
@@ -180,13 +195,12 @@ class PrototypeTest(unittest.TestCase):
                 for script in ("", plain, encrypted, incompatible + " rxend"):
                     self.assertEqual(key_colors("prototype:crypt_basic " + script), (False, True))
                 self.assertEqual(key_colors("prototype:crypt_basic " + incompatible), (True, False))
-
     def test_encryption_key_has_its_large_bow_on_the_left(self):
         frame = self.render_frame("prototype:crypt_arc4 expect:shows=ARC4 expect:layout=0")
         key_columns = []
-        for x in range(65, 110):
+        for x in range(150, 245):
             count = 0
-            for y in range(36, 48):
+            for y in range(0, 13):  # the key; its ARC4 label is below it
                 red, green, blue = frame[y][x * 3:x * 3 + 3]
                 count += green > red + 20 and green > blue + 10
             if count:
@@ -194,67 +208,60 @@ class PrototypeTest(unittest.TestCase):
         middle = (key_columns[0][0] + key_columns[-1][0]) / 2
         self.assertGreater(sum(n for x, n in key_columns if x < middle),
                            sum(n for x, n in key_columns if x > middle))
-
     def test_profile_display_has_a_left_heading_and_roomier_rows(self):
         frame = self.render_frame("ok 7 2 expect:layout=0")
-        heading = [(x, y) for y in range(30, 69) for x in range(8, 124)
+        heading = [(x, y) for y in range(STRIP_H, ROWS_Y) for x in range(8, 124)
                    if frame[y][x * 3] < 110]
         self.assertLess(min(x for x, _ in heading), 26)
-        self.assertGreaterEqual(max(y for _, y in heading) - min(y for _, y in heading), 18)
-        # Along the left edge of the row backgrounds, count their starts.
-        section = [row[16 * 3:16 * 3 + 3] for row in frame[69:211]]
-        paper = frame[180][:3]
-        starts = [y for y in range(1, len(section)) if section[y - 1] == paper and section[y] != paper]
-        self.assertGreaterEqual(len(starts), 4)
-        self.assertGreaterEqual(starts[1] - starts[0], 32)
+        self.assertGreaterEqual(max(y for _, y in heading) - min(y for _, y in heading), 14)
+        # One row height, five rows on the display: the row panels start every ROW_H pixels.
+        self.assertEqual(row_starts(frame, 16), [ROWS_Y + 2 + ROW_H * k for k in range(5)])
         self.run_script("ok 7 2 expect:count=8 up expect:focus=Language "
                         "up expect:focus=Hint_row up expect:focus=Large_text "
                         "up expect:focus=Backlight_Dim/Off expect:layout=0")
-
     def test_colored_icons_are_on_settings_categories_only(self):
         first = self.render_frame("ok 7 expect:layout=0")
         second = self.render_frame("ok 7 up expect:layout=0")
         display = self.render_frame("ok 7 2 expect:layout=0")
 
-        def saturated(frame, top, bottom, left=12):
+        def saturated(frame, top, bottom, left):
             return any(max(rgb) - min(rgb) > 70 for y in range(top, bottom)
                        for x in range(left, left + 14) for rgb in [frame[y][x * 3:x * 3 + 3]])
 
-        def right_icon_start(frame):
-            row = frame[93]
-            # The right tile starts at the end of the eight-pixel gutter.
-            gutter = next(x for x in range(100, 200) if row[x * 3:x * 3 + 3] == row[:3])
-            return gutter + 8 + 5
-
-        for page in (first, second):
-            for left in (12, right_icon_start(page)):
-                for y in range(85, 172, 43):
-                    self.assertTrue(saturated(page, y, y + 13, left))
-        self.assertEqual(first[93][9 * 3:10 * 3], first[93][10 * 3:11 * 3])
-        self.assertLess(max(first[93][9 * 3:10 * 3]), 100)
-        # Shortcut 3 belongs in the tile's vertical center.
-        digit_rows = [y for y in range(159, 198) for x in range(28, 38)
+        # Two equal columns of rows, the icon after the accent bar's room
+        left_icon, right_icon = 7 + 10, 7 + 144 + 8 + 10
+        for k in range(5):
+            y = ROWS_Y + ROW_H * k + 7
+            self.assertTrue(saturated(first, y, y + 13, left_icon))
+            self.assertTrue(saturated(first, y, y + 13, right_icon))
+        for k in range(2):
+            y = ROWS_Y + ROW_H * k + 7
+            self.assertTrue(saturated(second, y, y + 13, left_icon))
+        # Shortcut 3 belongs in its row's vertical center.
+        row3 = ROWS_Y + 2 * ROW_H
+        digit_rows = [y for y in range(row3, row3 + ROW_H) for x in range(32, 42)
                       if max(first[y][x * 3:x * 3 + 3]) < 150]
-        self.assertLess(abs(sum(digit_rows) / len(digit_rows) - 178), 3)
-        key_left = right_icon_start(first)
+        self.assertLess(abs(sum(digit_rows) / len(digit_rows) - (row3 + ROW_H / 2)), 3)
+        # The privacy key (4) has its bow on the left
+        key_top = ROWS_Y + 3 * ROW_H + 7
         key_sides = [set(), set()]
-        for y in range(85, 103):
-            for x in range(key_left, key_left + 13):
+        for y in range(key_top, key_top + 13):
+            for x in range(left_icon, left_icon + 13):
                 red, green, blue = first[y][x * 3:x * 3 + 3]
                 if red > blue + 40 and green > blue + 30:
-                    key_sides[x >= key_left + 6].add(y)
+                    key_sides[x >= left_icon + 6].add(y)
         self.assertGreater(len(key_sides[0]), len(key_sides[1]))
-        self.assertFalse(saturated(display, 77, 202))
-        self.run_script("ok 7 expect:shows=1/2 expect:shows=OK expect:hides=OK_Open expect:hides=0-9_open "
-                        "expect:shows=Sound expect:shows=Connections "
+        self.assertFalse(saturated(display, ROWS_Y, 202, 12))
+        self.run_script("ok 7 expect:shows=1/12 expect:shows=OK expect:hides=OK_Open expect:hides=0-9_open "
+                        "expect:shows=Sound expect:shows=Connections expect:shows=My_radio "
                         "expect:hides=Advanced expect:layout=0 "
                         "down down down down down expect:focus=Connections "
                         "down expect:focus=Power expect:shows=Power expect:hides=Power_saving "
-                        "expect:shows=2/2 expect:hides=Sound "
-                        "expect:shows=Advanced expect:layout=0 up expect:shows=1/2 "
+                        "expect:shows=7/12 expect:shows=Sound expect:layout=0 "
+                        "up up up up up up up expect:focus=Advanced expect:shows=12/12 expect:hides=Sound "
+                        "expect:shows=Signaling_tones expect:layout=0 down expect:shows=1/12 "
                         "7 expect:screen=group expect:shows=Power expect:hides=Power_Saving "
-                        "back expect:shows=2/2 expect:focus=Power")
-
+                        "back expect:shows=7/12 expect:focus=Power")
     def test_profile_settings_submenus_use_roomy_headings(self):
         groups = [("1", 12), ("2", 8), ("3", 13), ("4", 2), ("5", 8), ("6", 10),
                   ("7", 3), ("8", 11), ("9", 2), ("0", 2), ("up up ok", 9), ("up ok", 5)]
@@ -269,36 +276,38 @@ class PrototypeTest(unittest.TestCase):
 
     def test_profile_menu_has_rounded_tinted_rows_and_icons(self):
         menu = self.render_frame("ok expect:layout=0")
-        self.assertTrue(any(max(rgb) - min(rgb) > 70 for y in range(76, 103)
-                            for x in range(20, 34) for rgb in [menu[y][x * 3:x * 3 + 3]]))
+        top = ROWS_Y + 2  # the first row's panel
+        self.assertTrue(any(max(rgb) - min(rgb) > 70 for y in range(top, top + ROW_H - 4)
+                            for x in range(17, 31) for rgb in [menu[y][x * 3:x * 3 + 3]]))
         # The inset row begins with a curved corner and the unselected fill is distinctly tinted.
-        self.assertEqual(menu[75][7 * 3:8 * 3], menu[75][:3])
-        self.assertNotEqual(menu[81][7 * 3:8 * 3], menu[81][:3])
-        tint = menu[130][299 * 3:300 * 3]
+        self.assertEqual(menu[top][7 * 3:8 * 3], menu[top][:3])
+        self.assertNotEqual(menu[top + 6][7 * 3:8 * 3], menu[top + 6][:3])
+        tint = menu[top + ROW_H + 10][100 * 3:101 * 3]
         self.assertLess(tint[0], 230)
-        self.assertNotEqual(tint, menu[130][:3])
+        self.assertNotEqual(tint, menu[top + ROW_H + 10][:3])
         self.run_script("ok expect:count=7 up expect:focus=Settings 7 expect:screen=settings")
         self.run_script("ok expect:shows=Contacts expect:shows=Messages expect:shows=Recent "
                         "expect:shows=Zones expect:shows=Channels expect:shows=Tools "
-                        "expect:hides=Settings expect:layout=0")
-        self.run_script("scankey wait:5000 msg:9991234,Hello wait:9000 ok "
+                        "expect:shows=Settings expect:hides=1/7 expect:layout=0")
+        self.run_script("msg:9991234,Hello scankey wait:9000 ok "
                         "expect:shows=Messages expect:shows=Tools "
                         "expect:hides=Scanning expect:hides=1_new expect:layout=0")
-        self.run_script("ok 7 2 up ok down ok long:back ok "
+        self.run_script("ok 7 2 down down down down down down down ok down ok long:back ok "
                         "expect:shows=Herramientas expect:layout=0")
         self.run_script("ok down down down down down down expect:focus=Settings expect:layout=0")
         self.run_script("ok expect:shows=Zones expect:hides=Local_repeaters 4 "
                         "expect:screen=zones expect:shows=Local_repeaters")
         settings = self.render_frame("ok up expect:focus=Settings expect:layout=0")
-        gear = {row[x * 3:x * 3 + 3] for row in settings[86:99] for x in range(12, 25)}
+        # Settings is the second column's second row
+        gy = ROWS_Y + ROW_H + 7
+        gear = {row[x * 3:x * 3 + 3] for row in settings[gy:gy + 13] for x in range(169, 182)}
         self.assertIn(bytes(3), gear)
         self.assertTrue(any(100 < min(rgb) < 180 and max(rgb) - min(rgb) <= 4 for rgb in gear))
-
     def test_inbox_hints_follow_the_focused_action(self):
+        # Two labels, one per soft key: OK and Back. The # reply hint is not a soft key and stays off the bar
         self.run_script("ok 2 expect:shows=OK expect:hides=OK_Compose expect:hides=#_reply ok expect:screen=compose")
-        self.run_script("msg:9991234,Hello wait:9000 ok 2 expect:shows=#_reply down "
+        self.run_script("msg:9991234,Hello wait:9000 ok 2 expect:shows=OK expect:shows=Back expect:hides=#_reply down "
                         "expect:shows=OK expect:hides=OK_Compose expect:hides=#_reply expect:layout=0")
-
     def test_profile_menu_sections_use_roomy_headings_and_rows(self):
         sections = (
             ("ok 1", "Contacts", "contacts", 31),
@@ -308,18 +317,20 @@ class PrototypeTest(unittest.TestCase):
             ("ok 5", "Channels", "channels", 41),
             ("ok 6", "Tools", "tools", 9),
         )
+        top = ROWS_Y + 2
         for script, heading, screen, count in sections:
             with self.subTest(screen=screen):
                 frame = self.render_frame(
                     f"{script} expect:screen={screen} expect:count={count} "
                     f"expect:shows={heading} expect:layout=0"
                 )
-                heading_ink = sum(frame[y][x * 3] < 110 for y in range(39, 49) for x in range(16, 100))
+                heading_ink = sum(frame[y][x * 3] < 110 for y in range(STRIP_H, ROWS_Y) for x in range(16, 100))
                 self.assertGreater(heading_ink, 75)
-                self.assertEqual(frame[75][7 * 3:8 * 3], frame[75][:3])
-                self.assertNotEqual(frame[75][10 * 3:11 * 3], frame[75][:3])
-                self.run_script(f"{script} down up expect:count={count} expect:layout=0")
-
+                self.assertEqual(frame[top][7 * 3:8 * 3], frame[top][:3])
+                self.assertNotEqual(frame[top][10 * 3:11 * 3], frame[top][:3])
+                # The scroll position n/N where the list has more than five rows
+                self.run_script(f"{script} down up expect:count={count} expect:layout=0 " +
+                                (f"expect:shows=/{count}" if count > 5 else f"expect:hides=/{count}"))
     def test_nested_profile_lists_share_the_roomy_heading(self):
         for script, screen in (("ok 1 down ctx", "actions"), ("ok 5 ok", "channel"),
                                ("ok 4 down ctx", "zone"), ("ok 6 6", "roaming")):
@@ -328,19 +339,11 @@ class PrototypeTest(unittest.TestCase):
                 ink = sum(frame[y][x * 3] < 110 for y in range(39, 49) for x in range(16, 100))
                 self.assertGreater(ink, 75)
 
-    def test_home_mode_sits_in_the_upper_left_of_the_middle_frame(self):
-        frame = self.render_frame("expect:layout=0")
-        bar_ink = sum(frame[y][x * 3] < 80 for y in range(8, 30) for x in range(37, 70))
-        middle_ink = sum(frame[y][x * 3] < 80 for y in range(38, 62) for x in range(15, 41))
-        self.assertEqual(bar_ink, 0)
-        self.assertGreater(middle_ink, 25)
-        self.run_script("expect:shows=DMR prototype:dstar_on expect:shows=D-STAR expect:layout=0")
-
     def test_home_footer_separates_menu_and_quick_hints(self):
         frame = self.render_frame("expect:layout=0")
 
         def footer_ink(left, right):
-            return sum(min(row[x * 3:x * 3 + 3]) > 220 for row in frame[211:] for x in range(left, right))
+            return sum(min(row[x * 3:x * 3 + 3]) > 220 for row in frame[211:236] for x in range(left, right))
 
         self.assertGreater(footer_ink(15, 90), 40)
         self.assertGreater(footer_ink(225, 296), 40)
@@ -348,11 +351,9 @@ class PrototypeTest(unittest.TestCase):
         label_rows = [y for y in range(202, 236)
                       if any(min(frame[y][x * 3:x * 3 + 3]) > 220 for x in range(15, 99))]
         self.assertGreaterEqual(max(label_rows) - min(label_rows) + 1, 18)
-
     def test_menu_pages_and_footer_match_home(self):
-        self.run_script("ok expect:shows=1/2 expect:shows=OK expect:hides=1-7_open "
-                        "expect:hides=Settings down down down down down down "
-                        "expect:shows=2/2 expect:focus=Settings ok expect:screen=settings "
+        self.run_script("ok expect:shows=OK expect:shows=Back expect:hides=1-7_open expect:shows=Settings "
+                        "down down down down down down expect:focus=Settings ok expect:screen=settings "
                         "expect:shows=OK expect:hides=OK_Open 2 expect:screen=group "
                         "expect:shows=OK expect:hides=OK_change ok expect:screen=display-choice "
                         "expect:shows=OK expect:hides=OK_pick")
@@ -361,7 +362,6 @@ class PrototypeTest(unittest.TestCase):
             frame = self.render_frame(screen + " expect:layout=0")
             for y in range(198, 240):
                 self.assertEqual(frame[y][450:453] == home[216][450:453], 202 <= y < 236)
-
     def test_menu_status_uses_larger_mode_and_device_marks(self):
         for screen in ("ok", "ok 7", "ok 7 2 ok"):
             frame = self.render_frame("gps:fix " + screen + " expect:layout=0")
@@ -385,27 +385,17 @@ class PrototypeTest(unittest.TestCase):
                         row[outside * 3:outside * 3 + 3] != row[inside * 3:inside * 3 + 3]
                         for row in frame[75:198]))
 
-    def test_home_has_four_inset_panes_in_both_themes(self):
-        amateur = "ok 7 2 ok down ok long:back "
-        night = "ok 7 2 down ok down ok long:back "
-        for profile in ("", amateur):
-            for theme in ("", night):
-                with self.subTest(profile=profile or "Commercial", theme=theme or "Day"):
-                    frame = self.render_frame(profile + theme + "expect:layout=0")
-                    gutter = frame[0][:3]
-                    runs = []
-                    for y, row in enumerate(frame):
-                        self.assertEqual(row[:3], gutter)
-                        center = row[50 * 3:51 * 3]  # Clear of the footer labels and centered channel text.
-                        if center != gutter and (y == 0 or frame[y - 1][50 * 3:51 * 3] == gutter):
-                            runs.append(y)
-                    self.assertEqual(len(runs), 4)
-                    for top in runs:
-                        self.assertEqual(frame[top][4 * 3:5 * 3], gutter)
-                        self.assertNotEqual(frame[top + 6][4 * 3:5 * 3], gutter)
-                    self.assertLessEqual(runs[-1], 202)
-                    self.assertEqual(frame[-1][50 * 3:51 * 3], gutter)
-
+    def test_soft_key_bar_has_two_labels(self):
+        # Exactly two labels, one per soft key: screens whose hints name other keys too keep only OK and Back
+        for script, hidden in (("ok 1", "#_more"), ("ok 5 ok", "hold_OK_save"), ("ok 4", "#_channels"),
+                               ("ok 5", "0-9_find"), ("msg:9991234,Hello wait:9000 ok 2", "#_reply")):
+            with self.subTest(screen=script):
+                self.run_script(f"{script} expect:shows=OK expect:shows=Back expect:hides={hidden} expect:layout=0")
+        # A hint without an OK group: Back alone, the PTT and # groups off the bar
+        self.run_script("call:9991234,3100,g wait:11000 ok 3 expect:shows=Back expect:hides=PTT_talk "
+                        "expect:hides=#_more expect:layout=0")
+        # Quick's OK soft key saves when held; its other hint (0 All settings) is not a soft key
+        self.run_script("quick expect:shows=Hold_OK_save expect:hides=All_settings expect:layout=0")
     def run_script(self, script, geometry=GEOMETRY):
         run = subprocess.run([SIM, "--geom", geometry, "--script", script],
                              capture_output=True, text=True, errors="replace", timeout=15)
@@ -436,24 +426,27 @@ class PrototypeTest(unittest.TestCase):
             "ok 7 5 expect:focus=GPS ok back back back expect:hides=14:08"
         )
         setup = "ok 7 2 down down ok down ok long:back gps:fix "
-        for profile, top in (("", 36), ("ok 7 2 ok down ok long:back ", 29)):
+        for profile in ("", AMATEUR):
             with self.subTest(profile=profile or "Commercial"):
-                frame = self.render_frame(profile + setup +
+                clock = self.render_frame(profile + setup +
                                           "expect:shows=21_Nov expect:shows=14:08 expect:layout=0")
-                self.assertTrue(all(row[42 * 3:160 * 3] == row[150:153] * 118 for row in frame[:top - 1]))
-                # Date and time each end at the right edge of the mode row.
-                for first in (top + 3, top + 17):
-                    self.assertTrue(any(row[287 * 3:298 * 3] != row[150:153] * 11
-                                        for row in frame[first:first + 14]))
-
+                plain = self.render_frame(profile + "gps:fix expect:layout=0")
+                # Home's own line at the bottom of its channel area; the strip is the same as without the clock
+                self.assertEqual(clock[:STRIP_H], plain[:STRIP_H])
+                changed = [y for y in range(STRIP_H, 202) if clock[y] != plain[y]]
+                self.assertTrue(changed and min(changed) >= 150)
     def test_profiles_keep_call_context_on_home(self):
+        # The channel's name is the main line. Commercial shows the talk target only where it isn't the channel's own;
+        # a call shows the caller and the talkgroup; Amateur shows the target and the details always
         self.run_script(
-            "expect:centered=USA expect:hides=TS1 expect:hides=TG_3100 "
-            "rx:9991234,3100,g,Morgan_Reed expect:centered=USA expect:centered=Morgan_Reed "
-            "expect:hides=Receiving rxend expect:centered=USA expect:hides=Morgan_Reed "
-            "ok 7 2 ok down ok long:back expect:centered=USA expect:shows=TS1 expect:shows=TG_3100"
+            "expect:centered=COUNTY_DMR expect:centered=Local_repeaters expect:hides=USA expect:hides=TS1 "
+            "rx:9991234,3100,g,Morgan_Reed expect:centered=COUNTY_DMR expect:centered=Morgan_Reed "
+            "expect:shows=TG_3100 expect:hides=Receiving rxend expect:hides=Morgan_Reed "
+            "ok 7 2 ok down ok long:back expect:centered=COUNTY_DMR expect:centered=USA expect:shows=TG_3100 "
+            "expect:shows=TS1"
         )
-
+        # The reply window's target differs from the channel's: Commercial shows it
+        self.run_script("call:9991234,91,g expect:centered=COUNTY_DMR expect:centered=World")
     def test_layout_with_crowded_status_bar_and_notifications(self):
         for theme in ("", "ok 7 2 down ok down ok long:back "):
             with self.subTest(theme="Night" if theme else "Day"):
@@ -480,22 +473,10 @@ class PrototypeTest(unittest.TestCase):
             "prototype:crypt_arc4 prototype:talkaround_on msg:9991234,Hello wait:9000 lockkey wait:3000"
         )
         check = " expect:shows=21_Nov expect:shows=14:08 expect:shows=ARC4 expect:layout=0"
-
-        def operating_ink(frame):
-            # Compare the solid strokes. The indexed palette can map an edge to different neighboring shades.
-            return [tuple(max(rgb) < 40 for rgb in zip(row[::3], row[1::3], row[2::3]))
-                    for row in frame[36:64]]
-
-        crowded = self.render_frame(setup + " vox:on prototype:record_on" + check)
-        for state in ("vox:off prototype:record_on", "vox:on prototype:record_off"):
-            with self.subTest(state=state):
-                toggled = self.render_frame(setup + " " + state + check)
-                self.assertTrue(crowded[:36] != toggled[:36], "device mark should change the top bar")
-                self.assertTrue(operating_ink(crowded) == operating_ink(toggled),
-                                "operating marks should stay in place")
-        # Dual Watch owns a device slot immediately to the left of GPS.
-        self.assertTrue(any(row[153 * 3:169 * 3] != row[:3] * 16 for row in crowded[7:29]))
-
+        crowded = ink_map(self.render_frame(setup + " vox:on prototype:record_on" + check))
+        toggled = ink_map(self.render_frame(setup + " vox:on prototype:record_off" + check))
+        self.assertTrue(crowded[:STRIP_H] != toggled[:STRIP_H], "a mark should change the strip")
+        self.assertTrue(crowded[STRIP_H:202] == toggled[STRIP_H:202], "Home under the strip stays")
     def test_operational_activity_stays_visible(self):
         self.run_script("dlmode:p25 p25t:1 expect:shows=Finding_system")
         self.run_script("t3 dlpos:3 t3state:fallback expect:shows=Fallback")

@@ -172,10 +172,10 @@ msgctxt "VALUE_ALL_CALL"
 msgid "All call"
 msgstr "Llamada a todos"
 
-#: core/ui/themes/panels/panels.c
-msgctxt "HOME_STATE_NO_TARGET"
-msgid "No talk target"
-msgstr "Sin destino de llamada"
+#: core/ui/themes/panels/panels.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "ACT_ROW_PRIVATE_CALL"
+msgid "Private call"
+msgstr "Llamada privada"
 
 #: core/ui/themes/panels/panels.c core/ui/ui_screens.c
 msgctxt "HOME_STATE_NO_TX_FREQ"
@@ -187,10 +187,50 @@ msgctxt "HOME_STATE_DMR_MODEM_OFF"
 msgid "DMR modem off"
 msgstr "Módem DMR apagado"
 
-#: core/ui/ui_app.c core/ui/ui_find.c
+#: core/ui/themes/panels/panels.c
+msgctxt "HOME_STATE_NO_TARGET"
+msgid "No talk target"
+msgstr "Sin destino de llamada"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_find.c
 msgctxt "FIND_CHIP_MENU"
 msgid "Menu"
 msgstr "Menú"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_menus.c
+msgctxt "SET_LABEL_BRIGHTNESS"
+msgid "Brightness"
+msgstr "Brillo"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_menus.c
+msgctxt "CHAN_LABEL_COLOR_CODE"
+msgid "Color code"
+msgstr "Código de color"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_menus.c
+msgctxt "CHAN_LABEL_BANDWIDTH"
+msgid "Bandwidth"
+msgstr "Ancho banda"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "QUICK_LABEL_TX_FREQUENCY"
+msgid "TX frequency"
+msgstr "Frecuencia TX"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "QUICK_TITLE"
+msgid "Quick"
+msgstr "Rápido"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_screens.c
+msgctxt "QUICK_HINT_ALL_SETTINGS"
+msgid "0 All settings  Hold OK save"
+msgstr "0 Ajustes  Mant OK guardar"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_aprs.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "HINT_BACK"
+msgid "Back"
+msgstr "Atrás"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -1102,11 +1142,6 @@ msgctxt "APRS_TITLE_HEARD"
 msgid "Heard"
 msgstr "Oídas"
 
-#: core/ui/ui_aprs.c core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "HINT_BACK"
-msgid "Back"
-msgstr "Atrás"
-
 #: core/ui/ui_aprs.c
 msgctxt "APRS_EMPTY_NOTHING_HEARD"
 msgid "Nothing heard yet"
@@ -1656,11 +1691,6 @@ msgstr "1-7 abrir  Atrás"
 msgctxt "ACT_ROW_TALK_TO"
 msgid "Talk to "
 msgstr "Hablar a "
-
-#: core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "ACT_ROW_PRIVATE_CALL"
-msgid "Private call"
-msgstr "Llamada privada"
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_RADIO_CHECK"
@@ -2338,11 +2368,6 @@ msgid "RX only"
 msgstr "Solo RX"
 
 #: core/ui/ui_menus.c
-msgctxt "CHAN_LABEL_BANDWIDTH"
-msgid "Bandwidth"
-msgstr "Ancho banda"
-
-#: core/ui/ui_menus.c
 msgctxt "CHAN_LABEL_RX_TONE"
 msgid "RX CTCSS/DCS"
 msgstr "CTCSS/DCS RX"
@@ -2361,11 +2386,6 @@ msgstr "Ráfaga de tono"
 msgctxt "CHAN_AES_KEY"
 msgid "AES key"
 msgstr "Clave AES"
-
-#: core/ui/ui_menus.c
-msgctxt "CHAN_LABEL_COLOR_CODE"
-msgid "Color code"
-msgstr "Código de color"
 
 #: core/ui/ui_menus.c
 msgctxt "LABEL_TIMESLOT"
@@ -3807,11 +3827,6 @@ msgctxt "KEYFN_VALUE_NOTHING"
 msgid "Nothing"
 msgstr "Nada"
 
-#: core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "QUICK_TITLE"
-msgid "Quick"
-msgstr "Rápido"
-
 #: core/ui/ui_menus.c
 msgctxt "KEYFN_VALUE_MONITOR"
 msgid "Monitor"
@@ -4061,11 +4076,6 @@ msgstr "Día/noche"
 msgctxt "SET_LABEL_GPS_CLOCK"
 msgid "GPS clock"
 msgstr "Reloj GPS"
-
-#: core/ui/ui_menus.c
-msgctxt "SET_LABEL_BRIGHTNESS"
-msgid "Brightness"
-msgstr "Brillo"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_BACKLIGHT_DIM_OFF"
@@ -5771,11 +5781,6 @@ msgstr "  OK fija"
 msgctxt "QUICK_HINT"
 msgid "1-9 change  Hold OK save"
 msgstr "1-9 cambiar  Mant OK guardar"
-
-#: core/ui/ui_screens.c
-msgctxt "QUICK_HINT_ALL_SETTINGS"
-msgid "0 All settings  Hold OK save"
-msgstr "0 Ajustes  Mant OK guardar"
 
 #: core/ui/ui_screens.c
 msgctxt "DIAG_VARIANT_MISMATCH"
