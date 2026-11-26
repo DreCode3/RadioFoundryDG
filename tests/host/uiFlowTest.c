@@ -154,6 +154,21 @@ static const flow_t flows[] = {
 	{ "Find: a PC and network setting", "4 6 8 7 row:Hotspot_allowed ok", "back",
 	  "screen=connections focus=PC_and_network", 1, false },
 	{ "Find: an alert tone", "6 3 7 7 row:Message_tone ok", "back", "screen=group focus=Alert_tones", 1, false },
+	// What Find found before the menu tree moved it (46dad875) it still finds: the places by name or synonym, the
+	// settings rows wherever they went
+#if CONFIG_DMR && (CONFIG_DMR_ARS || CONFIG_DMR_IP_GATEWAY)	// ui_nav.h UI_DATA_SERVICES
+	{ "Find: Data services (data)", "", "3 2 8 2 ok", "screen=data-services", 5, false },
+	{ "Find: Data services (gate)", "", "4 2 8 3 row:Data_services ok", "screen=data-services", 6, false },
+	{ "Find: Data services (ARS)", "", "2 7 7 row:Data_services ok", "screen=data-services", 5, false },
+#endif
+	{ "Find: Roaming", "", "7 6 2 6 row:Roaming ok", "screen=roaming", 5, false },
+	{ "Find: APRS", "", "2 7 7 7 ok", "screen=aprs", 5, false },
+	{ "Find: VFO", "", "8 3 6 ok", "screen=zones", 4, false },
+	{ "Find: About", "", "2 2 6 8 8 ok", "screen=group focus=About", 6, false },
+	{ "Find: Codeplug", "", "2 6 3 3 7 5 8 ok", "screen=group focus=Codeplug", 8, false },
+	{ "Find: Diagnostics", "", "3 4 2 4 ok", "screen=group focus=Diagnostics", 5, false },
+	{ "Find: the call log as recent", "", "7 3 2 3 6 8 ok", "screen=recent", 7, false },
+	{ "Find: Connections as tools", "", "8 6 6 5 7 ok", "screen=connections", 6, false },
 	// A row with several values opens a pick list, the value in use checked and focused; OK takes the focused one,
 	// Back leaves it as it was. An on/off row flips on OK
 	{ "Pick list: the value in use", "ok 8 4 row:TX_timeout", "ok", "screen=pick focus=3_min shows=TX_timeout", 1,
@@ -494,6 +509,7 @@ static const flow_t flows[] = {
 	// Settings > Advanced > Backlight tests, under Diagnostics. The sim's display has the raw hooks (4096 counts, three
 	// rates, 7324 Hz standard), so the compare value page comes first
 	{ "S backlight tests", "", "ok 8 9 row:Backlight_tests ok", "screen=bltest shows=CV", 9, false },
+	{ "S backlight tests by Find (duty)", "", "3 8 8 9 row:Backlight_tests ok", "screen=group focus=Backlight_tests", 6, false },
 	{ "S backlight tests: digits set the value", "ok 8 9 row:Backlight_tests ok", "2 1 3 7", "shows=CV_2137", 4, false },
 	{ "S backlight tests: # applies fewer digits", "ok 8 9 row:Backlight_tests ok", "5 0 ctx", "shows=CV_50", 3, false },
 	{ "S backlight tests: Up steps 50", "ok 8 9 row:Backlight_tests ok 2 1 3 7", "up", "shows=CV_2187", 1, false },

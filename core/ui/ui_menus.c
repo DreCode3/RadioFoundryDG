@@ -43,8 +43,7 @@
 #include "dmr/sfr.h"
 #endif
 
-// Menu > Connections > Data services: the ARS server and the IP gateway
-#define DATA_IDS	(CONFIG_DMR && (CONFIG_DMR_ARS || CONFIG_DMR_IP_GATEWAY))
+#define DATA_IDS	UI_DATA_SERVICES
 
 #ifndef RFOUNDRY_GIT
 #define RFOUNDRY_GIT "host"

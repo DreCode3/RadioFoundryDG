@@ -49,6 +49,10 @@ static const struct {
 #if CONFIG_APRS
 	{ TRX(WORD_APRS, "APRS"), "beacon smartbeaconing symbol path kiss tnc gps", SCR_APRS },
 #endif
+#if UI_DATA_SERVICES
+	{ TRN(SET_ROW_DATA_SERVICES, "Data services"), "ARS registration presence server IP gateway off-net",
+		SCR_DATA_SERVICES },
+#endif
 };
 #define PLACES_N	((uint8_t)(sizeof places / sizeof places[0]))
 

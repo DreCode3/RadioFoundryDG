@@ -56,6 +56,9 @@ typedef enum {
 	SCR_COUNT
 } ui_scr_t;
 
+// Menu > Connections > Data services (SCR_DATA_SERVICES): the ARS server and the IP gateway
+#define UI_DATA_SERVICES	(CONFIG_DMR && (CONFIG_DMR_ARS || CONFIG_DMR_IP_GATEWAY))
+
 // Screen flags
 #define SF_LIST		0x01u	// drawn and driven as a list (ui_draw_list)
 #define SF_NUMBERED	0x02u	// digits pick the row with that number
