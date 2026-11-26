@@ -91,6 +91,20 @@ common abbreviations (VFO, SFR, DMR, GPS, APRS, TG, CTCSS, DCS).
 
 ## Layout (the second theme, judged on the GD-88)
 
+Decided Nov 26, after step 3's first attempt dropped them:
+
+- **Rounded panes on every screen are the look.** The status strip is a rounded pane, the same on every screen;
+  list rows and grid tiles are rounded tinted panes; the soft key bar is a rounded pane; Home keeps its mode bar and
+  main pane. The visual reference is the step 2 panels renders (`70a91cc3`, the `profile/` part of the pixel
+  baseline). `docs/ux/wireframes/gd88-home-profiles.html` is an earlier prototype, not the reference for the look.
+- **The GPS clock stays**, in the status strip on every screen (while GPS time is valid and the GPS clock setting is
+  on).
+- **No text smaller than 8x16.** A label that doesn't fit gets a shorter word (CLAUDE.md: pick a shorter word, don't
+  drop words), never a smaller font.
+- **Hints for the other keys** (#, 0-9, PTT, hold OK) go in the hint row when Settings > Display > Hint row is on;
+  the soft key bar keeps exactly two labels. The theme picks them from what the hint declares, never by comparing
+  shown text (translations).
+
 - Grids: one fixed column split for the whole list, not per page.
 - One row height everywhere; lists show 5 rows on 310 x 240.
 - Lists of only on/off rows with short labels: 2-column toggle tiles with a state chip.
@@ -154,12 +168,22 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    - Step 3 starts with what step 2's QA logged (not blocking): a few panels frames or checksums in
      `uiThemeTestPanels`, so the host suite holds the drawing-order rule without the external pixel baseline (finding
      1); restore or pass down `dual_style` instead of a file-static pointer left set (3); a warning at the `UI_THEME_*`
-     enum that those palette numbers are the reference theme's only (4). For step 4: no Settings row sets the theme
+     enum that those palette numbers are the reference theme's only (4). For the menu step (now step 3): no Settings row sets the theme
      yet, so a radio with theme 1 stored can't get back to panels (5).
-3. Layout fixes in the second theme.
-4. Menu tree, settings row behavior, naming. First: fix the UI simulator's division by zero on an empty zone
+3. Menu tree, settings row behavior, naming (moved ahead of the layout on Nov 26, so the layout is judged on the
+   real labels and the 3x3 keypad grid). First: fix the UI simulator's division by zero on an empty zone
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),
-   with a test that reproduces it, since step 4 exercises zone and channel editing. (shared; updates task flows, press budgets, IA and translations).
+   with a test that reproduces it, since this step exercises zone and channel editing. (shared; updates task flows,
+   press budgets, IA and translations).
+4. Layout fixes in the second theme, to the Layout section above.
+   - A first attempt is on the branch (`596fdd3e`..`55b2bac8`, not QA-approved). Keep: `compare.py`/`cc.sh
+     --except`, the step 2 carry-overs (`uiThemeTestPanels` structural checks, `dual_style` restored, the
+     `UI_THEME_*` warning), 5 rows of one height, the accent bar, the n/N badge, the channel name as Home's main line.
+     Rework: the panes it removed, the GPS clock it moved off the strip, the 6x12 fallbacks, the dropped hints.
+   - Defects QA found in it before the review was stopped (evidence in `../rf-qa3-out/`): Quick's TX frequency
+     entry no longer shows the typed digits; the soft key bar filters hints by English words, so French shows
+     "PTT Parler OK #+"; a banner cuts off the second line of dual watch Home; a busy status strip overlaps its
+     icons; Quick in Chinese is unreadable at 6x12.
 5. Icons and palettes.
 6. Freeze on the GD-88, then port to other display classes.
 

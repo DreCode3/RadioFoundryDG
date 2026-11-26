@@ -92,5 +92,5 @@ output outside the repository. `snapshot.py` uses one render thread per core.
 
 - [gui-plan.md](gui-plan.md): the approved design, the process, testing sizes, order of work.
 - [reports/](reports/): the theme inventory, step 1 reports and the QA reviews.
-- Steps 1 and 2 are QA-approved (step 2 at `70a91cc3`: [review](reports/theme-step2-review.md)). Step 3 (layout
-  fixes in the panels theme) is next; gui-plan.md lists what it starts with.
+- Steps 1 and 2 are QA-approved (step 2 at `70a91cc3`: [review](reports/theme-step2-review.md)). On Nov 26 the menu
+  tree and naming moved ahead of the panels layout; gui-plan.md's order of work has what each step starts with.
