@@ -141,6 +141,7 @@ static const flow_t flows[] = {
 	// Settings: groups 1-9, Radio info after them (no digit), 0 is Find
 	{ "Settings: 0 is Find", "ok 8", "0", "screen=find query=", 1, false },
 	{ "Settings: Radio info by Up", "ok 8", "up", "screen=settings focus=Radio_info", 1, false },
+	{ "Settings: Radio info has no digit", "ok 8", "up", "focus=Radio_info nodigit=Radio_info", 1, false },
 	// Its values, read only: OK does nothing on a value without a page, so the hint offers only Back there
 	{ "Settings: Radio info is read only", "ok 8 up", "ok", "screen=group shows=Radio_info shows=Battery "
 	  "shows=84% shows=Radio_name shows=Q0TEST shows=About shows=GPS hides=OK_open hides=OK_change", 1, false },
@@ -185,13 +186,18 @@ static const flow_t flows[] = {
 	{ "Find: a number offers Use TG", "", "9 1", "screen=find focus=Use_TG_91 shows=Private_call_91", 2, false },
 	// A row with several values opens a pick list, the value in use checked and focused; OK takes the focused one,
 	// Back leaves it as it was. An on/off row flips on OK
-	{ "Pick list: the value in use", "ok 8 4 row:TX_timeout", "ok", "screen=pick focus=3_min shows=TX_timeout", 1,
-	  false },
+	{ "Pick list: the value in use", "ok 8 4 row:TX_timeout", "ok",
+	  "screen=pick focus=3_min checked=3_min shows=TX_timeout", 1, false },
+	{ "Pick list: the check mark stays on the value in use", "ok 8 4 row:TX_timeout ok", "down",
+	  "screen=pick focus=5_min checked=3_min", 1, false },
 	{ "Pick list: OK takes it", "ok 8 4 row:TX_timeout ok", "down ok", "screen=group focus=TX_timeout radio_tot=300",
 	  2, false },
 	{ "Pick list: Back leaves it", "ok 8 4 row:TX_timeout ok", "down back", "screen=group radio_tot=180", 2, false },
 	{ "On/off row: OK flips it", "ok 8 4 row:Show_talker_alias", "ok", "screen=group shows=Off", 1, false },
-	{ "Number row: the value editor", "ok 8 4", "ok up", "screen=group shows=11_s shows=<", 2, false },
+	// The value editor: the value between markers in the accent, the row framed in it (a monochrome display: the
+	// markers only); OK saves it, Back cancels
+	{ "Number row: the value editor", "ok 8 4", "ok up", "screen=group editor=11_s framed=11_s shows=OK_save", 2,
+	  false },
 	{ "menu disabled row still explains why", "ok 6 4", "row:Send_position ok", "focus=Send_position toast=No_GPS_on_this_radio", 8, false },
 	{ "menu return preserves focus", "ok 8 down down down ok", "back", "screen=settings focus=Call_settings", 1, false },
 	{ "menu entry skips unavailable GPS", "", "ok 6 4 row:Answer_GPS_requests", "screen=group focus=Answer_GPS_requests", 3, false },
@@ -1275,6 +1281,12 @@ static const flow_t flows[] = {
 	  false },
 	{ "24 copy here asks before discarding", "ok 4 ctx ctx 3", "back", "screen=discard writes=0", 1, false },
 	{ "24 edit channel opens the editor", "ok 4 ctx ctx", "4", "screen=channel shows=COUNTY_DMR depth=4", 1, false },
+	// The deepest path (ui_app.c UI_STACK_MAX): Settings > Programming > Zones, a zone, Copy here, its name, and Back
+	// up through every level to Home. A smaller stack drops a level on the way down and fails here
+	{ "Back along the deepest path", "ok 8 9 row:Zones ok ctx ctx 3 row:Name ok",
+	  "expect:screen=text expect:depth=7 ok expect:screen=channel back expect:screen=discard expect:depth=7 down ok "
+	  "expect:screen=zone back expect:screen=zones back expect:screen=group back expect:screen=settings back "
+	  "expect:screen=hub back", "screen=home depth=0", 10, false },
 	{ "25 add channel 20 after the channel in use", "", "ok 4 ctx 2 ok 2 0 ok",
 	  "screen=zone writes=1 toast=Added_to focus=04_", 8, true },
 	{ "25 add channel offers only what the zone doesn't hold", "ok 4 ctx 2", "ok", "screen=zpick count=24", 1, false },

@@ -33,9 +33,10 @@
 #include "hotspot/hotspot.h"
 #endif
 
-// The deepest path: Home, Menu, Settings, Programming, Zones, a zone, Channel actions, Copy here (the channel editor)
-// and its name entry. 8 bytes a level
-#define UI_STACK_MAX		9
+// The deepest path: Home, Menu, Settings, Programming, Zones, a zone, Copy here (the channel editor, in Channel
+// actions' place) and its name entry, or the editor's Unsaved changes. 8 bytes a level; uiFlowTest walks it there
+// and back ("Back along the deepest path")
+#define UI_STACK_MAX		8
 #define TOAST_MS		1800
 #define VOLUME_MS		3000	// the volume screen closes this long after the last key, the knob's bar after its last turn
 #define ENTRY_TIMEOUT_MS	10000

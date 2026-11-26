@@ -72,7 +72,10 @@
 //   shot:<name>         save the screen (sim_set_shot_dir)
 //   expect:<key>=<value>   check (see check()); value "*" = anything; shows=<text> / hides=<text>: a drawn
 //                          text contains it / none does; markafter=<text> / nomarkafter=<text>: a mark is drawn just right of it / none is;
-//                          centered=<text>: a text that contains it is centered on the screen, to a character cell
+//                          centered=<text>: a text that contains it is centered on the screen, to a character cell;
+//                          checked=<text>: the one check mark is on that text's row (a pick list's value in use);
+//                          editor=<value> / framed=<value>: the value editor's markers beside it in the accent, and
+//                          the row framed in it (the reference theme); nodigit=<text>: no key digit on its row
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -190,6 +193,41 @@ bool sim_text_has_color(const char *text, uint16_t color)
 					return true;
 	}
 	return false;
+}
+
+// A drawn text's ink: of the colors in its box, the one farthest from the paper (the most common one; a glyph's box is
+// mostly paper). Anti-aliased edges are blends between the two, nearer the paper
+static int rgb_dist(color_t a, color_t b)
+{
+	int dr = (a >> 11) - (b >> 11), dg = ((a >> 5) & 63) - ((b >> 5) & 63), db = (a & 31) - (b & 31);
+	return dr * dr * 4 + dg * dg + db * db * 4;
+}
+
+static color_t text_ink(int i)
+{
+	color_t seen[64];
+	int count[64], n = 0;
+	for (int y = live[i].y0; y < live[i].y1; y++)
+		for (int x = live[i].x0; x < live[i].x1; x++) {
+			color_t c = gfx_get_pixel(x, y);
+			int k = 0;
+			while (k < n && seen[k] != c)
+				k++;
+			if (k == n && n < 64) {
+				seen[n] = c;
+				count[n++] = 0;
+			}
+			if (k < n)
+				count[k]++;
+		}
+	int paper = 0, ink = 0;
+	for (int k = 1; k < n; k++)
+		if (count[k] > count[paper])
+			paper = k;
+	for (int k = 1; k < n; k++)
+		if (rgb_dist(seen[k], seen[paper]) > rgb_dist(seen[ink], seen[paper]))
+			ink = k;
+	return seen[ink];
 }
 
 bool sim_text_bounds(const char *text, int *x, int *y, int *w, int *h)
@@ -3125,6 +3163,83 @@ static bool check(const char *kv, char *err, size_t len)
 				strcat(got, "|");
 				strcat(got, live[i].s);
 			}
+		}
+	}
+	else if (strcmp(key, "checked") == 0) {
+		// The pick list's check mark: one, on the row of the text that contains the value
+		int marks = 0, row = -1;
+		for (int i = 0; i < live_n; i++)
+			if (strcmp(live[i].s, GLYPH_CHECK) == 0)
+				marks++;
+		for (int i = 0; i < live_n && row < 0; i++)
+			if (strstr(live[i].s, want) != NULL && strcmp(live[i].s, GLYPH_CHECK) != 0)
+				row = i;
+		bool on_row = false;
+		for (int i = 0; row >= 0 && i < live_n; i++)
+			on_row |= strcmp(live[i].s, GLYPH_CHECK) == 0 && live[i].y0 < live[row].y1 && live[i].y1 > live[row].y0;
+		if (row < 0)
+			snprintf(got, sizeof got, "not shown");
+		else if (marks != 1)
+			snprintf(got, sizeof got, "%d check marks", marks);
+		else if (!on_row)
+			snprintf(got, sizeof got, "the check mark on another row");
+		else
+			snprintf(got, sizeof got, "%s", want);
+	}
+	else if (strcmp(key, "nodigit") == 0) {
+		// No key digit ("1") drawn just left of the text that contains the value, on its row
+		int row = -1;
+		for (int i = 0; i < live_n && row < 0; i++)
+			if (strstr(live[i].s, want) != NULL)
+				row = i;
+		snprintf(got, sizeof got, row < 0 ? "not shown" : "%s", want);
+		for (int i = 0; row >= 0 && i < live_n; i++)
+			if (live[i].s[0] >= '0' && live[i].s[0] <= '9' && (strcmp(live[i].s + 1, " ") == 0 || !live[i].s[1]) &&
+			    live[i].y0 < live[row].y1 && live[i].y1 > live[row].y0 && live[i].x1 <= live[row].x0 &&
+			    live[row].x0 - live[i].x1 <= live[row].y1 - live[row].y0)	// just left of it, not another column's
+				snprintf(got, sizeof got, "digit %c", live[i].s[0]);
+	}
+	else if (strcmp(key, "editor") == 0 || strcmp(key, "framed") == 0) {
+		// The value editor on the row of this value: a left and a right marker beside it, in one color that isn't the
+		// value's on a color display (the theme's accent). framed: the row's top and bottom edges in that color too,
+		// the reference theme's frame. A monochrome display has the markers only
+		int v = -1, lt = -1, gt = -1;
+		for (int i = 0; i < live_n && v < 0; i++)
+			if (strcmp(live[i].s, want) == 0)
+				v = i;
+		for (int i = 0; v >= 0 && i < live_n; i++) {
+			if (live[i].y0 != live[v].y0)
+				continue;
+			if (strcmp(live[i].s, "<") == 0 && live[i].x1 <= live[v].x0)
+				lt = i;
+			if (strcmp(live[i].s, ">") == 0 && live[i].x0 >= live[v].x1)
+				gt = i;
+		}
+		snprintf(got, sizeof got, v < 0 ? "not shown" : "no markers");
+		char marked[70];
+		snprintf(marked, sizeof marked, "<%s>", want);
+		for (int i = 0; v < 0 && gfx_bpp() == 1 && i < live_n; i++)
+			if (strcmp(live[i].s, marked) == 0)
+				snprintf(got, sizeof got, "%s", want);	// the monochrome row: the markers in the value's text
+		if (lt >= 0 && gt >= 0) {
+			color_t a = text_ink(lt), b = text_ink(gt), t = text_ink(v);
+			bool color = gfx_bpp() != 1;
+			bool ok = !color || (a == b && a != t);
+			if (ok && color && key[0] == 'f') {
+				// From the value's middle up and down to the first pixel in the markers' color: the frame's edges
+				int x = (live[v].x0 + live[v].x1) / 2, h = live[v].y1 - live[v].y0;
+				bool top = false, bottom = false;
+				for (int y = live[v].y0; y >= 0 && y >= live[v].y0 - h && !top; y--)
+					top = gfx_get_pixel(x, y) == a;
+				for (int y = live[v].y1 - 1; y < gfx_height() && y < live[v].y1 + h && !bottom; y++)
+					bottom = gfx_get_pixel(x, y) == a;
+				ok = top && bottom;
+				snprintf(got, sizeof got, "no frame in the markers' color");
+			} else if (!ok) {
+				snprintf(got, sizeof got, "markers not in one accent color");
+			}
+			if (ok)
+				snprintf(got, sizeof got, "%s", want);
 		}
 	}
 	else if (strcmp(key, "markafter") == 0 || strcmp(key, "nomarkafter") == 0) {
