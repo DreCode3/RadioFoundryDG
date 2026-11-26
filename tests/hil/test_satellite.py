@@ -60,7 +60,7 @@ def test_satellite_exit_restores_channel(radio):
     keys = ("vfo", "vfo_index", "zone_index", "zone_pos", "channel_number", "channel_name",
             "mode", "rx_hz", "tx_hz", "ch.bw", "ch.rx_tone", "ch.tx_tone")
     try:
-        for key in ("ok", "6", "9"):
+        for key in ("ok", "6", "3"):  # Menu > Location > Satellite
             radio.press(key)
         radio.wait_for(lambda v: v.get("ui.screen") == "satellite-passes", sections=("link",),
                        what="satellite pass list")

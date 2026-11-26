@@ -203,9 +203,10 @@ KEYFN_TONE_BURST = 18   # core/input/keyassign.h, docs/spec/ui.md 3.1
 
 
 def set_first_side_key(radio, function):
-    """Settings > Keys > the first side key's press row, stepped with OK until it saves function (key.first.press)."""
+    """Settings > Buttons > the first side key's press row: its pick list, stepped one value at a time (each Down and OK,
+    then the row again) until it saves function (key.first.press)."""
     radio.go_home()
-    for key in ("ok", "7", "8", "down", "down", "down"):  # Settings, Keys, past the three rows before the key rows
+    for key in ("ok", "8", "8", "down", "down", "down"):  # Settings, Buttons, past the three rows before the key rows
         radio.press(key)
     view = radio.view(["link"])
     assert view.get("ui.screen") == "group" and view.get("ui.focus") == "3", view
@@ -214,7 +215,8 @@ def set_first_side_key(radio, function):
             before = radio.view(["link"])["key.first.press"]
             if before == str(function):
                 return
-            radio.press("ok")
+            for key in ("ok", "down", "ok"):
+                radio.press(key)
             radio.wait_for(lambda v: v.get("key.first.press") != before, sections=("link",),
                            what="the side-key function saved")
         raise AssertionError(f"the first side key never offered function {function}")

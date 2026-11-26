@@ -660,18 +660,16 @@ class Radio:
         raise AssertionError(f"could not get to the Home screen (screen {self.screen()})")
 
     def auto_lock_off(self):
-        """Settings > Key lock > Auto lock back to Off (it cycles Off, 30 s, 60 s, 300 s). The session does this before
+        """Settings > Security & keypad lock > Auto lock back to Off (its pick list: Off, 30 s, 1 min, 5 min, the value
+        in use focused). The session does this before
         the first test: a run cut short inside test_auto_lock leaves it on, and a radio that locks its keys after 30 s
         fails every UI test after it. Returns True when it had to change it."""
         if as_int(self.view(["storage"]).get("settings.auto_lock_s"), 0) == 0:
             return False
         self.go_home()
-        for k in ("ok", "7", "9"):
+        for k in ("ok", "8", "7", "ok"):  # Auto lock is the group's first row
             self.press(k)
-        for _ in range(4):
-            if self.view(["storage"]).get("settings.auto_lock_s") == "0":
-                break
-            self.press("ok")
+        self.pick_first()
         self.press("back", LONG)
         self.wait_for(lambda v: v.get("settings.auto_lock_s") == "0", sections=("storage",), what="auto lock off")
         self.go_home()
@@ -693,17 +691,14 @@ class Radio:
                 self.privacy_slot_off()
 
     def privacy_slot_off(self):
-        """Privacy slot 1's key type to Off from the menu, which removes its key (each OK on the row steps the type
-        once). Returns True when it had to change it."""
+        """Privacy slot 1's key type to Off from the menu (Settings > Privacy > Key type, Off the pick list's first
+        value), which removes its key. Returns True when it had to change it."""
         if self.view(["storage"]).get("settings.privacy_type") in (None, "0"):
             return False
         self.go_home()
-        for k in ("ok", "7", "4"):
+        for k in ("ok", "8", "6", "ok"):  # Key type is the group's first row
             self.press(k)
-        for _ in range(3):
-            if self.view(["storage"]).get("settings.privacy_type") == "0":
-                break
-            self.press("ok")
+        self.pick_first()
         self.press("back", LONG)
         self.wait_for(lambda v: v.get("settings.privacy_type") == "0", sections=("storage",), what="privacy slot off")
         self.go_home()
@@ -718,7 +713,9 @@ class Radio:
         if lang in (None, "en"):
             return None
         self.go_home()
-        for k in ("ok", "7", "2", "up", "ok"):  # Language is the Display group's last row
+        # Settings > 0 (Find, also in the VFO), "language" on the keys (Find knows it by its English name in every
+        # language), its row in Settings > Display, OK
+        for k in ("ok", "8", "0", "5", "2", "6", "4", "8", "2", "4", "3", "ok", "ok"):
             self.press(k)
         self.wait_for(lambda v: v.get("ui.screen") == "language", sections=("link",), what="the Language screen")
         for _ in range(16):  # English is the list's first row
@@ -729,6 +726,15 @@ class Radio:
         self.wait_for(lambda v: v.get("settings.lang") == "en", sections=("storage",), what="language English")
         self.go_home()
         return lang
+
+    def pick_first(self):
+        """In a setting's pick list (ui.screen pick), its first value: Up to it, then OK."""
+        self.wait_for(lambda v: v.get("ui.screen") == "pick", sections=("link",), what="the pick list")
+        for _ in range(16):
+            if as_int(self.view(["link"]).get("ui.focus"), 0) == 0:
+                break
+            self.press("up")
+        self.press("ok")
 
     def ptt_for(self, seconds):
         try:

@@ -65,21 +65,21 @@ def test_keys_move_the_channel(home):
 
 @pytest.mark.feature("ui_navigation")
 def test_hub_and_back(home):
-    """OK opens the Hub (seven destinations, numbered); a digit opens one; BACK goes up one level; long BACK goes Home
-    from any depth (information-architecture.md, key meanings). A radio without a CONTEXT key has Last caller first,
-    number 0; the others keep their numbers."""
+    """OK opens Menu (eight entries, numbered as the keypad; 9 is empty); a digit opens one; BACK goes up one level;
+    long BACK goes Home from any depth (information-architecture.md, key meanings). A radio without a CONTEXT key has
+    Last caller first, number 0; the others keep their numbers."""
     r = home
     r.press("ok")
     s = wait_screen(r, "hub", "the Hub on OK")
-    assert s["ui.depth"] == "1" and s["ui.count"] in ("7", "8"), s
+    assert s["ui.depth"] == "1" and s["ui.count"] in ("8", "9"), s
     r.press("1")
     s = wait_screen(r, "contacts", "Contacts on 1")
     assert s["ui.depth"] == "2"
     r.press("back")
     wait_screen(r, "hub", "BACK goes up to the Hub")
     if "UI_SETTINGS" in r.features():
-        r.press("7")
-        wait_screen(r, "settings", "Settings on 7")
+        r.press("8")
+        wait_screen(r, "settings", "Settings on 8")
         r.press("2")
         wait_screen(r, "group", "a settings group on 2")
     else:
@@ -148,7 +148,7 @@ def test_key_lock(home):
 @pytest.mark.feature("ui_navigation")
 @pytest.mark.needs_switch("DMR")
 def test_talk_target_picker_on_long_context(home):
-    """Long # opens the talk target picker on a DMR channel (Recent is Hub 3)."""
+    """Long # opens the talk target picker on a DMR channel (the call log is Menu 3)."""
     r = dmr_home(home)
     r.press("context", LONG)
     wait_screen(r, "picker", "talk target picker on long #")
@@ -162,7 +162,7 @@ def test_recent_from_the_hub(home):
     r.press("ok")
     wait_screen(r, "hub")
     r.press("3")
-    wait_screen(r, "recent", "Recent on 3")
+    wait_screen(r, "recent", "the call log on 3")
     r.press("back", LONG)
     wait_screen(r, "home")
 
@@ -170,7 +170,8 @@ def test_recent_from_the_hub(home):
 @pytest.mark.feature("channel_list")
 @pytest.mark.needs_switch("CHANNEL_LIST")
 def test_zones_and_channels_lists(home):
-    """Hub 4 lists the VFO and the zones, hub 5 every channel by number; OK on a channel opens its settings page."""
+    """Menu 4 lists the VFO and the zones, Settings > Programming > Channels (its first row) every channel by number; OK
+    on a channel opens its settings page."""
     r = home
     if "CHANNEL_LIST" not in r.features():
         skip("not_built", "built without CONFIG_CHANNEL_LIST: no Zones or Channels list")
@@ -179,10 +180,14 @@ def test_zones_and_channels_lists(home):
     r.press("4")
     s = wait_screen(r, "zones", "Zones on 4")
     assert as_int(s.get("ui.count")) >= 2, s			# the VFO and at least one zone
+    if "UI_SETTINGS" not in r.features():
+        r.press("back", LONG)
+        skip("not_built", "built without CONFIG_UI_SETTINGS: Channels is in Settings > Programming")
     r.press("back")
     wait_screen(r, "hub")
-    r.press("5")
-    s = wait_screen(r, "channels", "Channels on 5")
+    for k in ("8", "9", "ok"):
+        r.press(k)
+    s = wait_screen(r, "channels", "Channels, Programming's first row")
     if as_int(s.get("ui.count")) == 0:
         skip("state", "no channels in the codeplug")
     r.press("ok")
@@ -193,18 +198,20 @@ def test_zones_and_channels_lists(home):
 
 @pytest.mark.feature("diag")
 def test_diagnostics_page(home):
-    """Diagnostics live in Tools (Hub 6, then 7); long BACK on Home no longer opens them."""
+    """Diagnostics live in Settings > Programming, found here by name (Settings 0 is Find); long BACK on Home doesn't
+    open them."""
     r = home
+    if "UI_SETTINGS" not in r.features():
+        skip("not_built", "built without CONFIG_UI_SETTINGS: Diagnostics is in Settings > Programming")
+    for k in ("ok", "8", "0", "3", "4", "2", "4", "ok"):	# "diag"
+        r.press(k)
+    wait_screen(r, "group", "Programming, on Diagnostics")
     r.press("ok")
-    wait_screen(r, "hub")
-    r.press("6")
-    wait_screen(r, "tools", "Tools on 6")
-    r.press("7")
-    s = r.wait_for(lambda v: v.get("ui.screen") in ("diag", "tools"), sections=("link",), what="diagnostics")
+    s = r.wait_for(lambda v: v.get("ui.screen") in ("diag", "group"), sections=("link",), what="diagnostics")
     if s["ui.screen"] != "diag":
         skip("not_built", "built without CONFIG_DIAG")
     r.press("back")
-    wait_screen(r, "tools", "BACK leaves the diagnostics")
+    wait_screen(r, "group", "BACK leaves the diagnostics")
     r.press("back", LONG)
     wait_screen(r, "home")
 
@@ -464,7 +471,7 @@ def test_picker_focus_target(home):
 
 
 def settings_keys(r, keys):
-    """Run a key sequence from Home (Settings is Hub 7; groups 1-9 then 0), then go Home. A test that uses it for a
+    """Run a key sequence from Home (Settings is Menu 8; groups 1-9, Radio info by Up), then go Home. A test that uses it for a
     feature other than ui_settings carries @pytest.mark.needs_switch("UI_SETTINGS")."""
     if "UI_SETTINGS" not in r.features():
         skip("not_built", "built without CONFIG_UI_SETTINGS: no Settings menu")
@@ -489,7 +496,7 @@ def test_home_back_key_can_open_quick(home):
 
     def assign(function):
         r.go_home()
-        for key in ("ok", "7", "8", *("down",) * focus):
+        for key in ("ok", "8", "8", *("down",) * focus):
             r.press(key)
         assert ui(r).get("ui.focus") == str(focus)
         for _ in range(24):
@@ -497,7 +504,8 @@ def test_home_back_key_can_open_quick(home):
             if before == str(function):
                 r.go_home()
                 return
-            r.press("ok")
+            for key in ("ok", "down", "ok"):	# the pick list's next value
+                r.press(key)
             r.wait_for(lambda v: v.get("key.home_back.press") != before, sections=("link",),
                        what="the Home key function saved")
         raise AssertionError(f"the Home key did not offer function {function}")
@@ -579,19 +587,19 @@ def test_theme_is_kept(home):
     if r.version().get("display", "").endswith("x1"):
         skip("no_hw", "a monochrome screen has no themes (the radio says so)")
     _, before = r.shot_until(lambda d: True, what="Home")
-    settings_keys(r, "ok 7 2 down down ok")
+    # Theme is Display's first row in the reference theme; its pick list has Dark, Light, High contrast, Night (red)
+    settings_keys(r, "ok 8 1 ok down ok")
     try:
         r.wait_for(lambda x: x.get("settings.theme") == "1", sections=("storage",), what="theme Light stored")
         r.shot_until(lambda d: diff_fraction(before, d) > 0.2, what="Home in the light theme")
     finally:
-        # OK steps the theme on: Light, High contrast, Night, then Dark again
-        settings_keys(r, "ok 7 2 down down ok ok ok")
+        settings_keys(r, "ok 8 1 ok up ok")
     r.wait_for(lambda x: x.get("settings.theme") == "0", sections=("storage",), what="theme Dark again")
 
 
 @pytest.mark.feature("ui_settings")
 def test_updown_changes_the_zone(home):
-    """Settings > Keys > Up/Down on Home = Zone: Up on Home moves to the next zone, not the next channel."""
+    """Settings > Buttons > Up/Down on Home = Zone: Up on Home moves to the next zone, not the next channel."""
     r = home
     s = storage(r)
     if "settings.updown_home" not in s:
@@ -601,7 +609,7 @@ def test_updown_changes_the_zone(home):
     if as_int(r.core().get("zone_count"), 2) < 2:
         skip("state", "only one zone")
     zone = as_int(r.core().get("zone_index"))
-    settings_keys(r, "ok 7 8 down down ok")
+    settings_keys(r, "ok 8 8 down down ok down ok")
     try:
         r.wait_for(lambda x: x.get("settings.updown_home") == "1", sections=("storage",), what="Up/Down = Zone")
         r.press("up")
@@ -609,7 +617,7 @@ def test_updown_changes_the_zone(home):
         r.press("down")
         r.wait_for(lambda x: as_int(x.get("zone_index")) == zone, what="the zone back on DOWN")
     finally:
-        settings_keys(r, "ok 7 8 down down ok ok")
+        settings_keys(r, "ok 8 8 down down ok up ok")
     r.wait_for(lambda x: x.get("settings.updown_home") == "0", sections=("storage",), what="Up/Down = Channel again")
 
 
@@ -627,7 +635,7 @@ def test_privacy_key_entry(home):
         skip("not_built", "built without CONFIG_UI_SETTINGS: no Settings menu")
     if s["settings.privacy_type"] != "0":
         skip("state", "a privacy key is set already: not overwriting it")
-    settings_keys(r, "ok 7 4 ok down ok 1 2 3 ok")
+    settings_keys(r, "ok 8 6 ok down ok down ok 1 2 3 ok")
     try:
         r.wait_for(lambda x: x.get("settings.privacy_type") == "1", sections=("storage",), what="key type 8-bit")
         if r.core().get("mode") == "dmr":
@@ -638,14 +646,14 @@ def test_privacy_key_entry(home):
             leave_quick(r)
             r.press("back")
     finally:
-        settings_keys(r, "ok 7 4 ok ok")	# 8-bit -> 16-bit -> Off
+        settings_keys(r, "ok 8 6 ok up ok")	# 8-bit -> Off, the pick list's first value
     r.wait_for(lambda x: x.get("settings.privacy_type") == "0", sections=("storage",), what="the key removed")
 
 
 @pytest.mark.feature("key_lock")
 @pytest.mark.radio_tx
 def test_ptt_when_locked_off(home, pytestconfig):
-    """Settings > Key lock > PTT when locked Off: with the keys locked an injected PTT doesn't transmit and the UI
+    """Settings > Security & keypad lock > PTT when locked Off: with the keys locked an injected PTT doesn't transmit and the UI
     says how to unlock. Marked radio_tx: if the block failed the radio would key up (lowest power), so it does that
     on the DMR test channel (--dmr-freq), not on whatever channel the radio was left on (a receive-only one is refused
     by the TX guard before the radio sees the PTT)."""
@@ -660,7 +668,7 @@ def test_ptt_when_locked_off(home, pytestconfig):
     if r.unlock_key() != "quick":
         skip("no_hw", "the radio has no QUICK key to lock and unlock it with")
     r.lowest_power()
-    settings_keys(r, "ok 7 9 down ok")
+    settings_keys(r, "ok 8 7 down ok")
     try:
         r.wait_for(lambda x: not as_int(x.get("settings.ui_flags"), 0x10) & 0x10, sections=("storage",),
                    what="PTT when locked off")
@@ -679,21 +687,21 @@ def test_ptt_when_locked_off(home, pytestconfig):
     finally:
         if ui(r).get("ui.locked") == "1":
             r.press("quick", LONG)
-        settings_keys(r, "ok 7 9 down ok")
+        settings_keys(r, "ok 8 7 down ok")
     r.wait_for(lambda x: as_int(x.get("settings.ui_flags"), 0) & 0x10, sections=("storage",),
                what="PTT when locked on again")
 
 
 @pytest.mark.feature("usb_network")
 def test_usb_network_switch_row(home):
-    """Tools > USB network: the info page has the one "Switch USB to network" row. The test backs out without
+    """Connections > USB network: the info page has the one "Switch USB to network" row. The test backs out without
     switching (switching drops the serial link; see the HIL steps in docs/user/14-usb-network.md)."""
     r = home
     r.press("ok")
     wait_screen(r, "hub")
-    r.press("6")
-    wait_screen(r, "tools")
-    r.press("4")
+    r.press("7")
+    wait_screen(r, "connections")
+    r.press("2")
     v = r.wait_for(lambda x: x.get("ui.screen") == "info", sections=("link",), what="the USB network page")
     if v.get("ui.count") != "1":
         skip("not_built", "built without CONFIG_USB_NETWORK")
@@ -833,16 +841,16 @@ def test_delete_message(home, request, pytestconfig):
 @skip_if(os.environ.get("RFOUNDRY_HIL_FACTORY_RESET") != "1", "opt_in",
          "erases the settings and the native area: set RFOUNDRY_HIL_FACTORY_RESET=1 (and --allow-reboot)")
 def test_factory_reset(home):
-    """Settings > Advanced (0) > Factory reset > Yes: the settings go back to their defaults, the native area is erased
+    """Settings > Programming (9) > Factory reset (its last row) > Yes: the settings go back to their defaults, the native area is erased
     (never the codeplug or calibration), and the radio restarts. The channel position survives only as the default."""
     r = home
     r.version()     # known before the restart: reconnect() checks a radio on another port against it
     zones = r.core().get("zone_count")
-    # Hub digits are the entry numbers in every build (Settings 7), Advanced is group 0, Factory reset its fourth row
-    for k, screen in (("ok", "hub"), ("7", "settings"), ("0", "group")):
+    # Menu digits are the entry numbers in every build (Settings 8), Programming is group 9, Factory reset its last row
+    for k, screen in (("ok", "hub"), ("8", "settings"), ("9", "group")):
         r.press(k)
         wait_screen(r, screen)
-    for k in ("down", "down", "down", "ok"):
+    for k in ("up", "ok"):
         r.press(k)
     wait_screen(r, "confirm", "the confirmation (defaults to No)")
     assert ui(r)["ui.focus"] == "0"
