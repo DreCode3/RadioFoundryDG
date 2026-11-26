@@ -3849,7 +3849,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		wrap_text(g.font, l->empty, y + 1, y_end, true, ui_col.dim);
 	list_scroll(l, &g, top, l->count, false);
 #if CONFIG_UI_THEME_PANELS
-	bool editing = false;	// the focused row's value editor is open (UI_BAR_EDIT)
+	bool editing = false;	// the focused row's value editor is open (UI_BAR_OK_ACTS)
 #endif
 	for (int r = 0; r < visible && top + r < l->count; r++) {
 		uint16_t i = (uint16_t)(top + r);
@@ -3882,7 +3882,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	else if ((s->hints || ui_theme_soft_keys()) && l->hint) {
 		uint8_t bar = 0;
 #if CONFIG_UI_THEME_PANELS
-		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0) | (editing ? UI_BAR_EDIT : 0) |
+		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0) | (editing || l->ok_acts ? UI_BAR_OK_ACTS : 0) |
 			(s->hints ? 0 : UI_BAR_NO_HINTS);
 #endif
 		draw_hint(l->hint, bar, NULL);

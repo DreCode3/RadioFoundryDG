@@ -488,6 +488,17 @@ class PrototypeTest(unittest.TestCase):
                     self.run_script(profile + theme + "quick 7 ctx 3 5 ok wait:3000 expect:dual=1 battery:5 wait:2000 "
                                     "expect:shows=charge_soon expect:layout=0")
 
+    def test_list_hint_row_keeps_what_ok_does_where_it_does_more(self):
+        # A list's plain open and choose aren't repeated in the hint row; a list whose OK does more says so (SF_OK_ACTS,
+        # a flag on the list, or the hint function's for a row): send, go, talk, use, details, change
+        for script, row in (("ok 2 ok", "OK_send"), ("ok 4", "OK_go"), ("ok 1", "OK_talk"), ("quick 8", "OK_use"),
+                            ("ok 8 9 ok", "OK_details"), ("ok 8 1 row:GPS_clock", "OK_change")):
+            with self.subTest(screen=script):
+                self.run_script(f"{script} expect:shows={row} expect:shows=OK expect:shows=Back expect:layout=0")
+        for script, hidden in (("ok 8 1", "OK_choose"), ("msg:9991234,Hello wait:9000 ok 2", "OK_open")):
+            with self.subTest(screen=script):
+                self.run_script(f"{script} expect:hides={hidden} expect:layout=0")
+
     def test_hint_row_off_keeps_the_soft_keys(self):
         # Hint row off hides only the hint line: the bar and its two labels stay on every screen, and lists keep five rows
         off = "ok 8 1 row:Hint_row ok long:back "

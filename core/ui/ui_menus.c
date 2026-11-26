@@ -570,7 +570,7 @@ static void compose_enter(void)
 }
 
 static const ui_scr_def_t compose_screen = {
-	.name = "compose", .flags = SF_LIST | SF_FIELD, .prefix = TRN(MSG_TITLE_TO, "To"),
+	.name = "compose", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(MSG_TITLE_TO, "To"),
 	.hint = TRN(MSG_HINT_COMPOSE, "OK send  Back"),
 	.count = compose_count, .item = compose_item, .select = compose_select, .title = compose_title, .enter = compose_enter,
 };
@@ -746,7 +746,7 @@ static void contacts_context(uint16_t i)
 }
 
 static const ui_scr_def_t contacts_screen = {
-	.name = "contacts", .flags = SF_LIST | SF_FILTER | SF_FIELD, .prefix = TRN(TITLE_CONTACTS, "Contacts"),
+	.name = "contacts", .flags = SF_LIST | SF_FILTER | SF_FIELD | SF_OK_ACTS, .prefix = TRN(TITLE_CONTACTS, "Contacts"),
 	.hint = TRN(CONTACT_HINT_LIST, TEXT_ALT_OPEN "0-9 find  OK talk  # more"
 		TEXT_ALT_NEXT "0-9  OK talk  # more" TEXT_ALT_CLOSE),
 	.empty = CONFIG_CONTACT_EDIT ? TRN(CONTACT_EMPTY_NO_MATCH, "No contact matches") :
@@ -959,8 +959,9 @@ static void msgs_context(uint16_t i)
 	ui_open_actions(&t);
 }
 
-static const char *msgs_hint(void)
+static const char *msgs_hint(bool *ok_acts)
 {
+	(void)ok_acts;	// open, compose: a list's usual job
 	uint16_t focus = ui_frame()->focus;
 	bool aprs;
 	uint16_t index;
@@ -1405,7 +1406,7 @@ static void chans_context(uint16_t i)
 }
 
 static const ui_scr_def_t channels_screen = {
-	.name = "zones", .flags = SF_LIST | SF_FILTER | SF_FIELD, .prefix = TRN(TITLE_ZONES, "Zones"),
+	.name = "zones", .flags = SF_LIST | SF_FILTER | SF_FIELD | SF_OK_ACTS, .prefix = TRN(TITLE_ZONES, "Zones"),
 	.hint = TRN(ZONE_HINT_LIST, TEXT_ALT_OPEN "OK go  # channels  0-9 find"
 		TEXT_ALT_NEXT "OK go  # channels" TEXT_ALT_CLOSE),
 	.empty = TRN(ZONE_EMPTY_NO_ZONES, "No zones"),
@@ -1939,7 +1940,7 @@ static void share_to_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t share_to_screen = {
-	.name = "zone_share_to", .flags = SF_LIST | SF_FILTER, .prefix = TRN(SHARE_TITLE_TO, "Share to"),
+	.name = "zone_share_to", .flags = SF_LIST | SF_FILTER | SF_OK_ACTS, .prefix = TRN(SHARE_TITLE_TO, "Share to"),
 	.hint = TRN(SHARE_HINT_TO, TEXT_ALT_OPEN "0-9 find or ID  OK send  Back"
 		TEXT_ALT_NEXT "0-9 find or ID  OK send" TEXT_ALT_CLOSE),
 	.empty = TRN(SHARE_EMPTY_TYPE_AN_ID, "No contacts: type an ID"),
@@ -2107,7 +2108,7 @@ static void preview_select(uint16_t i, bool hold)
 static const char *preview_title(void) { return offer.name; }
 
 static const ui_scr_def_t preview_screen = {
-	.name = "zone_offer_preview", .flags = SF_LIST, .prefix = TR_NONE,
+	.name = "zone_offer_preview", .flags = SF_LIST | SF_OK_ACTS, .prefix = TR_NONE,
 	.hint = TRN(SHARE_HINT_PREVIEW, "OK or Back returns"),
 	.empty = TRN(SHARE_EMPTY_NO_ZONE_OFFER, "No zone offer waiting"),
 	.count = preview_count, .item = preview_item, .select = preview_select, .title = preview_title,
@@ -2138,7 +2139,7 @@ static void offer_zone_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t offer_zone_screen = {
-	.name = "zone_offer_zone", .flags = SF_LIST, .prefix = TRN(SHARE_TITLE_ADD_TO_ZONE, "Add to zone"),
+	.name = "zone_offer_zone", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRN(SHARE_TITLE_ADD_TO_ZONE, "Add to zone"),
 	.hint = TRN(SHARE_HINT_ADD_TO_ZONE, "OK add  Back"),
 	.empty = TRN(ZONE_EMPTY_NO_ZONES, "No zones"),
 	.count = offer_zone_count, .item = offer_zone_item, .select = offer_zone_select,
@@ -2163,7 +2164,7 @@ static bool offer_waiting(void)
 #endif
 
 static const ui_scr_def_t zone_screen = {
-	.name = "zone", .flags = SF_LIST | SF_FILTER | SF_FIELD, .prefix = TR_NONE,
+	.name = "zone", .flags = SF_LIST | SF_FILTER | SF_FIELD | SF_OK_ACTS, .prefix = TR_NONE,
 	.hint = ZONE_HINT, .empty = TRN(ZONE_EMPTY_NO_CHANNELS, "Empty zone"),
 	.count = ui_filter_count, .item = zone_item, .select = zone_select, .context = ZONE_CONTEXT,
 	.title = zone_title, .enter = zone_enter,
@@ -2688,7 +2689,7 @@ static void chlist_context(uint16_t i)
 
 static const ui_scr_def_t chlist_screen = {
 	// Settings > Programming > Channels: programming, not field use (P4's three levels)
-	.name = "channels", .flags = SF_LIST | SF_FILTER, .prefix = TRN(TITLE_CHANNELS, "Channels"),
+	.name = "channels", .flags = SF_LIST | SF_FILTER | SF_OK_ACTS, .prefix = TRN(TITLE_CHANNELS, "Channels"),
 	.hint = TRN(CHAN_HINT_LIST, TEXT_ALT_OPEN "OK details  # go  0-9 find"
 		TEXT_ALT_NEXT "OK details  # go" TEXT_ALT_CLOSE),
 	.empty = TRN(CHAN_EMPTY_NO_CHANNELS, "No channels"),
@@ -3919,7 +3920,7 @@ static void chinfo_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t chinfo_screen = {
-	.name = "channel", .flags = SF_LIST, .empty = TRN(CHAN_EMPTY_CHANNEL, "Empty channel"),
+	.name = "channel", .flags = SF_LIST | SF_OK_ACTS, .empty = TRN(CHAN_EMPTY_CHANNEL, "Empty channel"),
 #if CONFIG_CHANNEL_EDIT
 	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  hold OK save  Back"
 		TEXT_ALT_NEXT "OK change  hold OK save" TEXT_ALT_CLOSE),
@@ -3985,7 +3986,7 @@ static const char *discard_title(void)
 }
 
 static const ui_scr_def_t discard_screen = {
-	.name = "discard", .flags = SF_LIST, .prefix = TR_NONE, .title = discard_title,
+	.name = "discard", .flags = SF_LIST | SF_OK_ACTS, .prefix = TR_NONE, .title = discard_title,
 	.hint = TRN(DISCARD_HINT, TEXT_ALT_OPEN "OK choose  Back keep editing"
 		TEXT_ALT_NEXT "OK choose  Back" TEXT_ALT_CLOSE),
 	.count = discard_count, .item = discard_item, .select = discard_select, .body = discard_body,
@@ -4223,7 +4224,7 @@ static bool ct_key(const input_event_t *ev)
 }
 
 static const ui_scr_def_t contact_edit_screen = {
-	.name = "contactedit", .flags = SF_LIST | SF_FIELD, .prefix = TRN(CONTACT_TITLE_NEW, "New contact"),
+	.name = "contactedit", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(CONTACT_TITLE_NEW, "New contact"),
 	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  hold OK save  Back"
 		TEXT_ALT_NEXT "OK change  hold OK save" TEXT_ALT_CLOSE),
 	.count = ct_count, .item = ct_item, .select = ct_select, .key = ct_key,
@@ -4414,7 +4415,7 @@ static void zpick_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t zpick_screen = {
-	.name = "zpick", .flags = SF_LIST | SF_FILTER, .prefix = TRN(ZONE_TITLE_ADD_CHANNEL, "Add channel"),
+	.name = "zpick", .flags = SF_LIST | SF_FILTER | SF_OK_ACTS, .prefix = TRN(ZONE_TITLE_ADD_CHANNEL, "Add channel"),
 	.hint = TRN(ZONE_HINT_ADD_CHANNEL, TEXT_ALT_OPEN "OK add  0-9 find  Back"
 		TEXT_ALT_NEXT "OK add  Back" TEXT_ALT_CLOSE),
 	.empty = TRN(ZONE_EMPTY_ALL_CHANNELS_IN, "Every channel is in it"),
@@ -5185,7 +5186,7 @@ static void dmr_id_enter(void)
 }
 
 static const ui_scr_def_t dmr_id_screen = {
-	.name = "dmr-id", .flags = SF_LIST | SF_FIELD, .prefix = TRN(SET_ROW_DMR_ID_AND_NAME, "DMR ID and name"),
+	.name = "dmr-id", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(SET_ROW_DMR_ID_AND_NAME, "DMR ID and name"),
 #if CONFIG_DMR
 	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, "0-9 type  OK edit/save  Back"),
 #else
@@ -5354,7 +5355,7 @@ static void ds_enter(void)
 }
 
 static const ui_scr_def_t ds_screen = {
-	.name = "data-services", .flags = SF_LIST, .prefix = TRN(SET_ROW_DATA_SERVICES, "Data services"),
+	.name = "data-services", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRN(SET_ROW_DATA_SERVICES, "Data services"),
 	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, "0-9 type  OK edit/save  Back"),
 	.count = ds_count, .item = ds_item, .select = ds_select, .key = ds_key, .enter = ds_enter, .body = ds_body,
 };
@@ -6520,8 +6521,9 @@ static uint16_t menu_count(const menu_entry_t *m, uint16_t n)
 static uint16_t menu_last;	// the highest number of the menu on screen, found on each count (before the hint)
 
 // The hint names the last number ("1-5 open"), from the keys and the translated rest
-static const char *menu_hint(void)
+static const char *menu_hint(bool *ok_acts)
 {
+	(void)ok_acts;
 	static char hint[24];
 	sbuf_t b;
 	sb_init(&b, hint, sizeof hint);
@@ -7803,7 +7805,7 @@ static bool sc_key(const input_event_t *ev)
 static void sc_enter(void) { sc_row = SIG_STEPS; }
 
 static const ui_scr_def_t sc_screen = {
-	.name = "sig-chain", .flags = SF_LIST, .hint = TRN(SIG_HINT_TYPE_OK_NEXT_BACK, "0-9 type  OK next  Back"),
+	.name = "sig-chain", .flags = SF_LIST | SF_OK_ACTS, .hint = TRN(SIG_HINT_TYPE_OK_NEXT_BACK, "0-9 type  OK next  Back"),
 	.count = sc_count, .item = sc_item, .select = sc_select, .key = sc_key, .enter = sc_enter, .body = sc_body,
 	.title = sc_title,
 };
@@ -8273,13 +8275,16 @@ static const char *group_title(void)
 
 // What OK does on the focused row: flips it, opens its pick list, edits or saves its number, opens its page, does its
 // one job, or nothing (a Radio info value without a page)
-static const char *group_hint(void)
+static const char *group_hint(bool *ok_acts)
 {
 	const set_item_t *s = set_item_at(ui_frame()->focus);
 	if (s == NULL)
 		return TR(HINT_BACK, "Back");
+	*ok_acts = true;	// change, save: more than the list's usual open and choose
 	switch (s->type) {
-	case ST_LIST: return TR(HINT_OK_CHOOSE_BACK, "OK choose  Back");
+	case ST_LIST:
+		*ok_acts = false;
+		return TR(HINT_OK_CHOOSE_BACK, "OK choose  Back");
 	case ST_NUMBER:
 		return set_editing ? TR(HINT_OK_SAVE_BACK_CANCEL, "OK save  Back cancel") :
 			TR(HINT_OK_CHANGE_BACK, "OK change  Back");
@@ -8289,7 +8294,9 @@ static const char *group_hint(void)
 #if CONFIG_POSITION && CONFIG_GPS && CONFIG_SATELLITE_TLE
 		case SA_SAVE_GPS_POS: return TR(HINT_OK_SAVE_BACK, "OK save  Back");
 #endif
-		default: return TR(HINT_OK_OPEN_BACK, "OK open  Back");
+		default:
+			*ok_acts = false;
+			return TR(HINT_OK_OPEN_BACK, "OK open  Back");
 		}
 	default: return TR(HINT_OK_CHANGE_BACK, "OK change  Back");
 	}
@@ -8717,7 +8724,7 @@ static const char *picker_title(void)
 }
 
 static const ui_scr_def_t picker_screen = {
-	.name = "picker", .flags = SF_LIST | SF_FIELD, .prefix = TRN(PICKER_TITLE, TEXT_ALT_OPEN "Talkgroup / Contact" TEXT_ALT_NEXT "TG / Contact" TEXT_ALT_CLOSE),
+	.name = "picker", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(PICKER_TITLE, TEXT_ALT_OPEN "Talkgroup / Contact" TEXT_ALT_NEXT "TG / Contact" TEXT_ALT_CLOSE),
 	.hint = TRN(PICKER_HINT, TEXT_ALT_OPEN "PTT once  OK use  Hold OK set"
 		TEXT_ALT_NEXT "OK use  Hold OK set" TEXT_ALT_CLOSE),
 	.count = picker_count, .item = picker_item, .select = picker_select, .context = picker_context,

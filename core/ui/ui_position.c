@@ -164,7 +164,7 @@ static bool pos_key(const input_event_t *ev)
 static void pos_enter(void) { pos_editing = false; }
 
 const ui_scr_def_t ui_fixed_pos_screen = {
-	.name = "fixed-pos", .flags = SF_LIST | SF_NUMBERED | SF_FIELD,
+	.name = "fixed-pos", .flags = SF_LIST | SF_NUMBERED | SF_FIELD | SF_OK_ACTS,
 	.prefix = TRN(SET_LABEL_FIXED_POSITION, "Fixed position"),
 	.hint = TRN(HINT_OK_CHANGE_BACK, "OK change  Back"),
 	.count = pos_count, .item = pos_item, .select = pos_select, .key = pos_key, .enter = pos_enter,

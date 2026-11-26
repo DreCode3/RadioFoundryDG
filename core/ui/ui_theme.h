@@ -26,7 +26,9 @@ enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };
 #if CONFIG_UI_THEME_PANELS
 #define UI_BAR_LIST	0x02u	// under a list (ui_draw_list)
 #define UI_BAR_NUMBERED	0x04u	// ... whose rows the digit keys pick (ui_list_t.numbered)
-#define UI_BAR_EDIT	0x08u	// ... whose focused row has its value editor open: OK and Back do that editor's jobs
+// ... where OK and Back do more than open or pick a row and leave: the list says so (ui_list_t.ok_acts: send, go, add,
+// use, ...), or its focused row has its value editor open (OK save, Back cancel)
+#define UI_BAR_OK_ACTS	0x08u
 #define UI_BAR_NO_HINTS	0x10u	// Hint row is off: a theme with UI_THEME_OPT_SOFT_KEYS draws the soft keys' labels only
 #endif
 

@@ -731,8 +731,9 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 // Back (Home: Menu and its assigned key), where the hint declares them; the bar stays with Hint row off
 // (UI_THEME_OPT_SOFT_KEYS). The hint row has only what the bar can't say: the other keys' groups (#, *, the digits,
 // PTT, Up/Down, a key held), sentences, and what OK and Back do where it isn't their usual job. In a list OK opens or
-// picks the focused row and Back leaves, so its OK and Back groups are left out, unless the row's value editor is open
-// (UI_BAR_EDIT: "OK save  Back cancel"); elsewhere they stay ("Back undo", "Back stop scan"). Nothing compares text
+// picks the focused row and Back leaves, so its OK and Back groups are left out, unless they mean more (UI_BAR_OK_ACTS:
+// the list declares it, "OK send", "OK go", or the row's value editor is open, "OK save  Back cancel"); elsewhere they
+// stay ("Back undo", "Back stop scan"). Nothing compares text
 // a translation chose, so the bar and the row are the same in every language
 #define PANELS_BAR_MENU 0x20u	// the theme's own flags: Home, where OK opens the menu (ui_home_ok_menu): Menu on the left
 #define PANELS_BAR_KEYS 0x40u	// ... a screen of the theme's own where OK and Back both act (Quick)
@@ -762,7 +763,7 @@ static unsigned panels_hint_parts(const char *form, uint8_t flags, char *row, si
 		size_t n = end != NULL ? (size_t)(end - g) : strlen(g);
 		bool ok = panels_group_ok(g, n), back = panels_group_back(g, n);
 		keys |= (ok ? 1u : 0u) | (back ? 2u : 0u);
-		bool usual = (ok || back) && (flags & UI_BAR_LIST) && !(flags & UI_BAR_EDIT);
+		bool usual = (ok || back) && (flags & UI_BAR_LIST) && !(flags & UI_BAR_OK_ACTS);
 		bool said = (ok && n == 2) || (back && n == bn) || usual || ((flags & PANELS_BAR_IDLE) && first) ||
 			(flags & UI_BAR_NO_HINTS);
 		if (!said && n) {

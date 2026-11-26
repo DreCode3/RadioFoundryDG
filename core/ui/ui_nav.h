@@ -67,6 +67,9 @@ typedef enum {
 #define SF_FIND		0x10u	// digits type the query (Find)
 #define SF_NO_STRIP	0x20u	// no status strip while the radio is idle (About: the owner's call); RX / TX bring it back
 #define SF_HINT_FN	0x40u	// the hint is built when drawn (hint_fn), not a marked text (hint)
+// OK does more on a row than open or pick it (send, go, add, use, tune, change, edit and save, talk ...), or Back more
+// than leave (keep editing): a theme that leaves a list's usual OK and Back hints out keeps these (ui_list_t.ok_acts)
+#define SF_OK_ACTS	0x80u
 
 typedef struct {
 	uint8_t scr;
@@ -111,7 +114,9 @@ typedef struct {
 	tr_id_t prefix;		// title (TRN; TR_NONE: none)
 	union {
 		tr_id_t hint;			// TRN; TR_NONE: none
-		const char *(*hint_fn)(void);	// SF_HINT_FN: the hint, built in the language in use
+		// SF_HINT_FN: the hint, built in the language in use; it sets *ok_acts where the focused row's OK does more
+		// than open or pick it (as SF_OK_ACTS says for a whole list)
+		const char *(*hint_fn)(bool *ok_acts);
 	};
 	tr_id_t empty;		// shown when count is 0 (TRN; TR_NONE: none)
 	uint16_t (*count)(void);

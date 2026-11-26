@@ -1395,7 +1395,7 @@ static const char *pick_title(void)
 }
 
 const ui_scr_def_t ui_dual_pick_screen = {
-	.name = "dual_pick", .flags = SF_LIST | SF_FILTER | SF_FIELD, .prefix = TRN(DUAL_TITLE_WATCH_ON, "Watch on"),
+	.name = "dual_pick", .flags = SF_LIST | SF_FILTER | SF_FIELD | SF_OK_ACTS, .prefix = TRN(DUAL_TITLE_WATCH_ON, "Watch on"),
 	.hint = TRN(DUAL_HINT_PICK, TEXT_ALT_OPEN "OK watch  0-9 find  Back"
 		TEXT_ALT_NEXT "OK watch  Back" TEXT_ALT_CLOSE),
 	.count = ui_filter_count, .item = pick_item, .select = pick_select, .title = pick_title,
