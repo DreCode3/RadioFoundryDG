@@ -333,10 +333,13 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("ok expect:focus=Contacts down expect:focus=Messages down expect:focus=Call_log "
                         "down expect:focus=Zones")
         # The tiles show their values, as in every theme, on the line with the icon and the digit: unread messages and
-        # a scan in their forms that fit, the zone's name (no shorter form) shortened at its end
+        # a scan in their forms that fit; Zones' tile has no zone name (Home shows the zone)
         self.run_script("msg:9991234,Hello scankey wait:9000 ok "
                         "expect:shows=Messages expect:shows=1_new expect:shows=On expect:layout=0")
-        self.run_script("ok expect:showsraw=Loca expect:layout=0")
+        self.run_script("ok expect:hides=Local_repeaters expect:shows=Off expect:layout=0")
+        zones = self.render_frame("ok expect:layout=0")	# tile 4: the second row's first, its first line right of the digit
+        self.assertFalse(any(max(zones[y][x * 3:x * 3 + 3]) < 120 for y in range(ROWS_Y + TILE_H + 4, ROWS_Y + TILE_H + 20)
+                             for x in range(46, 100)))
         self.run_script("ok 8 1 row:Language ok down ok long:back ok "
                         "expect:shows=Conexiones expect:layout=0")
         self.run_script("ok down down down down down down down expect:focus=Settings expect:layout=0")
@@ -475,6 +478,15 @@ class PrototypeTest(unittest.TestCase):
         # The value editor: OK and Back on the bar, save and cancel in the hint row (not "Back cancel" on the bar)
         self.run_script("ok 8 1 row:Brightness ok expect:shows=OK expect:shows=Back expect:shows=OK_save "
                         "expect:shows=Back_cancel expect:layout=0")
+
+    def test_banner_over_dual_watch_cuts_no_line(self):
+        # A banner over dual watch Home starts in a gap between lines: no line of the panes or the hint row is partly
+        # under it (the first layout attempt cut pane A's second line), in both layouts and both palettes
+        for profile in ("", AMATEUR):
+            for theme in ("", NIGHT):
+                with self.subTest(profile=profile or "Commercial", theme=theme or "Day"):
+                    self.run_script(profile + theme + "quick 7 ctx 3 5 ok wait:3000 expect:dual=1 battery:5 wait:2000 "
+                                    "expect:shows=charge_soon expect:layout=0")
 
     def test_hint_row_off_keeps_the_soft_keys(self):
         # Hint row off hides only the hint line: the bar and its two labels stay on every screen, and lists keep five rows

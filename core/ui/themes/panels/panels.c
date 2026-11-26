@@ -1627,8 +1627,8 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 		x = gfx_text(f, x, y1, n, num_ink);
 	}
 	if (hub) {
-		// The value's longest form that fits whole, else its first shortened at the end: a zone's name has no
-		// shorter form
+		// The value's longest form that fits whole, else its first shortened at the end. Not the zone's name on
+		// Zones' tile: Home shows the zone (gui-plan.md, decided Nov 26)
 		int room = right - x - f->w;
 		bool more = true, whole = false;
 		for (int level = 0; more && !whole; level++) {
@@ -1637,6 +1637,8 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 		}
 		if (!whole)
 			gfx_text_alt(it->value, 0, line, sizeof line, &more);
+		if (it->icon == UI_MENU_ICON_ZONES)
+			line[0] = 0;
 		if (line[0]) {
 			ui_fit_end(f, line, room, fit, sizeof fit);
 			gfx_text(f, right - gfx_text_width(f, fit), y1, fit, vfg);
@@ -1712,11 +1714,12 @@ static void panels_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t 
 }
 
 // A Quick tile's name: the theme's whole word where Quick's own name is a short one, else the tile's name, each in
-// the longest of its text alternates that fits room (the others are a narrow tile's shorter words)
+// the longest of its text alternates that fits room (the others are a narrow tile's shorter words); before the tile's
+// abbreviations, the theme's shorter real word where it has one (DMR monitor)
 static const char *panels_quick_word(uint8_t kind, const char *name, int room, char *out, size_t cap)
 {
 	const font_t *f = &font_aa_8x16;
-	const char *word = NULL;
+	const char *word = NULL, *shorter = NULL;
 	switch (kind) {
 	case QT_BRIGHTNESS:
 		word = TR(SET_LABEL_BRIGHTNESS, "Brightness");
@@ -1730,6 +1733,9 @@ static const char *panels_quick_word(uint8_t kind, const char *name, int room, c
 	case QT_SPLIT:
 		word = TR(QUICK_LABEL_TX_FREQUENCY, "TX frequency");
 		break;
+	case QT_HEAR_ALL:
+		shorter = TR(QUICK_LABEL_DMR_MONITOR, "DMR monitor");
+		break;
 	default:
 		break;
 	}
@@ -1740,6 +1746,8 @@ static const char *panels_quick_word(uint8_t kind, const char *name, int room, c
 		gfx_text_alt(name, level, out, cap, &more);
 		if (gfx_text_width(f, out) <= room)
 			break;
+		if (level == 0 && shorter != NULL && gfx_text_width(f, shorter) <= room)
+			return shorter;
 	}
 	return out;
 }

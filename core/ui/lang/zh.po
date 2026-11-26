@@ -224,6 +224,11 @@ msgctxt "QUICK_LABEL_TX_FREQUENCY"
 msgid "TX frequency"
 msgstr "发射频率"
 
+#: core/ui/themes/panels/panels.c
+msgctxt "QUICK_LABEL_DMR_MONITOR"
+msgid "DMR monitor"
+msgstr "DMR 监听"
+
 #: core/ui/themes/panels/panels.c core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "QUICK_TITLE"
 msgid "Quick"
@@ -1688,6 +1693,11 @@ msgstr "区域"
 msgctxt "HUB_VALUE_NEW"
 msgid " new"
 msgstr " 新建"
+
+#: core/ui/ui_menus.c
+msgctxt "HUB_VALUE_OFF"
+msgid "Off"
+msgstr "关"
 
 #: core/ui/ui_menus.c
 msgctxt "TITLE_MENU"

@@ -145,7 +145,8 @@ static void hub_item(uint16_t i, ui_item_t *it)
 		sb_str(&b, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
 	} else if (e == HUB_SCAN) {
 		sb_str(&b, TEXT_ALT_OPEN);
-		sb_str(&b, scan_menu_value());
+		// Off in a word short enough for a tile (French: Arrêt, where the rows' Off is Désactivé)
+		sb_str(&b, ui_st.scanning || scan_dual() ? scan_menu_value() : TR(HUB_VALUE_OFF, "Off"));
 		if (ui_st.scanning && !scan_dual()) {
 			sb_str(&b, TEXT_ALT_NEXT);
 			sb_str(&b, TR(VALUE_ON, "On"));

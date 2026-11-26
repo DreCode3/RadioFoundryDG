@@ -627,7 +627,7 @@ static void probe_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cel
 	ncells++;
 }
 
-static struct { const ui_list_t *l; uint16_t top, count; uint8_t rows, cols; } scrolled[2];
+static struct { const ui_list_t *l; uint16_t top, count; uint8_t rows, cols; bool across; } scrolled[2];
 static void probe_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
 	note(over ? 'S' : 's');
@@ -636,6 +636,7 @@ static void probe_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t t
 	scrolled[over].count = count;
 	scrolled[over].rows = g->rows;
 	scrolled[over].cols = g->cols;
+	scrolled[over].across = g->across;
 }
 
 // Draws the list and checks the frame showed the cells first .. first + n - 1, column by column from the geometry's
@@ -740,6 +741,31 @@ static void test_list_frame(void)
 		ui_draw_list(&view, &state, &l);
 		CHECK(geom_y == head_y + ui_layout.small->h && ncells == 3 && cells[0].y == geom_y);
 	}
+	ui_theme_use(&ui_theme_reference);
+}
+
+// Stack bytes under the caller's next frames set to ones, so a field left unset there reads as set
+static void __attribute__((noinline)) scribble_stack(void)
+{
+	volatile uint8_t junk[4096];
+	for (size_t i = 0; i < sizeof junk; i++)
+		junk[i] = 0xFF;
+}
+
+// The reference theme's geometry sets every field: across false (its rows go down one column), whatever the stack held
+static void test_reference_geometry_fields(void)
+{
+	static const ui_theme_ops_t ops = { .list_head = probe_head, .cell = probe_cell, .scroll = probe_scroll };
+	static ui_theme_t theme = { .ops = &ops };
+	theme.palettes = ui_theme_reference.palettes;
+	theme.palette_count = ui_theme_reference.palette_count;
+	ui_theme_use(&theme);
+	uint16_t top = 0;
+	ui_list_t l = list(5, 0, &top);
+	scrolled[0].across = scrolled[1].across = true;
+	scribble_stack();
+	ui_draw_list(&view, &state, &l);
+	CHECK(!scrolled[0].across && !scrolled[1].across && scrolled[1].cols == 1);
 	ui_theme_use(&ui_theme_reference);
 }
 
@@ -1050,7 +1076,7 @@ static void test_panels_min_font(void)
 	base();
 	uint16_t top = 0;
 	ui_list_t l = list(14, 3, &top);
-	for (int frame = 0; frame < 6; frame++) {
+	for (int frame = 0; frame < 8; frame++) {
 		base();
 		if (frame == 3 || frame == 4) {	// a crowded strip: TX, monitor, VOX, unread, lock, USB, GPS, scan, AES
 			view.state = RS_TX;
@@ -1063,7 +1089,12 @@ static void test_panels_min_font(void)
 			state.gui_sim_crypt = 2;
 			view.ch.rx_only = frame == 4;
 		}
-		if (frame == 0 || frame == 3)
+		if (frame == 6 || frame == 7) {	// Quick, its TX frequency tile editing in the VFO (frame 7)
+			view.vfo = frame == 7;
+			state.quick_focus = 4;
+			state.quick_edit = frame == 7;
+			ui_draw_quick(&view, &state);
+		} else if (frame == 0 || frame == 3)
 			ui_draw_home(&view, &state);
 		else if (frame == 4)
 			ui_draw_list(&view, &state, &l);
@@ -1091,6 +1122,26 @@ static void test_panels_min_font(void)
 		if (!ok)
 			fails++;
 	}
+	base();
+}
+
+// Quick's TX frequency tile shows the digits typed so far ("146.5" then the places left), not a word for them (the
+// first layout attempt showed "TX"); the hint row has them too
+static void test_panels_quick_entry(void)
+{
+	base();
+	view.vfo = true;
+	state.quick_focus = 4;	// tile 5: TX frequency in the VFO
+	state.quick_edit = true;
+	state.entry_len = 4;
+	memcpy(state.entry_digits, "1465", 5);
+	ui_draw_quick(&view, &state);
+	int tile = find_text("146.5____"), row = -1;
+	for (int i = 0; i < ntexts; i++)
+		if (strstr(texts[i].s, "TX 146.5") != NULL)
+			row = i;
+	CHECK(tile >= 0 && texts[tile].y < ui_layout.hint_y && texts[tile].h >= 16);
+	CHECK(row >= 0 && texts[row].y >= ui_layout.hint_y);
 	base();
 }
 
@@ -1128,6 +1179,7 @@ static void test_panels_frames(void)
 	test_panels_scroll_position();
 	test_panels_bar();
 	test_panels_min_font();
+	test_panels_quick_entry();
 	test_panels_geometry();
 	ui_theme_use(&ui_theme_reference);
 	CHECK(gfx_init(&disp));
@@ -1156,6 +1208,7 @@ int main(void)
 	test_no_palette();
 	test_list_frame();
 	test_geometry_bounds();
+	test_reference_geometry_fields();
 	test_pick();
 #if CONFIG_UI_THEME_PANELS
 	test_panels_frames();
