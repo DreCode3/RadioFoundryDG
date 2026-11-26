@@ -12,7 +12,7 @@ import aggdraw
 from PIL import Image
 
 
-OUT = Path(__file__).resolve().parents[1] / "core/ui/ui_profile_icons.h"
+OUT = Path(__file__).resolve().parents[1] / "core/ui/themes/panels/panels_icons.h"
 SAMPLES = 8
 
 

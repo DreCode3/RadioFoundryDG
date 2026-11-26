@@ -791,7 +791,7 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   Day and light ink in Night. The battery uses an upright outline with a top terminal and three fill segments.
   The GPS pin, lock, key, envelope, speaker, scan and roaming artwork use coverage masks generated from curves
   and strokes at their final sizes. With antialiasing enabled, the masks blend edges into the display palette.
-  `tools/profile_icons.py` generates the packed 2-bit coverage masks in `core/ui/ui_profile_icons.h`.
+  `tools/profile_icons.py` generates the packed 2-bit coverage masks in `core/ui/themes/panels/panels_icons.h`.
   Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
   larger left-aligned headings and separated, tinted rows with rounded corners. The main menu and submenus
   share the same outer margins.

@@ -88,6 +88,10 @@ TARGET := $(BUILD)/rfoundry_$(BOARD)$(OPTION_SUFFIX)
 # its board directory, boards/gd88b) sets CORE_BASE_DIRS empty in its board.mk
 CORE_BASE_DIRS ?= core/app core/radio core/ui core/input core/codeplug core/settings core/storage
 CORE_DIRS := $(CORE_BASE_DIRS)
+# The UI's themes besides the reference one (core/ui/ui_theme.h), each behind its switch, where the UI is built
+ifeq ($(CONFIG_UI_THEME_PANELS)$(filter core/ui,$(CORE_BASE_DIRS)),ycore/ui)
+CORE_DIRS += core/ui/themes/panels
+endif
 ifeq ($(CONFIG_DMR),y)
 CORE_DIRS += core/dmr/call core/dmr/ambe core/dmr/fec
 endif

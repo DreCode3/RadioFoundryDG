@@ -99,6 +99,30 @@ typedef struct ui_theme {
 // Today's look (ui_screens.c)
 extern const ui_theme_t ui_theme_reference;
 
+// Pieces of ui_screens.c that a theme of its own draws with. External only in a build with such a theme: with the
+// reference theme alone they stay static there, so the compiler keeps inlining them where no LTO runs
+#if CONFIG_UI_THEME_PANELS
+#define UI_THEME_SHARED
+uint8_t ui_rssi_bars(int16_t dbm);			// signal bars, 0-4
+const char *ui_mode_word(const radio_view_t *v);	// the mode word: AM, a channel kind's short name, the mode
+#if CONFIG_DUAL_WATCH
+const char *ui_dual_mode_word(const ui_dual_pane_t *p);	// ... of a dual watch pane
+#endif
+bool ui_sending_data(const radio_view_t *v);		// on the air without PTT: a data burst
+void ui_hwopt_needed(sbuf_t *b);			// what a pending hardware option needs from a person
+void ui_home_entry_text(const ui_state_t *s, char *buf, size_t len);	// the frequency being typed on Home
+const char *ui_home_hint(const radio_view_t *v, const ui_state_t *s);	// Home's key hints
+const char *ui_home_soft_key(const ui_state_t *s);	// the label of Home's assigned soft key, NULL without one
+// The bottom row: a toast if one is up, else the hint (with the soft key's label) when hints are on
+void ui_draw_bottom_key(const ui_state_t *s, const char *hint, const char *soft_key);
+// Text shortened at its end to max_w
+void ui_fit_end(const font_t *f, const char *s, int max_w, char *out, size_t len);
+// The banner, if one is up, its lower edge at bottom (ui_screens.c has the details)
+void ui_banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg);
+#else
+#define UI_THEME_SHARED	static
+#endif
+
 // The theme in use. With one theme built it is a constant: the compiler resolves every op call, and neither the
 // descriptor nor a pointer to it is in the image
 #if UI_THEME_SELECT

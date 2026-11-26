@@ -102,6 +102,91 @@ msgctxt "PART_AGO"
 msgid " ago"
 msgstr " atrás"
 
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_JAN"
+msgid "Jan"
+msgstr "ene"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_FEB"
+msgid "Feb"
+msgstr "feb"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_MAR"
+msgid "Mar"
+msgstr "mar"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_APR"
+msgid "Apr"
+msgstr "abr"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_MAY"
+msgid "May"
+msgstr "may"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_JUN"
+msgid "Jun"
+msgstr "jun"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_JUL"
+msgid "Jul"
+msgstr "jul"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_AUG"
+msgid "Aug"
+msgstr "ago"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_SEP"
+msgid "Sep"
+msgstr "sept"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_OCT"
+msgid "Oct"
+msgstr "oct"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_NOV"
+msgid "Nov"
+msgstr "nov"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "CLOCK_MONTH_DEC"
+msgid "Dec"
+msgstr "dic"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_screens.c
+msgctxt "TOP_STATE_NO_TX"
+msgid "NO TX"
+msgstr "NO TX"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_app.c core/ui/ui_dual.c core/ui/ui_menus.c core/ui/ui_screens.c
+msgctxt "VALUE_ALL_CALL"
+msgid "All call"
+msgstr "Llamada a todos"
+
+#: core/ui/themes/panels/panels.c
+msgctxt "HOME_STATE_NO_TARGET"
+msgid "No talk target"
+msgstr "Sin destino de llamada"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_screens.c
+msgctxt "HOME_STATE_NO_TX_FREQ"
+msgid "No TX frequency"
+msgstr "Sin frecuencia TX"
+
+#: core/ui/themes/panels/panels.c core/ui/ui_screens.c
+msgctxt "HOME_STATE_DMR_MODEM_OFF"
+msgid "DMR modem off"
+msgstr "Módem DMR apagado"
+
 #: core/ui/ui_app.c core/ui/ui_find.c
 msgctxt "FIND_CHIP_MENU"
 msgid "Menu"
@@ -121,11 +206,6 @@ msgstr "OK Menú  Mant OK Rápido"
 msgctxt "CPLUG_TOAST_NOT_SAVED"
 msgid "Not saved"
 msgstr "No guardado"
-
-#: core/ui/ui_app.c core/ui/ui_dual.c core/ui/ui_menus.c core/ui/ui_screens.c
-msgctxt "VALUE_ALL_CALL"
-msgid "All call"
-msgstr "Llamada a todos"
 
 #: core/ui/ui_app.c
 msgctxt "TALK_TOAST_FOR_NOW_ONLY"
@@ -4803,71 +4883,6 @@ msgid "Tracking stopped"
 msgstr "Seguimiento detenido"
 
 #: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_JAN"
-msgid "Jan"
-msgstr "ene"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_FEB"
-msgid "Feb"
-msgstr "feb"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_MAR"
-msgid "Mar"
-msgstr "mar"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_APR"
-msgid "Apr"
-msgstr "abr"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_MAY"
-msgid "May"
-msgstr "may"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_JUN"
-msgid "Jun"
-msgstr "jun"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_JUL"
-msgid "Jul"
-msgstr "jul"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_AUG"
-msgid "Aug"
-msgstr "ago"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_SEP"
-msgid "Sep"
-msgstr "sept"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_OCT"
-msgid "Oct"
-msgstr "oct"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_NOV"
-msgid "Nov"
-msgstr "nov"
-
-#: core/ui/ui_screens.c
-msgctxt "CLOCK_MONTH_DEC"
-msgid "Dec"
-msgstr "dic"
-
-#: core/ui/ui_screens.c
-msgctxt "TOP_STATE_NO_TX"
-msgid "NO TX"
-msgstr "NO TX"
-
-#: core/ui/ui_screens.c
 msgctxt "TOP_STATE_IDLE"
 msgid "IDLE"
 msgstr "LIBRE"
@@ -4926,11 +4941,6 @@ msgstr "Canal de control"
 msgctxt "HOME_STATE_P25T_FOLLOW"
 msgid "Following"
 msgstr "Siguiendo"
-
-#: core/ui/ui_screens.c
-msgctxt "HOME_STATE_NO_TX_FREQ"
-msgid "No TX frequency"
-msgstr "Sin frecuencia TX"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_CHIP_BROADCAST_FM"
@@ -5211,11 +5221,6 @@ msgstr "Repitiendo"
 msgctxt "HOME_STATE_SFR_REPEATER"
 msgid "SFR repeater"
 msgstr "Repetidor SFR"
-
-#: core/ui/ui_screens.c
-msgctxt "HOME_STATE_DMR_MODEM_OFF"
-msgid "DMR modem off"
-msgstr "Módem DMR apagado"
 
 #: core/ui/ui_screens.c
 msgctxt "TRUNK_TITLE_INCOMING_CALL"
@@ -5521,11 +5526,6 @@ msgstr "{Atrás: grupo del canal|Atrás destino predet.}"
 msgctxt "HOME_HINT_VFO"
 msgid "0-9 freq  * Quick  Up/Dn"
 msgstr "0-9 frec  * Rápido  Arr/Ab"
-
-#: core/ui/ui_screens.c
-msgctxt "HOME_STATE_NO_TARGET"
-msgid "No talk target"
-msgstr "Sin destino de llamada"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_BODY_HEARD"
