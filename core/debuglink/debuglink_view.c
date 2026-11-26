@@ -502,6 +502,7 @@ static void storage_section(dl_text_t *t)
 	unsigned mic_gain = sv->mic_gain, theme = settings_theme(sv), ui_flags = sv->ui_flags;
 	int ref_trim = sv->ref_trim_ppb;
 	unsigned updown_home = settings_updown_home(sv), low_batt_pct = sv->low_batt_pct, auto_off_min = sv->auto_off_min;
+	unsigned label_first = (sv->updown_home & SETTINGS_HOME_LABEL_FIRST) != 0, gui_theme = sv->gui_theme;
 	unsigned privacy_type = sv->privacy_type[0], privacy_active = sv->privacy_active;
 	// bit 0 noise reduction off, bit 1 AGC on (settings_t.accent bits 6-7)
 	unsigned audio_flags = (unsigned)((sv->accent & SETTINGS_AUDIO_MASK) >> SETTINGS_AUDIO_SHIFT);
@@ -518,6 +519,7 @@ static void storage_section(dl_text_t *t)
 	// the stored language, or for an empty one (never picked) the build's default
 	dl_text(t, "settings.audio_flags=%u\nsettings.lang=%s\n", audio_flags,
 		lang[0] ? lang : lang_code(lang_find(0)));
+	dl_text(t, "settings.label_first=%u\nsettings.gui_theme=%u\n", label_first, gui_theme);
 	// The reference trim: stored, and in effect (the SETTING op's, or - on a radio without one)
 	dl_text(t, "settings.ref_trim=%d\n", ref_trim);
 	if (ref_trim_available()) {

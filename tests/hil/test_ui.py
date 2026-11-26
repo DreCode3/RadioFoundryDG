@@ -577,25 +577,72 @@ def ui_flags(r):
 
 
 @pytest.mark.feature("ui_color")
+@pytest.mark.needs_switch("UI_SETTINGS")
 def test_theme_is_kept(home):
-    """Settings > Display > Theme: Light is stored (settings.theme) and the screen changes; back to Dark after."""
+    """Settings > Display > Colors: Light is stored (settings.theme) and the screen changes; back to Dark after."""
     r = home
     s = storage(r)
     if "settings.theme" not in s:
         skip("not_built", "firmware without settings.theme")
     if s["settings.theme"] != "0":
-        skip("state", "the theme isn't Dark")
+        skip("state", "the colors aren't Dark")
     if r.version().get("display", "").endswith("x1"):
-        skip("no_hw", "a monochrome screen has no themes (the radio says so)")
+        skip("no_hw", "a monochrome screen has no colors to pick (the radio says so)")
+    if "UI_SETTINGS" not in r.features():
+        skip("not_built", "built without CONFIG_UI_SETTINGS: no Settings menu")
     _, before = r.shot_until(lambda d: True, what="Home")
-    # Theme is Display's first row in the reference theme; its pick list has Dark, Light, High contrast, Night (red)
-    settings_keys(r, "ok 8 1 ok down ok")
+    # Colors is the reference theme's row, after Theme where the radio has two looks: opened by name, and not there
+    # while the panels look is in use. Its pick list: Dark (checked), Light, High contrast, Night (red)
+    if not r.open_setting("Colors", "SET_LABEL_COLORS", "265677", required=False):
+        skip("state", "no Colors row: the look in use has its own palettes (Settings > Display > Theme)")
+    for k in ("ok", "down", "ok"):
+        r.press(k)
+    r.go_home()
     try:
-        r.wait_for(lambda x: x.get("settings.theme") == "1", sections=("storage",), what="theme Light stored")
-        r.shot_until(lambda d: diff_fraction(before, d) > 0.2, what="Home in the light theme")
+        r.wait_for(lambda x: x.get("settings.theme") == "1", sections=("storage",), what="colors Light stored")
+        r.shot_until(lambda d: diff_fraction(before, d) > 0.2, what="Home in the light colors")
     finally:
-        settings_keys(r, "ok 8 1 ok up ok")
-    r.wait_for(lambda x: x.get("settings.theme") == "0", sections=("storage",), what="theme Dark again")
+        r.open_setting("Colors", "SET_LABEL_COLORS", "265677")
+        r.press("ok")
+        r.pick_first()
+        r.go_home()
+    r.wait_for(lambda x: x.get("settings.theme") == "0", sections=("storage",), what="colors Dark again")
+
+
+@pytest.mark.feature("ui_theme_panels")
+@pytest.mark.needs_switch("UI_SETTINGS")
+def test_theme_choice_switches_the_look(home):
+    """Settings > Display > Theme (a radio with two looks that fit its display): the other look is stored
+    (settings.gui_theme) and Home changes at once; the look the radio had is put back after (stored by its number
+    where it was 0, the build's default: the same look)."""
+    r = home
+    s = storage(r)
+    if "settings.gui_theme" not in s:
+        skip("not_built", "firmware without settings.gui_theme")
+    if "UI_SETTINGS" not in r.features():
+        skip("not_built", "built without CONFIG_UI_SETTINGS: no Settings menu")
+    stored = s["settings.gui_theme"]
+    _, before = r.shot_until(lambda d: True, what="Home")
+    if not r.open_setting("Theme", "SET_LABEL_THEME", "84363", required=False):
+        skip("other_board", "no Theme row: this firmware has one look for this display")
+    # The pick list checks the look in use and lists two: Down, or Up from the second, picks the other
+    r.press("ok")
+    r.wait_for(lambda v: v.get("ui.screen") == "pick", sections=("link",), what="the Theme pick list")
+    first = as_int(r.view(["link"]).get("ui.focus"), 0) == 0
+    r.press("down" if first else "up")
+    r.press("ok")
+    r.go_home()
+    try:
+        r.wait_for(lambda x: x.get("settings.gui_theme") not in ("", stored), sections=("storage",),
+                   what="the other look stored")
+        r.shot_until(lambda d: diff_fraction(before, d) > 0.2, what="Home in the other look")
+    finally:
+        r.open_setting("Theme", "SET_LABEL_THEME", "84363")
+        r.press("ok")
+        r.wait_for(lambda v: v.get("ui.screen") == "pick", sections=("link",), what="the Theme pick list")
+        r.press("up" if first else "down")
+        r.press("ok")
+        r.go_home()
 
 
 @pytest.mark.feature("ui_settings")
