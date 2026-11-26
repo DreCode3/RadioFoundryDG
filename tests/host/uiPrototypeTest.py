@@ -127,8 +127,8 @@ class PrototypeTest(unittest.TestCase):
     def test_monitor_uses_separate_speaker_and_sound_wave(self):
         idle = self.render_frame("")
         monitor = self.render_frame("mon wait:3000")
-        # In the strip, right of the mode word (the signal bars are left of it)
-        pixels = {(x, y) for y in range(STRIP_H) for x in range(42, 200)
+        # In the strip, at its left end on Home (Home's strip has no mode word: the mode bar has it)
+        pixels = {(x, y) for y in range(STRIP_H) for x in range(5, 200)
                   if monitor[y][x * 3:x * 3 + 3] == bytes(3) and idle[y][x * 3:x * 3 + 3] != bytes(3)}
         left = min(x for x, _ in pixels)
         # A solid cone with a stem on the left and a separate wave on the right.
@@ -170,8 +170,9 @@ class PrototypeTest(unittest.TestCase):
     def test_home_strip_is_the_strip_of_every_screen(self):
         # One status strip, a rounded pane: Home's is the menus' and the lists', pixel for pixel inside the pane, in both
         # layouts and palettes (around it is each screen's own color: Home's gutter, a list's background)
+        # Home's strip has no mode word (its mode bar has the mode): compared right of the mode word
         def pane(frame):
-            return [row[10 * 3:300 * 3] for row in frame[3:STRIP_H - 2]]
+            return [row[60 * 3:300 * 3] for row in frame[3:STRIP_H - 2]]
         for profile in ("", AMATEUR):
             for theme in ("", NIGHT):
                 with self.subTest(profile=profile or "Commercial", theme=theme or "Day"):
@@ -181,6 +182,12 @@ class PrototypeTest(unittest.TestCase):
                         self.assertEqual(ink_map(pane(frame)), ink_map(pane(home)), screen)
                         # The pane's rounded corner: the screen's color at the very corner, the pane's inside it
                         self.assertNotEqual(frame[2][4 * 3:5 * 3], frame[10][10 * 3:11 * 3], screen)
+                    # The list's strip starts with the mode word, Home's doesn't
+                    def left(frame):
+                        return any(max(row[x * 3:x * 3 + 3]) < 100 for row in frame[3:STRIP_H - 2] for x in range(10, 50))
+                    if not theme:	# dark ink on the Day strip
+                        self.assertFalse(left(home))
+                        self.assertTrue(left(self.render_frame(profile + "gps:fix ok 1")))
         self.run_script("expect:shows=DMR down expect:shows=FM ok 8 expect:shows=FM")
     def test_dstar_preview_uses_full_mode_label(self):
         self.run_script("prototype:dstar_on expect:shows=D-STAR expect:layout=0 "
@@ -188,12 +195,19 @@ class PrototypeTest(unittest.TestCase):
                         "prototype:dstar_off expect:hides=D-STAR")
         for profile in ("", AMATEUR):
             with self.subTest(profile=profile or "Commercial"):
-                frame = self.render_frame(profile + "prototype:dstar_on expect:layout=0")
-                # The strip's first 80 pixels hold only the mode, in its largest font.
+                # A list's strip: its first 80 pixels hold only the mode, in its largest font
+                frame = self.render_frame(profile + "prototype:dstar_on ok 1 expect:layout=0")
                 mode_rows = [y for y in range(STRIP_H - 1)
                              if any(max(frame[y][x * 3:x * 3 + 3]) < 100 for x in range(5, 80))]
                 self.assertGreaterEqual(max(mode_rows) - min(mode_rows) + 1, 12)
                 self.assertGreaterEqual(min(mode_rows), 1)
+                # Home: the strip has no mode word, the mode bar has it in the largest font
+                home = self.render_frame(profile + "prototype:dstar_on expect:layout=0")
+                self.assertFalse([y for y in range(STRIP_H - 1)
+                                  if any(max(home[y][x * 3:x * 3 + 3]) < 100 for x in range(5, 80))])
+                bar_rows = [y for y in range(STRIP_H, 56)
+                            if any(max(home[y][x * 3:x * 3 + 3]) < 100 for x in range(10, 120))]
+                self.assertGreaterEqual(max(bar_rows) - min(bar_rows) + 1, 18)
     def test_crossed_key_is_only_a_receive_warning(self):
         plain = "rx:9991234,3100,g"
         encrypted = "rx:9991234,3100,e"
@@ -600,28 +614,51 @@ class PrototypeTest(unittest.TestCase):
                     "prototype:talkaround_on msg:9991234,Hello expect:layout=0 "
                     "wait:9000 expect:layout=0"
                 )
-        # A strip this crowded gives up the clock (after the states every theme shows), nothing overlaps; with fewer
-        # marks the clock is back
         self.run_script(
             GPS_CLOCK + "long:back gps:fix mon vox:on roam:searching "
             "prototype:bt_connected prototype:record_on prototype:dstar_on prototype:crypt_arc4 "
             "prototype:talkaround_on msg:9991234,Hello rxonly:on scankey wait:9000 "
-            "expect:shows=D-STAR expect:shows=ARC4 expect:hides=14:08 expect:layout=0"
+            "expect:shows=D-STAR expect:shows=ARC4 expect:shows=14:08 expect:layout=0"
         )
-        self.run_script(GPS_CLOCK + "long:back gps:fix mon msg:9991234,Hello wait:9000 "
-                        "expect:shows=14:08 expect:layout=0")
+        # The clock comes right after the states every theme shows (QA, step 4 review, B1): with privacy, an unread
+        # message and a scan it stays, the mode word taking the smaller font first
+        self.run_script(GPS_CLOCK + "long:back gps:fix msg:9991234,Hello wait:9000 prototype:crypt_aes scankey wait:3000 "
+                        "expect:shows=14:08 expect:layout=0 ok 1 expect:shows=14:08 expect:layout=0")
+        # ... and a list strip whose mode word must take 8x16 for the clock to fit: it does, before the clock goes
+        self.run_script(GPS_CLOCK + "long:back gps:fix mon msg:9991234,Hello wait:9000 prototype:crypt_aes "
+                        "scankey wait:3000 ok 1 lockkey wait:3000 expect:screen=contacts expect:shows=14:08 "
+                        "expect:layout=0")
 
-    def test_crowded_status_gives_way_in_a_fixed_order(self):
-        # A crowded strip keeps the device marks and the privacy key and gives up the clock; a mark more or less changes
-        # the strip only, and Home under it stays
+    def test_home_clock_moves_to_the_mode_bar_in_a_crowd(self):
+        # Where Home's strip has no room for the clock, it is at the mode bar's right end (as in step 2); with room,
+        # in the strip. A list can drop it in the worst crowd
+        # Receiving (signal bars), the monitor, ARC4 privacy, an unread message, a scan and the lock: the states that
+        # come before the clock leave Home's strip too little room for it
+        crowd = ("gps:fix mon prototype:crypt_arc4 msg:9991234,Hello wait:9000 scankey wait:3000 lockkey wait:3000 "
+                 "rx:9991234,3100,g ")
+        setup = GPS_CLOCK + "long:back "
+        for profile in ("", AMATEUR):
+            with self.subTest(profile=profile or "Commercial"):
+                def clock_in_mode_bar(script):
+                    # The mode bar's right half, with the clock and without (the strip's scan mark moves with time)
+                    frame = self.render_frame(profile + setup + script + "expect:shows=14:08 expect:layout=0")
+                    plain = self.render_frame(profile + script)
+                    return any(frame[y][160 * 3:300 * 3] != plain[y][160 * 3:300 * 3] for y in range(STRIP_H + 2, 54))
+                self.assertFalse(clock_in_mode_bar("gps:fix "), "the clock in the strip")
+                self.assertTrue(clock_in_mode_bar(crowd), "the clock in the mode bar")
+        self.run_script(setup + crowd.replace("lockkey wait:3000 ", "") + "ok 1 expect:screen=contacts "
+                        "expect:hides=14:08 expect:layout=0")
+
+    def test_commercial_crowded_status_keeps_the_clock_and_device_icons(self):
         setup = (
             GPS_CLOCK + "long:back gps:fix quick 7 ctx 3 5 ok wait:3000 "
-            "expect:dual=1 mon roam:ready prototype:bt_connected prototype:dstar_on "
-            "prototype:crypt_arc4 prototype:talkaround_on msg:9991234,Hello wait:9000 lockkey wait:3000"
+            "expect:dual=1 roam:ready prototype:bt_connected prototype:dstar_on "
+            "prototype:crypt_arc4 prototype:talkaround_on lockkey wait:3000"
         )
-        check = " expect:hides=14:08 expect:shows=ARC4 expect:layout=0"
-        crowded = ink_map(self.render_frame(setup + " vox:on prototype:record_on" + check))
-        toggled = ink_map(self.render_frame(setup + " vox:on prototype:record_off" + check))
+        check = " expect:shows=21_Nov expect:shows=14:08 expect:shows=ARC4 expect:layout=0"
+        # (an unread message: a mark that comes before the clock, so it has room in this crowd)
+        crowded = ink_map(self.render_frame(setup + " vox:on prototype:record_on msg:9991234,Hello wait:9000" + check))
+        toggled = ink_map(self.render_frame(setup + " vox:on prototype:record_on wait:9000" + check))
         self.assertTrue(crowded[:STRIP_H] != toggled[:STRIP_H], "a mark should change the strip")
         self.assertTrue(crowded[STRIP_H:BAR_Y] == toggled[STRIP_H:BAR_Y], "Home under the strip stays")
     def test_operational_activity_stays_visible(self):

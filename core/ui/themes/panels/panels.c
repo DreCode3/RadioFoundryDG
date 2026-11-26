@@ -342,13 +342,12 @@ static unsigned panels_power_level(const radio_view_t *v)
 }
 
 // The status strip's items in the order they get room, the first first (panels_draw_status): what a crowded strip
-// gives up goes last. The safety states and the shared ones (ui.md: TX, signal, battery, lock, privacy, scan,
-// monitor, unread messages, GPS, the USB network) come first, then what says how the radio transmits, then the GPS
-// clock, which stays wherever it fits, then the marks other screens show in full (dual watch, roaming)
+// gives up goes last (gui-plan.md, decided Nov 26): battery, TX/NO TX, signal, mode, lock, privacy, scan, monitor and
+// unread, then the GPS clock, then GPS, the USB network, power, receive-only, VOX, dual watch and roaming
 enum {
 	PANELS_SI_BATTERY, PANELS_SI_ACTIVITY, PANELS_SI_SIGNAL, PANELS_SI_MODE, PANELS_SI_LOCK, PANELS_SI_KEY,
-	PANELS_SI_SCAN, PANELS_SI_MONITOR, PANELS_SI_UNREAD, PANELS_SI_GPS, PANELS_SI_IP, PANELS_SI_POWER,
-	PANELS_SI_RX_ONLY, PANELS_SI_VOX, PANELS_SI_CLOCK, PANELS_SI_DUAL, PANELS_SI_ROAM,
+	PANELS_SI_SCAN, PANELS_SI_MONITOR, PANELS_SI_UNREAD, PANELS_SI_CLOCK, PANELS_SI_GPS, PANELS_SI_IP,
+	PANELS_SI_POWER, PANELS_SI_RX_ONLY, PANELS_SI_VOX, PANELS_SI_DUAL, PANELS_SI_ROAM,
 #ifdef GFX_FIT_TRACE
 	PANELS_SI_RECORDING, PANELS_SI_TALKAROUND, PANELS_SI_BT,	// the simulator's examples
 #endif
@@ -460,7 +459,7 @@ static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t
 	case PANELS_SI_BATTERY: return s->no_battery ? 0 : panels_px(11, scale);
 	case PANELS_SI_ACTIVITY: return t->activity ? gfx_text_width(f, t->activity) : 0;
 	case PANELS_SI_SIGNAL: return t->strength ? panels_px(18, scale) : 0;
-	case PANELS_SI_MODE: return gfx_text_width(t->mode_font, t->mode);
+	case PANELS_SI_MODE: return t->mode != NULL ? gfx_text_width(t->mode_font, t->mode) : 0;
 	case PANELS_SI_LOCK: return s->locked ? panels_px(10, scale) : 0;
 	case PANELS_SI_KEY:
 		if (!t->encrypted && !t->warning)
@@ -635,10 +634,11 @@ static const uint8_t panels_strip_right[] = {
 // The status strip, a rounded pane at the top of every screen, the same marks at the same size on every one: signal
 // bars, the mode, roaming, TX or NO TX and the monitor, dual watch and VOX marks from the left; battery, power, lock,
 // GPS, the USB network and the operating marks (unread mail, the privacy key, a receive-only channel, scanning) from the
-// right; the GPS clock in the room between. Nothing overlaps: a crowded strip gives up items in the reverse of their
-// order (PANELS_SI_*), and the mode takes the 8x16 font before anything else goes. under: the screen's color around
-// the pane
-static void panels_draw_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, color_t under)
+// right; the GPS clock in the room between. Home has no mode word in it: its mode bar has the mode. Nothing overlaps:
+// a crowded strip gives up items in the reverse of their order (PANELS_SI_*), and the mode takes the 8x16 font before
+// anything else goes. under: the screen's color around the pane. Returns whether the GPS clock is due but had no room
+// (Home then has it in its mode bar)
+static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, color_t under, bool home)
 {
 	ui_strip_draws++;
 	int w = gfx_width(), h = ui_layout.strip_h;
@@ -646,20 +646,20 @@ static void panels_draw_status(const radio_view_t *v, radio_state_t st, const ui
 	gfx_fill(0, 0, w, h, under);
 	panels_pane(2, h - 2, ui_col.strip_bg);
 	panels_strip_t t = { 0 };
-	t.mode = panels_status_mode(v, s);
+	t.mode = home ? NULL : panels_status_mode(v, s);
 	t.activity = panels_status_activity(v, st, &t.activity_ink);
 	t.strength = panels_signal_bars(v, s);
 	panels_strip_key(v, s, &t);
 	int room = w - 2 * PANELS_STRIP_X;
-	// The mode in the large font where every item but the clock fits beside it
+	if (!panels_clock(s, t.clock, sizeof t.clock))
+		t.clock[0] = 0;
+	// The mode in the large font where every item, the clock included, fits beside it
 	t.mode_font = &font_aa_12x24;
 	int need = 0;
 	for (int i = 0; i < PANELS_SI_COUNT; i++)
 		need += panels_strip_w(i, v, s, &t);
 	if (need > room)
 		t.mode_font = &font_aa_8x16;
-	if (!panels_clock(s, t.clock, sizeof t.clock))
-		t.clock[0] = 0;
 	uint32_t shown = panels_strip_fit(v, s, &t, room);
 	int cy = (h - 1) / 2;	// a 24 px cell (the mode) from y 2, clear of Home's mode bar below
 	int left = PANELS_STRIP_X, right = w - PANELS_STRIP_X;
@@ -681,6 +681,7 @@ static void panels_draw_status(const radio_view_t *v, radio_state_t st, const ui
 		int cw = panels_strip_mark_w(PANELS_SI_CLOCK, v, s, &t);
 		panels_strip_item(PANELS_SI_CLOCK, left + (right + PANELS_STRIP_GAP - left - cw) / 2, cy, v, s, &t, ink);
 	}
+	return t.clock[0] && !(shown & (1u << PANELS_SI_CLOCK));
 }
 
 // A screen's title below the strip, in the medium font (8x16 where it is too long), left-aligned, reserve pixels left
@@ -713,7 +714,7 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 	const char *name, bool draw)
 {
 	if (draw)
-		panels_draw_status(v, st, s, ui_col.bg);
+		panels_draw_status(v, st, s, ui_col.bg, false);
 	if (prefix == NULL && name == NULL)
 		return ui_layout.strip_h;
 	if (draw) {
@@ -1170,8 +1171,8 @@ static void panels_native_caps(const font_t *font, int x, int cy, const char *la
 	gfx_text(font, x, y > 0 ? y : 0, label, ink);
 }
 
-// Home's frame on the gutter: the strip, the mode bar under it (the mode in the largest font) and the channel pane
-// down to bottom. Returns the pane's top
+// Home's frame on the gutter: the strip (no mode word), the mode bar under it (the mode in the largest font, and the GPS
+// clock where the strip had no room for it) and the channel pane down to bottom. Returns the pane's top
 static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bottom)
 {
 	// The panes' and the bar's colors first: on a display with a 16-color palette the text's shades take what is left
@@ -1179,10 +1180,16 @@ static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bot
 		panels_bar_fg };
 	gfx_clear(panels_gutter);
 	gfx_reserve_colors(colors, sizeof colors / sizeof colors[0]);
-	panels_draw_status(v, v->state, s, panels_gutter);
+	bool clock = panels_draw_status(v, v->state, s, panels_gutter, true);
 	int y = ui_layout.strip_h + 1;
 	panels_pane(y, PANELS_MODE_H, panels_row_bg);
 	panels_native_caps(FONT_AA_LARGEST, 15, y + PANELS_MODE_H / 2, panels_status_mode(v, s), ui_col.fg);
+	char time[24];
+	if (clock && panels_clock(s, time, sizeof time)) {
+		// The GPS clock the crowded strip had no room for, at the mode bar's right end (as in step 2)
+		const font_t *f = &font_aa_8x16;
+		gfx_text(f, gfx_width() - 15 - gfx_text_width(f, time), y + (PANELS_MODE_H - f->h) / 2, time, ui_col.dim);
+	}
 	y += PANELS_MODE_H + 2;
 	panels_pane(y, bottom - y, ui_col.bg);
 	return y;
@@ -1511,7 +1518,7 @@ static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui
 		panels_list_colors(l->kind != UI_LIST_PLAIN);
 		// The strip straight from here, not through the top op: its title's frame would join the deepest path of
 		// the UI task (make stack-check)
-		panels_draw_status(v, v->state, s, ui_col.bg);
+		panels_draw_status(v, v->state, s, ui_col.bg, false);
 	}
 	if (!panels_titled(l))
 		return ui_layout.strip_h;
@@ -1716,7 +1723,7 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 	const char *split;
 	gfx_clear(ui_col.bg);
 	panels_list_colors(false);
-	panels_draw_status(v, v->state, s, ui_col.bg);
+	panels_draw_status(v, v->state, s, ui_col.bg, false);
 	int top = panels_title(TR(QUICK_TITLE, "Quick"), v->vfo ? "VFO" : v->ch.name, 0, true);
 	int bottom = panels_hint_top() - 2;	// Quick always has its bottom row, as the reference theme's
 	const int x0 = 5, gap = 3;
