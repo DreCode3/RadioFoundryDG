@@ -2822,7 +2822,7 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 		dirty = true;
 	}
 #endif
-	// Auto lock (Settings > Buttons): after so long without a key press, not while transmitting
+	// Auto lock (Settings > Security & keypad lock): after so long without a key press, not while transmitting
 	if (!lock_armed) {
 		lock_armed = true;
 		last_key_ms = now;
