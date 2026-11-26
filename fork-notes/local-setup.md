@@ -18,23 +18,55 @@ git remote add upstream https://github.com/radiofoundry/radiofoundry
 
 | Need | How | Notes |
 |---|---|---|
-| Host compiler, make, zlib | `xcode-select --install` | Host tests and the UI simulator |
-| Python 3 and Pillow | `python3 -m pip install pillow` | Pillow is for `fork-notes/tools/` only |
-| Arm GNU Toolchain 13.3.rel1 (pinned in `platform/stm32f4/platform.toml`) | Download the macOS arm64 `arm-none-eabi` build of 13.3.rel1 from Arm's GNU Toolchain downloads page, check its SHA-256 against Arm's, unpack into `~/opt/` | The Makefile finds `~/opt/arm-gnu-toolchain-*-arm-none-eabi/bin/` by itself. If macOS blocks the binaries: `xattr -dr com.apple.quarantine ~/opt/arm-gnu-toolchain-*` |
-| C-SKY GCC 14.2.0 (GD-88) | Docker Desktop or Apple's `container`, then `tools/docker/csky-toolchain/run.sh make BOARD=gd88` | The image is named in `platform/hrc7000/platform.toml`. A native build (`tools/build-csky-toolchain.sh`) is tested on Linux only |
+| Host compiler, make, zlib | `xcode-select --install` | Host tests and the UI simulator (Apple clang 17, GNU make 3.81) |
+| Python 3 and Pillow | `python3 -m pip install --user --break-system-packages pillow` (or `brew install pillow`) | Pillow is for `fork-notes/tools/` only. Homebrew's Python refuses a plain `pip install` (PEP 668, "externally-managed-environment") |
+| Arm GNU Toolchain 13.3.rel1 (pinned in `platform/stm32f4/platform.toml`) | Download and check it as below, then `mkdir -p ~/opt && tar -xJf <archive> -C ~/opt` | The Makefile finds `~/opt/arm-gnu-toolchain-*-arm-none-eabi/bin/` by itself. If macOS blocks the binaries: `xattr -dr com.apple.quarantine ~/opt/arm-gnu-toolchain-*` (not needed when downloaded with `curl`) |
+| Docker (C-SKY image, Linux host tests) | Docker Desktop, or Homebrew `docker` with `colima` (`colima start --arch aarch64`) | Either works; this Mac uses colima. Apple's `container` is untested |
+| C-SKY GCC 14.2.0 (GD-88) | `tools/docker/csky-toolchain/run.sh make -j$(sysctl -n hw.ncpu) BOARD=gd88` | The image is named in `platform/hrc7000/platform.toml` and pulled on first use. It is amd64 only, so it runs emulated on Apple silicon (a full build takes about 2 minutes) and Docker prints a platform `WARNING` line unless `DOCKER_DEFAULT_PLATFORM=linux/amd64` is set. Pass `-j` yourself: `run.sh`'s `JOBS` default uses `nproc`, which macOS lacks. A native build (`tools/build-csky-toolchain.sh`) is tested on Linux only |
+| Linux host-test image (AddressSanitizer tests) | `docker build -t local/rf-host-tests -f fork-notes/tools/Dockerfile.host-tests fork-notes/tools` | See "AddressSanitizer on macOS" below. Native arm64 |
 | Claude Code | Start it in the clone (CLI `claude`, or open the folder as a local session in the desktop app) | `CLAUDE.md` loads by itself |
+
+The Arm archive is `arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi.tar.xz` (about 123 MB). Arm publishes its
+SHA-256 in a `.sha256asc` file beside it; the downloads page refuses scripted fetches (HTTP 403). The checksum in
+`platform.toml` is for the Linux x86_64 archive, not this one.
+
+```bash
+B=https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi.tar.xz
+curl -fLO "$B" && curl -fLO "$B.sha256asc" && shasum -a 256 -c arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi.tar.xz.sha256asc
+# expect fb6921db95d345dc7e5e487dd43b745e3a5b4d5c0c7ca4f707347148760317b4
+```
 
 The Nov 25 CI record notes two macOS problems: an AddressSanitizer stall in `gfxFbEdgeTest` and an internal compiler
 error from a translated (x86) Arm compiler under LTO. Use the native arm64 Arm toolchain. Run the full `tools/ci.sh`
 matrix in the Linux VM if the Mac stalls.
+
+### AddressSanitizer on macOS
+
+Apple clang 17's ASan runtime hangs at start-up on macOS 27 (checked on 27.3): every binary built with
+`-fsanitize=address`, even an empty `main`, spins forever in `__asan::InitializeShadowMemory` before `main` runs.
+UBSan alone is fine. That is the `gfxFbEdgeTest` stall above. It hits:
+
+- `uiThemeTest` and `gfxFbEdgeTest`, which always build with ASan. The plain `make -C tests/host` run reaches them
+  and hangs, and so does `tools/ci.sh`'s host step.
+- `make -C tests/host SANITIZE=1` (`RFOUNDRY_CI_SANITIZE=1 tools/ci.sh`).
+
+Run them in the Linux image. `fork-notes/tools/cc.sh` does this for `uiThemeTest` by itself. By hand, remove the Mac
+binary first, because make would take a binary from the other OS as up to date, and clean afterwards:
+
+```bash
+rm -f tests/host/uiThemeTest
+docker run --rm -v "$PWD:$PWD" -w "$PWD" --user $(id -u):$(id -g) -e HOME=/tmp local/rf-host-tests \
+	sh -c 'make -s -C tests/host uiThemeTest && ./tests/host/uiThemeTest'
+rm -f tests/host/uiThemeTest
+```
 
 ## Check the setup
 
 ```bash
 make -C tests/host uiSim
 python3 tests/host/uiPrototypeTest.py
-make BOARD=dm1701
-tools/docker/csky-toolchain/run.sh make BOARD=gd88
+make -j$(sysctl -n hw.ncpu) BOARD=dm1701
+tools/docker/csky-toolchain/run.sh make -j$(sysctl -n hw.ncpu) BOARD=gd88
 ```
 
 ## The pixel baseline for refactors

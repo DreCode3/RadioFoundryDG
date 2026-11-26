@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 The RadioFoundry Authors
+# Linux host tests on a Mac, for the tests built with AddressSanitizer (fork-notes/local-setup.md): Apple clang 17's
+# ASan runtime hangs at start-up on macOS 27. Native arm64, so it runs at full speed under Docker on Apple silicon.
+#   docker build -t local/rf-host-tests -f fork-notes/tools/Dockerfile.host-tests fork-notes/tools
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential zlib1g-dev python3 \
+	&& rm -rf /var/lib/apt/lists/*

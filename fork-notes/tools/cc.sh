@@ -6,18 +6,31 @@
 #   fork-notes/tools/cc.sh BASELINE_DIR WORK_DIR [nofw]
 # BASELINE_DIR: made once with snapshot.py (fork-notes/local-setup.md). WORK_DIR: scratch output, outside the repo.
 # The GD-88 builds with csky-elf-gcc when it is installed, else in the C-SKY container (tools/docker/csky-toolchain).
+# On macOS uiThemeTest (built with AddressSanitizer, which hangs at start-up there) runs in the Linux image
+# $RF_HOST_IMAGE (default local/rf-host-tests, from Dockerfile.host-tests).
 set -u
 BASE=${1:?baseline dir}; OUT=${2:?work dir}; FW=${3:-fw}
 ROOT=$(git rev-parse --show-toplevel); cd "$ROOT" || exit 2
 HERE=fork-notes/tools; mkdir -p "$OUT"
 NCPU=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
 if command -v csky-elf-gcc >/dev/null || [ -x "$HOME/toolchains/csky-elf/bin/csky-elf-gcc" ]; then MK=(make); else MK=(tools/docker/csky-toolchain/run.sh make); fi
+# The C-SKY image is amd64 only: name its platform, or Docker prints a WARNING line on arm64 hosts
+export DOCKER_DEFAULT_PLATFORM=${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
+if [ "$(uname -s)" = Darwin ]; then
+	THEME=(docker run --rm --platform linux/arm64 -v "$ROOT:$ROOT" -w "$ROOT" --user "$(id -u):$(id -g)" -e HOME=/tmp
+	       "${RF_HOST_IMAGE:-local/rf-host-tests}" sh -c)
+else
+	THEME=(sh -c)
+fi
 ok=1
 make -s -C tests/host uiSim >"$OUT/uisim.log" 2>&1; rc=$?; w=$(grep -ci warning "$OUT/uisim.log")
 echo "uiSim rc $rc warnings $w"; [ $rc = 0 ] && [ "$w" = 0 ] || { ok=0; head -30 "$OUT/uisim.log"; }
 if [ $ok = 1 ]; then
 	rm -rf "$OUT/cur" && python3 $HERE/snapshot.py "$ROOT" "$OUT/cur" && python3 $HERE/compare.py "$BASE" "$OUT/cur" || ok=0
-	make -s -C tests/host uiThemeTest >"$OUT/theme.log" 2>&1 && ./tests/host/uiThemeTest >>"$OUT/theme.log" 2>&1; rc=$?
+	# rm: a binary from the other OS would look up to date
+	rm -f tests/host/uiThemeTest
+	"${THEME[@]}" 'make -s -C tests/host uiThemeTest && ./tests/host/uiThemeTest' >"$OUT/theme.log" 2>&1; rc=$?
+	rm -f tests/host/uiThemeTest
 	echo "uiThemeTest rc $rc | $(tail -1 "$OUT/theme.log")"; [ $rc = 0 ] || { ok=0; grep -m8 "FAIL\|rror" "$OUT/theme.log"; }
 	python3 tests/host/uiPrototypeTest.py >"$OUT/proto.log" 2>&1; rc=$?
 	echo "uiPrototypeTest rc $rc | $(tail -1 "$OUT/proto.log")"; [ $rc = 0 ] || ok=0
