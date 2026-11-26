@@ -2689,7 +2689,7 @@ static void chlist_context(uint16_t i)
 
 static const ui_scr_def_t chlist_screen = {
 	// Settings > Programming > Channels: programming, not field use (P4's three levels)
-	.name = "channels", .flags = SF_LIST | SF_FILTER | SF_OK_ACTS, .prefix = TRN(TITLE_CHANNELS, "Channels"),
+	.name = "channels", .flags = SF_LIST | SF_FILTER, .prefix = TRN(TITLE_CHANNELS, "Channels"),
 	.hint = TRN(CHAN_HINT_LIST, TEXT_ALT_OPEN "OK details  # go  0-9 find"
 		TEXT_ALT_NEXT "OK details  # go" TEXT_ALT_CLOSE),
 	.empty = TRN(CHAN_EMPTY_NO_CHANNELS, "No channels"),
@@ -3986,7 +3986,7 @@ static const char *discard_title(void)
 }
 
 static const ui_scr_def_t discard_screen = {
-	.name = "discard", .flags = SF_LIST | SF_OK_ACTS, .prefix = TR_NONE, .title = discard_title,
+	.name = "discard", .flags = SF_LIST | SF_BACK_ACTS, .prefix = TR_NONE, .title = discard_title,
 	.hint = TRN(DISCARD_HINT, TEXT_ALT_OPEN "OK choose  Back keep editing"
 		TEXT_ALT_NEXT "OK choose  Back" TEXT_ALT_CLOSE),
 	.count = discard_count, .item = discard_item, .select = discard_select, .body = discard_body,
@@ -4463,7 +4463,7 @@ static void chz_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t chz_screen = {
-	.name = "chzones", .flags = SF_LIST, .prefix = TRX(ZONE_TITLE_IN_ZONES, "In zones"),
+	.name = "chzones", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRX(ZONE_TITLE_IN_ZONES, "In zones"),
 	.hint = TRX(ZONE_HINT_IN_ZONES, "OK in/out  Back"),
 	.empty = TRN(ZONE_EMPTY_NO_ZONES, "No zones"),
 	.count = chz_count, .item = chz_item, .select = chz_select,
@@ -8471,7 +8471,7 @@ static void hwopt_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t hwopt_screen = {
-	.name = "hwopt", .flags = SF_LIST, .prefix = TRX(HW_TITLE, "Hardware"),
+	.name = "hwopt", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRX(HW_TITLE, "Hardware"),
 	.hint = TRX(HW_HINT, "OK next  Hold OK store"),
 	.count = hwopt_count, .item = hwopt_item, .select = hwopt_select, .enter = hwopt_enter,
 };

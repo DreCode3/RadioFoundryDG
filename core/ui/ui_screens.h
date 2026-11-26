@@ -288,6 +288,7 @@ typedef struct {
 	uint8_t kind;
 	bool numbered;			// numeric shortcuts select entries
 	bool ok_acts;			// OK does more than open or pick a row (SF_OK_ACTS): its hint isn't the usual one
+	bool back_acts;			// Back does more than leave (SF_BACK_ACTS)
 #endif
 } ui_list_t;
 #if CONFIG_UI_THEME_PANELS

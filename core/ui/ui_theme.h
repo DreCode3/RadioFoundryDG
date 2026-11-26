@@ -26,10 +26,12 @@ enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };
 #if CONFIG_UI_THEME_PANELS
 #define UI_BAR_LIST	0x02u	// under a list (ui_draw_list)
 #define UI_BAR_NUMBERED	0x04u	// ... whose rows the digit keys pick (ui_list_t.numbered)
-// ... where OK and Back do more than open or pick a row and leave: the list says so (ui_list_t.ok_acts: send, go, add,
-// use, ...), or its focused row has its value editor open (OK save, Back cancel)
+// ... where OK does more than open or pick a row (ui_list_t.ok_acts: send, go, add, use, ...), or Back more than leave
+// (ui_list_t.back_acts: keep editing); either where its focused row has its value editor open (OK save, Back cancel)
 #define UI_BAR_OK_ACTS	0x08u
+#define UI_BAR_BACK_ACTS	0x20u
 #define UI_BAR_NO_HINTS	0x10u	// Hint row is off: a theme with UI_THEME_OPT_SOFT_KEYS draws the soft keys' labels only
+// Bits from 0x100 are a theme's own
 #endif
 
 // Where a list's cells go (ops->list_geom). The shared list code (ui_draw_list) picks the cells on screen from it and
@@ -72,7 +74,7 @@ typedef struct ui_theme_ops {
 	// The bottom row: key hints (groups separated by two spaces, with text alternates) or a toast. soft_key: the label
 	// of Home's assigned soft key, NULL without one. Plain arguments, no struct: ui_draw_hint has only the text and
 	// the flag, and a struct would be built in the frame of every screen that draws a hint
-	void (*bottom)(const char *text, uint8_t flags, const char *soft_key);
+	void (*bottom)(const char *text, unsigned flags, const char *soft_key);
 	// The banner, if one is up, over the lower part of the screen
 	void (*banner)(const ui_state_t *s);
 	// Home, the whole frame

@@ -67,9 +67,11 @@ typedef enum {
 #define SF_FIND		0x10u	// digits type the query (Find)
 #define SF_NO_STRIP	0x20u	// no status strip while the radio is idle (About: the owner's call); RX / TX bring it back
 #define SF_HINT_FN	0x40u	// the hint is built when drawn (hint_fn), not a marked text (hint)
-// OK does more on a row than open or pick it (send, go, add, use, tune, change, edit and save, talk ...), or Back more
-// than leave (keep editing): a theme that leaves a list's usual OK and Back hints out keeps these (ui_list_t.ok_acts)
+// OK does more on a row than open or pick it (send, go, add, use, tune, change, edit and save, talk ...); Back more than
+// leave (keep editing): a theme that leaves a list's usual OK and Back hints out keeps that key's (ui_list_t.ok_acts,
+// back_acts)
 #define SF_OK_ACTS	0x80u
+#define SF_BACK_ACTS	0x100u
 
 typedef struct {
 	uint8_t scr;
@@ -110,7 +112,7 @@ typedef struct {
 
 typedef struct {
 	const char *name;	// the debug link's / simulator's name for it
-	uint8_t flags;
+	uint16_t flags;
 	tr_id_t prefix;		// title (TRN; TR_NONE: none)
 	union {
 		tr_id_t hint;			// TRN; TR_NONE: none

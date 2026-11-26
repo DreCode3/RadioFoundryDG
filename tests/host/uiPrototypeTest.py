@@ -494,15 +494,38 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("quick expect:shows=TG/Contact expect:shows=DMR_monitor expect:hides=DMon expect:layout=0")
 
     def test_list_hint_row_keeps_what_ok_does_where_it_does_more(self):
-        # A list's plain open and choose aren't repeated in the hint row; a list whose OK does more says so (SF_OK_ACTS,
-        # a flag on the list, or the hint function's for a row): send, go, talk, use, details, change
-        for script, row in (("ok 2 ok", "OK_send"), ("ok 4", "OK_go"), ("ok 1", "OK_talk"), ("quick 8", "OK_use"),
-                            ("ok 8 9 ok", "OK_details"), ("ok 8 1 row:GPS_clock", "OK_change")):
-            with self.subTest(screen=script):
-                self.run_script(f"{script} expect:shows={row} expect:shows=OK expect:shows=Back expect:layout=0")
-        for script, hidden in (("ok 8 1", "OK_choose"), ("msg:9991234,Hello wait:9000 ok 2", "OK_open")):
-            with self.subTest(screen=script):
-                self.run_script(f"{script} expect:hides={hidden} expect:layout=0")
+        # A list's plain open and choose aren't repeated in the hint row; a key that does more there is kept, the list
+        # saying so by a flag for OK and one for Back (SF_OK_ACTS, SF_BACK_ACTS) or the hint function for its row:
+        # (screen, its script, groups shown, groups hidden)
+        cases = (
+            ("compose", "ok 2 ok", ["OK_send"], []),
+            ("zones", "ok 4", ["OK_go"], []),
+            ("contacts", "ok 1", ["OK_talk"], []),
+            ("picker", "quick 8", ["OK_use"], []),
+            ("chzones", "ok 8 9 ok ok up up up up ok", ["OK_in/out"], []),
+            ("channel", "ok 8 9 ok ok", ["OK_change", "OK_save"], []),
+            ("contactedit", "ok 1 ok", ["OK_change", "OK_save"], []),
+            ("discard", "ok 8 9 ok ok down down down down down down down down ok back", ["Back_keep_editing"],
+             ["OK_choose"]),
+            ("dual_pick", "quick 7 ctx 3", ["OK_watch"], []),
+            ("fixed-pos", "ok 6 4 row:Fixed_position ok", ["OK_change"], []),
+            ("zone_share_to", "ok 4 ctx down down ctx 5", ["OK_send"], []),
+            ("dmr-id", "ok 8 9 row:DMR_ID_and_name ok", ["OK_edit/save"], []),
+            ("hwopt", "hwopt ok 8 9 row:Hardware ok", ["OK_next"], []),
+            ("group", "ok 8 1 row:GPS_clock", ["OK_change"], []),
+            # plain: open, choose, details (an open); the other keys' groups stay
+            ("channels", "ok 8 9 ok", ["#_go"], ["OK_details"]),
+            ("group", "ok 8 9", [], ["OK_open"]),
+            ("group", "ok 8 1", [], ["OK_choose"]),
+            ("messages", "msg:9991234,Hello wait:9000 ok 2", ["#_reply"], ["OK_open"]),
+        )
+        for screen, script, shown, hidden in cases:
+            with self.subTest(screen=screen, script=script):
+                # (a screen name with "_" can't be checked: the simulator reads "_" in an expected value as a space)
+                check = "" if "_" in screen else f"expect:screen={screen} "
+                self.run_script(f"{script} {check}expect:shows=OK expect:shows=Back " +
+                                "".join(f"expect:shows={g} " for g in shown) +
+                                "".join(f"expect:hides={g} " for g in hidden) + "expect:layout=0")
 
     def test_hint_row_off_keeps_the_soft_keys(self):
         # Hint row off hides only the hint line: the bar and its two labels stay on every screen, and lists keep five rows

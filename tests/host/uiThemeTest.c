@@ -294,7 +294,7 @@ static int probe_top(const radio_view_t *v, radio_state_t st, const ui_state_t *
 	return 33;
 }
 
-static void probe_bottom(const char *text, uint8_t flags, const char *soft_key)
+static void probe_bottom(const char *text, unsigned flags, const char *soft_key)
 {
 	got.bottom++;
 	got.bottom_text = text;
@@ -971,7 +971,7 @@ static void test_panels_scroll_position(void)
 // hint declares the key by structure (a group that starts with its name), never a label a translation chose; inside
 // the bar's pane with room at its ends and between them, none shortened. The hint row above it in the 8x16 font: the
 // groups the labels don't say (other keys, sentences, what OK and Back do), whole
-static void bar(int line, const char *hint, uint8_t flags, const char *soft_key, const char *want_left,
+static void bar(int line, const char *hint, unsigned flags, const char *soft_key, const char *want_left,
 	const char *want_right, const char *want_row)
 {
 	gfx_clear(ui_col.bg);
@@ -1009,10 +1009,19 @@ static void test_panels_bar(void)
 	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back", "# more");	// Back leaves every list
 	BAR("OK choose  Back", UI_BAR_LIST, NULL, "OK", "Back", NULL);			// nothing left: the row is empty
 	// ... unless the focused row's value editor is open: OK and Back do its jobs then
-	BAR("OK save  Back cancel", UI_BAR_LIST | UI_BAR_OK_ACTS, NULL, "OK", "Back", "OK save  Back cancel");
+	BAR("OK save  Back cancel", UI_BAR_LIST | UI_BAR_OK_ACTS | UI_BAR_BACK_ACTS, NULL, "OK", "Back", "OK save  Back cancel");
 	// ... or the list says its OK does more (send, go, add, use): its OK and Back groups stay
 	BAR("OK send  Back", UI_BAR_LIST | UI_BAR_OK_ACTS, NULL, "OK", "Back", "OK send");
-	BAR("OK choose  Back keep editing", UI_BAR_LIST | UI_BAR_OK_ACTS, NULL, "OK", "Back", "OK choose  Back keep editing");
+	// ... a key at a time: Back that keeps editing stays, the plain OK choose beside it goes
+	BAR("OK choose  Back keep editing", UI_BAR_LIST | UI_BAR_BACK_ACTS, NULL, "OK", "Back", "Back keep editing");
+	BAR("OK send  Back cancel", UI_BAR_LIST | UI_BAR_OK_ACTS, NULL, "OK", "Back", "OK send");
+	// A row too long for the title's width (280 px) uses the panes' (298 px) from x 6 before it loses a group
+	gfx_clear(ui_col.bg);
+	ntexts = nshortened = 0;
+	ui_theme_panels.ops->bottom("Back delete  # ABC/123/abc  OK finish", 0, NULL);
+	int wide = find_text("Back delete  # ABC/123/abc  OK finish");
+	CHECK(wide >= 0 && nshortened == 0 && texts[wide].x == 6 && texts[wide].w > gfx_width() - 30 &&
+	      texts[wide].x + texts[wide].w <= gfx_width() - 6);
 	// Hint row off: the two labels stay, the row goes
 	BAR("OK open  # reply  Back", UI_BAR_LIST | UI_BAR_NO_HINTS, NULL, "OK", "Back", NULL);
 	BAR("# skip  Back stop scan", UI_BAR_NO_HINTS, "Back", NULL, "Back", NULL);

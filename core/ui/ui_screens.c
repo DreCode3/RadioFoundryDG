@@ -820,7 +820,7 @@ UI_THEME_SHARED const char *ui_key_names(const char *text, char *out, size_t cap
 // ("Back", "Back keeps", ...) is pinned to the right edge, under the key, and the others run from the left. A hint may
 // hold text alternates (font.h): the longest form that fits is used. A toast is centered; one too long for the row
 // takes a second line above it, so it is never shortened
-static void reference_bottom(const char *text, uint8_t flags, const char *soft_key)
+static void reference_bottom(const char *text, unsigned flags, const char *soft_key)
 {
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
@@ -920,7 +920,7 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 }
 
 // The bottom row as the theme in use draws it
-static void draw_hint(const char *text, uint8_t flags, const char *soft_key)
+static void draw_hint(const char *text, unsigned flags, const char *soft_key)
 {
 	const ui_theme_ops_t *o = ui_theme_cur()->ops;
 	if (o->bottom != NULL)
@@ -3880,10 +3880,10 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	if (s->toast)
 		ui_draw_hint(s->toast, true);
 	else if ((s->hints || ui_theme_soft_keys()) && l->hint) {
-		uint8_t bar = 0;
+		unsigned bar = 0;
 #if CONFIG_UI_THEME_PANELS
-		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0) | (editing || l->ok_acts ? UI_BAR_OK_ACTS : 0) |
-			(s->hints ? 0 : UI_BAR_NO_HINTS);
+		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0u) | (editing || l->ok_acts ? UI_BAR_OK_ACTS : 0u) |
+			(editing || l->back_acts ? UI_BAR_BACK_ACTS : 0u) | (s->hints ? 0u : UI_BAR_NO_HINTS);
 #endif
 		draw_hint(l->hint, bar, NULL);
 	}

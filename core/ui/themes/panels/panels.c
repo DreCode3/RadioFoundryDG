@@ -731,13 +731,13 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 // Back (Home: Menu and its assigned key), where the hint declares them; the bar stays with Hint row off
 // (UI_THEME_OPT_SOFT_KEYS). The hint row has only what the bar can't say: the other keys' groups (#, *, the digits,
 // PTT, Up/Down, a key held), sentences, and what OK and Back do where it isn't their usual job. In a list OK opens or
-// picks the focused row and Back leaves, so its OK and Back groups are left out, unless they mean more (UI_BAR_OK_ACTS:
-// the list declares it, "OK send", "OK go", or the row's value editor is open, "OK save  Back cancel"); elsewhere they
-// stay ("Back undo", "Back stop scan"). Nothing compares text
+// picks the focused row and Back leaves, so each of its OK and Back groups is left out unless that key means more
+// (UI_BAR_OK_ACTS, UI_BAR_BACK_ACTS: the list declares it, "OK send", "Back keep editing", or the row's value editor
+// is open, "OK save  Back cancel"); elsewhere they stay ("Back undo", "Back stop scan"). Nothing compares text
 // a translation chose, so the bar and the row are the same in every language
-#define PANELS_BAR_MENU 0x20u	// the theme's own flags: Home, where OK opens the menu (ui_home_ok_menu): Menu on the left
-#define PANELS_BAR_KEYS 0x40u	// ... a screen of the theme's own where OK and Back both act (Quick)
-#define PANELS_BAR_IDLE 0x80u	// ... Home's idle hint, whose first group is the menu's (the label says it)
+#define PANELS_BAR_MENU 0x100u	// the theme's own flags: Home, where OK opens the menu (ui_home_ok_menu): Menu on the left
+#define PANELS_BAR_KEYS 0x200u	// ... a screen of the theme's own where OK and Back both act (Quick)
+#define PANELS_BAR_IDLE 0x400u	// ... Home's idle hint, whose first group is the menu's (the label says it)
 
 static bool panels_group_ok(const char *g, size_t n)
 {
@@ -753,7 +753,7 @@ static bool panels_group_back(const char *g, size_t n)
 
 // One form of a hint (the key names in) taken apart: the soft keys it declares (bit 0 OK, bit 1 Back), and into row
 // (NULL: only the keys) the groups the bar can't say (see above). Returns the keys, and 4 when the row has a group
-static unsigned panels_hint_parts(const char *form, uint8_t flags, char *row, size_t cap)
+static unsigned panels_hint_parts(const char *form, unsigned flags, char *row, size_t cap)
 {
 	unsigned keys = 0;
 	size_t rn = 0, bn = strlen(TR(HINT_BACK, "Back"));
@@ -763,7 +763,8 @@ static unsigned panels_hint_parts(const char *form, uint8_t flags, char *row, si
 		size_t n = end != NULL ? (size_t)(end - g) : strlen(g);
 		bool ok = panels_group_ok(g, n), back = panels_group_back(g, n);
 		keys |= (ok ? 1u : 0u) | (back ? 2u : 0u);
-		bool usual = (ok || back) && (flags & UI_BAR_LIST) && !(flags & UI_BAR_OK_ACTS);
+		bool usual = (flags & UI_BAR_LIST) &&
+			((ok && !(flags & UI_BAR_OK_ACTS)) || (back && !(flags & UI_BAR_BACK_ACTS)));
 		bool said = (ok && n == 2) || (back && n == bn) || usual || ((flags & PANELS_BAR_IDLE) && first) ||
 			(flags & UI_BAR_NO_HINTS);
 		if (!said && n) {
@@ -793,7 +794,7 @@ static int panels_hint_top(void)
 }
 
 // The hint has a group for the hint row (for Home, which ends its pane above the row then)
-static bool panels_hint_has_row(const char *text, uint8_t flags)
+static bool panels_hint_has_row(const char *text, unsigned flags)
 {
 	char form[64], names[64];
 	bool more;
@@ -832,7 +833,7 @@ static void panels_bar_labels(const char *left, const char *right, int top, colo
 // The bottom row: the soft key bar and the hint row (above), or a toast in the small font, centered on the bar, with a
 // second line above it when it is too long for one. soft_key: Home's assigned soft key, its label on the right. The
 // buffers are the size of the reference theme's (ui_screens.c): the UI task's deepest chain runs through here
-static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
+static void panels_bottom(const char *text, unsigned flags, const char *soft_key)
 {
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
@@ -1238,10 +1239,10 @@ static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bot
 
 // The flags of Home's bar: Menu on the left where OK opens it (ui_home_ok_menu), and its idle hint (s->home_hint) starts
 // with the menu's group; Hint row off leaves out the hints
-static uint8_t panels_home_bar(const ui_state_t *s, const char *hint)
+static unsigned panels_home_bar(const ui_state_t *s, const char *hint)
 {
-	return (uint8_t)((ui_home_ok_menu(s) ? PANELS_BAR_MENU : 0) | (hint != NULL && hint == s->home_hint ? PANELS_BAR_IDLE : 0) |
-		(s->hints ? 0 : UI_BAR_NO_HINTS));
+	return (ui_home_ok_menu(s) ? PANELS_BAR_MENU : 0u) | (hint != NULL && hint == s->home_hint ? PANELS_BAR_IDLE : 0u) |
+		(s->hints ? 0u : UI_BAR_NO_HINTS);
 }
 
 // Where Home's channel pane ends: above the hint row where the bar has one, or the knob's volume bar while it shows
