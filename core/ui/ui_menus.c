@@ -7640,7 +7640,7 @@ static const char *set_why_not(const set_item_t *s)
 	case UI_SET_STRIP:
 		if (board.display != NULL && board.display->bpp == 1)
 			return TR(SET_WHY_COLOR_SCREENS_ONLY, "Colors are for color screens");
-		// Night shows red only: its highlight is always its own red (ui_screens.c accent_apply)
+		// Night shows red only: its highlight is always its own red (ui_screens.c reference_colors)
 		return s->id == UI_SET_ACCENT && ui_svc_setting_get(UI_SET_THEME) == UI_THEME_NIGHT ?
 			TR(SET_WHY_NIGHT_RED_ONLY, "Night theme: red only") : NULL;
 	case UI_SET_MIC_GAIN:

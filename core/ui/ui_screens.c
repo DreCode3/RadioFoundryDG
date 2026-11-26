@@ -23,7 +23,7 @@ static const font_t *font_largest;	// the large text setting's font (large_font)
 // Colors carry meaning only (P5); every color cue also has a word. On 1 bpp panels everything is ink on paper
 // and pills are inverse video
 ui_colors_t ui_col;
-static uint8_t ui_theme;
+static uint8_t ui_palette;	// the palette in use: UI_THEME_* (what Settings > Display calls the theme)
 
 static uint8_t ui_accent;	// UI_ACCENT_*
 static bool ui_strip_fill;
@@ -41,7 +41,7 @@ static int profile_footer_top(void);
 
 static bool profile_theme(void)
 {
-	return ui_theme == UI_THEME_PROFILE_DAY || ui_theme == UI_THEME_PROFILE_NIGHT;
+	return ui_palette == UI_THEME_PROFILE_DAY || ui_palette == UI_THEME_PROFILE_NIGHT;
 }
 
 // The profile look's Day and Night palettes, and its colors outside the shared tokens (index: night)
@@ -84,7 +84,7 @@ static void profile_palette(bool night)
 // pill. Default keeps the theme's blue focus; its filled strip is light gray (white in high contrast). Built without CONFIG_UI_COLOR (radios
 // with only a monochrome screen) the theme's own colors stay. Night keeps its brightest red for all of them whatever the
 // highlight color, so nothing but red reaches the eye
-static void accent_apply(ui_colors_t *c, uint8_t palette)
+static void reference_colors(ui_colors_t *c, uint8_t palette)
 {
 	c->focus_fg = c->fg;
 	c->chnum = c->dim;
@@ -138,7 +138,7 @@ static void accent_apply(ui_colors_t *c, uint8_t palette)
 #define NIGHT_R2	RGB565(112, 0, 0)
 #define NIGHT_R1	RGB565(56, 0, 0)
 
-// The palettes (Settings > Display > Theme), by UI_THEME_*: the colors before the highlight color (accent_apply), which
+// The palettes (Settings > Display > Theme), by UI_THEME_*: the colors before the highlight color (reference_colors), which
 // sets focus_fg, chnum and on color builds the strip and focus colors. Built without CONFIG_UI_COLOR only Dark is there
 static const ui_colors_t palettes[] = {
 	[UI_THEME_DARK] = { .bg = RGB565(0, 0, 0), .fg = RGB565(255, 255, 255), .dim = RGB565(168, 168, 168),
@@ -161,7 +161,7 @@ static const ui_colors_t palettes[] = {
 		.hint_bg = RGB565(0, 0, 0), .priv = RGB565(0, 255, 255), .idle_fg = RGB565(255, 255, 255) },
 	// Night: the meanings that were hues become brightness and the word (P5): TX and warnings brightest, RX and
 	// privacy one step down, the idle pill dark with a bright word, black words on the brightest red. The highlight
-	// and focus are its brightest red too (accent_apply)
+	// and focus are its brightest red too (reference_colors)
 	[UI_THEME_NIGHT] = { .bg = RGB565(0, 0, 0), .fg = NIGHT_R4, .dim = NIGHT_R3, .line = NIGHT_R2,
 		.tx = NIGHT_R4, .rx = NIGHT_R3, .warn = NIGHT_R4, .idle = NIGHT_R1, .pill_fg = RGB565(0, 0, 0),
 		.pill_dark_fg = RGB565(0, 0, 0), .focus = NIGHT_R4, .hint_bg = NIGHT_R1, .priv = NIGHT_R3,
@@ -181,7 +181,7 @@ void ui_theme_set(uint8_t theme)
 #if CONFIG_UI_PROFILES
 	bool was_profile = profile_theme();
 #endif
-	ui_theme = theme;
+	ui_palette = theme;
 	if (gfx_bpp() == 1)
 		return;		// ink on paper whatever the theme
 #if CONFIG_UI_PROFILES
@@ -201,19 +201,19 @@ void ui_theme_set(uint8_t theme)
 
 uint8_t ui_theme_get(void)
 {
-	return ui_theme;
+	return ui_palette;
 }
 
 void ui_accent_set(uint8_t accent)
 {
 	ui_accent = accent;
-	ui_theme_set(ui_theme);
+	ui_theme_set(ui_palette);
 }
 
 void ui_strip_set(bool filled)
 {
 	ui_strip_fill = filled;
-	ui_theme_set(ui_theme);
+	ui_theme_set(ui_palette);
 }
 
 static void layout_regions(ui_layout_t *L)
@@ -254,20 +254,8 @@ static void layout_regions(ui_layout_t *L)
 	L->row_h = L->small->h + (w >= 220 && tall ? 6 : tall ? 3 : h >= 100 ? 1 : 0);
 }
 
-void ui_layout_init(void)
-{
-	if (gfx_bpp() == 1) {
-		ui_col.bg = 0; ui_col.fg = ui_col.dim = ui_col.line = ui_col.tx = ui_col.rx = ui_col.warn = ui_col.idle = ui_col.focus = ui_col.priv = 1;
-		ui_col.pill_fg = ui_col.pill_dark_fg = ui_col.idle_fg = 0;
-		ui_col.hint_bg = 0;
-	}
-
-	ui_theme_set(ui_theme);
-	UI_THEME_OP(layout)(&ui_layout);
-}
-
 // The reference theme's fonts by display class, and its regions
-static void ref_layout(ui_layout_t *L)
+static void reference_layout(ui_layout_t *L)
 {
 	int w = gfx_width(), h = gfx_height();
 
@@ -324,6 +312,31 @@ static void ref_layout(ui_layout_t *L)
 #endif
 
 	layout_regions(L);
+}
+
+// The theme's fonts and regions. Every call of a theme op is written this way: through a local pointer to the ops
+// table, the reference theme's function where the theme has none. With one theme built both are that function,
+// called directly. With several, tools/stack_check.py reads the call from this text and takes every function a theme
+// stores in the field as its target (docs/dev/stack-check.md), which it cannot do through a macro
+static void theme_layout(ui_layout_t *L)
+{
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->layout != NULL)
+		o->layout(L);
+	else
+		reference_layout(L);
+}
+
+void ui_layout_init(void)
+{
+	if (gfx_bpp() == 1) {
+		ui_col.bg = 0; ui_col.fg = ui_col.dim = ui_col.line = ui_col.tx = ui_col.rx = ui_col.warn = ui_col.idle = ui_col.focus = ui_col.priv = 1;
+		ui_col.pill_fg = ui_col.pill_dark_fg = ui_col.idle_fg = 0;
+		ui_col.hint_bg = 0;
+	}
+
+	ui_theme_set(ui_palette);
+	theme_layout(&ui_layout);
 }
 
 // --- shared pieces ---
@@ -1057,7 +1070,7 @@ static int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_st
 }
 #endif
 
-static int ref_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
+static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
 {
 #if CONFIG_UI_PROFILES
 	if (s->gui_profiles)
@@ -1091,7 +1104,7 @@ static int ref_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
 	else if (pfg == pbg)	// high contrast: the idle pill is white, so its word is black
 		pfg = ui_col.pill_dark_fg;
 	// A filled strip (Settings > Display) draws on its own background in black, warnings in a dark shade that reads on
-	// it (accent_apply); the idle pill turns inverse on it, RX / TX / NO TX keep their colors and words (P5)
+	// it (reference_colors); the idle pill turns inverse on it, RX / TX / NO TX keep their colors and words (P5)
 	bool filled = CONFIG_UI_COLOR && ui_strip_fill && gfx_bpp() != 1;
 	color_t sbg = filled ? ui_col.strip_bg : ui_col.bg, sfg = filled ? ui_col.pill_dark_fg : ui_col.fg;
 	color_t swarn = filled ? ui_col.strip_warn : ui_col.warn;
@@ -1254,7 +1267,10 @@ static int ref_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
 // view on the UI task's stack (the UI task's deepest path, stack check)
 static int draw_top_as(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
 {
-	return UI_THEME_OP(top)(v, st, s, prefix, name);
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->top != NULL)
+		return o->top(v, st, s, prefix, name);
+	return reference_top(v, st, s, prefix, name);
 }
 
 int ui_draw_top(const radio_view_t *v, const ui_state_t *s, const char *prefix, const char *name)
@@ -1461,7 +1477,7 @@ static const char *key_names(const char *text, char *out, size_t cap, bool hint)
 // ("Back", "Back keeps", ...) is pinned to the right edge, under the key, and the others run from the left. A hint may
 // hold text alternates (font.h): the longest form that fits is used. A toast is centered; one too long for the row
 // takes a second line above it, so it is never shortened
-static void ref_bottom(const char *text, uint8_t flags, const char *soft_key)
+static void reference_bottom(const char *text, uint8_t flags, const char *soft_key)
 {
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
@@ -1603,7 +1619,11 @@ static void ref_bottom(const char *text, uint8_t flags, const char *soft_key)
 // The bottom row as the theme in use draws it
 static void draw_hint(const char *text, uint8_t flags, const char *soft_key)
 {
-	UI_THEME_OP(bottom)(text, flags, soft_key);
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->bottom != NULL)
+		o->bottom(text, flags, soft_key);
+	else
+		reference_bottom(text, flags, soft_key);
 }
 
 void ui_draw_hint(const char *text, bool toast)
@@ -3703,7 +3723,7 @@ static bool profile_operational_home(const radio_view_t *v)
 }
 #endif
 
-static void ref_home(const radio_view_t *v, const ui_state_t *s)
+static void reference_home(const radio_view_t *v, const ui_state_t *s)
 {
 #if CONFIG_UI_PROFILES
 	if (s->gui_profiles && !profile_operational_home(v)) {
@@ -3745,7 +3765,11 @@ void ui_draw_home(const radio_view_t *v, const ui_state_t *s)
 		return;
 	}
 #endif
-	UI_THEME_OP(home)(v, s);
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->home != NULL)
+		o->home(v, s);
+	else
+		reference_home(v, s);
 }
 
 #if CONFIG_DUAL_WATCH
@@ -4306,7 +4330,7 @@ static void __attribute__((noinline)) dual_choose(int avail, int gap, bool comme
 	*out = *ft;
 }
 
-static void ref_home_dual(const radio_view_t *v, const ui_state_t *s)
+static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
 	int bottom = L->hint_y;
@@ -4359,7 +4383,11 @@ static void ref_home_dual(const radio_view_t *v, const ui_state_t *s)
 
 void ui_draw_home_dual(const radio_view_t *v, const ui_state_t *s)
 {
-	UI_THEME_OP(home_dual)(v, s);
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->home_dual != NULL)
+		o->home_dual(v, s);
+	else
+		reference_home_dual(v, s);
 }
 #endif
 
@@ -4451,7 +4479,7 @@ static void banner_box(const ui_state_t *s, int bottom, int x0, int right_inset,
 }
 
 // The reference theme's banner: above the hint row, on its color
-static void ref_banner(const ui_state_t *s)
+static void reference_banner(const ui_state_t *s)
 {
 	int x0 = 0;
 	color_t bg = ui_col.hint_bg;
@@ -4469,7 +4497,11 @@ static void ref_banner(const ui_state_t *s)
 
 void ui_draw_banner(const ui_state_t *s)
 {
-	UI_THEME_OP(banner)(s);
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->banner != NULL)
+		o->banner(s);
+	else
+		reference_banner(s);
 }
 
 // --- List screens (Hub, Contacts, Find, Settings, ...): title, optional header and body, rows, hint ---
@@ -4490,7 +4522,7 @@ static void profile_list_colors(const ui_list_t *l)
 }
 
 // The profile look's list heading. noinline, as list_header below: its buffers stay out of the frame of
-// ref_list_head, which also leads to the reference strip
+// reference_list_head, which also leads to the reference strip
 static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l,
 	bool draw)
 {
@@ -4517,7 +4549,7 @@ static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, co
 }
 #endif
 
-static int ref_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
+static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
 #if CONFIG_UI_PROFILES
 	if (draw && s->gui_profiles)
@@ -4543,7 +4575,8 @@ static void __attribute__((noinline)) list_header(const char *header, int y)
 // false only measures (v and s may be NULL)
 static int list_top(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
-	int y = UI_THEME_OP(list_head)(v, s, l, draw);
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	int y = o->list_head != NULL ? o->list_head(v, s, l, draw) : reference_list_head(v, s, l, draw);
 	if (l->header != NULL) {
 		if (draw)
 			list_header(l->header, y);
@@ -4893,7 +4926,7 @@ static void profile_row(int x, int y, int w, int h, color_t ink)
 #endif
 
 // The reference theme's rows: one column of them from edge to edge, as many as fit
-static void ref_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
+static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 {
 	g->font = ui_layout.small;
 	g->x = 0;
@@ -4958,7 +4991,7 @@ static void ref_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *
 }
 
 // The reference theme's row: the focus as a filled bar, the key's digit, the label and its value
-static void ref_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
+static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
 {
 	const ui_layout_t *L = &ui_layout;
 	const font_t *f = g->font;
@@ -5065,7 +5098,7 @@ static void ref_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_
 }
 
 // The reference theme's scroll marks, over the rows: more above / below
-static void ref_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+static void reference_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
 	int w = gfx_width();
 	int visible = g->rows * g->cols;
@@ -5101,6 +5134,34 @@ static void ref_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bo
 		gfx_fill(w - 3, g->y + g->rows * g->pitch - 2, 3, 2, ui_col.dim);
 }
 
+// The theme's three ops for the cells of a list
+static void list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
+{
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->list_geom != NULL)
+		o->list_geom(l, y, y_end, g);
+	else
+		reference_list_geom(l, y, y_end, g);
+}
+
+static void list_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
+{
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->cell != NULL)
+		o->cell(l, g, c, it);
+	else
+		reference_cell(l, g, c, it);
+}
+
+static void list_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+{
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->scroll != NULL)
+		o->scroll(g, top, count, over);
+	else
+		reference_scroll(g, top, count, over);
+}
+
 // A list screen's frame, the same in every theme: the title, the body text, which rows are on screen, the banner and
 // the bottom row. The theme places the cells and draws each one (ui_theme.h); only this function moves *l->top
 void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l)
@@ -5116,7 +5177,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		}
 	}
 	ui_list_geom_t g;
-	UI_THEME_OP(list_geom)(l, y, y_end, &g);
+	list_geom(l, y, y_end, &g);
 	int visible = g.rows * g.cols;
 	uint16_t top = l->top != NULL ? *l->top : 0;
 	if (g.paged) {
@@ -5133,7 +5194,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		*l->top = top;
 	if (l->count == 0 && l->empty != NULL)
 		wrap_text(g.font, l->empty, y + 1, y_end, true, ui_col.dim);
-	UI_THEME_OP(scroll)(&g, top, l->count, false);
+	list_scroll(&g, top, l->count, false);
 	for (int r = 0; r < visible && top + r < l->count; r++) {
 		uint16_t i = (uint16_t)(top + r);
 		ui_item_t it;
@@ -5150,9 +5211,9 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 			.focus = i == l->focus && !(it.flags & UI_ITEM_INFO) };
 		for (int k = 0; k < col; k++)
 			c.x += g.col_w[k] + g.col_gap;
-		UI_THEME_OP(cell)(l, &g, &c, &it);
+		list_cell(l, &g, &c, &it);
 	}
-	UI_THEME_OP(scroll)(&g, top, l->count, true);
+	list_scroll(&g, top, l->count, true);
 	ui_draw_banner(s);
 	if (s->toast)
 		ui_draw_hint(s->toast, true);
@@ -5613,7 +5674,7 @@ static void __attribute__((noinline)) draw_quick_tiles(const radio_view_t *v, co
 		ui_draw_hint(TR(QUICK_HINT_ALL_SETTINGS, "0 All settings  Hold OK save"), false);
 }
 
-static void ref_quick(const radio_view_t *v, const ui_state_t *s)
+static void reference_quick(const radio_view_t *v, const ui_state_t *s)
 {
 	if (gfx_width() < 150)
 		draw_quick_list(v, s);
@@ -5623,7 +5684,11 @@ static void ref_quick(const radio_view_t *v, const ui_state_t *s)
 
 void ui_draw_quick(const radio_view_t *v, const ui_state_t *s)
 {
-	UI_THEME_OP(quick)(v, s);
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->quick != NULL)
+		o->quick(v, s);
+	else
+		reference_quick(v, s);
 }
 
 #if CONFIG_DIAG
@@ -5700,21 +5765,31 @@ void ui_draw_diag(const radio_view_t *v, uint32_t keys, int32_t enc_total, uint8
 // --- The reference theme: the look every screen above draws unless another theme gives its own op (ui_theme.h) ---
 
 static const ui_theme_ops_t reference_ops = {
-	.layout = ref_layout,
-	.colors = accent_apply,
-	.top = ref_top,
-	.bottom = ref_bottom,
-	.banner = ref_banner,
-	.home = ref_home,
+	.layout = reference_layout,
+	.colors = reference_colors,
+	.top = reference_top,
+	.bottom = reference_bottom,
+	.banner = reference_banner,
+	.home = reference_home,
 #if CONFIG_DUAL_WATCH
-	.home_dual = ref_home_dual,
+	.home_dual = reference_home_dual,
 #endif
-	.quick = ref_quick,
-	.list_head = ref_list_head,
-	.list_geom = ref_list_geom,
-	.cell = ref_cell,
-	.scroll = ref_scroll,
+	.quick = reference_quick,
+	.list_head = reference_list_head,
+	.list_geom = reference_list_geom,
+	.cell = reference_cell,
+	.scroll = reference_scroll,
 };
+
+#if UI_THEME_SELECT
+const ui_theme_t *ui_theme_selected = &ui_theme_reference;
+
+void ui_theme_use(const ui_theme_t *t)
+{
+	ui_theme_selected = t;
+	ui_layout_init();
+}
+#endif
 
 const ui_theme_t ui_theme_reference = {
 	.palettes = palettes,

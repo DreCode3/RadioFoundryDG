@@ -9,6 +9,13 @@
 
 #include "ui_screens.h"
 
+// 1: the build has more than one theme and the one in use is chosen at run time (ui_theme_use). 0: the reference
+// theme only. No build sets it yet; a build with a second theme will, from its theme switches, and the host test of
+// the framework does for its own theme (tests/host/uiThemeTest.c)
+#ifndef UI_THEME_SELECT
+#define UI_THEME_SELECT	0
+#endif
+
 // The bottom row's text (ops->bottom)
 #define UI_BAR_TOAST	0x01u	// a toast, not key hints (the value of ui_draw_hint's toast)
 #if CONFIG_UI_PROFILES
@@ -34,7 +41,8 @@ typedef struct {
 	bool focus;
 } ui_cell_t;
 
-// An op left NULL is the reference theme's (UI_THEME_OP), so a theme gives only what it draws differently
+// An op left NULL is the reference theme's, so a theme gives only what it draws differently. The shared entry points
+// in ui_screens.c (ui_draw_top, ui_draw_hint, ui_draw_home, ui_draw_list, ...) make the choice; nothing else calls an op
 typedef struct ui_theme_ops {
 	// Fonts for the display and the regions, into *L
 	void (*layout)(ui_layout_t *L);
@@ -80,11 +88,15 @@ typedef struct ui_theme {
 // Today's look (ui_screens.c)
 extern const ui_theme_t ui_theme_reference;
 
-// The theme in use. One theme is built, so it is a constant: the compiler resolves every op call and no pointer is
-// stored or followed
+// The theme in use. With one theme built it is a constant: the compiler resolves every op call, and neither the
+// descriptor nor a pointer to it is in the image
+#if UI_THEME_SELECT
+extern const ui_theme_t *ui_theme_selected;
+#define ui_theme_cur()	ui_theme_selected
+// Puts a theme in use, with its layout and the palette in use (its first where it has fewer). After gfx_init
+void ui_theme_use(const ui_theme_t *t);
+#else
 #define ui_theme_cur()	(&ui_theme_reference)
-
-// The op of the theme in use, the reference theme's where it has none
-#define UI_THEME_OP(op)	(ui_theme_cur()->ops->op != NULL ? ui_theme_cur()->ops->op : ui_theme_reference.ops->op)
+#endif
 
 #endif
