@@ -2592,14 +2592,8 @@ static void draw_home_large(const radio_view_t *v, const ui_state_t *s)
 	gfx_text(f, 0, y, fit, v->state == RS_TX ? ui_col.tx : v->state == RS_RX ? ui_col.rx : ui_col.fg);
 }
 
-static void reference_home(const radio_view_t *v, const ui_state_t *s)
+UI_THEME_SHARED void ui_reference_home(const radio_view_t *v, const ui_state_t *s)
 {
-#if CONFIG_UI_THEME_PANELS
-	if (s->gui_profiles && !profile_operational_home(v)) {
-		draw_profile_home(v, s);
-		return;
-	}
-#endif
 #if CONFIG_DMR
 	ui_st_dmr_off = s->dmr_off;
 	if (dmr_call_screen(v)) {
@@ -2638,7 +2632,7 @@ void ui_draw_home(const radio_view_t *v, const ui_state_t *s)
 	if (o->home != NULL)
 		o->home(v, s);
 	else
-		reference_home(v, s);
+		ui_reference_home(v, s);
 }
 
 #if CONFIG_DUAL_WATCH
@@ -4368,7 +4362,7 @@ static const ui_theme_ops_t reference_ops = {
 	.top = reference_top,
 	.bottom = reference_bottom,
 	.banner = reference_banner,
-	.home = reference_home,
+	.home = ui_reference_home,
 #if CONFIG_DUAL_WATCH
 	.home_dual = reference_home_dual,
 #endif

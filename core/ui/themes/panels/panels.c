@@ -1062,7 +1062,8 @@ void profile_home_footer(const ui_state_t *s, const char *hint)
 	ui_draw_bottom_key(s, hint, ui_home_soft_key(s));
 }
 
-void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
+// noinline: inlined in panels_home, its buffers would be in the frame the reference Home is drawn from
+static void __attribute__((noinline)) draw_profile_home(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
 	gfx_clear(profile_home_gutter);
@@ -1096,7 +1097,7 @@ void draw_profile_home(const radio_view_t *v, const ui_state_t *s)
 	profile_home_footer(s, ui_home_hint(v, s));
 }
 
-bool profile_operational_home(const radio_view_t *v)
+static bool profile_operational_home(const radio_view_t *v)
 {
 #if CONFIG_DMR_TRUNK
 	if (v->t3.sys != 0)
@@ -1222,6 +1223,16 @@ static void profile_row(int x, int y, int w, int h, color_t ink)
 }
 
 // --- The theme ---
+
+// Home. A trunked or single-frequency repeater channel, or one of a kind this build lacks, keeps the reference theme's
+// Home body, drawn in this theme's strip, regions and footer (its top and bottom ops)
+static void panels_home(const radio_view_t *v, const ui_state_t *s)
+{
+	if (profile_operational_home(v))
+		ui_reference_home(v, s);
+	else
+		draw_profile_home(v, s);
+}
 
 // A list's palette entries, then its heading: a larger left-aligned title (the main menu's is Menu), or the strip
 // alone for a list without a title
@@ -1542,6 +1553,7 @@ static const ui_theme_ops_t panels_ops = {
 	.top = panels_top,
 	.bottom = panels_bottom,
 	.banner = panels_banner,
+	.home = panels_home,
 	.list_head = panels_list_head,
 	.list_geom = panels_list_geom,
 	.cell = panels_cell,

@@ -144,6 +144,8 @@ void ui_secondary_hint_split(char *left, char *right, size_t cap, bool quick_onl
 // A row's label from x and its value right-aligned at w, the label kept whole where it can be
 void ui_row_text(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
 	color_t vfg, bool preview);
+// The reference theme's Home, for a channel another theme leaves to it
+void ui_reference_home(const radio_view_t *v, const ui_state_t *s);
 // The banner, if one is up, its lower edge at bottom (ui_screens.c has the details)
 void ui_banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg);
 #else

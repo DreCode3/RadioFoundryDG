@@ -23,11 +23,8 @@ void profile_pane(int y, int h, color_t ink);
 // Text centered across the screen, shortened at its end to the panes' inner width
 void profile_center(const font_t *f, int y, const char *text, color_t c);
 
-// Home: its status regions (returns the y below them), the footer under the banner, the whole frame, and whether a
-// channel keeps the reference Home's body (trunked, SFR, a kind this build lacks)
+// Home's status regions (returns the y below them) and its footer under the banner, which dual watch's Home uses too
 int draw_home_status(const radio_view_t *v, const ui_state_t *s);
 void profile_home_footer(const ui_state_t *s, const char *hint);
-void draw_profile_home(const radio_view_t *v, const ui_state_t *s);
-bool profile_operational_home(const radio_view_t *v);
 
 #endif
