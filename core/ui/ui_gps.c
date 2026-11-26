@@ -369,10 +369,34 @@ static void draw_sky(const ui_position_t *p, int y)
 		}
 		drawn++;
 	}
-	if (drawn == 0)
-		gfx_text(ui_layout.small, 0, y, p->in_view ? TR(GPS_EMPTY_NO_POSITIONS, "No positions yet") :
-			TR(GPS_EMPTY_NO_SATELLITES, "No satellites yet"),
-			 ui_col.dim);
+	if (drawn == 0) {
+		// Beside the plot, under the legend, on two lines broken at a space where one is too long, where it fits
+		// there; else over the plot's top left, as before
+		const font_t *f = ui_layout.small;
+		const char *empty = p->in_view ? TR(GPS_EMPTY_NO_POSITIONS, "No positions yet") :
+			TR(GPS_EMPTY_NO_SATELLITES, "No satellites yet");
+		int ex = cx + r + 4, ey = y + systems * (f->h + 1) + (systems ? 3 : 0);
+		char line[40];
+		size_t cut = strlen(empty);
+		if (!below && gfx_text_width(f, empty) > w - ex) {
+			for (cut = sizeof line - 1 < cut ? sizeof line - 1 : cut; cut > 0; cut--) {
+				if (empty[cut] != ' ')
+					continue;
+				memcpy(line, empty, cut);
+				line[cut] = 0;
+				if (gfx_text_width(f, line) <= w - ex && gfx_text_width(f, empty + cut + 1) <= w - ex)
+					break;
+			}
+		}
+		if (below || cut == 0) {
+			gfx_text(f, 0, y, empty, ui_col.dim);
+		} else if (empty[cut] == 0) {
+			gfx_text(f, ex, ey, empty, ui_col.dim);
+		} else {
+			gfx_text(f, ex, ey, line, ui_col.dim);
+			gfx_text(f, ex, ey + f->h, empty + cut + 1, ui_col.dim);
+		}
+	}
 	if (below)
 		legend(0, cy + r + 3, 2, w / 2, used, seen);
 	else
