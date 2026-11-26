@@ -260,7 +260,7 @@ msgstr "Non enregistré"
 #: core/ui/ui_app.c
 msgctxt "TALK_TOAST_FOR_NOW_ONLY"
 msgid "For now only: save it in qdmr"
-msgstr "Mnt: Sauvegarder via qdmr"
+msgstr "Temporaire : enregistrez-le dans qdmr"
 
 #: core/ui/ui_app.c
 msgctxt "WHY_TALK_TARGET_NOT_IN_BUILD"
@@ -355,7 +355,7 @@ msgstr "Message APRS de "
 #: core/ui/ui_app.c core/ui/ui_menus.c core/ui/ui_svc_zone.c
 msgctxt "TOAST_SAVE_FAILED"
 msgid "Couldn't save: try again"
-msgstr "Erreur sauv.: réess."
+msgstr "Échec de l'enregistrement : réessayez"
 
 #: core/ui/ui_app.c
 msgctxt "ALERT_BANNER_ANSWERED"
@@ -465,7 +465,7 @@ msgstr "VFO auto-enregistré"
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_STOP_HOTSPOT_TO_SAVE"
 msgid "Stop hotspot to save"
-msgstr "Stop hotspot pr sauv"
+msgstr "Arrêter le hotspot pour enregistrer"
 
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_NOTHING_TO_SAVE"
@@ -475,12 +475,12 @@ msgstr "Rien à enregistrer"
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_PICK_SAVED_CHANNEL"
 msgid "Pick a saved channel"
-msgstr "Choisir canal sauvé"
+msgstr "Choisir un canal enregistré"
 
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_SAVING_UNAVAILABLE"
 msgid "Channel saving unavailable"
-msgstr "Sauv. canal indispo."
+msgstr "Enregistrement du canal indisponible"
 
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_SAVED_TO_CHANNEL"
@@ -490,7 +490,7 @@ msgstr "Enregistré sur canal"
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_SAVE_BUSY"
 msgid "Save busy: try again"
-msgstr "Sauvegarde occupée"
+msgstr "Enregistrement occupé : réessayez"
 
 #: core/ui/ui_app.c
 msgctxt "ZONE_TOAST_HOME_ZONE"
@@ -1520,7 +1520,7 @@ msgstr "Utiliser TG "
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "CHIP_NOT_SAVED"
 msgid "{Not saved|}"
-msgstr "{Non sauvé|}"
+msgstr "{Non enregistré|}"
 
 #: core/ui/ui_find.c
 msgctxt "FIND_ROW_PRIVATE_CALL"
@@ -1740,7 +1740,7 @@ msgstr "Dans les contacts"
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_SAVE_AS_CONTACT"
 msgid "Save as contact"
-msgstr "Sauver comme contact"
+msgstr "Enregistrer comme contact"
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_SPEAK_STATUS"
@@ -1750,7 +1750,7 @@ msgstr "Énoncer l'état"
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_SAVE_TO_CHANNEL"
 msgid "Save to channel"
-msgstr "Sauver sur canal"
+msgstr "Enregistrer sur le canal"
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_ROW_MAKE_CHANNEL_DEFAULT"
@@ -2065,7 +2065,7 @@ msgstr "Système non configuré"
 #: core/ui/ui_menus.c
 msgctxt "TOAST_CANT_SAVE_NOW"
 msgid "Couldn't save now: try again"
-msgstr "Erreur de sauvegarde"
+msgstr "Enregistrement impossible : réessayez"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_ROW_ADD_CHANNEL"
@@ -2095,7 +2095,7 @@ msgstr "Partage zone indispo"
 #: core/ui/ui_menus.c
 msgctxt "SHARE_TOAST_SAVING_ZONE"
 msgid "Saving the zone: try again"
-msgstr "Sauvegarde zone..."
+msgstr "Enregistrement de la zone : réessayez"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_ROW_PRIVATE_ID"
@@ -2160,7 +2160,7 @@ msgstr "Rejeter"
 #: core/ui/ui_menus.c
 msgctxt "TOAST_BUSY_SAVING"
 msgid "Busy saving: try again"
-msgstr "Sauvegarde en cours"
+msgstr "Enregistrement en cours : réessayez"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_TOAST_IMPORTING"
@@ -2470,7 +2470,7 @@ msgstr "Enregistrer"
 #: core/ui/ui_menus.c
 msgctxt "CHAN_ROW_SAVE_AS_NEW"
 msgid "Save as new channel"
-msgstr "Sauver comme nouveau"
+msgstr "Enregistrer en nouveau canal"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_LABEL_TALKAROUND"
@@ -2535,7 +2535,7 @@ msgstr "Rien à enregistrer"
 #: core/ui/ui_menus.c
 msgctxt "CHAN_TOAST_SAVED_AS"
 msgid "Saved as channel "
-msgstr "Sauvé comme canal "
+msgstr "Enregistré comme canal "
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_TOAST_SAVED"
@@ -2575,7 +2575,7 @@ msgstr "CTCSS: 60.0 à 260.0"
 #: core/ui/ui_menus.c
 msgctxt "CHAN_TOAST_SAVE_FIRST"
 msgid "Save first: hold OK"
-msgstr "Sauver d'ab: maint OK"
+msgstr "Enregistrer d'abord : tenir OK"
 
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "WHY_AIR_BAND_RX_ONLY"
@@ -2595,7 +2595,7 @@ msgstr "Tons non supportés"
 #: core/ui/ui_menus.c
 msgctxt "CHAN_TOAST_NUMBER_IS_FIXED"
 msgid "Save as new channel to use another number"
-msgstr "Sauver ds nouv. canal"
+msgstr "Enregistrer en nouveau canal pour un autre numéro"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_TOAST_ZONES_USE_QDMR"
@@ -2645,22 +2645,22 @@ msgstr "Annuler ce contact ?"
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_ASK_CHANNEL_CHANGES"
 msgid "Discard the changes to this channel?"
-msgstr "Ignorer modifs canal?"
+msgstr "Abandonner les modifications de ce canal ?"
 
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_TITLE"
 msgid "Unsaved changes"
-msgstr "Modifs non sauvées"
+msgstr "Modifications non enregistrées"
 
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_TITLE_DMR"
 msgid "Save as DMR?"
-msgstr "Sauver en DMR?"
+msgstr "Enregistrer en DMR ?"
 
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_TITLE_FM"
 msgid "Save as FM?"
-msgstr "Sauver en FM?"
+msgstr "Enregistrer en FM ?"
 
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_HINT"
@@ -2710,7 +2710,7 @@ msgstr "Mémoire contacts plei"
 #: core/ui/ui_menus.c
 msgctxt "CONTACT_TOAST_SAVED"
 msgid "Saved contact "
-msgstr "Contact sauvé "
+msgstr "Contact enregistré "
 
 #: core/ui/ui_menus.c
 msgctxt "CONTACT_TOAST_ID_MAX"
@@ -3185,7 +3185,7 @@ msgstr "Démarrage 2"
 #: core/ui/ui_menus.c
 msgctxt "BODY_SAVED_IN_CODEPLUG"
 msgid "Saved in the codeplug"
-msgstr "Sauvé dans codeplug"
+msgstr "Enregistré dans le codeplug"
 
 #: core/ui/ui_menus.c
 msgctxt "BODY_RADIO"
@@ -3225,7 +3225,7 @@ msgstr "0-9 saisir  OK modifier/valider  Retour"
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_EDIT_BACK"
 msgid "OK edit  Back"
-msgstr "OK modif  Retour"
+msgstr "OK modifier  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "DATA_LABEL_ARS_SERVER"
@@ -4575,7 +4575,7 @@ msgstr "Pas de position GPS actuelle"
 #: core/ui/ui_menus.c
 msgctxt "SET_TOAST_SAVED_AS_YOU_CHANGE"
 msgid "Settings are saved as you change them"
-msgstr "Sauvegarde auto param"
+msgstr "Les paramètres s'enregistrent à chaque modification"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_SAVE_BACK_CANCEL"
@@ -4585,7 +4585,7 @@ msgstr "OK valider  Retour annuler"
 #: core/ui/ui_menus.c core/ui/ui_position.c
 msgctxt "HINT_OK_CHANGE_BACK"
 msgid "OK change  Back"
-msgstr "OK modif  Retour"
+msgstr "OK modifier  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_SAVE_BACK"
@@ -5780,7 +5780,7 @@ msgstr "Erreur lect. canal"
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_ZONE_FULL"
 msgid "Zone full: not saved"
-msgstr "Zone pleine: non sauv"
+msgstr "Zone pleine : non enregistré"
 
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_ALREADY_IN_ZONE"
@@ -5820,7 +5820,7 @@ msgstr "Codeplug non écriture"
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_RESET_SETTINGS"
 msgid "Reset: the settings couldn't be saved"
-msgstr "Reset: erreur sauv"
+msgstr "Réinitialisation : paramètres non enregistrés"
 
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_RESET_ERASE"
@@ -5830,7 +5830,7 @@ msgstr "Reset: erreur effac."
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_KEYS_NOT_SAVED"
 msgid "Couldn't save the keys: for now only"
-msgstr "Erreur sauv. clés"
+msgstr "Clés non enregistrées : pour l'instant seulement"
 
 #: core/ui/ui_svc_zone.c
 msgctxt "SHARE_ERR_ZONE_FULL"
