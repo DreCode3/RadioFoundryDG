@@ -119,6 +119,24 @@ Decided Nov 26, after step 3's first attempt dropped them:
   the soft key bar keeps exactly two labels. The theme picks them from what the hint declares, never by comparing
   shown text (translations).
 
+Decided Nov 26, after step 4's second attempt:
+
+- **Home's strip has no mode word**; Home's mode bar shows the mode (as in step 2). Every other screen keeps the mode
+  word in the strip. This is the one exception to "the status strip is the same on every screen".
+- **Hint row off hides only the hint line.** The panels soft key bar with its two labels stays on every screen.
+- **The hint row shows only what the bar can't**: other keys ("0-9 find", "# more", "PTT talk", "Hold OK save") and
+  meanings that differ from the usual ones ("Back undo", "Back stop scan", "OK save  Back cancel" in the value
+  editor). A plain "OK open" or "OK choose" is not repeated there.
+- **Commercial Home stays as built**: the channel name only, the talk target only when it differs (the rule below).
+- **The GPS clock in a crowded strip** (refines "The GPS clock stays" above): the strip can't hold every state plus
+  the clock, so the clock ranks right after battery, TX/NO TX, signal, mode, lock, privacy, scan, monitor and unread,
+  ahead of GPS, IP, power, receive-only, VOX, dual watch and roaming. On Home, when the strip can't hold it, the clock
+  moves into the mode bar (as in step 2). On other screens it can drop in the worst crowd.
+- **Keys locked:** Home's soft key bar shows the unlock sentence in large text (as in step 2), not two labels.
+- **The Zones tile in the 3x3 Menu shows no zone name**; Home already shows the zone. Messages ("1 new") and Scan
+  ("On") keep their values.
+- **Home's right soft key stays Back by default** in both layouts (Settings > Right soft key can make it Quick).
+
 - Grids: one fixed column split for the whole list, not per page.
 - One row height everywhere; lists show 5 rows on 310 x 240.
 - Lists of only on/off rows with short labels: 2-column toggle tiles with a state chip.
@@ -131,7 +149,7 @@ Decided Nov 26, after step 3's first attempt dropped them:
   warnings amber).
 - Home: the CPS channel name is the main line, zone above it. Commercial shows the talk target only when it
   differs from the channel's own (temporary target, reply window, a call). Amateur always shows it with the details
-  row. Commercial soft keys: Menu | Quick.
+  row. Home's soft keys: Menu | Back (the right one is Settings > Right soft key).
 - A GD-88 starts in the Commercial layout (`gui_flags` 0).
 
 ## Process (decided)
@@ -223,7 +241,11 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
      the step 2 look. Open questions for the user are in the implementer's report: the mode word in both the strip
      and Home's mode bar; Hint row off still hiding the bar; the Quick and menu labels a third of the screen can't
      hold in 8x16 ("Digital monitor", "TG / Contact", some translations).
-5. Icons and palettes.
+   - QA review of the second attempt: [reports/theme-step4-review.md](reports/theme-step4-review.md), not
+     approved (the GPS clock dropped from a strip with room, and ranked below VOX, IP and power). The user's answers
+     to the open questions are in the Layout section ("Decided Nov 26, after step 4's second attempt").
+5. Icons and palettes. Also: the VOX and dual watch A/B marks, large on step 2's Home and about 10 px bitmaps since
+   step 4; the Settings gear's dark outline at night.
 6. Freeze on the GD-88, then port to other display classes.
 
 ## Planned, not now
