@@ -1076,14 +1076,17 @@ static int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_st
 
 // Where a screen's content starts under the reference strip: below the title's row on a tall display, else right
 // under the strip, which then carries the title. reference_top returns it after drawing that row (its two earlier
-// returns are the cases without one); a caller that only measures asks here
+// returns are the cases without one), and when it is only asked to measure
 static int reference_top_y(bool titled)
 {
 	return ui_layout.strip_h + (titled && gfx_height() >= UI_TALL_PX ? ui_layout.small->h + 2 : 0);
 }
 
-static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
+static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name,
+	bool draw)
 {
+	if (!draw)
+		return reference_top_y(prefix != NULL || name != NULL);
 #if CONFIG_UI_PROFILES
 	if (s->gui_profiles)
 		return draw_profile_top(v, st, s, prefix, name);
@@ -1275,14 +1278,23 @@ static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state
 	return reference_top_y(titled);
 }
 
+// The theme's strip and title, drawn or only measured (draw false: no view, no state). Both go to the one op, so
+// where a screen's content starts cannot depend on which of the two asked: a theme with a strip of its own and the
+// reference list head still measures its own strip
+static int theme_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name,
+	bool draw)
+{
+	const ui_theme_ops_t *o = ui_theme_cur()->ops;
+	if (o->top != NULL)
+		return o->top(v, st, s, prefix, name, draw);
+	return reference_top(v, st, s, prefix, name, draw);
+}
+
 // The pill shows st instead of v->state: the hotspot screen shows what the hotspot does without a copy of the whole
 // view on the UI task's stack (the UI task's deepest path, stack check)
 static int draw_top_as(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
 {
-	const ui_theme_ops_t *o = ui_theme_cur()->ops;
-	if (o->top != NULL)
-		return o->top(v, st, s, prefix, name);
-	return reference_top(v, st, s, prefix, name);
+	return theme_top(v, st, s, prefix, name, true);
 }
 
 int ui_draw_top(const radio_view_t *v, const ui_state_t *s, const char *prefix, const char *name)
@@ -4562,8 +4574,9 @@ static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, co
 }
 #endif
 
-// The reference theme's list head: the strip and the title, as on every screen. The profile look's branches in this
-// op and the three below (until it is a theme of its own) all take the look from l->roomy
+// The reference theme's list head: the strip and the title, as on every screen, drawn or measured by the theme's top
+// op. The profile look's branches in this op and the three below (until it is a theme of its own) all take the look
+// from l->roomy
 static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
 #if CONFIG_UI_PROFILES
@@ -4572,7 +4585,7 @@ static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const
 	if (l->roomy && (l->prefix || l->name))
 		return profile_list_head(v, s, l, draw);
 #endif
-	return draw ? ui_draw_top(v, s, l->prefix, l->name) : reference_top_y(l->prefix || l->name);
+	return theme_top(v, draw ? v->state : RS_IDLE, s, l->prefix, l->name, draw);
 }
 
 // With the profile look, noinline: its buffer stays out of list_top's frame. The stack check follows list_top from a
@@ -5801,10 +5814,13 @@ static const ui_theme_ops_t reference_ops = {
 #if UI_THEME_SELECT
 const ui_theme_t *ui_theme_selected = &ui_theme_reference;
 
-void ui_theme_use(const ui_theme_t *t)
+bool ui_theme_use(const ui_theme_t *t)
 {
+	if (t->palette_count == 0)
+		return false;	// ui_theme_set would read a palette that isn't there
 	ui_theme_selected = t;
 	ui_layout_init();
+	return true;
 }
 #endif
 

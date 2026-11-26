@@ -54,8 +54,11 @@ typedef struct ui_theme_ops {
 	// NULL: the palette as it is, not the reference theme's op
 	void (*colors)(ui_colors_t *c, uint8_t palette);
 	// The status strip, and the title when there is one. st: the state its pill shows. Returns the y where the
-	// screen's content starts
-	int (*top)(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name);
+	// screen's content starts. draw false: only measure, for the same title (v and s are NULL, st means nothing). It
+	// must return the y it returns when it draws: a list is measured before a screen opens (ui_list_body_fits) and
+	// drawn later, and the two must agree on where its text starts
+	int (*top)(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name,
+		bool draw);
 	// The bottom row: key hints (groups separated by two spaces, with text alternates) or a toast. soft_key: the label
 	// of Home's assigned soft key, NULL without one. Plain arguments, no struct: ui_draw_hint has only the text and
 	// the flag, and a struct would be built in the frame of every screen that draws a hint
@@ -71,9 +74,11 @@ typedef struct ui_theme_ops {
 	void (*quick)(const radio_view_t *v, const ui_state_t *s);
 	// A list screen. ui_draw_list owns its frame (the body text, which cells are on screen, the banner, the bottom row)
 	// and calls these four.
-	// The strip and the title; returns the y below them. draw false: only measure (v and s are NULL). With draw true
-	// it is the first thing drawn after the screen is cleared: a theme whose rows or icons need palette entries of
-	// their own on a 16-color display takes them here (gfx_reserve_colors), before the strip's shades use them up
+	// The strip and the title; returns the y below them. draw false: only measure (v and s are NULL), with the same
+	// result. The reference theme's is the top op both ways, so a theme with only a strip of its own needs none.
+	// With draw true it is the first thing drawn after the screen is cleared: a theme whose rows or icons need
+	// palette entries of their own on a 16-color display takes them here (gfx_reserve_colors), before the strip's
+	// shades use them up
 	int (*list_head)(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw);
 	// Where the cells go, between y and y_end
 	void (*list_geom)(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g);
@@ -87,7 +92,7 @@ typedef struct ui_theme_ops {
 
 typedef struct ui_theme {
 	const ui_colors_t *palettes;	// by palette (ui_theme_set), before ops->colors
-	uint8_t palette_count;
+	uint8_t palette_count;		// at least 1: a palette number out of range is the first
 	const ui_theme_ops_t *ops;
 } ui_theme_t;
 
@@ -99,8 +104,9 @@ extern const ui_theme_t ui_theme_reference;
 #if UI_THEME_SELECT
 extern const ui_theme_t *ui_theme_selected;
 #define ui_theme_cur()	ui_theme_selected
-// Puts a theme in use, with its layout and the palette in use (its first where it has fewer). After gfx_init
-void ui_theme_use(const ui_theme_t *t);
+// Puts a theme in use, with its layout and the palette in use (its first where it has fewer). After gfx_init.
+// false: the theme has no palette, and the one in use stays
+bool ui_theme_use(const ui_theme_t *t);
 #else
 #define ui_theme_cur()	(&ui_theme_reference)
 #endif

@@ -2,8 +2,8 @@
 // Copyright (c) 2026 The RadioFoundry Authors
 // The theme framework (core/ui/ui_theme.h) with themes of the test's own in use (UI_THEME_SELECT): an op left NULL
 // reaches the reference theme's and draws the same frame, a palette without a colors op stays as it is, a theme's own
-// ops are the ones called, and the list frame (ui_draw_list) scrolls and places the cells of a geometry the reference
-// theme doesn't have, also when that geometry is out of bounds
+// ops are the ones called, a strip of the theme's own is measured where it is drawn, and the list frame (ui_draw_list)
+// scrolls and places the cells of a geometry the reference theme doesn't have, also when that geometry is out of bounds
 #include <stdio.h>
 #include <string.h>
 #include "board.h"
@@ -18,6 +18,10 @@ static int fails;
 #define H	120
 static void d_init(void) {}
 static void d_flush(const void *fb, uint16_t y0, uint16_t y1) { (void)fb; (void)y0; (void)y1; }
+static void d_flush_indexed(const void *fb, const uint16_t *pal, uint16_t y0, uint16_t y1)
+{
+	(void)fb; (void)pal; (void)y0; (void)y1;
+}
 static void d_backlight(uint8_t p) { (void)p; }
 static hal_display_t disp = { .width = W, .height = H, .bpp = 16, .init = d_init, .flush = d_flush,
 	.set_backlight = d_backlight };
@@ -260,6 +264,7 @@ static void test_colors(void)
 
 static struct {
 	int layout, top, bottom, banner, home, home_dual, quick, head;
+	bool top_draw;
 	radio_state_t top_st;
 	const char *top_prefix, *top_name, *bottom_text, *bottom_soft;
 	uint8_t bottom_flags;
@@ -273,11 +278,13 @@ static void probe_layout(ui_layout_t *L)
 	L->row_h = ref_layout.row_h + 2;
 }
 
-static int probe_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
+static int probe_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name,
+	bool draw)
 {
 	(void)v;
 	(void)s;
 	got.top++;
+	got.top_draw = draw;
 	got.top_st = st;
 	got.top_prefix = prefix;
 	got.top_name = name;
@@ -345,7 +352,8 @@ static void test_own_ops(void)
 	uint32_t strips = ui_strip_draws;
 	view.state = RS_TX;
 	CHECK(ui_draw_top(&view, &state, "P", "N") == 33);
-	CHECK(got.top == 1 && got.top_st == RS_TX && strcmp(got.top_prefix, "P") == 0 && strcmp(got.top_name, "N") == 0);
+	CHECK(got.top == 1 && got.top_draw && got.top_st == RS_TX && strcmp(got.top_prefix, "P") == 0 &&
+	      strcmp(got.top_name, "N") == 0);
 	CHECK(ui_strip_draws == strips);	// not the reference strip
 
 	ui_draw_hint("toast", true);
@@ -391,6 +399,144 @@ static void test_own_ops(void)
 	CHECK(!ui_list_body_fits(&state, &l));
 	head_y = 20;
 	ui_theme_use(&ui_theme_reference);
+}
+
+// --- a strip of the theme's own, and nothing else: lists are measured where they are drawn
+
+#define TALL_Y	60	// under a title; 10 less without one
+static int tall_draws, tall_measures;
+static bool tall_measure_bare, tall_titled;
+static int tall_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name,
+	bool draw)
+{
+	(void)st;
+	if (draw) {
+		tall_draws++;
+	} else {
+		tall_measures++;
+		tall_measure_bare = v == NULL && s == NULL;
+	}
+	tall_titled = prefix != NULL || name != NULL;
+	return tall_titled ? TALL_Y : TALL_Y - 10;
+}
+
+// Ink (anything but the background) in the rows y0 .. y1 - 1
+static bool ink(int y0, int y1)
+{
+	for (int y = y0; y < y1; y++)
+		for (int x = 0; x < W; x++)
+			if (gfx_get_pixel(x, y) != ui_col.bg)
+				return true;
+	return false;
+}
+
+static void test_top_only(void)
+{
+	static const ui_theme_ops_t ops = { .top = tall_top };
+	static ui_theme_t theme = { .ops = &ops };
+	theme.palettes = ui_theme_reference.palettes;
+	theme.palette_count = ui_theme_reference.palette_count;
+	const ui_theme_ops_t *ref = ui_theme_reference.ops;
+
+	// The reference strip measures what it returns when it draws, with a title and without: on a display that gives
+	// the title a row of its own (16 colors, the test is built for 240 rows) and on this one, where it is in the strip
+	base();
+	hal_display_t tall = disp;
+	tall.width = 320; tall.height = 240; tall.bpp = 4; tall.flush_indexed = d_flush_indexed;
+	CHECK(gfx_init(&tall));
+	ui_layout_init();
+	gfx_clear(ui_col.bg);
+	int titled = ref->top(NULL, RS_IDLE, NULL, "Test", "List", false);
+	int bare = ref->top(NULL, RS_IDLE, NULL, NULL, NULL, false);
+	CHECK(titled > bare && bare == ui_layout.strip_h);
+	CHECK(titled == ref->top(&view, RS_IDLE, &state, "Test", "List", true));
+	CHECK(titled == ref->top(&view, RS_IDLE, &state, NULL, "List", true));
+	CHECK(bare == ref->top(&view, RS_IDLE, &state, NULL, NULL, true));
+	CHECK(gfx_init(&disp));
+	ui_layout_init();
+	gfx_clear(ui_col.bg);
+	int ref_y = ref->top(NULL, RS_IDLE, NULL, "Test", "List", false);
+	CHECK(ref_y == ref->top(&view, RS_IDLE, &state, "Test", "List", true));
+	CHECK(ref->top(NULL, RS_IDLE, NULL, NULL, NULL, false) == ref->top(&view, RS_IDLE, &state, NULL, NULL, true));
+	CHECK(ref_y < TALL_Y);
+
+	CHECK(ui_theme_use(&theme));
+	const int fh = ui_layout.small->h;
+	uint16_t top = 0;
+	ui_list_t l = list(2, 0, &top);
+	// A message of n lines above two rows: it fits when it would from the theme's y, not from the reference strip's.
+	// The room is the frame's rule (half of what is left, and a line)
+	static const char body[] = "L1\nL2\nL3\nL4\nL5\nL6\nL7\nL8";
+	bool differs = false, some_fit = false, some_not = false;
+	for (int n = 1; n <= 8; n++) {
+		char text[sizeof body];
+		memcpy(text, body, (size_t)(3 * n - 1));
+		text[3 * n - 1] = 0;
+		l.body = text;
+		bool want = TALL_Y + n * fh <= TALL_Y + (ui_layout.hint_y - TALL_Y) / 2 + fh;
+		bool from_ref = ref_y + n * fh <= ref_y + (ui_layout.hint_y - ref_y) / 2 + fh;
+		tall_draws = tall_measures = 0;
+		bool fits = ui_list_body_fits(&state, &l);
+		CHECK(fits == want);
+		CHECK(tall_measures == 1 && tall_draws == 0 && tall_measure_bare && tall_titled);	// asked, with the title, not drawn
+		differs = differs || want != from_ref;
+		some_fit = some_fit || want;
+		some_not = some_not || !want;
+		// Drawn: nothing of the list above the theme's y, the text from there, and all of it when it was said to fit
+		tall_draws = 0;
+		ui_draw_list(&view, &state, &l);
+		CHECK(tall_draws == 1);
+		CHECK(!ink(0, TALL_Y) && ink(TALL_Y, TALL_Y + fh));
+		if (fits)
+			CHECK(ink(TALL_Y + (n - 1) * fh, TALL_Y + n * fh));
+	}
+	CHECK(differs && some_fit && some_not);	// the bodies tell the two strips apart, and fall both ways
+	// Without a title the theme is asked so, and the list starts where it says
+	l.prefix = l.name = NULL;
+	l.body = "L1";
+	CHECK(ui_list_body_fits(&state, &l) && !tall_titled);
+	ui_draw_list(&view, &state, &l);
+	CHECK(!ink(0, TALL_Y - 10) && ink(TALL_Y - 10, TALL_Y - 10 + fh));
+	ui_theme_use(&ui_theme_reference);
+}
+
+// --- a bottom row of the theme's own, and nothing else: Home hands it the assigned soft key's label
+
+static void test_bottom_only(void)
+{
+	static const ui_theme_ops_t ops = { .bottom = probe_bottom };
+	static ui_theme_t theme = { .ops = &ops };
+	theme.palettes = ui_theme_reference.palettes;
+	theme.palette_count = ui_theme_reference.palette_count;
+	CHECK(ui_theme_use(&theme));
+	base();
+	memset(&got, 0, sizeof got);
+	ui_draw_home(&view, &state);
+	CHECK(got.bottom == 1 && got.bottom_flags == 0 && got.bottom_text != NULL && got.bottom_soft == NULL);
+#if CONFIG_KEY_ASSIGN
+	static const char label[] = "Scan";
+	state.home_soft_key_label = label;
+	ui_draw_home(&view, &state);
+	CHECK(got.bottom == 2 && got.bottom_flags == 0 && got.bottom_soft == label);
+	state.locked = true;	// the keys are locked: the soft key does nothing, so it has no label
+	ui_draw_home(&view, &state);
+	CHECK(got.bottom == 3 && got.bottom_soft == NULL);
+	state.locked = false;
+	state.toast = "Saved";	// a toast is not the soft key's row
+	ui_draw_home(&view, &state);
+	CHECK(got.bottom == 4 && got.bottom_flags == UI_BAR_TOAST && got.bottom_soft == NULL);
+#endif
+	ui_theme_use(&ui_theme_reference);
+}
+
+// A theme without a palette is refused: the one in use stays, with its colors
+static void test_no_palette(void)
+{
+	static const ui_theme_ops_t ops = { .bottom = probe_bottom };
+	static const ui_theme_t theme = { .palettes = own_palettes, .palette_count = 0, .ops = &ops };
+	ui_colors_t before = ui_col;
+	CHECK(!ui_theme_use(&theme));
+	CHECK(ui_theme_cur() == &ui_theme_reference && memcmp(&ui_col, &before, sizeof ui_col) == 0);
 }
 
 // --- the list frame over a theme's geometry: which cells, where, and *l->top
@@ -584,6 +730,9 @@ int main(void)
 	test_null_ops();
 	test_colors();
 	test_own_ops();
+	test_top_only();
+	test_bottom_only();
+	test_no_palette();
 	test_list_frame();
 	test_geometry_bounds();
 
