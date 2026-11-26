@@ -33,7 +33,7 @@ typedef enum {
 	SCR_CHZONES,			// the channel editor's Zones: in which zones the channel is (arg = its number)
 	SCR_DMR_ID,			// the radio's own DMR ID (Settings > My radio)
 	SCR_REF_TRIM,			// the reference trim (Settings > Advanced > Freq trim)
-	SCR_GPS,			// Tools > Position's pages (CONFIG_GPS_SKY): status, sky, signal, grid
+	SCR_GPS,			// Menu > Location > GPS status's pages (CONFIG_GPS_SKY): status, sky, signal, grid
 	SCR_CONTACT_EDIT,		// the contact editor (CONFIG_CONTACT_EDIT): a new contact, from ui_target
 	SCR_LANGUAGE,			// Settings > Display > Language: every language, those not built dimmed
 	SCR_CP_FOREIGN,			// another firmware's codeplug: what the first edit does with it (ui_svc_codeplug_answer)
@@ -42,7 +42,7 @@ typedef enum {
 	SCR_MESSAGE_TEXT,		// message body editor
 	SCR_MESSAGE_READ,		// a message's whole text, scrolled (the message screen's Full message row)
 	SCR_DATA_SERVICES,		// Settings > Connections > Data services: ARS server, IP gateway (CONFIG_DMR_ARS / _IP_GATEWAY)
-	SCR_SATELLITE_PASSES,		// Tools > Satellite: predict and select the next installed-TLE passes
+	SCR_SATELLITE_PASSES,		// Menu > Location > Satellite: predict and select the next installed-TLE passes
 	SCR_SATELLITE,			// selected satellite: live pass details and tracking controls
 	SCR_SATELLITE_TEXT,		// one 69-character TLE line
 	SCR_SIG_CHAIN,			// Settings > Signaling tones: one event's five steps (arg = sig_event_t)
