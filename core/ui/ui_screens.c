@@ -2733,8 +2733,8 @@ static int dual_right(const font_t *rf, int x_end, int y, int row_h, int min_x, 
 }
 
 // Where a pane's text starts: right of its tag, which is sized from the layout's name font
-static int dual_tag_w(const font_t *nf) { return nf->w + (nf->w >= 12 ? 10 : nf->w >= 8 ? 6 : 4); }
-static int dual_x0(const font_t *nf) { return dual_tag_w(nf) + (ui_layout.small->w + 1) / 2; }
+UI_THEME_SHARED int ui_dual_tag_w(const font_t *nf) { return nf->w + (nf->w >= 12 ? 10 : nf->w >= 8 ? 6 : 4); }
+static int dual_x0(const font_t *nf) { return ui_dual_tag_w(nf) + (ui_layout.small->w + 1) / 2; }
 static int dual_pill_w(const char *word)
 {
 	const font_t *sm = ui_layout.small;
@@ -2852,7 +2852,7 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	// The tag: the pane's letter in a box as tall as the pane's text. Filled for the selected pane (red while it
 	// transmits), green while a call comes in on it, an outline otherwise (green while it is busy: p->busy)
 	int ty = y + pad, th = h - 2 * pad;
-	int tw = dual_tag_w(nf);
+	int tw = ui_dual_tag_w(nf);
 	const char *letter = i ? "B" : "A";
 	color_t tbg = ui_col.bg, tfg = ui_col.dim;
 	if (tx) {
@@ -3394,22 +3394,10 @@ UI_THEME_SHARED void ui_banner_box(const ui_state_t *s, int bottom, int x0, int 
 	gfx_text(f, w - 2 - gfx_text_width(f, sec), ty, sec, gfx_bpp() == 1 ? fg : ui_col.dim);
 }
 
-// The reference theme's banner: above the hint row, on its color. The profile look's lists and its other screens
-// come here too, until it is a theme of its own: its strip color, and the columns right of the dual watch tags
+// The reference theme's banner: above the hint row, on its color
 static void reference_banner(const ui_state_t *s)
 {
-	int x0 = 0;
-	color_t bg = ui_col.hint_bg;
-#if CONFIG_UI_THEME_PANELS
-	if (s->gui_profiles) {
-		bg = ui_col.strip_bg;
-#if CONFIG_DUAL_WATCH
-		if (s->dual.on)
-			x0 = dual_tag_w(ui_layout.large);	// the receiver tabs span multiple lines of text
-#endif
-	}
-#endif
-	ui_banner_box(s, ui_layout.hint_y, x0, 0, bg);
+	ui_banner_box(s, ui_layout.hint_y, 0, 0, ui_col.hint_bg);
 }
 
 void ui_draw_banner(const ui_state_t *s)

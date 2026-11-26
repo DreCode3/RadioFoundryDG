@@ -1221,6 +1221,18 @@ void profile_row(int x, int y, int w, int h, color_t ink)
 
 // --- The theme ---
 
+// The banner on the strip's color. While dual watch runs its screen is read for a gap right of the pane tags, which
+// span several lines of text
+static void panels_banner(const ui_state_t *s)
+{
+	int x0 = 0;
+#if CONFIG_DUAL_WATCH
+	if (s->dual.on)
+		x0 = ui_dual_tag_w(ui_layout.large);
+#endif
+	ui_banner_box(s, ui_layout.hint_y, x0, 0, ui_col.strip_bg);
+}
+
 // The reference theme's fonts, its own strip and footer
 static void panels_layout(ui_layout_t *L)
 {
@@ -1234,6 +1246,7 @@ static const ui_theme_ops_t panels_ops = {
 	.layout = panels_layout,
 	.colors = panels_colors,
 	.top = panels_top,
+	.banner = panels_banner,
 };
 
 const ui_theme_t ui_theme_panels = {

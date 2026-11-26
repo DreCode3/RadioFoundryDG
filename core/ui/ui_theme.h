@@ -121,6 +121,7 @@ uint8_t ui_rssi_bars(int16_t dbm);			// signal bars, 0-4
 const char *ui_mode_word(const radio_view_t *v);	// the mode word: AM, a channel kind's short name, the mode
 #if CONFIG_DUAL_WATCH
 const char *ui_dual_mode_word(const ui_dual_pane_t *p);	// ... of a dual watch pane
+int ui_dual_tag_w(const font_t *nf);			// the width of a dual watch pane's letter tag
 #endif
 bool ui_sending_data(const radio_view_t *v);		// on the air without PTT: a data burst
 void ui_hwopt_needed(sbuf_t *b);			// what a pending hardware option needs from a person
