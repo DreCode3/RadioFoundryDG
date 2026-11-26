@@ -841,14 +841,15 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
     as `HINT_BACK`), never by the words a translation chose; every catalog keeps each hint's groups and keys
     (`uiPrototypeTest`). With Hint row on, the line above the bar (8x16, the hint row) has only what the bar can't say:
     the other keys' groups (#, \*, the digits, PTT, Up and Down, a key held), sentences, and OK and Back groups where
-    they aren't the usual jobs. In a list OK opens or picks the row and Back leaves, so its OK and Back groups are left
-    out (a plain "OK open", "OK choose") unless they do more (`UI_BAR_OK_ACTS`): the screen says so (`SF_OK_ACTS`,
-    `ui_list_t.ok_acts`: "OK send", "OK go", "OK add", "OK use", "OK talk", "OK change", "Back keep editing"), a built
-    hint says it for its focused row (`hint_fn`'s `ok_acts`: Settings' change and save), or the focused row's value
-    editor is open ("OK save  Back cancel"); elsewhere they stay ("Back undo", "Back stop scan"). In the longest form
-    that fits, from the title's edge or across the panes' width where it needs that, the last groups going whole before
-    it is shortened; empty when nothing is left, the layout the same. Toasts are centered on the bar, on two lines where
-    needed.
+    they aren't the usual jobs. In a list OK opens or picks the row and Back leaves, so each of its OK and Back groups
+    is left out (a plain "OK open", "OK choose", "OK details", "Back cancel") unless that key does more there, which
+    goes by key, never by text: the screen flags its OK (`SF_OK_ACTS`: "OK send", "OK go", "OK add", "OK in/out", "OK
+    use", "OK talk", "OK change", "OK next") or its Back (`SF_BACK_ACTS`: "Back keep editing"), carried as
+    `ui_list_t.ok_acts` and `back_acts` and the bar's `UI_BAR_OK_ACTS` and `UI_BAR_BACK_ACTS`; a built hint says it for
+    its focused row (`hint_fn`'s `ok_acts`: Settings' change and save); an open value editor sets both ("OK save  Back
+    cancel"); elsewhere they stay ("Back undo", "Back stop scan"). In the longest form that fits, from the title's edge
+    or across the panes' width where it needs that, the last groups going whole before it is shortened; empty when
+    nothing is left, the layout the same. Toasts are centered on the bar, on two lines where needed.
   - **Quick settings**: three rows of three rounded tiles in the list style, each two lines of the 8x16 font: its name
     in whole words (Brightness, Color code, Bandwidth, TX frequency where the shared tile names are short), else the
     theme's shorter form ("TG/Contact", the decided name without its spaces; "DMR monitor" before the tile's DMon), else
