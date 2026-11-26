@@ -119,6 +119,13 @@ Claude goes to the user, with both positions, and the user decides.
 1. Discussion post (draft ready).
 2. Framework: extract the reference theme's drawing behind a theme descriptor with no visual change (gallery
    identical), then move the profile look onto it as the second theme.
+   - Step 1 (descriptor, list frame, banner box, stack-check-safe dispatch, `uiThemeTest`): QA-approved at
+     `2e46cb85`. Cost against `dc9e29d6`: GD-88 +436 B, DM-1701 +112 B, MD-9600 -100 B flash; RAM unchanged.
+   - Step 2 starts with two `uiThemeTest` cases QA listed (not blocking step 1): a theme with `top` NULL measures
+     through the reference strip (`theme_top`'s fallback passes `draw`), and a list's strip shows the view's state
+     while receiving (`reference_list_head` passes `v->state`). Then QA's step-2 notes: the palette in use across
+     `ui_theme_use`, and the profile palettes bypassing the theme's palettes and `colors` op.
+   - The first firmware build with a second theme is checked with `STACK_CHECK_ARGS=-v` for unresolved theme calls.
 3. Layout fixes in the second theme.
 4. Menu tree, settings row behavior, naming. First: fix the UI simulator's division by zero on an empty zone
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),
