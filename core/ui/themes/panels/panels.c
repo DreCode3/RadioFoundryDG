@@ -1187,8 +1187,13 @@ static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui
 {
 	if (draw)
 		panels_list_colors(l->kind != UI_LIST_PLAIN);
-	if (!panels_titled(l))
-		return panels_top(v, draw ? v->state : RS_IDLE, s, NULL, NULL, draw);
+	// The strip straight from here, not through the top op: its title's frame would join the deepest path of the UI
+	// task (make stack-check)
+	if (!panels_titled(l)) {
+		if (draw)
+			panels_draw_status(v, v->state, s, ui_layout.strip_h);
+		return ui_layout.strip_h;
+	}
 	char badge[16];
 	int reserve = l->count > 1 ? panels_badge(l, l->count, badge, sizeof badge) + 8 : 0;
 	const char *prefix = l->kind == UI_LIST_HUB ? TR(FIND_CHIP_MENU, "Menu") : l->prefix;	// the main menu: Menu
