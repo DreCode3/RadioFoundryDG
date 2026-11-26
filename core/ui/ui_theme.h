@@ -104,6 +104,9 @@ typedef struct ui_theme_ops {
 #define UI_THEME_OPT_PALETTE	0x01u	// Theme (UI_SET_THEME): which of its palettes
 #define UI_THEME_OPT_ACCENT	0x02u	// Highlight color (UI_SET_ACCENT)
 #define UI_THEME_OPT_STRIP	0x04u	// Filled status bar (UI_SET_STRIP)
+// Not a row: a radio that starts in this theme (a new radio, a factory reset) starts with Talkgroup name first on
+// (ui_theme_starts_name_first). A stored setting keeps its value
+#define UI_THEME_OPT_NAME_FIRST	0x08u
 #define UI_THEME_OPT_DAY_NIGHT	0x10u	// Day/Night (UI_SET_GUI_NIGHT): its palettes are UI_PALETTE_DAY and _NIGHT
 #define UI_THEME_OPT_LAYOUT	0x20u	// Display Profile (UI_SET_GUI_PROFILE): the Commercial or Amateur Home
 #define UI_THEME_OPT_GPS_CLOCK	0x40u	// GPS clock (UI_SET_GPS_CLOCK); the theme shows the GPS fix and time (ui_state_t)
@@ -200,11 +203,15 @@ bool ui_theme_use(const ui_theme_t *t);
 const ui_theme_t *ui_theme_pick(uint8_t id);
 // The build has the theme with number id (UI_THEME_ID_*) and it fits the display: Settings > Display offers it
 bool ui_theme_fits(uint8_t id);
+// The theme a radio starts in after a factory reset (its stored theme then 0, the build's default where this display
+// fits it) shows a talkgroup's name first (UI_THEME_OPT_NAME_FIRST). After gfx_init
+bool ui_theme_starts_name_first(void);
 // The theme in use honors appearance option opt (UI_THEME_OPT_*). With the reference theme alone every one of its
 // options is, so code that tests one is built only with UI_THEME_SELECT
 #define ui_theme_has(opt)	((ui_theme_cur()->options & (opt)) != 0)
 #else
 #define ui_theme_cur()	(&ui_theme_reference)
+#define ui_theme_starts_name_first()	false
 #endif
 
 #endif

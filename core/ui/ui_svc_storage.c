@@ -442,6 +442,13 @@ int32_t ui_svc_setting_get(uint8_t id)
 	return val != INT32_MIN ? val : setting_get_flash(id);
 }
 
+bool ui_svc_settings_new(void)
+{
+	settings_stats_t ss;
+	settings_get_stats(&ss);
+	return ss.load == SETTINGS_DEFAULTS;
+}
+
 bool ui_svc_setting_set(uint8_t id, int32_t value)
 {
 	settings_t *st;
@@ -1517,9 +1524,10 @@ bool ui_svc_save_talk_target(uint32_t id, bool private_call)
 // defaults go in as a new record, through the foreign region guard)
 static void factory_reset_job(void *ctx)
 {
-	(void)ctx;
 	settings_t *st = settings_begin();
 	settings_defaults(st);	// cp_flags too: "Use anyway" doesn't outlive a reset
+	if (ctx != NULL)
+		st->updown_home |= SETTINGS_HOME_LABEL_FIRST;	// the theme it restarts in shows the name first
 	board_rx_ext_set(false);
 	settings_end(hal_millis());
 	codeplug_accept(false);
@@ -1540,9 +1548,10 @@ static void factory_reset_job(void *ctx)
 	radio_req_reload();	// no restart: the radio core takes the defaults now
 }
 
-bool ui_svc_factory_reset(void)
+bool ui_svc_factory_reset(bool name_first)
 {
-	return storage_job_post(factory_reset_job, NULL);
+	static const uint8_t yes = 1;	// the job's argument: any non-NULL pointer
+	return storage_job_post(factory_reset_job, name_first ? (void *)&yes : NULL);
 }
 
 void ui_svc_boot_text(char line1[17], char line2[17])

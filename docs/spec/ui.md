@@ -780,7 +780,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   idle Home while a recent GPS fix has both date and time. The three choices are saved in
   [the settings store](settings-store.md). Talkgroup name first (the setting and the TG name / number key) orders the
   talk line as in the reference theme: "TG 91 · World" with it off, "World · TG 91" with it on, the default of a
-  build with this theme (settings_defaults); Commercial's target line,
+  radio that starts in this theme (`UI_THEME_OPT_NAME_FIRST`: a new radio, `ui_app_init`; a factory reset,
+  `ui_svc_factory_reset`), not of a build that only has it; Commercial's target line,
   where it shows one, has the name alone with it on and "TG 91 · World" with it off.
   Layout on the 310 x 240 drawable area (`core/ui/themes/panels/panels.c`):
   - **Status strip**, 29 px, the same on every screen, Home included: signal bars (only while receiving, from the

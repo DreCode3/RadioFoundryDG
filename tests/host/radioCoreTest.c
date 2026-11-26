@@ -5180,10 +5180,8 @@ static void test_ui_glue(void)
 	settings_read(&sv);
 	CHECK(sv.ui_flags == (SETTINGS_UI_LARGE_TEXT | SETTINGS_UI_MESSAGE_TONE | SETTINGS_UI_ALIAS | SETTINGS_UI_HEAR_ALL));
 	CHECK(sv.theme == 2 && settings_updown_home(&sv) == 1 && sv.auto_off_min == 30 && sv.low_batt_pct == 20);
-	// Up / Down on Home shares its byte with Talkgroup name first (bit 7), on by default where the build's default
-	// theme is panels (settings_defaults), off in the others
-	CHECK(((sv.updown_home & SETTINGS_HOME_LABEL_FIRST) != 0) == (CONFIG_UI_THEME_PANELS != 0) &&
-	      ui_svc_setting_get(UI_SET_LABEL_FIRST) == (CONFIG_UI_THEME_PANELS != 0));
+	// Up / Down on Home shares its byte with Talkgroup name first (bit 7), off in the defaults in every build
+	CHECK((sv.updown_home & SETTINGS_HOME_LABEL_FIRST) == 0 && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 0);
 	// Vibrate: on by default, kept as an "off" bit so records saved before it keep it on
 	CHECK(ui_svc_setting_get(UI_SET_VIBRATE) == 1);
 	CHECK(ui_svc_setting_set(UI_SET_VIBRATE, 0) && ui_svc_setting_get(UI_SET_VIBRATE) == 0);
@@ -5480,11 +5478,17 @@ static void test_ui_glue(void)
 	// Messages: delete through the data service
 	CHECK(!ui_svc_msg_delete(0));
 
-	// Factory reset: a job; the settings are the defaults afterwards (no flash here: RAM only, no restart)
-	CHECK(ui_svc_factory_reset() && !ui_svc_factory_reset());
+	// Factory reset: a job; the settings are the defaults afterwards (no flash here: RAM only, no restart), with
+	// Talkgroup name first on when the theme the radio restarts in shows the name first, else off
+	CHECK(ui_svc_factory_reset(true) && !ui_svc_factory_reset(false));
 	storage_job_poll();
 	settings_read(&sv);
 	CHECK(sv.auto_lock_s == 0 && sv.mic_gain == 5 && sv.privacy_type[1] == 0 && sv.rs_stored == 0);
+	CHECK((sv.updown_home & SETTINGS_HOME_LABEL_FIRST) != 0 && settings_updown_home(&sv) == 0);
+	CHECK(ui_svc_factory_reset(false));
+	storage_job_poll();
+	settings_read(&sv);
+	CHECK((sv.updown_home & SETTINGS_HOME_LABEL_FIRST) == 0);
 	CHECK(sv.ref_trim_ppb == 0);
 	run(100);
 	CHECK(sm.set.reply_s == RADIO_REPLY_CODEPLUG && sm.set.vox == RADIO_VOX_OFF);
@@ -5731,7 +5735,7 @@ static void test_ui_settings(void)
 	CHECK(!sm.view.vfo && sm.view.channel_number == 4);
 	CHECK(!ui_svc_save_talk_target(0, false));
 	CHECK(storage_job_post(test_job, NULL));
-	CHECK(!ui_svc_save_channel() && !ui_svc_save_talk_target(9, false) && !ui_svc_factory_reset());
+	CHECK(!ui_svc_save_channel() && !ui_svc_save_talk_target(9, false) && !ui_svc_factory_reset(false));
 	storage_job_poll();
 	used[4] = false;			// the channel is gone from the codeplug before the job runs
 	n_ev = 0;
@@ -6547,6 +6551,8 @@ static void test_display_profile_settings(void)
 	sim_flash_create(0x40000u, &reset_map);
 	CHECK(storage_init());
 	CHECK(settings_init() == SETTINGS_DEFAULTS);
+	// A new radio: the UI may set what depends on the display (Talkgroup name first); a stored record is not new
+	CHECK(ui_svc_settings_new() && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 0);
 	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 0 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
 	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 0);
 	// The theme: 0 (the build's default) on a new radio, any number a byte holds, kept apart from gui_flags
@@ -6559,7 +6565,7 @@ static void test_display_profile_settings(void)
 	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 1));
 	CHECK(ui_svc_setting_set(UI_SET_GPS_CLOCK, 1));
 	memset(ram, 0, sizeof ram);		// reboot clears the service's RAM-only settings
-	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED);
+	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED && !ui_svc_settings_new());
 	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 1 &&
 	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2);
 	CHECK(ui_svc_setting_get(UI_SET_GUI_THEME) == 1);
@@ -6591,7 +6597,7 @@ static void test_factory_reset(void)
 	settings_end(now);
 	CHECK(settings_flush());
 	n_ev = 0;
-	CHECK(ui_svc_factory_reset());
+	CHECK(ui_svc_factory_reset(false));
 	storage_job_poll();
 	settings_read(&sv);
 	CHECK(n_ev == 0 && sv.squelch == SETTINGS_UNSET8 && sim_flash_data[reset_map.native_addr] == 0xFF);
@@ -6604,7 +6610,7 @@ static void test_factory_reset(void)
 	settings_end(now);
 	CHECK(settings_flush());		// stored: the reset has something to write
 	sim_flash_bad_range(reset_map.settings_addr, reset_map.settings_size);
-	CHECK(ui_svc_factory_reset());
+	CHECK(ui_svc_factory_reset(false));
 	storage_job_poll();
 	CHECK(n_ev == 1 && last_ev.kind == UI_EV_SAVE_FAILED && strstr(tr_en(last_ev.why), "settings") != NULL);
 	sim_flash_bad_range(0, 0);
@@ -6615,7 +6621,7 @@ static void test_factory_reset(void)
 	settings_end(now);
 	CHECK(settings_flush());
 	n_ev = 0;
-	CHECK(ui_svc_factory_reset());
+	CHECK(ui_svc_factory_reset(false));
 	sim_flash_cut_after(452);	// the settings records (page 1: 192 + 4 bytes, page 0: 252 + 4, rounded up as the sizes are) go in, the native erase fails
 	storage_job_poll();
 	sim_flash_power_on();

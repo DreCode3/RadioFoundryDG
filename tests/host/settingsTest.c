@@ -735,14 +735,15 @@ static void test_map_for(void)
 	CHECK(hal_flash_map_for(NULL, NULL, 0x1000000u, 4096) == NULL);
 }
 
-// Talkgroup name first (updown_home bit 7): a new radio starts with it on where the build's default theme is panels
-// (settingsTestPanels), off elsewhere; Up / Down on Home starts on the channel either way. A record keeps its bit, so
+// Talkgroup name first (updown_home bit 7): off in the defaults, the panels theme built in or not
+// (settingsTestPanels): the UI turns it on for a new radio that starts in a theme showing the name first, and a factory
+// reset sets it as it saves (ui_svc_factory_reset). Up / Down on Home starts on the channel. A record keeps its bit, so
 // an older record's 0 still reads number first
 static void test_label_first_default(void)
 {
 	settings_t s;
 	settings_defaults(&s);
-	CHECK(((s.updown_home & SETTINGS_HOME_LABEL_FIRST) != 0) == (CONFIG_UI_THEME_PANELS != 0));
+	CHECK((s.updown_home & SETTINGS_HOME_LABEL_FIRST) == 0);
 	CHECK(settings_updown_home(&s) == 0);
 	s.updown_home = 0;
 	CHECK((s.updown_home & SETTINGS_HOME_LABEL_FIRST) == 0);

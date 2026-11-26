@@ -71,11 +71,6 @@ void settings_defaults(settings_t *s)
 	s->vfo2_ts = 1;
 	s->satellite_index = SETTINGS_UNSET8;
 	s->power_levels = board.power_count;
-#if CONFIG_UI_THEME_PANELS
-	// A build whose default theme is panels shows a talkgroup's name first ("USA · TG 3100"), so a new radio and a
-	// factory reset start with Talkgroup name first on. A stored record keeps its bit: 0 still means number first
-	s->updown_home = SETTINGS_HOME_LABEL_FIRST;
-#endif
 }
 
 // Power levels stored against another level count (an older record, or a board whose levels changed) may name a

@@ -428,11 +428,22 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("ok 8 1 expect:hides=Theme expect:focus=Colors", "220x176")
 
     def test_talkgroup_order_key_and_setting_in_both_themes(self):
-        # Talkgroup name first (the key and Settings > Display) works in every theme. A build whose default theme is
-        # panels starts with it on: Amateur Home's talk line reads "USA · TG 3100", then "TG 3100 · USA"
-        for geometry, toast in ((GEOMETRY, "Talkgroup_number_first"), ("320x240", "Talkgroup_name_first")):
+        # Talkgroup name first (the key and Settings > Display) works in every theme. A new radio that starts in the
+        # panels theme starts with it on: Amateur Home's talk line reads "USA · TG 3100", then "TG 3100 · USA". One
+        # whose display picks the reference theme starts with it off, panels built in or not (220x176), as does the
+        # simulator's reference class (320x240). The key's toast says the new order
+        for geometry, toast in ((GEOMETRY, "Talkgroup_number_first"), ("320x240", "Talkgroup_name_first"),
+                                ("220x176", "Talkgroup_name_first")):
             with self.subTest(geometry=geometry):
                 self.run_script("labelkey expect:toast=" + toast, geometry)
+        # Only a new radio: after a restart the stored choice stays, off here
+        self.run_script("labelkey reboot labelkey expect:toast=Talkgroup_name_first")
+        # A factory reset sets it as the theme the radio restarts in (the build's default where it fits) asks, whatever
+        # theme is in use when it is reset
+        for geometry, script, want in ((GEOMETRY, "", "1"), (GEOMETRY, "ok 8 1 ok row:Original ok long:back ", "1"),
+                                       ("220x176", "", "0")):
+            with self.subTest(geometry=geometry, script=script):
+                self.run_script(script + "ok 8 9 up ok down ok expect:resetnamefirst=" + want, geometry)
         self.run_script(AMATEUR + "expect:shows=USA_ expect:hides=3100_ "
                         "labelkey expect:shows=3100_ expect:hides=USA_ "
                         "ok 8 1 row:Talkgroup_name_first expect:shows=Off ok long:back expect:shows=USA_")

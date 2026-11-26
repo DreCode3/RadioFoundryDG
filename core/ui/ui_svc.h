@@ -293,8 +293,9 @@ void ui_svc_aprs_msg_poll(void);
 void ui_svc_emergency_dismiss(void);
 // The settings back to their defaults and the native codeplug area emptied (never the open-firmware codeplug or the
 // calibration: those would need a second, explicit confirmation), then the radio restarts. Done by the housekeeping
-// task, not the UI's; false if it can't be started (no flash, or a save still going on)
-bool ui_svc_factory_reset(void);
+// task, not the UI's; false if it can't be started (no flash, or a save still going on). name_first: Talkgroup name
+// first starts on, as the theme the radio restarts in shows the name first (ui_theme_starts_name_first)
+bool ui_svc_factory_reset(bool name_first);
 // Another firmware's codeplug (codeplug_foreign, docs/spec/codeplug-native.md 2): the codeplug write the UI asks for
 // is held, not made, and UI_EV_CODEPLUG_FOREIGN asks the owner. The answer: UI_CP_CANCEL drops the write; UI_CP_NEW
 // clears the old codeplug, starts a new one and makes the write; UI_CP_USE keeps the old codeplug as the radio's own,
@@ -480,6 +481,9 @@ enum {
 };
 int32_t ui_svc_setting_get(uint8_t id);
 bool ui_svc_setting_set(uint8_t id, int32_t value);
+// This start found no settings stored (a new radio): they are the defaults, and the UI may set the ones that depend
+// on the display (Talkgroup name first, ui_app_init)
+bool ui_svc_settings_new(void);
 // The RAM table behind the stub (defaults until set): for the settings no package stores
 int32_t ui_svc_ram_get(uint8_t id);
 bool ui_svc_ram_set(uint8_t id, int32_t value);

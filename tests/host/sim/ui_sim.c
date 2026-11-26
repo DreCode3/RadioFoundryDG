@@ -76,6 +76,7 @@
 //                          checked=<text>: the one check mark is on that text's row (a pick list's value in use);
 //                          editor=<value> / framed=<value>: the value editor's markers beside it in the accent, and
 //                          the row framed in it (the reference theme); nodigit=<text>: no key digit on its row
+//                          resetnamefirst=<0|1|-1>: Talkgroup name first as the last factory reset asked, -1 none
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2608,7 +2609,12 @@ bool ui_svc_gps_sat(uint8_t i, ui_gps_sat_t *out)
 static bool emergency_on;
 bool ui_svc_emergency(bool on) { emergency_on = on; return true; }
 bool ui_svc_emergency_active(void) { return emergency_on; }
-bool ui_svc_factory_reset(void) { return true; }
+// A factory reset: Talkgroup name first as the theme the radio would restart in asks (the store's job sets it)
+static int sim_reset_name_first = -1;
+bool ui_svc_factory_reset(bool name_first) { sim_reset_name_first = name_first; return true; }
+// sim_reset starts a new radio: ui_app_init finds no settings stored, then the next start (reboot) finds them
+static bool sim_settings_new;
+bool ui_svc_settings_new(void) { return sim_settings_new; }
 
 // The crash log (ui_svc.h): "crash:on" a record from before this start nobody has seen, "crash:ask" / "crash:auto"
 // the same with the report's mode and the first contact (USA, TG 3100) as its target. A report goes at once;
@@ -2910,8 +2916,9 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_NOISE_REDUCTION, 1);
 	ui_svc_setting_set(UI_SET_MIC_AGC, 0);
 	ui_svc_setting_set(UI_SET_UPDOWN_HOME, 0);
-	// Talkgroup name first: on where the panels theme is the build's default, off elsewhere (settings_defaults)
-	ui_svc_setting_set(UI_SET_LABEL_FIRST, gui_profiles);
+	// Talkgroup name first off, as in settings_defaults: ui_app_init turns it on for a new radio that starts in the
+	// panels theme
+	ui_svc_setting_set(UI_SET_LABEL_FIRST, 0);
 	ui_svc_setting_set(UI_SET_VFO_STEP, 0);
 	sim_step = 0;
 	ui_svc_setting_set(UI_SET_AUTO_OFF_MIN, 0);
@@ -2923,8 +2930,10 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_GUI_NIGHT, 0);
 	ui_svc_setting_set(UI_SET_GPS_CLOCK, 0);
 	// The panels theme (the build's default) on the profile geometry only, so every other gallery class keeps the
-	// reference theme
-	ui_svc_setting_set(UI_SET_GUI_THEME, gui_profiles ? UI_THEME_ID_DEFAULT : UI_THEME_ID_REFERENCE);
+	// reference theme. Where panels doesn't fit (220x176) the build's default is stored, as on a radio: the display
+	// picks the reference theme
+	ui_svc_setting_set(UI_SET_GUI_THEME, gui_profiles || !ui_theme_fits(UI_THEME_ID_PANELS) ? UI_THEME_ID_DEFAULT :
+			   UI_THEME_ID_REFERENCE);
 #endif
 	ui_svc_setting_set(UI_SET_ACCENT, 0);
 	ui_svc_setting_set(UI_SET_STRIP, 1);
@@ -2953,7 +2962,10 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	memset(&crash_sim, 0, sizeof crash_sim);
 	memset(&zs_sim, 0, sizeof zs_sim);
 	ptt_blocked = false;
+	sim_settings_new = true;
+	sim_reset_name_first = -1;
 	ui_app_init();
+	sim_settings_new = false;
 	presses = 0;
 	advance(200);
 }
@@ -3167,6 +3179,7 @@ static bool check(const char *kv, char *err, size_t len)
 			}
 		}
 	}
+	else if (strcmp(key, "resetnamefirst") == 0) snprintf(got, sizeof got, "%d", sim_reset_name_first);	// -1: no reset
 	else if (strcmp(key, "checked") == 0) {
 		// The pick list's check mark: one, on the row of the text that contains the value
 		int marks = 0, row = -1;

@@ -8474,7 +8474,7 @@ static void confirm_select(uint16_t i, bool hold)
 	(void)hold;
 	if (i == 0) {
 		ui_pop();
-	} else if (ui_svc_factory_reset()) {
+	} else if (ui_svc_factory_reset(ui_theme_starts_name_first())) {
 		ui_go_home();
 		ui_toast(TR(RESET_TOAST_DONE, "Factory settings restored"));
 	} else {

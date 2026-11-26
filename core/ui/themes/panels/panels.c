@@ -1567,7 +1567,8 @@ const ui_theme_t ui_theme_panels = {
 	.palettes = panels_palettes,
 	.palette_count = sizeof panels_palettes / sizeof panels_palettes[0],
 	.id = UI_THEME_ID_PANELS,
-	.options = UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK,
+	// Its talk line leads with a talkgroup's name ("USA · TG 3100"), so a radio that starts in it starts so
+	.options = UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK | UI_THEME_OPT_NAME_FIRST,
 	.ops = &panels_ops,
 	.fits = panels_fits,
 };

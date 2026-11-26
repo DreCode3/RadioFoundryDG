@@ -2002,6 +2002,10 @@ void ui_app_init(void)
 	const ui_theme_t *theme = ui_theme_pick(theme_id >= 0 && theme_id <= 0xFF ? (uint8_t)theme_id : UI_THEME_ID_DEFAULT);
 	if (theme != ui_theme_cur())
 		ui_theme_use(theme);
+	// A new radio starts with Talkgroup name first on where the theme it starts in shows the name first; a stored
+	// record keeps its bit, 0 meaning the number first (a factory reset sets it as it saves: ui_svc_factory_reset)
+	if (ui_svc_settings_new() && ui_theme_has(UI_THEME_OPT_NAME_FIRST))
+		ui_svc_setting_set(UI_SET_LABEL_FIRST, 1);
 #endif
 	ui_st.volbar = -1;
 #if CONFIG_VOLUME_BAR

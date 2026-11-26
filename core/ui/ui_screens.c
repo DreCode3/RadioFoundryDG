@@ -4448,6 +4448,11 @@ bool ui_theme_fits(uint8_t id)
 	return theme_fitting(id) != NULL;
 }
 
+bool ui_theme_starts_name_first(void)
+{
+	return (ui_theme_pick(UI_THEME_ID_DEFAULT)->options & UI_THEME_OPT_NAME_FIRST) != 0;
+}
+
 const ui_theme_t *ui_theme_pick(uint8_t id)
 {
 	const ui_theme_t *t = theme_fitting(id != UI_THEME_ID_DEFAULT ? id : UI_THEME_ID_BUILD);

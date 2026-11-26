@@ -186,7 +186,7 @@ WEAK bool ui_svc_gps_sat(uint8_t i, ui_gps_sat_t *out) { (void)i; (void)out; ret
 WEAK bool ui_svc_emergency(bool on) { (void)on; return false; }
 WEAK void ui_svc_emergency_dismiss(void) { }
 WEAK bool ui_svc_emergency_active(void) { return false; }
-WEAK bool ui_svc_factory_reset(void) { return false; }
+WEAK bool ui_svc_factory_reset(bool name_first) { (void)name_first; return false; }
 WEAK bool ui_svc_codeplug_answer(uint8_t answer) { (void)answer; return false; }
 
 WEAK bool ui_svc_crash_get(ui_crash_t *out) { (void)out; return false; }
@@ -235,3 +235,4 @@ bool ui_svc_ram_set(uint8_t id, int32_t value)
 
 WEAK int32_t ui_svc_setting_get(uint8_t id) { return ui_svc_ram_get(id); }
 WEAK bool ui_svc_setting_set(uint8_t id, int32_t value) { return ui_svc_ram_set(id, value); }
+WEAK bool ui_svc_settings_new(void) { return false; }
