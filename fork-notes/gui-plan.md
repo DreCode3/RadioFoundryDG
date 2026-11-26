@@ -141,6 +141,12 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    - Decided for step 2: the second theme is named **panels** (`core/ui/themes/panels/`, `CONFIG_UI_THEME_PANELS`).
      The theme id is stored in its **own spare settings byte** (the remaining `reserved11` byte, offset 407; 0 = the
      build's default theme), with `gui_flags` left as it is.
+   - Decided for step 2 (Nov 25): the behavior differences that stay until step 4 are **declared theme options**,
+     never a test of the theme in shared code. The Display settings rows a theme shows and the talkgroup-name-first
+     key are options on the descriptor; "hub tiles show no values, hub titled Menu" moves into the panels list ops.
+   - Items 1-4 (rename, move to `core/ui/themes/panels/`, descriptor and pick, `gui_theme` at offset 407) are in
+     `6590540a`..`83ec470d`. Theme numbers: 0 the build's default, 1 reference, 2 panels; a stored theme that is
+     missing or doesn't fit falls back to the default, then the reference theme.
 3. Layout fixes in the second theme.
 4. Menu tree, settings row behavior, naming. First: fix the UI simulator's division by zero on an empty zone
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),

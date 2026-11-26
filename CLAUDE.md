@@ -36,7 +36,7 @@ can go upstream as pull requests, so write every change as if it were one.
    then QA. Changes stay generic code in `core/ui`, enabled by board capability, but are judged on the GD-88 only.
 2. **Freeze** the GD-88 version when the user says the layout and quality are ready.
 3. **Port** to other radios and display classes, then fix the CI blockers this leaves (maximal builds that overflow
-   on small panels, flash cost with `CONFIG_UI_PROFILES` off, the settings offset test, the gallery).
+   on small panels, flash cost with `CONFIG_UI_THEME_PANELS` off, the settings offset test, the gallery).
 
 Until step 3, don't spend effort on other display classes beyond keeping them building and unchanged.
 
