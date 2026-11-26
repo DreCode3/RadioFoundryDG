@@ -421,7 +421,7 @@ static int panels_operating_marks(const radio_view_t *v, const ui_state_t *s, in
 		PANELS_PIXELS(rx, y - 3, panels_direct_art, PANELS_DIRECT_W, ink);
 	}
 #endif
-	// A channel that can't transmit here (receive only, the air band, broadcast FM): crossed TX letters
+	// A channel that can't transmit here (receive only, the air band, broadcast FM): its RX mark
 	if (v->ch.rx_only || v->am || v->bcast) {
 		int rx = panels_slot(&row, 24) + 2;
 		PANELS_PIXELS(rx, y - 1, panels_rx_art, 20, ink);

@@ -11,43 +11,52 @@ is OK.
 ## Commercial and Amateur Home
 
 On supported color displays, **Settings > Display > Display Profile** selects **Commercial** or **Amateur**.
-Both center the zone and the named talk target. On FM, the channel name takes the place of the talk target.
+Both show the zone and, as the main line, the channel's name from the codeplug. In the VFO the main line is the
+frequency.
 
 <img src="../ux/profile-samples/home-commercial.png" width="310" alt="Commercial Home receiving a DMR call">
 <img src="../ux/profile-samples/home-amateur.png" width="310" alt="Amateur Home receiving the same DMR call">
 
 | Profile | What you see |
 |---|---|
-| Commercial (default) | Larger zone and talk target text and a taller status bar. On a named DMR talkgroup, the frequency, numeric talkgroup ID, timeslot, and color code are omitted. If a DMR target has no name, its ID identifies it. In the VFO, the frequency identifies the channel |
-| Amateur | The same zone and talk target, plus the channel, receive frequency, and DMR talkgroup ID, timeslot, and color code as applicable. **Large text** hides the extra details |
+| Commercial (default) | The zone and a larger channel name. The talk target appears below it only when it isn't the channel's own: a target chosen for now, the reply window's, or a one-shot call's. In the VFO, where the main line is a frequency, the talk target always shows |
+| Amateur | The zone, the channel name, the talk target (its name and its talkgroup or ID) and a details line with the receive frequency and, on DMR, the timeslot and color code. A dot at the start of the details line marks a temporary change |
 
-The four rounded panes hold device status, operating mode and its indicators, the channel, and the key labels.
-During a DMR call, the talker alias appears below the talk target when the radio has the alias and
-**Settings > Talk & listen > Show talker alias** is on. The zone and talk target stay in place at the same size.
-During a voice transmission, **TX** appears in the device bar, and the channel pane shows the time remaining
-if a transmit timeout is set.
+With **Large text** on, both profiles show the channel name and the talk target in larger type and leave out the zone
+and the details.
+
+During a DMR call, two lines at the bottom of the channel area show who is calling (the talker alias when the radio
+has it and **Settings > Talk & listen > Show talker alias** is on, else the contact's name or the ID) and the
+talkgroup. While you transmit, they show where **PTT** talks to and, if a transmit timeout is set, the time remaining.
+The same place shows what needs attention when the radio is idle, such as **No TX frequency**. The text above these
+lines stays where it is.
+
+The status bar at the top is the same on every screen. The bottom bar has two labels, one over each soft key.
 
 | Place | Indicator | Meaning |
 |---|---|---|
-| Device bar | Signal bars | Reception is active. The bars clear when reception ends. In Dual Watch they follow the audible receiver |
-| Device bar | A and B in boxes | Dual Watch is active |
-| Device bar | VOX | Voice-operated transmit is armed |
-| Device bar | GPS pin | The GPS receiver has a fix |
-| Device bar | Lock | The keys are locked |
-| Device bar | L, M, H | Low, medium, or high transmit power |
-| Device bar | Battery | Filled segments show charge. The icon changes color at the low battery threshold |
-| Operating row | Mode text | The channel mode, for example FM or DMR |
-| Operating row | R inside a circular arrow | Roaming is active. The arrow rotates while the radio searches or surveys |
-| Operating row | Zigzag arrow | Scan is on. The highlight travels along the line and ends at the arrowhead |
-| Operating row | Green key | DMR encryption is configured. An AES channel adds the **AES** label |
-| Operating row | Key with a red X | The radio hears encrypted traffic that does not match its configuration or that it cannot decrypt. A clear channel leaves the key slot blank while idle |
-| Operating row | Envelope | An unread message is waiting |
-| Operating row | Speaker with one wave | FM monitor or DMR digital monitor is on |
-| Operating row | RX | The channel is receive-only |
+| Status bar, left | Signal bars | Reception is active. The bars clear when reception ends. In Dual Watch they follow the audible receiver |
+| Status bar, left | Mode text | The channel mode, for example FM or DMR |
+| Status bar, left | R inside a circular arrow | Roaming is active. The arrow rotates while the radio searches or surveys |
+| Status bar, left | TX, NO TX | The radio is transmitting, or a transmission was refused |
+| Status bar, left | Speaker with one wave | FM monitor or DMR digital monitor is on |
+| Status bar, left | A and B in a box | Dual Watch is active |
+| Status bar, left | VOX | Voice-operated transmit is armed |
+| Status bar, right | Zigzag arrow | Scan is on. The highlight travels along the line and ends at the arrowhead |
+| Status bar, right | RX | The channel is receive-only |
+| Status bar, right | Green key | DMR encryption is configured. An AES channel adds the **AES** label |
+| Status bar, right | Key with a red X | The radio hears encrypted traffic that does not match its configuration or that it cannot decrypt. A clear channel leaves the key slot blank while idle |
+| Status bar, right | Envelope | An unread message is waiting |
+| Status bar, right | IP | USB is a network adapter, brighter once the computer has connected to it |
+| Status bar, right | GPS pin | The GPS receiver has a fix. A dimmed pin: GPS is on and searching |
+| Status bar, right | Lock | The keys are locked |
+| Status bar, right | L, M, H | Low, medium, or high transmit power |
+| Status bar, right | Battery | Filled segments show charge. The icon changes color at the low battery threshold |
 
-With **Settings > Display > GPS clock** on, idle Home stacks the date and UTC time at the right of the operating row.
-That space stays blank until a valid fix supplies date and time, and clears if the fix is lost. **Day/Night** changes
-the palette on Home and in menus. See [Display settings](17-settings.md#display-key-2) for defaults.
+With **Settings > Display > GPS clock** on, idle Home shows the date and UTC time on a line at the bottom of the
+channel area. The line stays blank until a valid fix supplies date and time, and clears if the fix is lost.
+**Day/Night** changes the palette on Home and in menus. See [Display settings](17-settings.md#display-key-2) for
+defaults.
 
 The screenshots above show the channel view. Dual Watch has its own two-channel view, and trunked channels have their
 own operating display. The tables below describe the standard Home layout also used on displays without profile support.
@@ -76,6 +85,8 @@ The battery percentage turns to the warning color at the low battery warning lev
 The hint row changes with the situation. When the right soft key can be assigned on Home, the left label is
 **Menu** and the right label shows its short-press function from **Settings > Keys**. **Nothing** leaves the
 right label blank. While entering a frequency or when the keys are locked, the row shows the controls for that state.
+On displays with Commercial and Amateur Home, the bottom bar shows only the labels for the two soft keys, so the hints
+below for other keys (**#**, **\***, the number keys) don't appear there.
 
 The most common hints:
 

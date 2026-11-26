@@ -60,15 +60,15 @@ On displays that support profiles, **Display Profile** and **Day/Night** replace
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
-| Display Profile | Commercial, Amateur | Commercial | Centers the zone and bold talk target on Home, with the received alias below. Commercial uses larger Home text and status icons. Amateur shows channel and tuning details | Works |
+| Display Profile | Commercial, Amateur | Commercial | Home's layout. Both show the zone and the channel name, with a call's caller and talkgroup below. Commercial uses a larger channel name and shows the talk target only when it isn't the channel's own. Amateur always shows the talk target and the frequency, timeslot and color code | Works |
 | Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
-| GPS clock | Off, On | Off | Stacks the date and UTC time at the right of idle Home when a valid GPS fix supplies both | Works |
+| GPS clock | Off, On | Off | Shows the date and UTC time on a line at the bottom of idle Home when a valid GPS fix supplies both | Works |
 | Brightness | 10 to 100 %, steps of 10 | 100 % | Backlight brightness. Also in quick settings, tile 9 | Works |
 | Backlight Dim/Off | 5s/20s, 10s/40s, 30s/2m, 1m/4m, 2m/8m, 10s/dim, 30s/dim, 1m/dim, 2m/dim, Never | 30s/2m | Without a key press, the backlight dims to a fifth after the first time and goes off after the second. The "dim" choices dim and never go off | Works |
 | Theme | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
 | Highlight color | Default, Red, Orange, Yellow, Teal, Light blue, Purple, Pink | Default | The color of the selected row or tile and of the channel number on Home. Not in the Night theme, which is always red. Not on radios with a monochrome screen | Works |
 | Filled status bar | On, Off | On | Fills the top status line with the highlight color (light gray with Default, white in the high-contrast theme, bright red in Night) and draws its text black. Not on radios with a monochrome screen | Works |
-| Large text | On, Off | Off | On standard Home, shows just the status line, channel, and talk target in large text. In the Amateur profile, hides the extra channel and tuning details | Works |
+| Large text | On, Off | Off | On standard Home, shows just the status line, channel, and talk target in large text. On Commercial and Amateur Home, shows the channel name and the talk target larger and hides the zone and the details | Works |
 | Hint row | On, Off | On | The bottom line with key hints | Works |
 | Talkgroup name first | On, Off | Off | Home's talk line reads "World TG 91" instead of "TG 91 World": on a small screen the name is what fits. A side key set to **TG name / number** switches it too. On radios with DMR | Works |
 | Language | English, Español, Italiano, 中文 | English, or the Radio language picked in the web installer | The language of the menus and messages. A factory reset goes back to that default. The list shows every language RadioFoundry has; one that isn't in your firmware is dimmed. Pick it when you install with the web flasher to get it ([Installing](02-installing.md)). Chinese is off by default and needs a 16 px line ([Radio Reference](23-radios.md)). Names, callsigns and the standard radio abbreviations (TG, CC, VFO) stay as they are | Works |

@@ -690,7 +690,10 @@ draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240`
 every frame as the reference theme does, a palette without a colors op stays as it is, a theme's ops are the ones
 called, and `ui_draw_list` scrolls and places the cells of a two-column geometry, also one out of bounds. It checks
 the theme picked for a display and the themes' appearance options; `uiThemeTestPanels` builds it with the panels
-theme, which it picks where the display fits it, and checks that theme's moving marks.
+theme, which it picks where the display fits it, and checks that theme's moving marks and, by their structure (every
+text drawn and shortened, `GFX_FIT_TRACE`), its frames: the scroll position drawn before the cells in the title's row,
+and the soft key bar's two labels inside its pane, never shortened. The layout check (`uiSim --layout`) draws the
+reference theme; the panels theme's frames are checked with `expect:layout=0` in `uiPrototypeTest.py`.
 
 `uiFlowTest` runs every task flow of `task-flows.md` with the press budgets of `usability-tests.md` on four display
 and key map pairs (K at 160x120i5, M at 128x64, V at 128x64, K at 240x320) plus the few-key fallbacks and the
@@ -762,58 +765,52 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
 - `CONFIG_UI_THEME_PANELS` builds the panels theme: Commercial (default) and Amateur on color displays with a 240 px
   drawable height and at least 310 px of drawable width after insets. Other geometries use the standard layout. The
   radio picks the theme at start, after the splash, from the stored theme (`gui_theme` in
-  [the settings store](settings-store.md); 0, the default, is the build's default theme). Both profiles
-  show the zone and prefer a named talk target. Use the target ID if it has no name, the channel label if there is
-  no target, or the frequency when tuning the VFO. Amateur also shows channel and tuning details.
-  Dual Watch uses its two-pane Home view. Trunked, single-frequency repeater, and unsupported channels keep
-  their operating views. Day/Night switches the palette across Home and menus. Day is the default.
-  The profile menus use these palettes in place of Theme, Highlight color and Filled status bar. Both profiles put a
-  named talk target first. Commercial Home gives the status icons a taller strip and uses larger type for the zone,
-  talk target, and short receive aliases. The zone and bold talk target are centered. A received alias appears on a
-  separate bottom line and leaves both positions fixed. The TG name / number key assignment applies to the earlier
-  Home layout. Large text hides Amateur details. With a board GPS,
-  GPS clock (default Off) shows the UTC date and minute on idle Home while a recent GPS fix has both date and time.
-  The three choices are saved in [the settings store](settings-store.md).
-  Profile Home puts signal, power, battery, GPS fix, lock, Dual Watch, and VOX in the device strip. The separate
-  operating row carries mode, roaming, privacy, unread mail, scan, monitor, and receive-only marks as applicable.
-  Bluetooth, recording, the TA arrow, and the D-STAR label are host simulator examples.
-  The device strip, mode row, channel area and soft-key bar are separate rounded panels in both palettes.
-  The rounded soft-key bar keeps the same height on profile screens. It uses the largest native font that fits
-  the key labels.
-  Signal bars show only during reception, using the audible pane during Dual Watch. Idle RSSI samples leave the
-  signal slot blank.
-  Dual Watch uses larger A/B lettering in two panes, and VOX uses wider lettering. The GPS clock stacks its
-  date and time at the right end of the operating row. The mode label uses the largest native font that fits
-  alongside the clock, roaming, encryption, and other marks. In menus,
-  mode lettering sits beside the bars when it fits. The bars indicate reception without a separate label.
-  Roaming places an arrow around a fixed R when roaming is active. Only search and survey animate it.
-  The privacy key is green when DMR privacy is configured and has an AES label on AES channels.
-  For encrypted receive activity without a usable key, the key has a red X. A clear channel has no idle key.
-  ARC4 labeling is a simulator example.
-  The channel pane shows the remaining time (minutes and seconds) during a timed voice transmission.
-  Monitor uses a speaker with one wave, and receive-only channels are marked RX. The scan highlight follows the
-  open zigzag stroke and ends on the full arrowhead. Normal status marks use black in
-  Day and light ink in Night. The battery uses an upright outline with a top terminal and three fill segments.
-  The GPS pin, lock, key, envelope, speaker, scan and roaming artwork use coverage masks generated from curves
-  and strokes at their final sizes. With antialiasing enabled, the masks blend edges into the display palette.
-  `tools/profile_icons.py` generates the packed 2-bit coverage masks in `core/ui/themes/panels/panels_icons.h`.
-  Menu and Settings categories have colored icons beside their shortcuts. Profile lists at every menu depth use
-  larger left-aligned headings and separated, tinted rows with rounded corners. The main menu and submenus
-  share the same outer margins.
-  Menu status bars use a larger mode label and larger battery, power, GPS and lock indicators.
-  The mode label reduces in size when active indicators need the room.
-  The profile hub shows three rows of two larger tiles per page. Up and Down follow the numbers down the left
-  column and then the right, then turn the page. The hub shows Zones without a current-zone
-  value. The Zones list continues to show the current zone.
-  The first level of Settings shows three rows of two tiles per page on the wide profile display.
-  Up and Down move in shortcut order across pages, and the page indicator shows the available direction.
-  Longer labels can wrap. Submenus use the roomy list layout. Focused rows have a solid leading marker.
-  Menu hints abbreviate the selection key to OK. Numbered shortcuts still open their entries directly.
-  The profile hub uses static labels. Status indicators show unread messages and scanning without changing menu labels.
-  Profile footer hints are split across the two edges. On Home, a board with an assignable Back soft key shows
-  Menu at the left edge and the saved short-press function at the right, with no right label for Nothing.
-  Frequency entry, key lock, and toasts use their own hints. On other screens, Back takes the right edge when
-  present. Otherwise Quick takes the right edge after the first hint, or the last hint goes there.
+  [the settings store](settings-store.md); 0, the default, is the build's default theme). Day/Night switches the
+  palette across Home and menus. Day is the default. The profile menus use these palettes in place of Theme,
+  Highlight color and Filled status bar. With a board GPS, GPS clock (default Off) shows the UTC date and minute on
+  idle Home while a recent GPS fix has both date and time. The three choices are saved in
+  [the settings store](settings-store.md). The TG name / number key assignment applies to the standard Home layout.
+  Layout on the 310 x 240 drawable area (`core/ui/themes/panels/panels.c`):
+  - **Status strip**, 29 px, the same on every screen, Home included: signal bars (only while receiving, from the
+    audible pane during Dual Watch) and the mode on the left, then roaming (an arrow around a fixed R, moving only
+    while it searches or surveys), TX, TX APRS or NO TX, and the monitor (a speaker with one wave), Dual Watch and VOX
+    marks. On the right, from the edge: battery (an upright outline with three segments), power (L, M, H), lock, GPS
+    (a pin, dimmed while it searches), IP while USB is a network adapter (dimmed until the computer connects), then
+    the operating marks: the privacy key (green when DMR privacy is configured, with an AES label on AES channels; a
+    red X on encrypted receive activity without a usable key; no key on a clear channel), unread mail, RX for a
+    receive-only channel and the scan zigzag, whose highlight follows the stroke and ends on the arrowhead. The mode
+    word takes the largest font that fits beside the marks; crowded combinations stack the bars over it. Status marks
+    are black in Day and light ink in Night. The masks come from `tools/profile_icons.py`
+    (`core/ui/themes/panels/panels_icons.h`); Bluetooth, recording, the TA arrow and the D-STAR label are host
+    simulator examples.
+  - **Home**: the zone, then the channel's codeplug name as the main line (the frequency in the VFO, the digits while
+    one is typed), enlarged in Commercial. Commercial shows the talk target only where it isn't the channel's own: a
+    target for now, the reply window's, a one-shot call's, and the VFO's (its main line names no target). Amateur
+    always shows it (name, then TG or ID) and a details row: receive frequency, timeslot and color code, a VFO's TX
+    frequency, a dot for a temporary change. Two lines under a rule at the bottom of the channel area keep their
+    place: during a DMR call the caller (talker alias with Show talker alias, else the contact name or the ID, in the
+    privacy blue) and the talkgroup; while transmitting the talk target and the time left; otherwise what needs
+    attention (a refused PTT's reason, a pending hardware option, No TX frequency, DMR modem off, Commercial's No talk
+    target) and, while idle, the GPS clock. Large text keeps the main line and the target, larger, without the zone and
+    details. Dual Watch uses its two-pane view under the same strip, the GPS clock on a line below the panes.
+    Trunked, single-frequency repeater and unsupported channels keep their operating views under this strip and bar.
+  - **Lists**: the title in the medium font, left-aligned under the strip (the main menu's is Menu); one row height
+    for every list and grid, 5 rows on 310 x 240; rows as rounded tinted panels inset from the edges; the focus a
+    filled highlight with an accent bar at its rounded left end. Where a list has more entries than its screen, the
+    title's row shows the focused entry's position, "n/N", drawn before the cells so its shades get their palette
+    entries first on a 16-color display. Menu and the first level of Settings are grids of two equal columns (one
+    split for the whole list) a page at a time; Up and Down follow the numbers down the left column, then the right,
+    then turn the page. A label too long for its column takes the tiny font, then the small print, before it is
+    shortened, never a second line. Menu and Settings categories have colored icons beside their shortcuts. The hub
+    uses static labels and shows Zones without a current-zone value; the strip shows unread messages and scanning.
+  - **Soft key bar**: a rounded pane the same height on every screen with two labels, one per soft key, in the
+    largest native font that fits them: on the left the OK group (in a list shortened to OK), else the first group
+    that names no other key (Home's Menu, or a sentence such as a lock or PTT instruction, shown whole); on the right
+    Home's assigned soft key or the Back group, and in a list Back where the hint has none. Groups for other keys (#,
+    \*, the digits, PTT, Up and Down) are not shown on this bar. Toasts are centered, on two lines where needed.
+  - **Quick settings**: three rows of three rounded tiles in the list style, each with its digit, its name in whole
+    words (Brightness, Color code, Bandwidth, TX frequency where the shared tile names are short) on two lines of the
+    small print where a name needs them, and its value.
 - The VFO has a mode of its own (`dmr-voice.md` 2.1). The Mode tile (tile 4 in the VFO only) switches it FM / DMR ("VFO: DMR", no "for now": it is kept), and in a build with only one VFO kind the tile is dimmed ("VFO: one mode in this build"). On a channel tile 4 is "To VFO" (`dmr-voice.md` 2.2): it copies what is in effect on the channel to the VFO and opens it on Home ("Copied to VFO"); a channel the VFO can't hold is refused with a toast. A channel has no temporary mode change any more. In DMR the quick menu is the DMR one: Timeslot, Color and Talk to change the VFO's own settings, with no dot on Home. The talk target picker lists the VFO's current target first ("Current"); both OK and hold OK keep the target for the VFO.
 - The privacy key types are named by key size with the key's range, "8-bit (1-255)" and "16-bit (0-65535)". The key
   is typed in decimal. Number rows take typed digits; a value outside the range or between steps is refused with the

@@ -69,18 +69,19 @@ Home
 In numbered lists (the hub, Tools, Settings, actions, quick settings) a number key picks the row with that number
 directly. For example, **OK**, **6** opens Tools.
 
-On displays with profiles, Menu and the first level of Settings use two columns of three rows per page.
-**Up** and **Down** follow shortcut order down the left column, then the right, then move between pages. The page
-indicator shows where you are. With all seven main entries available, **Settings** is on page two, and **7** opens
-it directly from Menu. **OK** opens the highlighted item. **Back** returns to the previous screen.
+On displays with profiles, every list shows five rows of the same height, and Menu and the first level of Settings
+show them in two columns of five rows per page. **Up** and **Down** follow shortcut order down the left column, then
+the right, then move between pages. Where a list has more entries than fit, the title shows the highlighted entry's
+position, for example **3/12**. All seven main entries fit on one page of Menu, and **7** opens Settings directly.
+**OK** opens the highlighted item. **Back** returns to the previous screen.
 
-<img src="../ux/profile-samples/menu.png" width="310" alt="First page of Menu with six numbered tiles">
+<img src="../ux/profile-samples/menu.png" width="310" alt="Menu with seven numbered entries in two columns">
 <img src="../ux/profile-samples/settings-night.png" width="310" alt="First page of Settings in the Night palette">
 
-Colored category icons appear on Menu and on the first level of Settings. Submenus use larger left-aligned headings
-and spaced, rounded rows aligned with the main menu's outer edges. The footer remains the same height. While
-receiving, the status bar shows signal bars alongside the mode when there is room. Open **Zones** to see the current
-zone and the other zones.
+Colored category icons appear on Menu and on the first level of Settings. The highlighted row is filled, with a bar
+in the accent color at its left end. The status bar at the top is the same as on Home, and the bottom bar shows the
+labels of the two soft keys: **OK** on the left and **Back** on the right. Open **Zones** to see the current zone and
+the other zones.
 
 In long lists (Contacts, Channels, a zone's channels) the number keys filter the list by name, the way a phone
 keypad spells words. **2** is ABC, **3** is DEF, and so on to **9** (WXYZ). Each key narrows the list to names with a
