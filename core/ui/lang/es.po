@@ -450,12 +450,12 @@ msgstr "Monitor digital off"
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "LOCK_HINT_HOLD_STAR"
 msgid "{Keys locked: hold * to unlock|Locked: hold * to unlock}"
-msgstr "{Teclas bloq.: mantener * para abrir|Bloq.: mantener * para abrir}"
+msgstr "{Teclas bloqueadas: mantén * para desbloquear|Desbloquear: mantén *}"
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_HINT_HOLD_BACK"
 msgid "{Keys locked: hold Back to unlock|Locked: hold Back to unlock}"
-msgstr "{Teclas bloq.: mantener Atrás para abrir|Bloq.: mantener Atrás para abrir}"
+msgstr "{Teclas bloqueadas: mantén Atrás para desbloquear|Desbloquear: mantén Atrás}"
 
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_VFO_SAVES_ITSELF"
@@ -820,12 +820,12 @@ msgstr "Rellamar: solo DMR"
 #: core/ui/ui_app.c
 msgctxt "LOCK_TOAST_PTT_OFF_HOLD_STAR"
 msgid "PTT is off while locked: hold * to unlock"
-msgstr "PTT inactivo bloqueado: mantener * para abrir"
+msgstr "PTT inactivo con bloqueo: mantén * para desbloquear"
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_TOAST_PTT_OFF_HOLD_BACK"
 msgid "PTT is off while locked: hold Back to unlock"
-msgstr "PTT inactivo bloqueado: mantener Atrás para abrir"
+msgstr "PTT inactivo con bloqueo: mantén Atrás para desbloquear"
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_TOAST_UNLOCKED"
