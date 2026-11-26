@@ -96,7 +96,7 @@ static const step_t steps[] = {
 	{ "Battery runs down", "battery:14", NULL, false, false, 0 },
 	{ NULL, "battery:3", "BATTERY_CRIT", false, false, 0 },
 	{ NULL, "back", NULL, false, false, 0 },	// close the battery warning, or it covers the scan
-	{ "Scan", "ok 6 1", NULL, true, false, 700 },
+	{ "Scan", "ok 5 1", NULL, true, false, 700 },
 	{ NULL, "fmrx", "SCAN_HOLD", false, false, 0 },
 	{ NULL, "fmrxend", NULL, false, true, 0 },
 	{ NULL, "back", NULL, false, false, 0 },

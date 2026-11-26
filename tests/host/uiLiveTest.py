@@ -71,7 +71,7 @@ class LiveSimulatorTest(unittest.TestCase):
         self.assertEqual(self.request("GET", "/")[0], 200)
         home = self.assert_png(self.action("long:back"))
         menu = self.assert_png(self.action("ok"))
-        settings = self.assert_png(self.action("7"))
+        settings = self.assert_png(self.action("8"))
         restored_menu = self.assert_png(self.action("back"))
         self.assertNotEqual(home, menu)
         self.assertNotEqual(menu, settings)
