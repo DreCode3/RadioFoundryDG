@@ -49,6 +49,10 @@ python3 fork-notes/tools/snapshot.py "$PWD" ../rf-current           # after a ch
 python3 fork-notes/tools/compare.py ../rf-baseline ../rf-current     # must report 0 differ, 0 missing
 ```
 
+`fork-notes/tools/cc.sh ../rf-baseline ../rf-work` runs the whole per-commit check (uiSim, pixels, `uiThemeTest`,
+`uiPrototypeTest`, a GD-88 build and its stack check). `scratch.sh` sets up step 1's scratch second theme for the
+stack-check proof.
+
 Every commit from `dc9e29d6` to `8a59ae5f` renders the same pixels, so any of them can serve for step 2. Keep the
 output outside the repository. `snapshot.py` uses one render thread per core.
 
@@ -56,5 +60,5 @@ output outside the repository. `snapshot.py` uses one render thread per core.
 
 - [gui-plan.md](gui-plan.md): the approved design, the process, testing sizes, order of work.
 - [reports/](reports/): the theme inventory, step 1 reports and the QA reviews.
-- Step 1 is QA-approved. Step 2 (selection and the second theme) had just started; its hand-off is in
-  `reports/theme-step2-handoff.md`.
+- Step 1 is QA-approved. Step 2 (selection and the second theme) had just started:
+  [reports/theme-step2-handoff.md](reports/theme-step2-handoff.md) has its plan, open questions and gotchas.
