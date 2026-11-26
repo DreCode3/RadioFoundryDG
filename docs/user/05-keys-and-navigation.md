@@ -130,7 +130,7 @@ Then:
 | **#** | Actions for the focused talkgroup or person |
 | **Back** | Delete the last digit. With one digit left, leave Find |
 
-Settings also answer to other names. For example, "promiscuous" finds Digital monitor at start and "TOT" finds TX timeout.
+Settings also answer to other names. For example, "promiscuous" finds DMR monitor at start and "TOT" finds TX timeout.
 
 <img src="../ux/screens/160x120i5/find_name.png" width="200" alt="Find, matching a name">
 <img src="../ux/screens/160x120i5/find_number.png" width="200" alt="Find, matching a number">

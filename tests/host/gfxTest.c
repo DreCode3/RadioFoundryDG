@@ -236,7 +236,8 @@ static void render_set(const char *cls)
 	CHECK(!ui_quick_tile(QT_TONE, &v, &s, label, sizeof label, value, sizeof value));
 	// On DMR the same positions hold the DMR tiles (information-architecture.md 5): 3 color code, 8 talk target
 	CHECK(ui_quick_kind(2, &v) == QT_CC && ui_quick_kind(7, &v) == QT_TALK_TO);
-	CHECK(ui_quick_tile(7, &v, &s, label, sizeof label, value, sizeof value) && strncmp(label, "8" TEXT_ALT_OPEN "Talk to", 9) == 0);
+	CHECK(ui_quick_tile(7, &v, &s, label, sizeof label, value, sizeof value) &&
+	      strncmp(label, "8" TEXT_ALT_OPEN "TG / Contact", 14) == 0);
 
 	// Layout sanity: regions in order and inside the screen
 	const ui_layout_t *L = &ui_layout;

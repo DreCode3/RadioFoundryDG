@@ -108,13 +108,12 @@ that have it, has **Display profile**, **Day/Night** and, on a radio with a GPS,
 | Reply window | 0 to 30 s | The codeplug's hang time, else 10 s | How long **PTT** answers the last call ([DMR](09-dmr.md#replying)). 0 turns it off | Works |
 | TX timeout | Off, 30 s, 1, 2, 3, 5, 10 min | 3 min | Longest transmission, for channels without their own timeout in the codeplug | Works |
 | Show talker alias | On, Off | On | Show received talker aliases (names) under the caller's ID | Works |
-| Digital monitor at start | On, Off | Off | Digital monitor (DMR: every talkgroup, promiscuous; Tier III: every talkgroup's call on the system) goes on each time you select a DMR channel, and a scan started from it keeps it on at every channel. **Back** on Home turns it off until the next channel | Works |
+| DMR monitor at start | On, Off | Off | Digital monitor (DMR: every talkgroup, promiscuous; Tier III: every talkgroup's call on the system) goes on each time you select a DMR channel, and a scan started from it keeps it on at every channel. **Back** on Home turns it off until the next channel | Works |
 | Answer radio checks | On, Off | On | Answer radio checks from other radios ([Radio check](10-messages-and-signaling.md#radio-check)) | Works |
 | Answer call alerts | On, Off | On | Acknowledge call alerts, so the caller knows the page arrived | Works |
 | Message format | Automatic, ETSI, ETSI short, TMS (where built) | Automatic | The encoding of new DMR text messages ([Messages](10-messages-and-signaling.md#message-formats)) | Works |
 | Accept zone shares | On, Off | On | On shows a zone or channel another radio sends you, to import or reject ([Sharing a zone](07-channels-zones-vfo.md#sharing-a-zone)). Off ignores them | Works |
 
-On a small screen **Digital monitor at start** reads **DMR monitor at start**.
 
 ### Receive & VFO (key 5)
 

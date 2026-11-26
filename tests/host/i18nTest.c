@@ -67,8 +67,9 @@ int main(void)
 	CHECK(strcmp(tr(settings), "Ajustes") == 0);
 	CHECK(strcmp(tr_en(settings), "Settings") == 0);	// Find matches both
 	CHECK(strcmp(TR(SET_LABEL_LANGUAGE, "Language"), "Idioma/Language") == 0);
-	CHECK(strcmp(TR(SET_ROW_POWER_SAVING, "Power"), "Energ\xED" "a") == 0);
 	CHECK(strcmp(TR(LABEL_POWER, "Power"), "Potencia") == 0);
+	// One English, two keys, each with its own translation (here the same word)
+	CHECK(strcmp(TR(TITLE_MENU, "Menu"), "Men\xFA") == 0 && strcmp(TR(FIND_CHIP_MENU, "Menu"), "Men\xFA") == 0);
 	CHECK(strcmp(TR(QUICK_LABEL_POWER, TEXT_ALT_OPEN "Power" TEXT_ALT_NEXT "Pwr" TEXT_ALT_CLOSE),
 		     TEXT_ALT_OPEN "Pot" TEXT_ALT_NEXT "Pt" TEXT_ALT_CLOSE) == 0);
 	CHECK(strcmp(TR(MSG_BODY_CANNED_ON_MY_WAY, "On my way"), "En camino") == 0);	// a canned message: sent in the language in use

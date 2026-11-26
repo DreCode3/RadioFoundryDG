@@ -6654,7 +6654,9 @@ static const menu_entry_t loc_menu[LOC_COUNT] = {
 	[LOC_SETTINGS] = { TRN(SET_ROW_LOCATION_SETTINGS, "Location settings"), NULL },
 };
 
+#if CONFIG_UI_SETTINGS	// Find's way to Location settings (ui_open_setting)
 static uint16_t loc_row_of(uint16_t entry) { return menu_row_of(loc_menu, LOC_COUNT, entry); }
+#endif
 static uint16_t loc_count(void) { return menu_counted(loc_menu, LOC_COUNT); }
 
 static void loc_item(uint16_t row, ui_item_t *it)
@@ -6710,7 +6712,9 @@ static const menu_entry_t conn_menu[CONN_COUNT] = {
 	[CONN_PC_NETWORK] = { TRN(SET_ROW_PC_NETWORK, "PC and network"), NULL },
 };
 
+#if CONFIG_UI_SETTINGS	// Find's way to SFR and PC and network (ui_open_setting)
 static uint16_t conn_row_of(uint16_t entry) { return menu_row_of(conn_menu, CONN_COUNT, entry); }
+#endif
 static uint16_t conn_count(void) { return menu_counted(conn_menu, CONN_COUNT); }
 
 static void conn_item(uint16_t row, ui_item_t *it)
@@ -7148,10 +7152,9 @@ static const set_item_t s_call[] = {
 	NUMBER(TRN(SET_LABEL_REPLY_WINDOW, "Reply window"), NULL, UI_SET_REPLY_S, 0, 30, 1, " s"),
 	LIST(TRN(SET_LABEL_TX_TIMEOUT, "TX timeout"), "TOT", UI_SET_TOT_S, v_tot, n_tot),
 	TOGGLE(TRN(SET_LABEL_SHOW_TALKER_ALIAS, "Show talker alias"), NULL, UI_SET_ALIAS_SHOW),
-	// The shorter form where the whole one doesn't fit beside the value
-	TOGGLE(TRN(SET_LABEL_DIGITAL_MONITOR_AT_START, TEXT_ALT_OPEN "Digital monitor at start" TEXT_ALT_NEXT
-		"DMR monitor at start" TEXT_ALT_CLOSE),
-		"promiscuous hear all monitor by default", UI_SET_HEAR_ALL_DEFAULT),
+	// DMR, not Digital: the whole name doesn't fit beside its value on a 160 px display, nor two forms in a row's label
+	TOGGLE(TRN(SET_LABEL_DIGITAL_MONITOR_AT_START, "DMR monitor at start"),
+		"digital promiscuous hear all monitor by default", UI_SET_HEAR_ALL_DEFAULT),
 	TOGGLE(TRN(SET_LABEL_ANSWER_RADIO_CHECKS, "Answer radio checks"), NULL, UI_SET_CHECK_REPLY),
 	TOGGLE(TRN(SET_LABEL_ANSWER_CALL_ALERTS, "Answer call alerts"), NULL, UI_SET_ALERT_ANSWER),
 #if CONFIG_DMR_SMS
@@ -8697,7 +8700,7 @@ static void lang_list_item(uint16_t i, ui_item_t *it)
 {
 	str_copy(it->label, sizeof it->label, lang_name((uint8_t)i));
 	if (i == lang_current())
-		str_copy(it->value, sizeof it->value, TR(LANG_VALUE_IN_USE, "In use"));
+		str_copy(it->value, sizeof it->value, GLYPH_CHECK);	// as a setting's pick list marks the value in use
 	if (!lang_built((uint8_t)i))
 		it->flags |= UI_ITEM_DIM;
 }

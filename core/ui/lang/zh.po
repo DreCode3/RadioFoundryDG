@@ -4166,8 +4166,8 @@ msgstr "显示主叫别名"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_DIGITAL_MONITOR_AT_START"
-msgid "{Digital monitor at start|DMR monitor at start}"
-msgstr "{开机数字监听|开机 DMR 监听}"
+msgid "DMR monitor at start"
+msgstr "开机 DMR 监听"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_ANSWER_RADIO_CHECKS"
@@ -4658,11 +4658,6 @@ msgstr "扫描停在此处"
 msgctxt "SCAN_TOAST_LISTS_USE_QDMR"
 msgid "Edit scan lists in qdmr"
 msgstr "在 qdmr 中编辑扫描列表"
-
-#: core/ui/ui_menus.c
-msgctxt "LANG_VALUE_IN_USE"
-msgid "In use"
-msgstr "使用中"
 
 #: core/ui/ui_menus.c
 msgctxt "CPLUG_ROW_CANCEL"
@@ -5701,8 +5696,8 @@ msgstr "{加密|加密}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_LABEL_TALKGROUP_CONTACT"
-msgid "{Talkgroup / Contact|TG / Contact|TG}"
-msgstr "{通话组 / 联系人|TG / 联系人|TG}"
+msgid "{TG / Contact|TG}"
+msgstr "{TG/联系人|TG}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_LABEL_COPY_TO_VFO"

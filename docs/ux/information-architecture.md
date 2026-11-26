@@ -172,7 +172,7 @@ text of the row that opens it, in sentence case.
 | 1 | **Display** | The theme's appearance rows first (the reference theme: Theme, Highlight color, Filled status bar; the panels theme: Display profile, Day/Night, GPS clock), then Brightness, Backlight, Large text, Hint row, Talkgroup name first, Language, Battery saver, Auto power off, Low battery warning |
 | 2 | **Tones & alerts** | Volume (radios without a knob), Tone volume, Key tones, Voice prompts, Vibrate; pages: Alert tones (each beep on or off) and Signaling tones |
 | 3 | **Audio** | Mic gain, Mic AGC, Mic noise reduction |
-| 4 | **Call settings** | Reply window, TX timeout, Show talker alias, Digital monitor at start, Answer radio checks, Answer call alerts, Message format, Accept zone shares |
+| 4 | **Call settings** | Reply window, TX timeout, Show talker alias, DMR monitor at start, Answer radio checks, Answer call alerts, Message format, Accept zone shares |
 | 5 | **Receive & VFO** | Default squelch, VFO step, FM broadcast step, Dual watch talk back, Dual watch delay |
 | 6 | **Privacy** | Key type, Key |
 | 7 | **Security & keypad lock** | Auto lock, PTT when locked, Knob when locked |
@@ -190,7 +190,7 @@ check mark on the value in use; a number opens a value editor, the value between
 accent color (amber only for warnings).
 
 Rule: each setting lives in exactly one group, and Find also reaches it by name and synonyms ("promiscuous" finds
-Digital monitor at start; "RX group" finds Listen lists). Find opens a setting where it lives, with the screens on the
+DMR monitor at start; "RX group" finds Listen lists). Find opens a setting where it lives, with the screens on the
 way under it, so `BACK` goes up through them.
 
 ---

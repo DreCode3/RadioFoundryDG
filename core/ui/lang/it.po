@@ -4164,8 +4164,8 @@ msgstr "Mostra alias"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_DIGITAL_MONITOR_AT_START"
-msgid "{Digital monitor at start|DMR monitor at start}"
-msgstr "{Monitor digitale all'avvio|Monitor DMR all'avvio}"
+msgid "DMR monitor at start"
+msgstr "Monitor DMR all'avvio"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_ANSWER_RADIO_CHECKS"
@@ -4656,11 +4656,6 @@ msgstr "Scansione ferma qui"
 msgctxt "SCAN_TOAST_LISTS_USE_QDMR"
 msgid "Edit scan lists in qdmr"
 msgstr "Modifica liste scan in qdmr"
-
-#: core/ui/ui_menus.c
-msgctxt "LANG_VALUE_IN_USE"
-msgid "In use"
-msgstr "In uso"
 
 #: core/ui/ui_menus.c
 msgctxt "CPLUG_ROW_CANCEL"
@@ -5699,8 +5694,8 @@ msgstr "{Privacy|Priv}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_LABEL_TALKGROUP_CONTACT"
-msgid "{Talkgroup / Contact|TG / Contact|TG}"
-msgstr "{Gruppo / Contatto|TG / Contatto|TG}"
+msgid "{TG / Contact|TG}"
+msgstr "{TG / Contatto|TG}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_LABEL_COPY_TO_VFO"

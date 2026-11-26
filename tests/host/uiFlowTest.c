@@ -900,8 +900,8 @@ static const flow_t flows[] = {
 	{ "S Up/Down on Home: talk target", "ok 8 8 row:Up/Down_on_Home ok down down ok long:back", "up", "talk=91 toast=Talking_to", 1,
 	  false },
 	{ "S Up/Down: back to the default", "ok 8 8 row:Up/Down_on_Home ok down down ok long:back up", "down", "talk=3100", 1, false },
-	{ "S hear all by default", "ok 8 4 row:Digital_monitor_at_start ok long:back", "up up", "hearall=1 pos=5", 2, false },
-	{ "S hear all by default: BACK", "ok 8 4 row:Digital_monitor_at_start ok long:back up up", "back", "hearall=0", 1, false },
+	{ "S hear all by default", "ok 8 4 row:DMR_monitor_at_start ok long:back", "up up", "hearall=1 pos=5", 2, false },
+	{ "S hear all by default: BACK", "ok 8 4 row:DMR_monitor_at_start ok long:back up up", "back", "hearall=0", 1, false },
 	{ "S mic noise reduction off", "", "ok 8 3 row:Mic_noise_reduction ok", "set70=0", 6, false },
 	// Mic AGC on: Mic gain (the row above) shows "AGC", is dimmed and says why
 	{ "S mic AGC on", "", "ok 8 3 row:Mic_AGC ok", "set71=1 shows=AGC", 5, false },
