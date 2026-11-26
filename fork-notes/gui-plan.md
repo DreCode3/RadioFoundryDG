@@ -114,6 +114,18 @@ repeats until QA approves. Work is pushed as it is committed, but a step counts 
 after QA approval. A disagreement between the implementer, QA or
 Claude goes to the user, with both positions, and the user decides.
 
+Testing is sized to the risk, not exhaustive (the user wants safe, not past diminishing returns):
+
+| When | Checks |
+|---|---|
+| Each commit (~5 min) | uiSim builds with zero warnings; pixel comparison against the baseline; `uiThemeTest`, `uiPrototypeTest`; one GD-88 build with zero warnings |
+| End of a step | Whole host suite; GD-88, DM-1701, MD-9600 and the relevant switch-off builds; stack check GD-88 and DM-1701; sizes. Other boards only when shared code outside `core/ui` changed |
+| QA, once a step (~30 min target) | Read the diff; experiments where the risk is; old-versus-new frames on the baseline set, targeted scripts and one random walk; about a dozen mutations aimed at new code; switch combinations only for switches the step touched |
+| QA re-review | The fix and the lines it touched, not a full re-run |
+| Milestones only | Full `tools/ci.sh` matrix: at the GD-88 freeze and before an upstream pull request |
+
+Only defects and real latent risks block approval. Test gaps and nits are logged and carried into the next step.
+
 ## Order of work
 
 1. Discussion post (draft ready).
