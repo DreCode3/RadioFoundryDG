@@ -206,7 +206,10 @@ typedef struct {
 } ui_colors_t;
 extern ui_colors_t ui_col;
 // Color theme on color displays (Settings > Display), the values of settings_t.theme. Night is shades of pure red
-// on black, for eyes adapted to the dark: it has no highlight color of its own choosing
+// on black, for eyes adapted to the dark: it has no highlight color of its own choosing.
+// These numbers are the reference theme's palettes only. Another theme numbers its own palettes from 0 too (the panels
+// theme: UI_PALETTE_DAY and _NIGHT, ui_theme.h), so ui_theme_get() == UI_THEME_LIGHT is also true under panels Night:
+// shared code tests one of these only where the reference theme is in use, or asks the theme through an option
 enum { UI_THEME_DARK, UI_THEME_LIGHT, UI_THEME_HIGH_CONTRAST, UI_THEME_NIGHT, UI_THEME_COUNT };
 // The palette of the theme in use (ui_theme.h): for the reference theme UI_THEME_*. After ui_layout_init; a value
 // out of range is the first, the dark theme

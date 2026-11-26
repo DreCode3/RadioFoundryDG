@@ -2766,8 +2766,9 @@ static void dual_arrow(int x, int y, int ah, int aw, color_t c)
 
 // The reference theme's style: the panes from the screen's edges, the calls heard listed under them
 static const ui_dual_style_t dual_reference = { .calls = true };
-// The style the panes are drawn in, set by ui_home_dual_body. Without a theme of its own in the build, the reference
-// theme's as constants
+// The style the panes are drawn in: set by ui_home_dual_body for its own drawing and put back to the reference theme's
+// before it returns, so a helper below called from anywhere else never draws in the style of the theme that ran last.
+// Without a theme of its own in the build, the reference theme's as constants
 #if CONFIG_UI_THEME_PANELS
 static const ui_dual_style_t *dual_style = &dual_reference;
 #define DUAL_INSET()		dual_style->inset
@@ -3231,6 +3232,9 @@ UI_THEME_SHARED void ui_home_dual_body(const radio_view_t *v, const ui_state_t *
 		int ay = top + 2 * ph + gap + 2;
 		dual_activity(v, s, ay, ft->act ? (bottom - ay) / sm->h : 0);
 	}
+#if CONFIG_UI_THEME_PANELS
+	dual_style = &dual_reference;
+#endif
 }
 
 static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
