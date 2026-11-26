@@ -96,8 +96,9 @@ radio task may change settings. The housekeeping task calls `settings_poll()` ev
 changes have rested `SETTINGS_SAVE_DELAY_MS` (2 s), so turning the knob through 20 channels writes one record.
 `settings_flush()` saves at once: at power-off, on the CPS's "save" (`C 6 0` and `C 6 2`), and before a debug link
 restart or boot stub entry (a change still in its save delay would otherwise be lost).
-`settings_end_default()` after `settings_end` makes the change a default, not a choice: it stays in force but asks for
-no save, and goes into the flash with the next save that something else causes (Talkgroup name first on a new radio).
+`settings_end_default()` in place of `settings_end` (builds with a second theme) makes the change a default, not a
+choice: it stays in force but asks for no save, and goes into the flash with the next save that something else causes
+(Talkgroup name first on a new radio). Only the bits changed since `settings_begin` count as stored, under the same lock.
 
 **Reading**: `settings_read(&copy)` takes the whole record, a few hundred bytes. A caller deep in a task's stack (a menu's
 value getter, the debug link) reads one field instead: `SETTINGS_FIELD(brightness)` is `settings_read_field(offset, size)`

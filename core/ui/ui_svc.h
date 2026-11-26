@@ -488,9 +488,11 @@ bool ui_svc_setting_set(uint8_t id, int32_t value);
 // are the defaults, and the UI may set the ones that depend on the display (Talkgroup name first, ui_app_init) with
 // ui_svc_setting_default
 bool ui_svc_settings_new(void);
-// A setting's start-up default (ui_svc_setting_set): in force at once, stored only with the next save something else
-// causes (settings_end_default). False where the setting can't take the value
+#if CONFIG_UI_THEME_PANELS
+// A theme's start-up default for a setting (UI_SET_LABEL_FIRST, the only one): in force at once, stored only with the
+// next save something else causes (settings_end_default). False for any other setting
 bool ui_svc_setting_default(uint8_t id, int32_t value);
+#endif
 // The RAM table behind the stub (defaults until set): for the settings no package stores
 int32_t ui_svc_ram_get(uint8_t id);
 bool ui_svc_ram_set(uint8_t id, int32_t value);

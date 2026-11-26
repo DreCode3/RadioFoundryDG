@@ -527,6 +527,12 @@ class PrototypeTest(unittest.TestCase):
                         "expect:hides=Colors")
         self.run_script("ok 8 1 expect:hides=Theme expect:focus=Colors", "220x176")
 
+    def test_new_radio_default_writes_nothing(self):
+        # A start that finds no settings of its own (a new radio, or a read of the newest record that failed) turns
+        # Talkgroup name first on as a default: in force (Amateur's talk line leads with the name), but no setting is
+        # written, so nothing is saved over a record that may still be there (radioCoreTest has the store's side)
+        self.run_script("expect:setwrites=0 " + AMATEUR + "expect:shows=USA_ reboot expect:setwrites=0")
+
     def test_talkgroup_order_key_and_setting_in_both_themes(self):
         # Talkgroup name first (the key and Settings > Display) works in every theme. A new radio that starts in the
         # panels theme starts with it on: Amateur Home's talk line reads "USA · TG 3100", then "TG 3100 · USA". One

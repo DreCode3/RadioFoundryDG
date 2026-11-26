@@ -450,13 +450,18 @@ bool ui_svc_settings_new(void)
 	return ss.load == SETTINGS_DEFAULTS || ss.load == SETTINGS_FOREIGN;
 }
 
+#if CONFIG_UI_THEME_PANELS
 bool ui_svc_setting_default(uint8_t id, int32_t value)
 {
-	if (!ui_svc_setting_set(id, value))
-		return false;
-	settings_end_default();
+	if (id != UI_SET_LABEL_FIRST)
+		return false;	// the one start-up default a theme sets (UI_THEME_OPT_NAME_FIRST)
+	settings_t *st = settings_begin();
+	st->updown_home = (uint8_t)(value != 0 ? st->updown_home | SETTINGS_HOME_LABEL_FIRST :
+				    st->updown_home & ~SETTINGS_HOME_LABEL_FIRST);
+	settings_end_default();	// under the begin's lock: no other change in between
 	return true;
 }
+#endif
 
 bool ui_svc_setting_set(uint8_t id, int32_t value)
 {

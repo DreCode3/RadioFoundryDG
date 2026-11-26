@@ -521,10 +521,13 @@ bool settings_u32_is_saved(size_t offset, uint32_t value);
 // Change: begin returns the live copy (under a short lock), end releases it and notes the time if anything changed
 settings_t *settings_begin(void);
 void settings_end(uint32_t now_ms);
-// After settings_end: the change was a default, not a choice (one that depends on the display, set at start-up). It
-// stays in force but asks for no save: it is stored with the next save something else causes, so a start that found no
-// record it could read never writes one over the record that may still be there
+#if CONFIG_UI_THEME_PANELS
+// In place of settings_end: the change was a default, not a choice (one that depends on the display: a theme's,
+// set at start-up, ui_svc_setting_default). It stays in force but asks for no save: it is stored with the next save
+// something else causes, so a start that found no record it could read never writes one over the record that may
+// still be there. Only the bits changed since settings_begin count as stored
 void settings_end_default(void);
+#endif
 
 // Save once the changes have rested SETTINGS_SAVE_DELAY_MS (call it every 100 ms or so)
 void settings_poll(uint32_t now_ms);

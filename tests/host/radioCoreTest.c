@@ -6546,42 +6546,6 @@ static const hal_flash_map_t reset_map = {
 };
 
 #if CONFIG_UI_THEME_PANELS
-static void test_display_profile_settings(void)
-{
-	sim_flash_create(0x40000u, &reset_map);
-	CHECK(storage_init());
-	CHECK(settings_init() == SETTINGS_DEFAULTS);
-	// A new radio: the UI may set what depends on the display (Talkgroup name first); a stored record is not new
-	CHECK(ui_svc_settings_new() && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 0);
-	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 0 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
-	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 0);
-	// The theme: 0 (the build's default) on a new radio, any number a byte holds, kept apart from gui_flags
-	CHECK(ui_svc_setting_get(UI_SET_GUI_THEME) == 0);
-	CHECK(!ui_svc_setting_set(UI_SET_GUI_THEME, -1) && !ui_svc_setting_set(UI_SET_GUI_THEME, 256));
-	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 255) && ui_svc_setting_get(UI_SET_GUI_THEME) == 255);
-	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 1));
-	CHECK(ui_svc_setting_set(UI_SET_THEME, 2));
-	CHECK(ui_svc_setting_set(UI_SET_GUI_PROFILE, 1));
-	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 1));
-	CHECK(ui_svc_setting_set(UI_SET_GPS_CLOCK, 1));
-	memset(ram, 0, sizeof ram);		// reboot clears the service's RAM-only settings
-	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED && !ui_svc_settings_new());
-	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 1 &&
-	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2);
-	CHECK(ui_svc_setting_get(UI_SET_GUI_THEME) == 1);
-	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 0) && ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1);
-	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 0));
-	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED);
-	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
-	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2 &&
-	      ui_svc_setting_get(UI_SET_GUI_THEME) == 0);
-	sim_flash.map = NULL;
-	storage_init();
-	settings_init();
-	sim_flash_free();
-}
-#endif
-
 // Talkgroup name first's start-up default (ui_svc_setting_default, as ui_app_init sets it on a new radio): in force at
 // once, never a save of its own, so a start that couldn't read the record writes nothing over it; stored with the next
 // save, and with the save a claim of another firmware's area makes. A stored record keeps its bit on an upgrade
@@ -6600,6 +6564,21 @@ static void test_setting_default(void)
 	settings_end(now);
 	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED && !ui_svc_settings_new());
 	CHECK(ui_svc_setting_get(UI_SET_LABEL_FIRST) == 1);
+	CHECK(!ui_svc_setting_default(UI_SET_SQUELCH, 2));	// the one default there is
+
+	// Only the bits the default changed count as stored: a change waiting in the same byte is still saved
+	sim_flash_free();
+	sim_flash_create(0x40000u, &reset_map);
+	CHECK(storage_init() && settings_init() == SETTINGS_DEFAULTS);
+	settings_begin()->updown_home ^= 1u;	// Up/Down on Home, the same byte as the label bit
+	settings_end(now);
+	CHECK(ui_svc_setting_default(UI_SET_LABEL_FIRST, 1));
+	settings_get_stats(&st);
+	CHECK(st.dirty);
+	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 1);
+	settings_t up;
+	settings_read(&up);
+	CHECK((up.updown_home & 1u) != 0);
 
 	// A stored 0 (number first) and a start that can't read the record: defaults, new, but nothing is written
 	CHECK(ui_svc_setting_set(UI_SET_LABEL_FIRST, 0) && settings_flush());
@@ -6653,6 +6632,45 @@ static void test_setting_default(void)
 	CHECK(storage_init() && settings_init() == SETTINGS_LOADED && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 1);
 	sim_flash_free();
 }
+
+#endif
+
+#if CONFIG_UI_THEME_PANELS
+static void test_display_profile_settings(void)
+{
+	sim_flash_create(0x40000u, &reset_map);
+	CHECK(storage_init());
+	CHECK(settings_init() == SETTINGS_DEFAULTS);
+	// A new radio: the UI may set what depends on the display (Talkgroup name first); a stored record is not new
+	CHECK(ui_svc_settings_new() && ui_svc_setting_get(UI_SET_LABEL_FIRST) == 0);
+	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 0 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
+	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 0);
+	// The theme: 0 (the build's default) on a new radio, any number a byte holds, kept apart from gui_flags
+	CHECK(ui_svc_setting_get(UI_SET_GUI_THEME) == 0);
+	CHECK(!ui_svc_setting_set(UI_SET_GUI_THEME, -1) && !ui_svc_setting_set(UI_SET_GUI_THEME, 256));
+	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 255) && ui_svc_setting_get(UI_SET_GUI_THEME) == 255);
+	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 1));
+	CHECK(ui_svc_setting_set(UI_SET_THEME, 2));
+	CHECK(ui_svc_setting_set(UI_SET_GUI_PROFILE, 1));
+	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 1));
+	CHECK(ui_svc_setting_set(UI_SET_GPS_CLOCK, 1));
+	memset(ram, 0, sizeof ram);		// reboot clears the service's RAM-only settings
+	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED && !ui_svc_settings_new());
+	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 1 &&
+	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2);
+	CHECK(ui_svc_setting_get(UI_SET_GUI_THEME) == 1);
+	CHECK(ui_svc_setting_set(UI_SET_GUI_THEME, 0) && ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1);
+	CHECK(ui_svc_setting_set(UI_SET_GUI_NIGHT, 0));
+	CHECK(settings_flush() && settings_init() == SETTINGS_LOADED);
+	CHECK(ui_svc_setting_get(UI_SET_GUI_PROFILE) == 1 && ui_svc_setting_get(UI_SET_GUI_NIGHT) == 0 &&
+	      ui_svc_setting_get(UI_SET_GPS_CLOCK) == 1 && ui_svc_setting_get(UI_SET_THEME) == 2 &&
+	      ui_svc_setting_get(UI_SET_GUI_THEME) == 0);
+	sim_flash.map = NULL;
+	storage_init();
+	settings_init();
+	sim_flash_free();
+}
+#endif
 
 static void test_factory_reset(void)
 {
@@ -12314,8 +12332,8 @@ int main(void)
 #endif
 	test_dmr_data_glue();	// (last: the data service's state carries over)
 	test_factory_reset();
-	test_setting_default();
 #if CONFIG_UI_THEME_PANELS
+	test_setting_default();
 	test_display_profile_settings();
 #endif
 #if CONFIG_RADIO_DETOUR

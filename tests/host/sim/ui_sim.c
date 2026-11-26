@@ -77,6 +77,7 @@
 //                          editor=<value> / framed=<value>: the value editor's markers beside it in the accent, and
 //                          the row framed in it (the reference theme); nodigit=<text>: no key digit on its row
 //                          resetnamefirst=<0|1|-1>: Talkgroup name first as the last factory reset asked, -1 none
+//                          setwrites=<n>: settings written since the last start (a start's defaults write none)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -834,8 +835,25 @@ int32_t ui_svc_setting_get(uint8_t id)
 	return id >= UI_SET_RAM_COUNT && id < UI_SET_COUNT ? sim_late[id - UI_SET_RAM_COUNT] : ui_svc_ram_get(id);
 }
 
+// Setting writes since the last start (expect:setwrites): a start's defaults ask for none (ui_svc_setting_default)
+static unsigned sim_setting_writes;
+
+#if CONFIG_UI_THEME_PANELS
+// As ui_svc_storage.c's: in force at once, not a write (the store keeps it in RAM until something else saves)
+bool ui_svc_setting_default(uint8_t id, int32_t value)
+{
+	if (id != UI_SET_LABEL_FIRST)
+		return false;
+	unsigned writes = sim_setting_writes;
+	bool ok = ui_svc_setting_set(id, value);
+	sim_setting_writes = writes;
+	return ok;
+}
+#endif
+
 bool ui_svc_setting_set(uint8_t id, int32_t value)
 {
+	sim_setting_writes++;
 #if CONFIG_KEY_ASSIGN
 	if (id >= UI_SET_KEY_FIRST && id <= UI_SET_KEY_LAST) {
 		if (!ui_svc_key_offered(id, value))
@@ -2970,6 +2988,7 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ptt_blocked = false;
 	sim_settings_new = true;
 	sim_reset_name_first = -1;
+	sim_setting_writes = 0;
 	ui_app_init();
 	sim_settings_new = false;
 	presses = 0;
@@ -3186,6 +3205,7 @@ static bool check(const char *kv, char *err, size_t len)
 		}
 	}
 	else if (strcmp(key, "resetnamefirst") == 0) snprintf(got, sizeof got, "%d", sim_reset_name_first);	// -1: no reset
+	else if (strcmp(key, "setwrites") == 0) snprintf(got, sizeof got, "%u", sim_setting_writes);
 	else if (strcmp(key, "checked") == 0) {
 		// The pick list's check mark: one, on the row of the text that contains the value
 		int marks = 0, row = -1;
@@ -4058,6 +4078,7 @@ static bool run_token(char *t, char *err, size_t len)
 	if (strcmp(t, "reboot") == 0) {		// power off and on: the screens start over, the settings stay
 		to_selected();	// the saved position is the selected channel's (radio-features.md 2.1)
 		view.scan = 0;
+		sim_setting_writes = 0;
 		ui_app_init();
 		advance(200);
 		return true;

@@ -315,19 +315,21 @@ void settings_end(uint32_t now_ms)
 	storage_quick_unlock();
 }
 
+#if CONFIG_UI_THEME_PANELS
 void settings_end_default(void)
 {
-	storage_quick_lock();
+	// Still under the lock settings_begin took: before is this change's. Only the bits it changed go into saved, so
+	// a change waiting to be saved in the same byte stays unsaved
 	const uint8_t *l = (const uint8_t *)&live, *b = (const uint8_t *)&before;
 	uint8_t *sv = (uint8_t *)&saved;
 	for (size_t i = 0; i < sizeof(live); i++) {
-		if (l[i] != b[i]) {
-			sv[i] = l[i];	// as if stored: nothing to save for it
-		}
+		uint8_t changed = (uint8_t)(l[i] ^ b[i]);
+		sv[i] = (uint8_t)((sv[i] & ~changed) | (l[i] & changed));
 	}
 	dirty = memcmp(&live, &saved, sizeof(live)) != 0;
 	storage_quick_unlock();
 }
+#endif
 
 // Where the next record goes: the first free slot after the newest one in its sector, else slot 0 of the next sector
 // that holds no page of the set in force or of this save (erased first). False when every sector does
