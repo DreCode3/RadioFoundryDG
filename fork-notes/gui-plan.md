@@ -175,11 +175,14 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),
    with a test that reproduces it, since this step exercises zone and channel editing. (shared; updates task flows,
    press budgets, IA and translations).
-   - Implemented in `7f1299eb`..(this step's last commit), awaiting QA. Not built yet, by design or for lack of a
+   - Implemented in `7f1299eb`..`61c21695`, awaiting QA. Not built yet, by design or for lack of a
      decision: Contacts' Talkgroups / People / Listen lists / Manual dial split, Messages' Inbox / New / Quick text
      / Sent / Drafts pages, the call log's Missed / Incoming / Outgoing filters and Scan's scan lists (none exists as
      a function today); a Settings row to choose the theme (open, below). The VFO stays in Zones as well as in
-     Programming, and Volume (radios without a knob) is in Tones & alerts.
+     Programming, and Volume (radios without a knob) is in Tones & alerts. Two names differ from the table above for
+     want of room, for the user to confirm: "DMR monitor at start" (the whole name doesn't fit beside its value on a
+     160 px display, nor two forms in a row's 36-byte label) and Quick tile 8 "TG / Contact" (its 20- and 24-byte
+     label buffers); the talk target picker's title is "Talkgroup / Contact"
    - Open for the user: where the theme choice goes (a radio with the reference theme stored can't get back to
      panels). Candidates: Settings > Display's first row "Theme" when the build has two themes (the reference theme's
      palette row is also named Theme, so one of them needs another name), or the last row of Display; on a build
