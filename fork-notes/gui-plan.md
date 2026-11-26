@@ -189,23 +189,27 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    (`tests/host/sim/ui_sim.c` near the zone stub's `zone_size`; found by QA in step 1, pre-existing, test code only),
    with a test that reproduces it, since this step exercises zone and channel editing. (shared; updates task flows,
    press budgets, IA and translations).
-   - Implemented in `7f1299eb`..`61c21695`, awaiting QA. Not built yet, by design or for lack of a
-     decision: Contacts' Talkgroups / People / Listen lists / Manual dial split, Messages' Inbox / New / Quick text
-     / Sent / Drafts pages, the call log's Missed / Incoming / Outgoing filters and Scan's scan lists (none exists as
-     a function today); a Settings row to choose the theme (open, below). The VFO stays in Zones as well as in
-     Programming, and Volume (radios without a knob) is in Tones & alerts. Two names differ from the table above for
-     want of room, for the user to confirm: "DMR monitor at start" (the whole name doesn't fit beside its value on a
-     160 px display, nor two forms in a row's 36-byte label) and Quick tile 8 "TG / Contact" (its 20- and 24-byte
-     label buffers); the talk target picker's title is "Talkgroup / Contact"
-   - The user's answers to what it left open are in Naming (Nov 26): theme row, Colors, "Talk to", the two short
-     names, panels' talkgroup order. They go in with QA's findings.
-   - QA's findings on `46dad875..a8591c70` (QA's step 3 review, item 12) and the answers above went in from
-     `54699fd5` on, awaiting QA. Left for the port step: French labels that the 160 x 120 display cuts in the middle
-     ("Sécurité et…rrouillage", "Moniteu… départ", "Format…essage", "Tonalités de…gnalisation"), as other display
-     classes are judged after the freeze.
+   - QA-approved at `e94841a2` (`7f1299eb`..`e94841a2`; reviews: [step 3](reports/theme-step3-review.md),
+     [re-review](reports/theme-step3-rereview.md), [re-review 2](reports/theme-step3-rereview2.md)). Cost against
+     `46dad875`: GD-88 about +2.9 KB flash, +64 B RAM; UI stack unchanged (GD-88 1664 deepest, 204 free; DM-1701
+     1640, 88 free). The user's decisions are in Naming (Nov 26).
+   - Not built, since none exists as a function today: Contacts' Talkgroups / People / Listen lists / Manual dial
+     split, Messages' Inbox / New / Quick text / Sent / Drafts pages, the call log's Missed / Incoming / Outgoing
+     filters, Scan's scan lists. The VFO stays in Zones as well as in Programming; Volume (radios without a knob) is in
+     Tones & alerts.
+   - Left for the port step: French labels the 160 x 120 display cuts in the middle ("Sécurité et…rrouillage",
+     "Moniteu… départ", "Format…essage", "Tonalités de…gnalisation"); the Chinese user manual pages under
+     `docs/i18n/zh/user/` still describe the old menus.
    - For the layout step: the panels grid has no room for Zones' value (the zone's name) beside the label, so it is
      left out there; Messages and Scan show a short form.
 4. Layout fixes in the second theme, to the Layout section above.
+   - Starts with what step 3's last re-review logged (not blocking): a radio installed over another firmware's
+     settings area (`SETTINGS_FOREIGN`, claimed later) never gets the name-first default; on a panels radio the boot now
+     saves defaults when the load reports `SETTINGS_DEFAULTS`, which a one-off failed read of the newest slot also
+     reports, so a real record could be superseded (keep the bit in RAM until something else saves, or set it only
+     when no slot holds a record); and a test that an `UPGRADED` load keeps a stored 0 (number first).
+   - Also for this step: the panels value editor's bar shows "Back cancel" (two labels only); the 3x3 Menu grid; room
+     for Zones' value in the grid; "Security & keypad lock" shortened in the Settings grid and drawn smaller as a title.
    - A first attempt is on the branch (`596fdd3e`..`55b2bac8`, not QA-approved). Keep: `compare.py`/`cc.sh
      --except`, the step 2 carry-overs (`uiThemeTestPanels` structural checks, `dual_style` restored, the
      `UI_THEME_*` warning), 5 rows of one height, the accent bar, the n/N badge, the channel name as Home's main line.
