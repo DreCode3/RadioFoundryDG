@@ -161,6 +161,11 @@ static const flow_t flows[] = {
 	{ "Find: a PC and network setting", "4 6 8 7 row:Hotspot_allowed ok", "back",
 	  "screen=connections focus=PC_and_network", 1, false },
 	{ "Find: an alert tone", "6 3 7 7 row:Message_tone ok", "back", "screen=group focus=Alert_tones", 1, false },
+	// "GPS": the settings to change before Radio info's GPS value, in Find's three settings rows
+	{ "Find: GPS finds Answer GPS requests", "", "4 7 7 row:Answer_GPS_requests ok",
+	  "screen=group focus=Answer_GPS_requests", 9, false },
+	{ "Find: Back from Location settings", "4 7 7 row:Answer_GPS_requests ok",
+	  "back expect:screen=location expect:focus=Location_settings back", "screen=hub focus=Location", 2, false },
 	// What Find found before the menu tree moved it (46dad875) it still finds: the places by name or synonym, the
 	// settings rows wherever they went
 #if CONFIG_DMR && (CONFIG_DMR_ARS || CONFIG_DMR_IP_GATEWAY)	// ui_nav.h UI_DATA_SERVICES
@@ -172,7 +177,7 @@ static const flow_t flows[] = {
 	{ "Find: APRS", "", "2 7 7 7 ok", "screen=aprs", 5, false },
 	{ "Find: VFO", "", "8 3 6 ok", "screen=zones", 4, false },
 	{ "Find: About", "", "2 2 6 8 8 ok", "screen=group focus=About", 6, false },
-	{ "Find: Codeplug", "", "2 6 3 3 7 5 8 ok", "screen=group focus=Codeplug", 8, false },
+	{ "Find: Codeplug", "", "2 6 3 3 7 5 8 row:Codeplug ok", "screen=group focus=Codeplug", 9, false },
 	{ "Find: Diagnostics", "", "3 4 2 4 ok", "screen=group focus=Diagnostics", 5, false },
 	{ "Find: the call log as recent", "", "7 3 2 3 6 8 ok", "screen=recent", 7, false },
 	{ "Find: Connections as tools", "", "8 6 6 5 7 ok", "screen=connections", 6, false },

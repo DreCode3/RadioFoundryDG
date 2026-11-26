@@ -116,7 +116,8 @@ this order:
 2. The digits as a frequency in one of the radio's bands, read as in the VFO: "438250" lists "Tune VFO to 438.250".
    **OK** opens the VFO on it. The VFO's mode, power and tones stay as they were.
 3. Channels in the zone, contacts and talkgroups, zones, places (Menu's entries, such as Contacts and Location) and
-   settings whose names match the keys as letters. Settings, **0** opens Find too.
+   settings whose names match the keys as letters (up to three settings, the ones you can change before Radio
+   info's values). Settings, **0** opens Find too.
 4. Contacts whose DMR ID starts with the number, from three digits on.
 5. The number itself, as a talkgroup ("Talk to TG 3100", "not saved") and as a private call ("Private call 3100").
 6. "Create contact 3100" when no contact has that ID. **OK** opens New Contact ([Contacts](09-dmr.md#contacts)).

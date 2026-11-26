@@ -75,6 +75,7 @@ static uint16_t priv_index;	// the private contact whose ID is the digits (its n
 // Settings and places reachable by name (ui_menus.c)
 uint8_t ui_set_group_count(void);
 tr_id_t ui_set_group_name(uint8_t g);
+uint8_t ui_set_group_info(void);	// Radio info's group: read-only values, not settings
 uint8_t ui_set_item_count(uint8_t g);
 // The name in the language in use, or in English
 const char *ui_set_item_name(uint8_t g, uint8_t i, bool english, const char **synonyms);
@@ -243,7 +244,10 @@ void ui_find_run(void)
 			add(FR_PLACE, (uint32_t)i << 8 | places[i].scr);
 	}
 	found = 0;
-	for (uint8_t g = 0; g < ui_set_group_count() && len >= 2; g++) {
+	uint8_t groups = ui_set_group_count(), info = ui_set_group_info();
+	for (uint8_t k = 0; k < groups && len >= 2; k++) {
+		// Radio info's values last: a setting to change comes first in the three ("GPS" finds Answer GPS requests)
+		uint8_t g = k < info ? k : k + 1u < groups ? (uint8_t)(k + 1u) : info;
 		for (uint8_t i = 0; i < ui_set_item_count(g) && found < 3; i++) {
 			const char *syn = NULL;
 			if (ui_t9_match(ui_set_item_name(g, i, false, &syn), query) ||

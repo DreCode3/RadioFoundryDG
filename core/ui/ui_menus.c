@@ -7377,6 +7377,7 @@ static const set_group_t groups[] = {
 
 uint8_t ui_set_group_count(void) { return GROUPS; }
 tr_id_t ui_set_group_name(uint8_t g) { return g < GROUPS ? groups[g].name : TR_NONE; }
+uint8_t ui_set_group_info(void) { return G_RADIO_INFO; }
 
 #if RFOUNDRY_HWOPTS
 #define HWOPT_ROWS_MAX		15
@@ -8455,6 +8456,7 @@ static const ui_scr_def_t confirm_screen = {
 #else
 uint8_t ui_set_group_count(void) { return 0; }
 tr_id_t ui_set_group_name(uint8_t g) { (void)g; return TR_NONE; }
+uint8_t ui_set_group_info(void) { return 0xFFu; }
 uint8_t ui_set_item_count(uint8_t g) { (void)g; return 0; }
 const char *ui_set_item_name(uint8_t g, uint8_t i, bool english, const char **synonyms)
 {
