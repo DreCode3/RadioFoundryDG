@@ -1954,13 +1954,8 @@ static void list_draw(const ui_scr_def_t *d)
 	l.hint = (d->flags & SF_HINT_FN) ? d->hint_fn() : tr(d->hint);
 	l.body = d->body != NULL ? d->body() : NULL;
 #if CONFIG_UI_THEME_PANELS
-	l.roomy = ui_st.gui_profiles;
-	l.menu_icons = l.roomy && (f->scr == SCR_HUB || f->scr == SCR_SETTINGS);
-	l.two_columns = l.menu_icons;
-	l.main_menu = l.roomy && f->scr == SCR_HUB;
+	l.kind = f->scr == SCR_HUB ? UI_LIST_HUB : f->scr == SCR_SETTINGS ? UI_LIST_MENU : UI_LIST_PLAIN;
 	l.numbered = (d->flags & SF_NUMBERED) && !(d->flags & SF_FILTER);
-	if (l.main_menu)
-		l.prefix = TR(FIND_CHIP_MENU, "Menu");
 #endif
 	if ((d->flags & SF_FILTER) && filter_keys[0]) {
 		sbuf_t b;

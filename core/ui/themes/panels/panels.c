@@ -21,7 +21,8 @@
 #define PROFILE_GEAR_FILL RGB565(148, 148, 148)
 
 static color_t profile_bar_fg;	// the bottom row's text
-color_t profile_row_bg, profile_row_focus, profile_home_gutter;
+color_t profile_home_gutter;
+static color_t profile_row_bg, profile_row_focus;
 
 // The profile look's Day and Night palettes, and its colors outside the shared tokens (index: night)
 typedef struct {
@@ -1112,27 +1113,28 @@ bool profile_operational_home(const radio_view_t *v)
 }
 
 // The palette entries the profile look's rows and icons need, taken before anything else is drawn
-void profile_list_colors(const ui_list_t *l)
+static void profile_list_colors(const ui_list_t *l)
 {
 	const color_t row_colors[] = { profile_row_bg, profile_row_focus, ui_col.fg };
 	const color_t icon_colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx,
 		PROFILE_GEAR_FILL, PROFILE_GEAR_OUTLINE };
 	gfx_reserve_colors(row_colors, sizeof row_colors / sizeof row_colors[0]);
-	if (l->menu_icons)
+	if (l->kind != UI_LIST_PLAIN)
 		gfx_reserve_colors(icon_colors, sizeof icon_colors / sizeof icon_colors[0]);
 }
 
 // The profile look's list heading. noinline, as list_header in ui_screens.c: its buffers stay out of the frame of
-// reference_list_head, which also leads to the reference strip
-int __attribute__((noinline)) profile_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l,
+// panels_list_head, which also leads to the theme's top op
+static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l,
 	bool draw)
 {
 	char title[64];
 	sbuf_t b;
 	sb_init(&b, title, sizeof title);
-	if (l->prefix)
-		sb_str(&b, l->prefix);
-	if (l->prefix && l->name)
+	const char *prefix = l->kind == UI_LIST_HUB ? TR(FIND_CHIP_MENU, "Menu") : l->prefix;	// the main menu: Menu
+	if (prefix)
+		sb_str(&b, prefix);
+	if (prefix && l->name)
 		sb_chr(&b, ' ');
 	if (l->name)
 		sb_str(&b, l->name);
@@ -1149,7 +1151,7 @@ int __attribute__((noinline)) profile_list_head(const radio_view_t *v, const ui_
 	return y + f->h + 5;
 }
 
-void draw_menu_icon(uint8_t icon, int x, int y)
+static void draw_menu_icon(uint8_t icon, int x, int y)
 {
 	if (icon == UI_MENU_ICON_SETTINGS) {
 		static const uint32_t outline[] = {
@@ -1211,7 +1213,7 @@ void draw_menu_icon(uint8_t icon, int x, int y)
 	PROFILE_MARK(x, y, marks[icon].rows, 13, colors[marks[icon].tint]);
 }
 
-void profile_row(int x, int y, int w, int h, color_t ink)
+static void profile_row(int x, int y, int w, int h, color_t ink)
 {
 	// Three stepped bands round off the corners cleanly at native resolution.
 	gfx_fill(x + 3, y, w - 6, h, ink);
@@ -1220,6 +1222,193 @@ void profile_row(int x, int y, int w, int h, color_t ink)
 }
 
 // --- The theme ---
+
+// A list's palette entries, then its heading: a larger left-aligned title (the main menu's is Menu), or the strip
+// alone for a list without a title
+static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
+{
+	if (draw)
+		profile_list_colors(l);
+	if (l->prefix || l->name || l->kind == UI_LIST_HUB)
+		return profile_list_head(v, s, l, draw);
+	return panels_top(v, draw ? v->state : RS_IDLE, s, NULL, NULL, draw);
+}
+
+// Taller rows inset from the edges; the first level of a menu as a grid of two columns and three rows, a page at a time
+static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
+{
+	bool grid = l->kind != UI_LIST_PLAIN;
+	g->font = ui_layout.small;
+	g->x = 7;
+	g->y = (int16_t)y;
+	g->pitch = (int16_t)(ui_layout.row_h + 10);
+	int rows = (y_end - y) / g->pitch;
+	if (rows < 1)
+		rows = 1;
+	g->cols = 1;
+	g->col_w[1] = 0;
+	g->col_gap = 0;
+	g->paged = false;
+	if (grid) {
+		rows = 3;
+		g->pitch = (int16_t)((y_end - y) / rows);
+		if (l->kind == UI_LIST_HUB)
+			g->font = &font_aa_12x24;
+		g->cols = 2;
+		g->col_gap = 8;
+		g->paged = true;
+	}
+	g->rows = (uint8_t)rows;
+	int inner_w = gfx_width() - 2 * g->x;
+	g->col_w[0] = (int16_t)inner_w;
+	if (grid) {
+		int visible = 2 * rows;
+		bool paginated = l->count > visible;
+		int column_w = (inner_w - g->col_gap) / 2;
+		if (l->kind != UI_LIST_HUB) {
+			// Give a column extra width for longer translations before shortening a label. Measured over every page,
+			// so the columns keep one split as the pages turn
+			int minimum[2] = { 0, 0 };
+			for (uint16_t i = 0; i < l->count; i++) {
+				ui_item_t it = { 0 };
+				l->item(i, &it);
+				int need = (paginated ? 8 : 10) + gfx_text_width(g->font, it.label);
+				if (it.icon != UI_MENU_ICON_NONE)
+					need += 16 + (it.num ? 0 : g->font->w + 3);
+				if (it.num)
+					need += g->font->w + 3;
+				int column = i % visible >= rows;
+				if (need > minimum[column])
+					minimum[column] = need;
+			}
+			int max_left = inner_w - g->col_gap - minimum[1];
+			if (minimum[0] <= max_left) {
+				if (column_w < minimum[0])
+					column_w = minimum[0];
+				if (column_w > max_left)
+					column_w = max_left;
+			}
+		}
+		g->col_w[0] = (int16_t)column_w;
+		g->col_w[1] = (int16_t)(inner_w - g->col_gap - column_w);
+	}
+}
+
+// Each row a rounded panel with an accent bar on the focus, an icon on the first level of a menu, and in the grid (the
+// geometry's two columns) the digit centered and a long label on two lines. The main menu's tiles show no values
+static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
+{
+	const ui_layout_t *L = &ui_layout;
+	const font_t *f = g->font;
+	int pitch = c->h;
+	bool two_columns = g->cols > 1;
+	bool paginated = two_columns && l->count > g->rows * g->cols;
+	bool main_menu = l->kind == UI_LIST_HUB;
+	const int gap = 4;
+	color_t disabled = ui_col.dim;
+	uint8_t flags = main_menu ? it->flags & ~UI_ITEM_WARN : it->flags;
+	const char *value = main_menu ? "" : it->value;
+	bool focus = c->focus;
+	color_t fg = (flags & UI_ITEM_DIM) ? disabled : (flags & UI_ITEM_WARN) ? ui_col.warn : ui_col.fg;
+	if (flags & UI_ITEM_INFO)
+		fg = ui_col.dim;
+	color_t vfg = (flags & UI_ITEM_DIM) ? disabled : ui_col.dim;
+	if (flags & UI_ITEM_TEMP)
+		vfg = ui_col.warn;
+	if (focus) {
+		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
+		gfx_fill(c->x + 2, c->y + gap + 5, 2, pitch - 2 * gap - 10, ui_col.fg);
+		fg = (flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
+		vfg = fg;
+	} else if (!(flags & UI_ITEM_INFO)) {
+		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, profile_row_bg);
+	}
+	int x = c->x + 5;
+	if (l->kind != UI_LIST_PLAIN && it->icon != UI_MENU_ICON_NONE) {
+		draw_menu_icon(it->icon, x, c->y + (pitch - 13) / 2);
+		x += two_columns ? 16 : 19;
+		if (!it->num)
+			x += two_columns ? f->w + 3 : 2 * f->w;
+	}
+	int right = c->x + c->w - (paginated ? 3 : 5);
+	const font_t *row_font = f;
+	int digit_gap = main_menu ? 5 : 3;
+	if (main_menu && gfx_text_width(f, it->label) + (it->num ? f->w + digit_gap : 0) > right - x) {
+		row_font = L->small;
+		if (gfx_text_width(row_font, it->label) + (it->num ? row_font->w + digit_gap : 0) > right - x &&
+		    gfx_text_width(L->tiny, it->label) + (it->num ? L->tiny->w + digit_gap : 0) <= right - x)
+			row_font = L->tiny;
+	}
+	int pad = (pitch - row_font->h) / 2;
+	int label_room = right - x - (it->num ? row_font->w + digit_gap : 0);
+	char val[48];
+	const char *rest = NULL;
+	if (paginated && !value[0] && pitch >= 2 * row_font->h && gfx_text_width(row_font, it->label) > label_room)
+		rest = ui_wrap_line(row_font, it->label, label_room, val, sizeof val);
+	int ty = c->y + (rest && *rest ? (pitch - 2 * row_font->h) / 2 : pad);
+	if (it->num) {
+		char n[3] = { it->num, ' ', 0 };
+		color_t num_ink = focus ? fg : ui_col.dim;
+		if (two_columns) {
+			n[1] = '\0';
+			int digit_w = row_font->w + 1;
+			gfx_text_title(row_font, x + digit_w / 2, c->y + pad + row_font->ascent, digit_w, n, num_ink, 4);
+			x += row_font->w + digit_gap;
+		} else {
+			x = gfx_text(row_font, x, ty, n, num_ink);
+		}
+	}
+	if (rest && *rest) {
+		ui_row_text(row_font, x, ty, right, val, "", fg, vfg, false);
+		ui_row_text(row_font, x, ty + row_font->h, right, rest, "", fg, vfg, false);
+		return;
+	}
+	if (flags & UI_ITEM_EDIT) {
+		sbuf_t b;
+		sb_init(&b, val, sizeof val);
+		sb_chr(&b, '<');
+		sb_str(&b, value);
+		sb_chr(&b, '>');
+	} else {
+		str_copy(val, sizeof val, value);
+	}
+	ui_row_text(row_font, x, ty, right, it->label, val, fg, vfg, (flags & UI_ITEM_PREVIEW) != 0);
+}
+
+// The grid's page in the title, before the cells: its shades take their palette entries ahead of the cells' on a
+// 16-color display (gfx.c). A single column: the reference theme's marks over the rows, after them
+static void panels_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
+{
+	int w = gfx_width();
+	int visible = g->rows * g->cols;
+	if (g->cols > 1) {
+		if (over || count <= visible)
+			return;
+		char page[16];
+		sbuf_t b;
+		sb_init(&b, page, sizeof page);
+		sb_u32(&b, top / visible + 1, 1);
+		sb_chr(&b, '/');
+		sb_u32(&b, (count + visible - 1) / visible, 1);
+		const font_t *badge = &font_aa_8x16;
+		int bx = w - g->x - gfx_text_width(badge, page), by = g->y - badge->h - 4;
+		gfx_text(badge, bx, by, page, ui_col.dim);
+		for (int dx = -2; dx <= 2; dx++) {
+			int slope = dx < 0 ? -dx : dx;
+			if (top > 0)
+				gfx_pixel(bx - 7 + dx, by + 4 + slope, ui_col.fg);
+			if (top + visible < count)
+				gfx_pixel(bx - 7 + dx, by + 12 - slope, ui_col.fg);
+		}
+		return;
+	}
+	if (!over)
+		return;
+	if (top > 0)
+		gfx_fill(w - 3, g->y, 3, 2, ui_col.dim);
+	if (top + visible < count)
+		gfx_fill(w - 3, g->y + g->rows * g->pitch - 2, 3, 2, ui_col.dim);
+}
 
 // The bottom row, a rounded pane above the screen's lower edge: key hints in the largest font that fits them (groups
 // separated by two spaces, with text alternates; a list's OK group shortened to OK), or a toast in the small font,
@@ -1353,6 +1542,10 @@ static const ui_theme_ops_t panels_ops = {
 	.top = panels_top,
 	.bottom = panels_bottom,
 	.banner = panels_banner,
+	.list_head = panels_list_head,
+	.list_geom = panels_list_geom,
+	.cell = panels_cell,
+	.scroll = panels_scroll,
 };
 
 const ui_theme_t ui_theme_panels = {

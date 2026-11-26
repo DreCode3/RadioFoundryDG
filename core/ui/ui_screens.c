@@ -3365,16 +3365,9 @@ void ui_draw_banner(const ui_state_t *s)
 // --- List screens (Hub, Contacts, Find, Settings, ...): title, optional header and body, rows, hint ---
 
 // The reference theme's list head: the strip and the title, as on every screen, drawn or measured by the theme's top
-// op. The profile look's branches in this op and the three below (until it is a theme of its own) all take the look
-// from l->roomy
+// op
 static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
-#if CONFIG_UI_THEME_PANELS
-	if (draw && l->roomy)
-		profile_list_colors(l);
-	if (l->roomy && (l->prefix || l->name))
-		return profile_list_head(v, s, l, draw);
-#endif
 	return theme_top(v, draw ? v->state : RS_IDLE, s, l->prefix, l->name, draw);
 }
 
@@ -3602,8 +3595,8 @@ UI_THEME_SHARED void ui_fit_end(const font_t *f, const char *s, int max_w, char 
 // whole whenever it can be: the value gets the room that is left, as the longest of its alternates that fits (an
 // alternate may be empty: the value is left out). Only a label too long even next to the shortest value is shortened:
 // at the end for a preview, else from the middle (gfx_text_fit). Margins shrink to nothing before anything is cut
-static void row_text(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
-	color_t vfg, bool preview)
+UI_THEME_SHARED void ui_row_text(const font_t *f, int x, int y, int w, const char *label, const char *value,
+	color_t fg, color_t vfg, bool preview)
 {
 	char lab[48], val[48];
 	bool more = true;
@@ -3657,20 +3650,13 @@ bool ui_list_body_fits(const ui_state_t *s, const ui_list_t *l)
 	return true;
 }
 
-// The reference theme's rows: one column of them from edge to edge, as many as fit. The profile look's (l->roomy):
-// taller rows inset from the edges, and its top-level menus as a grid of two columns and three rows, a page at a time
+// The reference theme's rows: one column of them from edge to edge, as many as fit
 static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 {
 	g->font = ui_layout.small;
 	g->x = 0;
 	g->y = (int16_t)y;
 	g->pitch = (int16_t)ui_layout.row_h;
-#if CONFIG_UI_THEME_PANELS
-	if (l->roomy) {
-		g->x = 7;
-		g->pitch += 10;
-	}
-#endif
 	int rows = (y_end - y) / g->pitch;
 	if (rows < 1)
 		rows = 1;
@@ -3678,80 +3664,17 @@ static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_ge
 	g->col_w[1] = 0;
 	g->col_gap = 0;
 	g->paged = false;
-#if CONFIG_UI_THEME_PANELS
-	if (l->two_columns) {
-		rows = 3;
-		g->pitch = (int16_t)((y_end - y) / rows);
-		if (l->main_menu)
-			g->font = &font_aa_12x24;
-		g->cols = 2;
-		g->col_gap = 8;
-		g->paged = true;
-	}
-#endif
 	g->rows = (uint8_t)rows;
-	int inner_w = gfx_width() - 2 * g->x;
-	g->col_w[0] = (int16_t)inner_w;
-#if CONFIG_UI_THEME_PANELS
-	if (l->two_columns) {
-		int visible = 2 * rows;
-		bool paginated = l->count > visible;
-		int column_w = (inner_w - g->col_gap) / 2;
-		if (!l->main_menu) {
-			// Give a column extra width for longer translations before shortening a label. Measured over every page,
-			// so the columns keep one split as the pages turn
-			int minimum[2] = { 0, 0 };
-			for (uint16_t i = 0; i < l->count; i++) {
-				ui_item_t it = { 0 };
-				l->item(i, &it);
-				int need = (paginated ? 8 : 10) + gfx_text_width(g->font, it.label);
-				if (l->menu_icons && it.icon != UI_MENU_ICON_NONE)
-					need += 16 + (it.num ? 0 : g->font->w + 3);
-				if (it.num)
-					need += g->font->w + 3;
-				int column = i % visible >= rows;
-				if (need > minimum[column])
-					minimum[column] = need;
-			}
-			int max_left = inner_w - g->col_gap - minimum[1];
-			if (minimum[0] <= max_left) {
-				if (column_w < minimum[0])
-					column_w = minimum[0];
-				if (column_w > max_left)
-					column_w = max_left;
-			}
-		}
-		g->col_w[0] = (int16_t)column_w;
-		g->col_w[1] = (int16_t)(inner_w - g->col_gap - column_w);
-	}
-#endif
+	g->col_w[0] = (int16_t)gfx_width();
 }
 
-// The reference theme's row: the focus as a filled bar, the key's digit, the label and its value. The profile look's
-// (l->roomy): each row a rounded panel with an accent bar on the focus, an icon on its top-level menus, and in the grid
-// (the geometry's two columns) the digit centered and a long label on two lines
+// The reference theme's row: the focus as a filled bar, the key's digit, the label and its value
 static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
 {
-	const ui_layout_t *L = &ui_layout;
+	(void)l;
 	const font_t *f = g->font;
 	int pitch = c->h;
-	bool paginated = false;
-	bool main_menu = false;
-	bool panel = false;	// the profile look: the row is a panel
-	int gap = 0;
 	color_t disabled = ui_col.line;
-#if CONFIG_UI_THEME_PANELS
-	bool two_columns = g->cols > 1;
-	paginated = two_columns && l->count > g->rows * g->cols;
-	main_menu = l->main_menu;
-	panel = l->roomy;
-	if (panel) {
-		gap = 4;
-		disabled = ui_col.dim;
-	}
-#else
-	(void)l;
-#endif
 	bool focus = c->focus;
 	color_t fg = (it->flags & UI_ITEM_DIM) ? disabled : (it->flags & UI_ITEM_WARN) ? ui_col.warn : ui_col.fg;
 	if (gfx_bpp() == 1)
@@ -3763,66 +3686,21 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 		vfg = ui_col.warn;
 	if (focus) {
 		color_t bg = (it->flags & UI_ITEM_EDIT) ? ui_col.warn : ui_col.focus;
-#if CONFIG_UI_THEME_PANELS
-		if (panel) {
-			profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap,
-				    it->flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
-			gfx_fill(c->x + 2, c->y + gap + 5, 2, pitch - 2 * gap - 10, ui_col.fg);
-		} else
-#endif
-			gfx_fill(c->x, c->y + gap, c->w, pitch - 2 * gap, bg);
+		gfx_fill(c->x, c->y, c->w, pitch, bg);
 		fg = gfx_bpp() == 1 ? ui_col.bg : (it->flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
 		vfg = fg;
-#if CONFIG_UI_THEME_PANELS
-	} else if (panel && !(it->flags & UI_ITEM_INFO)) {
-		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, profile_row_bg);
-#endif
 	}
-	int x = panel ? c->x + 5 : 1;
-#if CONFIG_UI_THEME_PANELS
-	if (l->menu_icons && it->icon != UI_MENU_ICON_NONE) {
-		draw_menu_icon(it->icon, x, c->y + (pitch - 13) / 2);
-		x += two_columns ? 16 : 19;
-		if (!it->num)
-			x += two_columns ? f->w + 3 : 2 * f->w;
-	}
-#endif
-	int right = c->x + c->w - (paginated ? 3 : panel ? 5 : 0);
-	const font_t *row_font = f;
-	int digit_gap = main_menu ? 5 : 3;
-	if (main_menu && gfx_text_width(f, it->label) + (it->num ? f->w + digit_gap : 0) > right - x) {
-		row_font = L->small;
-		if (gfx_text_width(row_font, it->label) + (it->num ? row_font->w + digit_gap : 0) > right - x &&
-		    gfx_text_width(L->tiny, it->label) + (it->num ? L->tiny->w + digit_gap : 0) <= right - x)
-			row_font = L->tiny;
-	}
-	int pad = (pitch - row_font->h) / 2;
+	int x = 1;
+	int right = c->x + c->w;
+	int pad = (pitch - f->h) / 2;
 	if (gfx_bpp() == 1 && !focus)
-		x = gfx_text(row_font, 0, c->y + pad, " ", fg);
-	int label_room = right - x - (it->num ? row_font->w + digit_gap : 0);
+		x = gfx_text(f, 0, c->y + pad, " ", fg);
 	char val[48];
-	const char *rest = NULL;
-	if (paginated && !it->value[0] && pitch >= 2 * row_font->h &&
-	    gfx_text_width(row_font, it->label) > label_room)
-		rest = ui_wrap_line(row_font, it->label, label_room, val, sizeof val);
-	int ty = c->y + (rest && *rest ? (pitch - 2 * row_font->h) / 2 : pad);
+	int ty = c->y + pad;
 	if (it->num) {
 		char n[3] = { it->num, ' ', 0 };
 		color_t num_ink = focus || gfx_bpp() == 1 ? fg : ui_col.dim;
-#if CONFIG_UI_THEME_PANELS
-		if (two_columns) {
-			n[1] = '\0';
-			int digit_w = row_font->w + 1;
-			gfx_text_title(row_font, x + digit_w / 2, c->y + pad + row_font->ascent, digit_w, n, num_ink, 4);
-			x += row_font->w + digit_gap;
-		} else
-#endif
-			x = gfx_text(row_font, x, ty, n, num_ink);
-	}
-	if (rest && *rest) {
-		row_text(row_font, x, ty, right, val, "", fg, vfg, false);
-		row_text(row_font, x, ty + row_font->h, right, rest, "", fg, vfg, false);
-		return;
+		x = gfx_text(f, x, ty, n, num_ink);
 	}
 	if (it->flags & UI_ITEM_EDIT) {
 		sbuf_t b;
@@ -3833,50 +3711,22 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 	} else {
 		str_copy(val, sizeof val, it->value);
 	}
-	row_text(row_font, x, ty, right, it->label, val, fg, vfg,
-		 (it->flags & UI_ITEM_PREVIEW) != 0);
+	ui_row_text(f, x, ty, right, it->label, val, fg, vfg, (it->flags & UI_ITEM_PREVIEW) != 0);
 }
 
-// The reference theme's scroll marks, over the rows: more above / below. The profile look's grid (the geometry's two
-// columns) shows its page in the title instead
+// The reference theme's scroll marks, over the rows: more above / below
 static void reference_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
-	int w = gfx_width();
-	int visible = g->rows * g->cols;
-#if CONFIG_UI_THEME_PANELS
-	if (g->cols > 1) {
-		// The page in the title, before the cells: its shades take their palette entries ahead of the cells' (gfx.c)
-		if (over || count <= visible)
-			return;
-		char page[16];
-		sbuf_t b;
-		sb_init(&b, page, sizeof page);
-		sb_u32(&b, top / visible + 1, 1);
-		sb_chr(&b, '/');
-		sb_u32(&b, (count + visible - 1) / visible, 1);
-		const font_t *badge = &font_aa_8x16;
-		int bx = w - g->x - gfx_text_width(badge, page), by = g->y - badge->h - 4;
-		gfx_text(badge, bx, by, page, ui_col.dim);
-		for (int dx = -2; dx <= 2; dx++) {
-			int slope = dx < 0 ? -dx : dx;
-			if (top > 0)
-				gfx_pixel(bx - 7 + dx, by + 4 + slope, ui_col.fg);
-			if (top + visible < count)
-				gfx_pixel(bx - 7 + dx, by + 12 - slope, ui_col.fg);
-		}
-		return;
-	}
-#endif
 	if (!over)
 		return;
+	int w = gfx_width();
+	int visible = g->rows * g->cols;
 	if (top > 0)
 		gfx_fill(w - 3, g->y, 3, 2, ui_col.dim);
 	if (top + visible < count)
 		gfx_fill(w - 3, g->y + g->rows * g->pitch - 2, 3, 2, ui_col.dim);
 }
 
-// The theme's three ops for the cells of a list. Its geometry is brought into the bounds ui_theme.h gives: the frame
-// divides by the rows and by the cells on screen and reads a width for each column
 static void list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 {
 	const ui_theme_ops_t *o = ui_theme_cur()->ops;
@@ -3968,7 +3818,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	else if (s->hints && l->hint) {
 		uint8_t bar = 0;
 #if CONFIG_UI_THEME_PANELS
-		bar = (l->roomy ? UI_BAR_LIST : 0) | (l->numbered ? UI_BAR_NUMBERED : 0);
+		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0);
 #endif
 		draw_hint(l->hint, bar, NULL);
 	}

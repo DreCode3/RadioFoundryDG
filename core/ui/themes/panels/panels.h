@@ -15,7 +15,7 @@
 #define PROFILE_FOOTER_H 34
 
 // Its colors outside the shared tokens, set with the palette (its colors op)
-extern color_t profile_row_bg, profile_row_focus, profile_home_gutter;
+extern color_t profile_home_gutter;
 
 // The footer pane's top, and a rounded pane across the screen inside the gutter
 int profile_footer_top(void);
@@ -29,12 +29,5 @@ int draw_home_status(const radio_view_t *v, const ui_state_t *s);
 void profile_home_footer(const ui_state_t *s, const char *hint);
 void draw_profile_home(const radio_view_t *v, const ui_state_t *s);
 bool profile_operational_home(const radio_view_t *v);
-
-// Lists: the palette entries the rows and icons need, the heading, a top-level menu's icon and a row's panel
-void profile_list_colors(const ui_list_t *l);
-int __attribute__((noinline)) profile_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l,
-	bool draw);
-void draw_menu_icon(uint8_t icon, int x, int y);
-void profile_row(int x, int y, int w, int h, color_t ink);
 
 #endif

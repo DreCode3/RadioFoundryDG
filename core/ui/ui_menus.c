@@ -109,10 +109,6 @@ static void hub_item(uint16_t i, ui_item_t *it)
 		UI_MENU_ICON_ZONES, UI_MENU_ICON_CHANNELS, UI_MENU_ICON_TOOLS, UI_MENU_ICON_SETTINGS,
 	};
 	it->icon = icons[e];
-	if (ui_st.gui_profiles) {
-		it->value[0] = '\0';
-		return;
-	}
 #endif
 	sbuf_t b;
 	sb_init(&b, it->value, sizeof it->value);
@@ -956,9 +952,6 @@ static void msg_enter(void)
 	l.name = msg_title();
 	l.body = msg_body();
 	l.count = MV_COUNT;
-#if CONFIG_UI_THEME_PANELS
-	l.roomy = ui_st.gui_profiles;
-#endif
 	if (!ui_list_body_fits(&ui_st, &l))
 		ui_frame()->arg |= MSG_LONG_ARG;
 }

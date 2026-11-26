@@ -275,15 +275,16 @@ typedef struct {
 	const char *empty;		// shown when count is 0
 	const char *hint;
 #if CONFIG_UI_THEME_PANELS
-	// The profile look draws this list: a larger left-aligned heading and taller rows, each a panel. The one field the
-	// list drawing takes the look from (the screen sets it from ui_state_t.gui_profiles); the four below add to it
-	bool roomy;
-	bool menu_icons;		// first-level Menu and Settings only
-	bool two_columns;		// first-level Menu and Settings on a wide profile display
-	bool main_menu;			// larger three-row tiles
+	// What the list is (UI_LIST_*), for a theme that draws some kinds its own way; the reference theme draws them all
+	// alike
+	uint8_t kind;
 	bool numbered;			// numeric shortcuts select entries
 #endif
 } ui_list_t;
+#if CONFIG_UI_THEME_PANELS
+// ui_list_t.kind: a list of rows, the first level of a menu (Settings), the main menu (Menu)
+enum { UI_LIST_PLAIN, UI_LIST_MENU, UI_LIST_HUB };
+#endif
 
 void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l);
 // A page of text (About, a message) in the smallest font, word-wrapped, never shortened: lines from *first on (clamped

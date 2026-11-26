@@ -19,12 +19,12 @@
 // A theme's number, as the settings store it: fixed, whichever themes a build has. 0 is the build's default theme
 enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };
 
-// The bottom row's text (ops->bottom). The two list flags carry ui_list_t.roomy and .numbered, fields that exist only
-// with CONFIG_UI_THEME_PANELS, to the one piece of code that reads them, which is built only with it. So they follow
-// the switch too: without it nothing would set or test them
+// The bottom row's text (ops->bottom). The two list flags say what the row is under, for a theme that shows it; only
+// a theme built with CONFIG_UI_THEME_PANELS reads them, and ui_list_t.numbered exists only with it, so they follow the
+// switch: without it nothing would set or test them
 #define UI_BAR_TOAST	0x01u	// a toast, not key hints (the value of ui_draw_hint's toast)
 #if CONFIG_UI_THEME_PANELS
-#define UI_BAR_LIST	0x02u	// under a roomy list (ui_list_t.roomy)
+#define UI_BAR_LIST	0x02u	// under a list (ui_draw_list)
 #define UI_BAR_NUMBERED	0x04u	// ... whose rows the digit keys pick (ui_list_t.numbered)
 #endif
 
@@ -141,6 +141,9 @@ int ui_overlay_top(int y, int x0, int right_inset);
 const char *ui_key_names(const char *text, char *out, size_t cap, bool hint);
 void ui_hint_split(const char *text, char *left, size_t lcap, char *right, size_t rcap);
 void ui_secondary_hint_split(char *left, char *right, size_t cap, bool quick_only);
+// A row's label from x and its value right-aligned at w, the label kept whole where it can be
+void ui_row_text(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
+	color_t vfg, bool preview);
 // The banner, if one is up, its lower edge at bottom (ui_screens.c has the details)
 void ui_banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg);
 #else
