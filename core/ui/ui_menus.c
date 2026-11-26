@@ -2042,7 +2042,6 @@ static const char *offer_body(void)
 	return body;
 }
 
-// The longest title that fits: a whole zone or one channel
 // Titled as Messages' row that opens it (the banner opens it too); its text says whether it is a zone or a channel
 static const char *offer_title(void)
 {

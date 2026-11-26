@@ -609,7 +609,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 
 | Switch | Default | Off |
 |---|---|---|
-| `CONFIG_UI_SETTINGS` | y | the Settings menu is left out (about 5.3 KB, `docs/feature-matrix.md`); settings keep their stored values and are set with qdmr; Settings shows one row saying so, Find finds no settings |
+| `CONFIG_UI_SETTINGS` | y | the Settings menu is left out (about 5.3 KB, `docs/feature-matrix.md`); settings keep their stored values and are set with qdmr; Menu's Settings entry says so above Programming's pages (Channels, Zones, VFO, Diagnostics), so they stay reachable, and Find finds no settings |
 | `CONFIG_DIAG` | y | no diagnostics page (Programming's Diagnostics row says so) |
 | `CONFIG_FONT_XL` | n | the 16x32 font for 240 px and wider displays |
 | `CONFIG_FONT_AA` | n | the bitmap fonts (Spleen) on color panels; on, the sizes from 6x12 up are anti-aliased (JetBrains Mono Bold, coverage 0..3 a pixel, blended with what is under them; `gfx.c`). Mono radios leave it off. On a 4 bpp panel (every color board) the edge grays share the 16 palette entries with the screen's own colors; a screen that already uses many colors loses some of them, and some font sizes or colors can then be slightly harder to read |
