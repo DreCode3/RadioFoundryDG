@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 The RadioFoundry Authors
 # The per-commit check (fork-notes/gui-plan.md, Process): uiSim with no warnings, the pixel comparison against a
-# baseline, uiThemeTest, uiPrototypeTest and one GD-88 build with its stack check.
+# baseline, uiThemeTest and uiThemeTestPanels, uiPrototypeTest and one GD-88 build with its stack check.
 #   fork-notes/tools/cc.sh [--except SUBTREE]... BASELINE_DIR WORK_DIR [nofw]
 # BASELINE_DIR: made once with snapshot.py (fork-notes/local-setup.md). WORK_DIR: scratch output, outside the repo.
 # --except leaves a subtree of the baseline out of the pixel comparison (compare.py), for a step that changes those
@@ -32,10 +32,12 @@ echo "uiSim rc $rc warnings $w"; [ $rc = 0 ] && [ "$w" = 0 ] || { ok=0; head -30
 if [ $ok = 1 ]; then
 	rm -rf "$OUT/cur" && python3 $HERE/snapshot.py "$ROOT" "$OUT/cur" && python3 $HERE/compare.py ${EXCEPT[@]+"${EXCEPT[@]}"} "$BASE" "$OUT/cur" || ok=0
 	# rm: a binary from the other OS would look up to date
-	rm -f tests/host/uiThemeTest
-	"${THEME[@]}" 'make -s -C tests/host uiThemeTest && ./tests/host/uiThemeTest' >"$OUT/theme.log" 2>&1; rc=$?
-	rm -f tests/host/uiThemeTest
-	echo "uiThemeTest rc $rc | $(tail -1 "$OUT/theme.log")"; [ $rc = 0 ] || { ok=0; grep -m8 "FAIL\|rror" "$OUT/theme.log"; }
+	rm -f tests/host/uiThemeTest tests/host/uiThemeTestPanels
+	"${THEME[@]}" 'make -s -C tests/host uiThemeTest uiThemeTestPanels && ./tests/host/uiThemeTest && ./tests/host/uiThemeTestPanels' \
+		>"$OUT/theme.log" 2>&1; rc=$?
+	rm -f tests/host/uiThemeTest tests/host/uiThemeTestPanels
+	echo "uiThemeTest and uiThemeTestPanels rc $rc | $(tail -1 "$OUT/theme.log")"
+	[ $rc = 0 ] || { ok=0; grep -m8 "FAIL\|rror" "$OUT/theme.log"; }
 	python3 tests/host/uiPrototypeTest.py >"$OUT/proto.log" 2>&1; rc=$?
 	echo "uiPrototypeTest rc $rc | $(tail -1 "$OUT/proto.log")"; [ $rc = 0 ] || ok=0
 fi
