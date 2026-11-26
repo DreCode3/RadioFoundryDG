@@ -134,12 +134,12 @@ def main():
     ):
         for width in sizes:
             height = round(width * view[1] / view[0])
-            lines.append(array(f"profile_{name}_{width}", paint, view, (width, height)))
+            lines.append(array(f"panels_{name}_{width}", paint, view, (width, height)))
     lines.append("#if CONFIG_DMR_ROAMING")
     for frame in range(8):
-        lines.append(array(f"profile_orbit_{frame}", lambda mask: orbit(mask, frame), (27, 25), (27, 25)))
-    lines.append("static const uint8_t *const profile_orbit_frames[] = {\n" +
-                 "".join(f"\tprofile_orbit_{n},\n" for n in range(8)) + "};\n#endif")
+        lines.append(array(f"panels_orbit_{frame}", lambda mask: orbit(mask, frame), (27, 25), (27, 25)))
+    lines.append("static const uint8_t *const panels_orbit_frames[] = {\n" +
+                 "".join(f"\tpanels_orbit_{n},\n" for n in range(8)) + "};\n#endif")
     OUT.write_text("\n".join(lines) + "\n", encoding="ascii")
 
 

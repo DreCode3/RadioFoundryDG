@@ -16,24 +16,24 @@
 #include "codeplug/codeplug_modes.h"
 #include "panels_icons.h"
 
-#define PROFILE_BAND_H 29
-#define PROFILE_COMMERCIAL_STATUS_H 36
-#define PROFILE_HOME_GAP 3
-#define PROFILE_HOME_INSET 4
-#define PROFILE_FOOTER_H 34
+#define PANELS_BAND_H 29
+#define PANELS_COMMERCIAL_STATUS_H 36
+#define PANELS_HOME_GAP 3
+#define PANELS_HOME_INSET 4
+#define PANELS_FOOTER_H 34
 
-#define PROFILE_GEAR_OUTLINE RGB565(0, 0, 0)
-#define PROFILE_GEAR_FILL RGB565(148, 148, 148)
+#define PANELS_GEAR_OUTLINE RGB565(0, 0, 0)
+#define PANELS_GEAR_FILL RGB565(148, 148, 148)
 
-static color_t profile_bar_fg;	// the bottom row's text
-static color_t profile_home_gutter;
-static color_t profile_row_bg, profile_row_focus;
+static color_t panels_bar_fg;	// the bottom row's text
+static color_t panels_home_gutter;
+static color_t panels_row_bg, panels_row_focus;
 
 // The profile look's Day and Night palettes, and its colors outside the shared tokens (index: night)
 typedef struct {
 	color_t row_bg, row_focus, home_gutter, bar_fg;
-} profile_colors_t;
-static const ui_colors_t profile_palettes[] = {	// by UI_PALETTE_*
+} panels_extra_colors_t;
+static const ui_colors_t panels_palettes[] = {	// by UI_PALETTE_*
 	{ .bg = RGB565(220, 234, 244), .fg = RGB565(23, 40, 53), .dim = RGB565(53, 78, 101),
 	  .line = RGB565(171, 195, 216), .tx = RGB565(189, 41, 41), .rx = RGB565(20, 101, 59),
 	  .warn = RGB565(135, 96, 0), .idle = RGB565(53, 78, 101), .pill_fg = RGB565(255, 255, 255),
@@ -47,7 +47,7 @@ static const ui_colors_t profile_palettes[] = {	// by UI_PALETTE_*
 	  .priv = RGB565(130, 188, 255), .idle_fg = RGB565(0, 0, 0), .focus_fg = RGB565(237, 242, 247),
 	  .chnum = RGB565(180, 194, 209), .strip_bg = RGB565(25, 38, 52), .strip_warn = RGB565(245, 198, 104) },
 };
-static const profile_colors_t profile_colors[] = {
+static const panels_extra_colors_t panels_extra_colors[] = {
 	{ RGB565(205, 223, 237), RGB565(174, 204, 231), RGB565(155, 183, 207), RGB565(255, 255, 255) },
 	{ RGB565(30, 46, 63), RGB565(48, 76, 102), RGB565(8, 15, 23), RGB565(237, 242, 247) },
 };
@@ -56,10 +56,10 @@ static const profile_colors_t profile_colors[] = {
 static void panels_colors(ui_colors_t *c, uint8_t palette)
 {
 	(void)c;
-	profile_row_bg = profile_colors[palette].row_bg;
-	profile_row_focus = profile_colors[palette].row_focus;
-	profile_home_gutter = profile_colors[palette].home_gutter;
-	profile_bar_fg = profile_colors[palette].bar_fg;
+	panels_row_bg = panels_extra_colors[palette].row_bg;
+	panels_row_focus = panels_extra_colors[palette].row_focus;
+	panels_home_gutter = panels_extra_colors[palette].home_gutter;
+	panels_bar_fg = panels_extra_colors[palette].bar_fg;
 }
 
 // A color display 240 px high with room across for the status strip's marks and the caller line
@@ -68,33 +68,33 @@ static bool panels_fits(void)
 	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
 }
 
-typedef struct { int x, y, scale; } profile_mark_pos_t;
+typedef struct { int x, y, scale; } panels_mark_pos_t;
 
-static unsigned profile_mask_coverage(const uint8_t *mask, int stride, int x, int y)
+static unsigned panels_mask_coverage(const uint8_t *mask, int stride, int x, int y)
 {
 	return (mask[y * stride + x / 4] >> (2 * (x % 4))) & 3u;
 }
 
-static void profile_mask(int x, int y, const uint8_t *mask, int w, int h, color_t ink)
+static void panels_mask(int x, int y, const uint8_t *mask, int w, int h, color_t ink)
 {
 	int stride = (w + 3) / 4;
 	for (int dy = 0; dy < h; dy++)
 		for (int dx = 0; dx < w; dx++) {
-			unsigned coverage = profile_mask_coverage(mask, stride, dx, dy);
+			unsigned coverage = panels_mask_coverage(mask, stride, dx, dy);
 			if (coverage)
 				gfx_coverage_pixel(x + dx, y + dy, ink, coverage);
 		}
 }
 
-static int profile_px(int n, int scale) { return n * scale / 4; }
+static int panels_px(int n, int scale) { return n * scale / 4; }
 
-static void profile_block(profile_mark_pos_t at, int x, int y, int w, int h, color_t ink)
+static void panels_block(panels_mark_pos_t at, int x, int y, int w, int h, color_t ink)
 {
-	int dx = profile_px(x, at.scale), dy = profile_px(y, at.scale);
-	gfx_fill(at.x + dx, at.y + dy, profile_px(x + w, at.scale) - dx, profile_px(y + h, at.scale) - dy, ink);
+	int dx = panels_px(x, at.scale), dy = panels_px(y, at.scale);
+	gfx_fill(at.x + dx, at.y + dy, panels_px(x + w, at.scale) - dx, panels_px(y + h, at.scale) - dy, ink);
 }
 
-static void profile_round_fill(int x, int y, int w, int h, color_t ink)
+static void panels_round_fill(int x, int y, int w, int h, color_t ink)
 {
 	gfx_round_fill(x, y, w, h, ink);
 	if (w >= 3 && h >= 3) {
@@ -105,10 +105,10 @@ static void profile_round_fill(int x, int y, int w, int h, color_t ink)
 	}
 }
 
-static void profile_pane(int y, int h, color_t ink)
+static void panels_pane(int y, int h, color_t ink)
 {
 	static const uint8_t corner[] = { 5, 3, 2, 1, 1 };
-	const int x = PROFILE_HOME_INSET, w = gfx_width() - 2 * x;
+	const int x = PANELS_HOME_INSET, w = gfx_width() - 2 * x;
 	const int r = sizeof corner;
 	gfx_fill(x, y + r, w, h - 2 * r, ink);
 	for (int i = 0; i < r; i++) {
@@ -122,22 +122,22 @@ static void profile_pane(int y, int h, color_t ink)
 	}
 }
 
-static int profile_footer_top(void)
+static int panels_footer_top(void)
 {
-	return gfx_height() - PROFILE_HOME_INSET - PROFILE_FOOTER_H;
+	return gfx_height() - PANELS_HOME_INSET - PANELS_FOOTER_H;
 }
 
-static void profile_round_block(profile_mark_pos_t at, int x, int y, int w, int h, color_t ink)
+static void panels_round_block(panels_mark_pos_t at, int x, int y, int w, int h, color_t ink)
 {
-	int dx = profile_px(x, at.scale), dy = profile_px(y, at.scale);
-	profile_round_fill(at.x + dx, at.y + dy, profile_px(x + w, at.scale) - dx, profile_px(y + h, at.scale) - dy, ink);
+	int dx = panels_px(x, at.scale), dy = panels_px(y, at.scale);
+	panels_round_fill(at.x + dx, at.y + dy, panels_px(x + w, at.scale) - dx, panels_px(y + h, at.scale) - dy, ink);
 }
 
-typedef struct { uint32_t left, right; } profile_subrow_t;
+typedef struct { uint32_t left, right; } panels_subrow_t;
 
 // Round the four subpixels of a mask corner only when the edge turns in both directions.
 // Straight stems, isolated points, and the gaps between parallel strokes keep their coverage.
-static profile_subrow_t profile_subrow(const uint32_t *rows, int h, int sample)
+static panels_subrow_t panels_subrow(const uint32_t *rows, int h, int sample)
 {
 	int y = sample / 2;
 	uint32_t above = y > 0 ? rows[y - 1] : 0;
@@ -146,11 +146,11 @@ static profile_subrow_t profile_subrow(const uint32_t *rows, int h, int sample)
 	uint32_t left = center >> 1, right = center << 1;
 	uint32_t adjacent = (sample & 1) ? below : above;
 	uint32_t corners = (above ^ below) & (left ^ right) & (center ^ adjacent);
-	return (profile_subrow_t){ center ^ (corners & ~(left ^ adjacent)),
+	return (panels_subrow_t){ center ^ (corners & ~(left ^ adjacent)),
 		center ^ (corners & ~(right ^ adjacent)) };
 }
 
-static unsigned profile_coverage(profile_subrow_t upper, profile_subrow_t lower, int a, int b, int w)
+static unsigned panels_coverage(panels_subrow_t upper, panels_subrow_t lower, int a, int b, int w)
 {
 	uint32_t bit_a = 1u << (w - 1 - a / 2), bit_b = 1u << (w - 1 - b / 2);
 	unsigned hits = ((a & 1 ? upper.right : upper.left) & bit_a) != 0;
@@ -160,110 +160,110 @@ static unsigned profile_coverage(profile_subrow_t upper, profile_subrow_t lower,
 	return (hits * 3 + 2) / 4;
 }
 
-static void profile_bitmap(int x, int y, const uint32_t *rows, int w, int h, int width, int height, color_t ink)
+static void panels_bitmap(int x, int y, const uint32_t *rows, int w, int h, int width, int height, color_t ink)
 {
 	for (int dy = 0; dy < height; dy++) {
-		profile_subrow_t upper = profile_subrow(rows, h, (4 * dy + 1) * h / (2 * height));
-		profile_subrow_t lower = profile_subrow(rows, h, (4 * dy + 3) * h / (2 * height));
+		panels_subrow_t upper = panels_subrow(rows, h, (4 * dy + 1) * h / (2 * height));
+		panels_subrow_t lower = panels_subrow(rows, h, (4 * dy + 3) * h / (2 * height));
 		for (int dx = 0; dx < width; dx++) {
 			int a = width == w ? 2 * dx : (4 * dx + 1) * w / (2 * width);
 			int b = width == w ? 2 * dx + 1 : (4 * dx + 3) * w / (2 * width);
-			unsigned coverage = profile_coverage(upper, lower, a, b, w);
+			unsigned coverage = panels_coverage(upper, lower, a, b, w);
 			if (coverage)
 				gfx_coverage_pixel(x + dx, y + dy, ink, coverage);
 		}
 	}
 }
 
-#define PROFILE_HEIGHT(mark) (sizeof(mark) / sizeof((mark)[0]))
-#define PROFILE_SCALED_PIXELS(x, y, mark, w, width, height, ink) \
-	profile_bitmap(x, y, mark, w, PROFILE_HEIGHT(mark), width, height, ink)
-#define PROFILE_PIXELS(x, y, mark, w, ink) \
-	PROFILE_SCALED_PIXELS(x, y, mark, w, w, PROFILE_HEIGHT(mark), ink)
-#define PROFILE_MARK_AT(at, mark, width, ink) \
-	PROFILE_SCALED_PIXELS((at).x, (at).y, mark, width, profile_px(width, (at).scale), \
-		profile_px(PROFILE_HEIGHT(mark), (at).scale), ink)
-#define PROFILE_MARK(x, y, mark, width, ink) PROFILE_PIXELS(x, y, mark, width, ink)
-#define PROFILE_STATUS_MARK(x, y, mark, width, ink) \
-	PROFILE_MARK_AT(((profile_mark_pos_t){ x, y, scale }), mark, width, ink)
+#define PANELS_HEIGHT(mark) (sizeof(mark) / sizeof((mark)[0]))
+#define PANELS_SCALED_PIXELS(x, y, mark, w, width, height, ink) \
+	panels_bitmap(x, y, mark, w, PANELS_HEIGHT(mark), width, height, ink)
+#define PANELS_PIXELS(x, y, mark, w, ink) \
+	PANELS_SCALED_PIXELS(x, y, mark, w, w, PANELS_HEIGHT(mark), ink)
+#define PANELS_MARK_AT(at, mark, width, ink) \
+	PANELS_SCALED_PIXELS((at).x, (at).y, mark, width, panels_px(width, (at).scale), \
+		panels_px(PANELS_HEIGHT(mark), (at).scale), ink)
+#define PANELS_MARK(x, y, mark, width, ink) PANELS_PIXELS(x, y, mark, width, ink)
+#define PANELS_STATUS_MARK(x, y, mark, width, ink) \
+	PANELS_MARK_AT(((panels_mark_pos_t){ x, y, scale }), mark, width, ink)
 
-static color_t profile_ink(const ui_state_t *s)
+static color_t panels_ink(const ui_state_t *s)
 {
 	return s->gui_night ? ui_col.fg : RGB565(0, 0, 0);
 }
 
 
 enum {
-	PROFILE_VOX_W = 22, PROFILE_DUAL_W = 25, PROFILE_MAIL_W = 23, PROFILE_SPEAKER_W = 19,
-	PROFILE_DIRECT_W = 19, PROFILE_SCAN_W = 22, PROFILE_ORBIT_W = 27, PROFILE_BT_W = 24,
+	PANELS_VOX_W = 22, PANELS_DUAL_W = 25, PANELS_MAIL_W = 23, PANELS_SPEAKER_W = 19,
+	PANELS_DIRECT_W = 19, PANELS_SCAN_W = 22, PANELS_ORBIT_W = 27, PANELS_BT_W = 24,
 };
 
-static const uint32_t profile_vox_art[] = {
+static const uint32_t panels_vox_art[] = {
 	0x330C33, 0x330C33, 0x333333, 0x333333, 0x33330C, 0x33330C, 0x333333, 0x333333,
 	0x0C0C33, 0x0C0C33,
 };
-static const uint32_t profile_rx_art[] = {
+static const uint32_t panels_rx_art[] = {
 	0xFF0C3, 0xFF842, 0xC1C66, 0xC1C24, 0xFF83C, 0xFF018, 0xCE018, 0xC6018,
 	0xC703C, 0xC3824, 0xC1C66, 0xC0C42, 0xC0EC3, 0x00400,
 };
 
 #if CONFIG_DUAL_WATCH
-static const uint32_t profile_dual_art[] = {
+static const uint32_t panels_dual_art[] = {
 	0x0FF83FE, 0x1FFC7FF, 0x180C603, 0x180C603, 0x180C603, 0x188C663, 0x194C653, 0x19CC663,
 	0x194C653, 0x194C663, 0x180C603, 0x180C603, 0x180C603, 0x1FFC7FF, 0x0FF83FE,
 };
 #endif
 
 #ifdef GFX_FIT_TRACE
-static const uint32_t profile_direct_art[] = {
+static const uint32_t panels_direct_art[] = {
 	0x3F0C0, 0x3F0C0, 0x0C330, 0x0C330, 0x0C3F0, 0x0C3F0, 0x0C330, 0x0C330,
 	0x0C330, 0x0C330, 0x00000, 0x00000, 0x00010, 0x00018, 0x0001E, 0x7FFFF,
 	0x7FFFE, 0x00018, 0x00010,
 };
-static const uint32_t profile_bt_art[] = {
+static const uint32_t panels_bt_art[] = {
 	0x0380, 0x03C0, 0x03F0, 0x03B8, 0x439E, 0xE387, 0x7B9E, 0x1FB8,
 	0x0FF0, 0x07E0, 0x03C0, 0x07E0, 0x0FF0, 0x1FB8, 0x7B9E, 0xE387,
 	0x439E, 0x03B8, 0x03F0, 0x03C0, 0x0380,
 };
-static const uint32_t profile_record_ring[] = {
+static const uint32_t panels_record_ring[] = {
 	0x007C0, 0x01FF0, 0x03838, 0x0600C, 0x0C006, 0x0C006, 0x18003, 0x18003,
 	0x18003, 0x18003, 0x18003, 0x0C006, 0x0C006, 0x0600C, 0x03838, 0x01FF0,
 	0x007C0,
 };
-static const uint32_t profile_record_center[] = {
+static const uint32_t panels_record_center[] = {
 	0x038, 0x0FE, 0x0FE, 0x1FF, 0x1FF, 0x1FF, 0x0FE, 0x0FE,
 	0x038,
 };
 
-static void profile_recording(int x, int cy, int size, const ui_state_t *s)
+static void panels_recording(int x, int cy, int size, const ui_state_t *s)
 {
 	int y = cy - size / 2;
-	PROFILE_SCALED_PIXELS(x, y, profile_record_ring, 17, size, size, ui_col.tx);
+	PANELS_SCALED_PIXELS(x, y, panels_record_ring, 17, size, size, ui_col.tx);
 	if (!(s->now_ms / 400u % 2u)) {
 		int inset = 4 * size / 17;
 		int dot_size = 13 * size / 17 - inset;
-		PROFILE_SCALED_PIXELS(x + inset, y + inset, profile_record_center, 9, dot_size, dot_size, ui_col.tx);
+		PANELS_SCALED_PIXELS(x + inset, y + inset, panels_record_center, 9, dot_size, dot_size, ui_col.tx);
 	}
 }
 
-static void profile_bluetooth(int x, int cy, int height, const ui_state_t *s)
+static void panels_bluetooth(int x, int cy, int height, const ui_state_t *s)
 {
 	color_t ink = s->gui_sim_bt == 2 ? ui_col.priv : ui_col.rx;
-	PROFILE_SCALED_PIXELS(x + 4, cy - height / 2, profile_bt_art, 16, 16, height, ink);
+	PANELS_SCALED_PIXELS(x + 4, cy - height / 2, panels_bt_art, 16, 16, height, ink);
 	if (s->gui_sim_bt == 2) {
-		profile_round_fill(x + 1, cy - 1, 3, 3, ink);
-		profile_round_fill(x + 21, cy - 1, 3, 3, ink);
+		panels_round_fill(x + 1, cy - 1, 3, 3, ink);
+		panels_round_fill(x + 21, cy - 1, 3, 3, ink);
 	}
 }
 #endif
 
 
-static void profile_scan(int x, int cy, uint32_t frame, color_t ink, color_t step)
+static void panels_scan(int x, int cy, uint32_t frame, color_t ink, color_t step)
 {
 	// The silhouette stays fixed while the highlight walks the three legs, then fills the arrowhead.
 	for (int dy = 0; dy < 17; dy++)
-		for (int dx = 0; dx < PROFILE_SCAN_W; dx++) {
-			unsigned coverage = profile_mask_coverage(profile_scan_22, (PROFILE_SCAN_W + 3) / 4, dx, dy);
+		for (int dx = 0; dx < PANELS_SCAN_W; dx++) {
+			unsigned coverage = panels_mask_coverage(panels_scan_22, (PANELS_SCAN_W + 3) / 4, dx, dy);
 			if (!coverage)
 				continue;
 			unsigned segment;
@@ -281,15 +281,15 @@ static void profile_scan(int x, int cy, uint32_t frame, color_t ink, color_t ste
 
 #if CONFIG_DMR_ROAMING
 
-static void profile_roaming(int x, int cy, uint32_t frame, color_t ink)
+static void panels_roaming(int x, int cy, uint32_t frame, color_t ink)
 {
 	static const uint32_t letter[] = { 0x3C, 0x3C, 0x33, 0x33, 0x3C, 0x3C, 0x33, 0x33, 0x33, 0x33 };
-	profile_mask(x, cy - 12, profile_orbit_frames[frame % 8u], PROFILE_ORBIT_W, 25, ink);
-	PROFILE_MARK(x + 10, cy - 5, letter, 6, ink);
+	panels_mask(x, cy - 12, panels_orbit_frames[frame % 8u], PANELS_ORBIT_W, 25, ink);
+	PANELS_MARK(x + 10, cy - 5, letter, 6, ink);
 }
 #endif
 
-static bool profile_clock(const ui_state_t *s, char *out, size_t cap)
+static bool panels_clock(const ui_state_t *s, char *out, size_t cap)
 {
 	uint32_t date = s->gps_utc_ymd, time = s->gps_utc_hms;
 	uint32_t month = date / 100u % 100u, day = date % 100u;
@@ -315,26 +315,26 @@ static bool profile_clock(const ui_state_t *s, char *out, size_t cap)
 	return true;
 }
 
-static void profile_battery(const radio_view_t *v, const ui_state_t *s, profile_mark_pos_t at, color_t ink)
+static void panels_battery(const radio_view_t *v, const ui_state_t *s, panels_mark_pos_t at, color_t ink)
 {
 	bool low = v->battery != RADIO_BATT_OK || (s->battery_pct &&
 		s->battery_pct <= (s->low_batt_pct ? s->low_batt_pct : 15));
 	color_t c = low ? ui_col.tx : ink;
-	profile_round_block(at, 3, -5, 5, 3, c);
-	profile_round_block(at, 0, -3, 11, 16, c);
-	profile_round_block(at, 1, -2, 9, 14, ui_col.strip_bg);
+	panels_round_block(at, 3, -5, 5, 3, c);
+	panels_round_block(at, 0, -3, 11, 16, c);
+	panels_round_block(at, 1, -2, 9, 14, ui_col.strip_bg);
 	unsigned segments = (s->battery_pct + 33u) / 34u;
 	for (int i = 0; i < 3; i++)
-		profile_block(at, 2, 8 - i * 4, 7, 3, (unsigned)i < segments ? c : ui_col.line);
+		panels_block(at, 2, 8 - i * 4, 7, 3, (unsigned)i < segments ? c : ui_col.line);
 }
 
-static unsigned profile_power_level(const radio_view_t *v)
+static unsigned panels_power_level(const radio_view_t *v)
 {
 	unsigned level = v->power * 3u / board.power_count;
 	return level < 3 ? level : 2;
 }
 
-static void profile_power(const radio_view_t *v, profile_mark_pos_t at, color_t ink)
+static void panels_power(const radio_view_t *v, panels_mark_pos_t at, color_t ink)
 {
 	// Tall, rounded L/M/H share one slot even when the level changes.
 	static const uint32_t power[][10] = {
@@ -342,7 +342,7 @@ static void profile_power(const radio_view_t *v, profile_mark_pos_t at, color_t 
 		{ 0x082, 0x1C7, 0x1C7, 0x1EF, 0x1BB, 0x193, 0x183, 0x183, 0x183, 0x082 },
 		{ 0x082, 0x183, 0x183, 0x183, 0x1FF, 0x1FF, 0x183, 0x183, 0x183, 0x082 },
 	};
-	PROFILE_MARK_AT(at, power[profile_power_level(v)], 9, ink);
+	PANELS_MARK_AT(at, power[panels_power_level(v)], 9, ink);
 }
 
 typedef struct {
@@ -350,17 +350,17 @@ typedef struct {
 	bool reverse;
 	bool measure;
 	bool tight;
-} profile_row_cursor_t;
+} panels_row_cursor_t;
 
-static int profile_slot(profile_row_cursor_t *row, int width)
+static int panels_slot(panels_row_cursor_t *row, int width)
 {
 	int x = row->reverse ? row->x - width : row->x;
 	row->x += row->reverse ? -width : width;
 	return x;
 }
 
-static void profile_status_key(const radio_view_t *v, const ui_state_t *s, int y, int scale,
-	profile_row_cursor_t *row)
+static void panels_status_key(const radio_view_t *v, const ui_state_t *s, int y, int scale,
+	panels_row_cursor_t *row)
 {
 	bool encrypted = false;
 	bool warning = false;
@@ -389,50 +389,50 @@ static void profile_status_key(const radio_view_t *v, const ui_state_t *s, int y
 		return;
 	const font_t *algo_font = scale > 4 ? &font_aa_6x12 : &font_5x8;
 	// gfx_text_title adds one column of weight per character at native height.
-	int key_w = algorithm ? (int)strlen(algorithm) * (algo_font->w + 1) : profile_px(15, scale);
+	int key_w = algorithm ? (int)strlen(algorithm) * (algo_font->w + 1) : panels_px(15, scale);
 	if (!row->reverse)
-		profile_slot(row, 2);
-	int key_x = profile_slot(row, key_w + (row->reverse ? (scale > 4 ? 3 : 5) : 5));
+		panels_slot(row, 2);
+	int key_x = panels_slot(row, key_w + (row->reverse ? (scale > 4 ? 3 : 5) : 5));
 	if (row->measure)
 		return;
-	int kx = key_x + (key_w - profile_px(13, scale)) / 2;
+	int kx = key_x + (key_w - panels_px(13, scale)) / 2;
 	color_t key_color = !warning ? ui_col.rx : s->gui_night ? RGB565(160, 168, 178) : RGB565(105, 114, 124);
-	profile_mask(kx, algorithm ? y - profile_px(4, scale) : y + 1,
-		scale == 6 ? profile_key_19 : scale == 5 ? profile_key_16 : profile_key_13,
-		profile_px(13, scale), scale == 6 ? 10 : scale == 5 ? 9 : 7, key_color);
+	panels_mask(kx, algorithm ? y - panels_px(4, scale) : y + 1,
+		scale == 6 ? panels_key_19 : scale == 5 ? panels_key_16 : panels_key_13,
+		panels_px(13, scale), scale == 6 ? 10 : scale == 5 ? 9 : 7, key_color);
 	if (algorithm)
-		gfx_text_title(algo_font, key_x + key_w / 2, y + profile_px(5, scale) + algo_font->ascent,
+		gfx_text_title(algo_font, key_x + key_w / 2, y + panels_px(5, scale) + algo_font->ascent,
 			key_w, algorithm, ui_col.rx, 4);
 	if (warning) {
 		static const uint32_t cross[] = { 0x1001, 0x0802, 0x040C, 0x0310, 0x00A0, 0x0040, 0x00A0, 0x0310, 0x040C, 0x0802, 0x1001 };
-		PROFILE_STATUS_MARK(kx, y - profile_px(1, scale), cross, 13, ui_col.tx);
+		PANELS_STATUS_MARK(kx, y - panels_px(1, scale), cross, 13, ui_col.tx);
 	}
 }
 
-static int profile_operating_marks(const radio_view_t *v, const ui_state_t *s, int y, int scale,
-	color_t ink, profile_row_cursor_t row)
+static int panels_operating_marks(const radio_view_t *v, const ui_state_t *s, int y, int scale,
+	color_t ink, panels_row_cursor_t row)
 {
 	if (!row.reverse)
-		profile_status_key(v, s, y, scale, &row);
+		panels_status_key(v, s, y, scale, &row);
 #ifdef GFX_FIT_TRACE
 	if (row.reverse && s->gui_sim_recording) {
-		int rx = profile_slot(&row, 20);
+		int rx = panels_slot(&row, 20);
 		if (!row.measure)
-			profile_recording(rx, y + 5, 17, s);
+			panels_recording(rx, y + 5, 17, s);
 	}
 #endif
 	if (s->unread) {
-		int rx = profile_slot(&row, PROFILE_MAIL_W + (row.tight ? 2 : 3));
+		int rx = panels_slot(&row, PANELS_MAIL_W + (row.tight ? 2 : 3));
 		if (!row.measure)
-			profile_mask(rx, y, profile_mail_23, PROFILE_MAIL_W, 15, ink);
+			panels_mask(rx, y, panels_mail_23, PANELS_MAIL_W, 15, ink);
 	}
 	if (row.reverse)
-		profile_status_key(v, s, y, scale, &row);
+		panels_status_key(v, s, y, scale, &row);
 #ifdef GFX_FIT_TRACE
 	if (s->gui_sim_talkaround) {
-		int rx = profile_slot(&row, PROFILE_DIRECT_W + (row.tight ? 2 : 3));
+		int rx = panels_slot(&row, PANELS_DIRECT_W + (row.tight ? 2 : 3));
 		if (!row.measure)
-			PROFILE_PIXELS(rx, y - 3, profile_direct_art, PROFILE_DIRECT_W, ink);
+			PANELS_PIXELS(rx, y - 3, panels_direct_art, PANELS_DIRECT_W, ink);
 	}
 #endif
 	bool scanning = s->scanning;
@@ -440,52 +440,52 @@ static int profile_operating_marks(const radio_view_t *v, const ui_state_t *s, i
 	scanning = scanning && !s->dual.on;
 #endif
 	if (scanning) {
-		int rx = profile_slot(&row, PROFILE_SCAN_W + (row.tight ? 2 : 3));
+		int rx = panels_slot(&row, PANELS_SCAN_W + (row.tight ? 2 : 3));
 		if (!row.measure)
-			profile_scan(rx, y + 7, s->now_ms / 100u % 13u, ink, ui_col.dim);
+			panels_scan(rx, y + 7, s->now_ms / 100u % 13u, ink, ui_col.dim);
 	}
 	return row.x;
 }
 
-static int profile_status_right(const radio_view_t *v, const ui_state_t *s, int y, int scale, color_t ink)
+static int panels_status_right(const radio_view_t *v, const ui_state_t *s, int y, int scale, color_t ink)
 {
 	// Grow the marks within their slots where possible to keep space for the clock and the feature icons.
 	int rx = gfx_width() - (scale > 4 ? 5 : 6);
 	if (!s->no_battery) {
-		rx -= profile_px(11, scale);
-		profile_battery(v, s, (profile_mark_pos_t){ rx, y, scale }, ink);
+		rx -= panels_px(11, scale);
+		panels_battery(v, s, (panels_mark_pos_t){ rx, y, scale }, ink);
 		rx -= 3;
 	}
 #ifdef GFX_FIT_TRACE
 	if (s->gui_sim_bt) {
-		rx -= PROFILE_BT_W + 2;
-		profile_bluetooth(rx, y + 4, 21, s);
+		rx -= PANELS_BT_W + 2;
+		panels_bluetooth(rx, y + 4, 21, s);
 	}
 #endif
 	if (board.power_count) {
 		rx -= scale == 6 ? 17 : scale > 4 ? 13 : 12;
 		if (scale == 6) {
-			char level[] = { "LMH"[profile_power_level(v)], 0 };
+			char level[] = { "LMH"[panels_power_level(v)], 0 };
 			gfx_text(&font_aa_12x24, rx, 2, level, ink);
 		} else {
-			profile_power(v, (profile_mark_pos_t){ rx, y, scale }, ink);
+			panels_power(v, (panels_mark_pos_t){ rx, y, scale }, ink);
 		}
 	}
 	if (s->locked) {
-		rx -= profile_px(10, scale) + 4;
-		profile_mask(rx, y - 1, scale == 6 ? profile_lock_15 : scale > 4 ? profile_lock_12 : profile_lock_10,
-			profile_px(10, scale), profile_px(11, scale), ink);
+		rx -= panels_px(10, scale) + 4;
+		panels_mask(rx, y - 1, scale == 6 ? panels_lock_15 : scale > 4 ? panels_lock_12 : panels_lock_10,
+			panels_px(10, scale), panels_px(11, scale), ink);
 	}
 	if (s->gps_fix) {
-		rx -= profile_px(11, scale) + 3;
-		profile_mask(rx, y - 1, scale == 6 ? profile_pin_16 : scale > 4 ? profile_pin_13 : profile_pin_11,
-			profile_px(11, scale), profile_px(11, scale), ink);
+		rx -= panels_px(11, scale) + 3;
+		panels_mask(rx, y - 1, scale == 6 ? panels_pin_16 : scale > 4 ? panels_pin_13 : panels_pin_11,
+			panels_px(11, scale), panels_px(11, scale), ink);
 	}
-	profile_row_cursor_t row = { .x = rx, .reverse = true };
-	return profile_operating_marks(v, s, y, scale, ink, row) - (scale > 4 ? 2 : 3);
+	panels_row_cursor_t row = { .x = rx, .reverse = true };
+	return panels_operating_marks(v, s, y, scale, ink, row) - (scale > 4 ? 2 : 3);
 }
 
-static const char *profile_status_mode(const radio_view_t *v, const ui_state_t *s)
+static const char *panels_status_mode(const radio_view_t *v, const ui_state_t *s)
 {
 	const char *mode = ui_mode_word(v);
 #if CONFIG_DUAL_WATCH
@@ -501,7 +501,7 @@ static const char *profile_status_mode(const radio_view_t *v, const ui_state_t *
 	return mode;
 }
 
-static const char *profile_status_activity(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
+static const char *panels_status_activity(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
 	bool titled, char clock[32], color_t *color)
 {
 	const char *activity = NULL;
@@ -512,13 +512,13 @@ static const char *profile_status_activity(const radio_view_t *v, radio_state_t 
 	} else if (st == RS_TX_DENIED) {
 		activity = TR(TOP_STATE_NO_TX, "NO TX");
 		*color = ui_col.warn;
-	} else if (st == RS_IDLE && !titled && profile_clock(s, clock, 32)) {
+	} else if (st == RS_IDLE && !titled && panels_clock(s, clock, 32)) {
 		activity = clock;
 	}
 	return activity;
 }
 
-static uint8_t profile_signal_bars(const radio_view_t *v, const ui_state_t *s)
+static uint8_t panels_signal_bars(const radio_view_t *v, const ui_state_t *s)
 {
 	if (v->state == RS_TX || v->state == RS_TX_DENIED)
 		return 0;
@@ -534,7 +534,7 @@ static uint8_t profile_signal_bars(const radio_view_t *v, const ui_state_t *s)
 	return v->state == RS_RX && v->rssi_dbm ? ui_rssi_bars(v->rssi_dbm) : 0;
 }
 
-static void draw_profile_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, bool titled, int strip_h)
+static void panels_draw_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, bool titled, int strip_h)
 {
 	ui_strip_draws++;
 	const font_t *f = &font_6x12;
@@ -544,16 +544,16 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 #endif
 	int w = gfx_width();
 	int scale = titled ? 6 : 4;
-	int iy = (strip_h - profile_px(9, scale)) / 2;
-	color_t ink = profile_ink(s);
+	int iy = (strip_h - panels_px(9, scale)) / 2;
+	color_t ink = panels_ink(s);
 	gfx_fill(0, 0, w, strip_h, ui_col.strip_bg);
 	gfx_hline(0, strip_h - 1, w, ui_col.line);
-	int rx = profile_status_right(v, s, iy, scale, ink);
-	const char *mode = profile_status_mode(v, s);
+	int rx = panels_status_right(v, s, iy, scale, ink);
+	const char *mode = panels_status_mode(v, s);
 
 	char clock[32];
 	color_t c;
-	const char *activity = profile_status_activity(v, st, s, titled, clock, &c);
+	const char *activity = panels_status_activity(v, st, s, titled, clock, &c);
 	bool monitor = (v->monitor || s->hear_all) && !v->aprs_tx;
 	bool dual = false;
 #if CONFIG_DUAL_WATCH
@@ -563,15 +563,15 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 	bool functions = monitor || dual || v->vox_on;
 	if (titled && !functions)
 		f = &font_aa_8x16;
-	int features_w = (monitor ? PROFILE_SPEAKER_W + 3 : 0) +
-		(dual ? PROFILE_DUAL_W + 3 : 0) + (v->vox_on ? PROFILE_VOX_W : 0);
+	int features_w = (monitor ? PANELS_SPEAKER_W + 3 : 0) +
+		(dual ? PANELS_DUAL_W + 3 : 0) + (v->vox_on ? PANELS_VOX_W : 0);
 	int roaming_w = 0;
 #if CONFIG_DMR_ROAMING
 	if (v->roam.state != RROAM_STATE_OFF && !v->aprs_tx)
-		roaming_w = PROFILE_ORBIT_W + 3;
+		roaming_w = PANELS_ORBIT_W + 3;
 #endif
-	int strength = profile_signal_bars(v, s);
-	int signal_w = strength || !titled ? profile_px(18, scale) : 0;
+	int strength = panels_signal_bars(v, s);
+	int signal_w = strength || !titled ? panels_px(18, scale) : 0;
 	int mode_offset = signal_w ? signal_w + 4 : 0;
 	int gap = scale > 4 ? 3 : 5;
 	int x = 5;
@@ -594,15 +594,15 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 	int mode_w = gfx_text_width(mode_font, mode);
 	int inline_w = mode_offset + mode_w;
 	bool side = inline_w <= room || !signal_w;
-	int badge_w = side ? inline_w : profile_px(24, scale);
+	int badge_w = side ? inline_w : panels_px(24, scale);
 	if (!side && mode_w + 4 > badge_w)
 		badge_w = mode_w + 4;
 	int signal_x = side ? x : x + (badge_w - signal_w) / 2;
-	int signal_y = side ? (strip_h - profile_px(9, scale)) / 2 - profile_px(4, scale) : 0;
-	profile_mark_pos_t signal = { signal_x, signal_y, scale };
+	int signal_y = side ? (strip_h - panels_px(9, scale)) / 2 - panels_px(4, scale) : 0;
+	panels_mark_pos_t signal = { signal_x, signal_y, scale };
 	for (int bar = 0; bar < strength; bar++) {
 		int height = 3 + bar * 2;
-		profile_round_block(signal, bar * 5, 13 - height, 3, height, ink);
+		panels_round_block(signal, bar * 5, 13 - height, 3, height, ink);
 	}
 	int mode_x = side ? x + mode_offset : x + (badge_w - mode_w) / 2;
 	int mode_y = side ? (strip_h - mode_font->h) / 2 : strip_h - mode_font->h - 2;
@@ -614,7 +614,7 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 	if (roaming_w) {
 		bool moving = v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY;
 		int cy = above_roam ? strip_h - 13 : strip_h / 2;
-		profile_roaming(x, cy, moving ? s->now_ms / 125u : 0, ink);
+		panels_roaming(x, cy, moving ? s->now_ms / 125u : 0, ink);
 		x += roaming_w;
 	}
 #endif
@@ -629,26 +629,26 @@ static void draw_profile_status(const radio_view_t *v, radio_state_t st, const u
 	if (show_activity)
 		gfx_text(f, activity_x, functions || above_roam ? 0 : (strip_h - f->h) / 2, activity, c);
 	int fy = show_activity && !above_roam ? f->h + 1 : iy;
-	if (monitor && x + PROFILE_SPEAKER_W <= rx) {
-		profile_mask(x, fy, profile_speaker_19, PROFILE_SPEAKER_W, 16, ink);
-		x += PROFILE_SPEAKER_W + 3;
+	if (monitor && x + PANELS_SPEAKER_W <= rx) {
+		panels_mask(x, fy, panels_speaker_19, PANELS_SPEAKER_W, 16, ink);
+		x += PANELS_SPEAKER_W + 3;
 	}
 #if CONFIG_DUAL_WATCH
-	if (dual && x + PROFILE_DUAL_W <= rx) {
-		PROFILE_PIXELS(x, fy, profile_dual_art, PROFILE_DUAL_W, ink);
-		x += PROFILE_DUAL_W + 3;
+	if (dual && x + PANELS_DUAL_W <= rx) {
+		PANELS_PIXELS(x, fy, panels_dual_art, PANELS_DUAL_W, ink);
+		x += PANELS_DUAL_W + 3;
 	}
 #endif
-	if (v->vox_on && x + PROFILE_VOX_W <= rx)
-		PROFILE_PIXELS(x, fy + 2, profile_vox_art, PROFILE_VOX_W, ink);
+	if (v->vox_on && x + PANELS_VOX_W <= rx)
+		PANELS_PIXELS(x, fy + 2, panels_vox_art, PANELS_VOX_W, ink);
 }
 
-static int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
+static int panels_draw_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s,
 	const char *prefix, const char *name)
 {
 	const ui_layout_t *L = &ui_layout;
 	bool titled = prefix != NULL || name != NULL;
-	draw_profile_status(v, st, s, titled, L->strip_h);
+	panels_draw_status(v, st, s, titled, L->strip_h);
 	if (!titled)
 		return L->strip_h;
 	int w = gfx_width();
@@ -665,7 +665,7 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 {
 	if (!draw)
 		return ui_layout.strip_h + (prefix != NULL || name != NULL ? ui_layout.small->h + 2 : 0);
-	return draw_profile_top(v, st, s, prefix, name);
+	return panels_draw_top(v, st, s, prefix, name);
 }
 
 static void compact_menu_hint(char *left, bool numbered)
@@ -690,7 +690,7 @@ static void compact_menu_hint(char *left, bool numbered)
 	}
 }
 
-static void profile_center(const font_t *f, int y, const char *text, color_t c)
+static void panels_center(const font_t *f, int y, const char *text, color_t c)
 {
 	char fit[64];
 	int w = gfx_width();
@@ -698,7 +698,7 @@ static void profile_center(const font_t *f, int y, const char *text, color_t c)
 	gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, c);
 }
 
-static void profile_frequency(sbuf_t *b, uint32_t hz)
+static void panels_frequency(sbuf_t *b, uint32_t hz)
 {
 	if (hz) {
 		sb_freq(b, hz);
@@ -706,7 +706,7 @@ static void profile_frequency(sbuf_t *b, uint32_t hz)
 	}
 }
 
-static uint32_t profile_talk_id(const radio_view_t *v, bool *private_call, const char **label)
+static uint32_t panels_talk_id(const radio_view_t *v, bool *private_call, const char **label)
 {
 	*label = "";
 	*private_call = false;
@@ -740,7 +740,7 @@ static uint32_t profile_talk_id(const radio_view_t *v, bool *private_call, const
 	return 0;
 }
 
-static void profile_target(sbuf_t *b, uint32_t id, bool private_call)
+static void panels_target(sbuf_t *b, uint32_t id, bool private_call)
 {
 	if (id == 0xFFFFFFu) {
 		sb_str(b, TR(VALUE_ALL_CALL, "All call"));
@@ -750,7 +750,7 @@ static void profile_target(sbuf_t *b, uint32_t id, bool private_call)
 	}
 }
 
-static const char *profile_home_target(const radio_view_t *v, const ui_state_t *s, char *out, size_t cap,
+static const char *panels_home_target(const radio_view_t *v, const ui_state_t *s, char *out, size_t cap,
 	uint32_t id, bool private_call, const char *label, color_t *c)
 {
 	sbuf_t b;
@@ -762,23 +762,23 @@ static const char *profile_home_target(const radio_view_t *v, const ui_state_t *
 	}
 	if (v->vfo) {
 		bool tx = v->state == RS_TX && !v->aprs_tx;
-		profile_frequency(&b, tx ? v->ch.tx_hz : v->ch.rx_hz);
+		panels_frequency(&b, tx ? v->ch.tx_hz : v->ch.rx_hz);
 		*c = tx ? ui_col.tx : ui_col.fg;
 		return out;
 	}
 	if (id && !v->ch.rx_only) {
 		if (id != 0xFFFFFFu && label[0] && !ui_name_is_id(label, id, private_call))
 			return label;
-		profile_target(&b, id, private_call);
+		panels_target(&b, id, private_call);
 		return out;
 	}
 	if (v->ch.name[0])
 		return v->ch.name;
-	profile_frequency(&b, v->ch.rx_hz);
+	panels_frequency(&b, v->ch.rx_hz);
 	return out;
 }
 
-static void profile_home_details(const radio_view_t *v, const ui_state_t *s, int y, uint32_t id, bool private_call)
+static void panels_home_details(const radio_view_t *v, const ui_state_t *s, int y, uint32_t id, bool private_call)
 {
 	const font_t *f = ui_layout.small;
 	sbuf_t b;
@@ -791,7 +791,7 @@ static void profile_home_details(const radio_view_t *v, const ui_state_t *s, int
 	if (id && !v->ch.rx_only) {
 		if (buf[0])
 			sb_str(&b, " " GLYPH_DOT " ");
-		profile_target(&b, id, private_call);
+		panels_target(&b, id, private_call);
 	}
 #if CONFIG_DMR
 	else if (v->ch.mode == RADIO_MODE_DMR && v->dmr.active && !v->ch.rx_only) {
@@ -801,9 +801,9 @@ static void profile_home_details(const radio_view_t *v, const ui_state_t *s, int
 	}
 #endif
 	if (buf[0])
-		profile_center(f, y, buf, ui_col.dim);
+		panels_center(f, y, buf, ui_col.dim);
 	sb_init(&b, buf, sizeof buf);
-	profile_frequency(&b, v->ch.rx_hz);
+	panels_frequency(&b, v->ch.rx_hz);
 #if CONFIG_DMR
 	if (v->ch.mode == RADIO_MODE_DMR) {
 		sb_str(&b, " " GLYPH_DOT " TS");
@@ -817,10 +817,10 @@ static void profile_home_details(const radio_view_t *v, const ui_state_t *s, int
 		sb_freq(&b, v->ch.tx_hz);
 	}
 	if (buf[0])
-		profile_center(f, y + f->h + 1, buf, ui_col.dim);
+		panels_center(f, y + f->h + 1, buf, ui_col.dim);
 }
 
-static void profile_home_activity(const radio_view_t *v, const ui_state_t *s)
+static void panels_home_activity(const radio_view_t *v, const ui_state_t *s)
 {
 	const char *text = NULL;
 	const font_t *f = ui_layout.medium;
@@ -861,16 +861,16 @@ static void profile_home_activity(const radio_view_t *v, const ui_state_t *s)
 #endif
 	}
 	if (text != NULL) {
-		int y = profile_footer_top() - PROFILE_HOME_GAP - f->h - 5;
+		int y = panels_footer_top() - PANELS_HOME_GAP - f->h - 5;
 		gfx_hline(15, y - 4, gfx_width() - 30, ui_col.line);
-		profile_center(f, y, text, c);
+		panels_center(f, y, text, c);
 	}
 }
 
-#define PROFILE_HOME_OPERATING_H 28
+#define PANELS_HOME_OPERATING_H 28
 
 // Center the visible capitals inside the strip, allowing for the font's blank rows.
-static int profile_native_caps(const font_t *font, int x, int cy, const char *label, color_t ink)
+static int panels_native_caps(const font_t *font, int x, int cy, const char *label, color_t ink)
 {
 	int top, rows;
 	font_glyph(font, 'M', &top, &rows);
@@ -879,88 +879,88 @@ static int profile_native_caps(const font_t *font, int x, int cy, const char *la
 }
 
 // Keep each device mark centered in its reserved width.
-static int profile_device_slot(int *right, int slot_w, int mark_w)
+static int panels_device_slot(int *right, int slot_w, int mark_w)
 {
 	*right -= slot_w;
 	return *right + (slot_w - mark_w) / 2;
 }
 
-static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int strip_h)
+static void panels_home_devices(const radio_view_t *v, const ui_state_t *s, int strip_h)
 {
 	int cy = strip_h / 2;
 	int right = gfx_width() - 6;
-	bool tall = strip_h == PROFILE_COMMERCIAL_STATUS_H;
+	bool tall = strip_h == PANELS_COMMERCIAL_STATUS_H;
 	bool tx = v->state == RS_TX || v->state == RS_TX_DENIED;
 	int slot_w = tx ? 24 : 28;
 	int scale = tall ? 9 : 8;
 #if CONFIG_DUAL_WATCH || defined(GFX_FIT_TRACE)
 	int mark_h = tall ? 24 : 22;
 #endif
-	color_t ink = profile_ink(s);
-	profile_pane(2, strip_h - 2, ui_col.strip_bg);
+	color_t ink = panels_ink(s);
+	panels_pane(2, strip_h - 2, ui_col.strip_bg);
 
 	if (!s->no_battery) {
 		int battery_scale = tall ? 6 : 5;
-		int x = profile_device_slot(&right, slot_w, profile_px(11, battery_scale));
-		profile_battery(v, s, (profile_mark_pos_t){ x, cy - profile_px(4, battery_scale), battery_scale }, ink);
+		int x = panels_device_slot(&right, slot_w, panels_px(11, battery_scale));
+		panels_battery(v, s, (panels_mark_pos_t){ x, cy - panels_px(4, battery_scale), battery_scale }, ink);
 	}
 #ifdef GFX_FIT_TRACE
 	if (s->gui_sim_bt) {
-		int x = profile_device_slot(&right, slot_w, PROFILE_BT_W);
-		profile_bluetooth(x, cy, strip_h - 7, s);
+		int x = panels_device_slot(&right, slot_w, PANELS_BT_W);
+		panels_bluetooth(x, cy, strip_h - 7, s);
 	}
 #endif
 	if (board.power_count) {
-		char level[] = { "LMH"[profile_power_level(v)], 0 };
+		char level[] = { "LMH"[panels_power_level(v)], 0 };
 		const font_t *font = tall ? FONT_AA_LARGEST : &font_aa_12x24;
-		int x = profile_device_slot(&right, slot_w, font->w);
-		profile_native_caps(font, x, cy, level, ink);
+		int x = panels_device_slot(&right, slot_w, font->w);
+		panels_native_caps(font, x, cy, level, ink);
 	}
 	if (s->locked) {
-		int x = profile_device_slot(&right, slot_w, profile_px(10, scale));
-		profile_mask(x, cy - profile_px(11, scale) / 2, tall ? profile_lock_22 : profile_lock_20,
-			profile_px(10, scale), profile_px(11, scale), ink);
+		int x = panels_device_slot(&right, slot_w, panels_px(10, scale));
+		panels_mask(x, cy - panels_px(11, scale) / 2, tall ? panels_lock_22 : panels_lock_20,
+			panels_px(10, scale), panels_px(11, scale), ink);
 	}
 	if (s->gps_fix) {
-		int x = profile_device_slot(&right, slot_w, profile_px(11, scale));
-		profile_mask(x, cy - profile_px(11, scale) / 2, tall ? profile_pin_24 : profile_pin_22,
-			profile_px(11, scale), profile_px(11, scale), ink);
+		int x = panels_device_slot(&right, slot_w, panels_px(11, scale));
+		panels_mask(x, cy - panels_px(11, scale) / 2, tall ? panels_pin_24 : panels_pin_22,
+			panels_px(11, scale), panels_px(11, scale), ink);
 	}
 #if CONFIG_DUAL_WATCH
 	if (s->dual.on) {
 		const int pane_w = 16, gap = 4;
 		const font_t *font = &font_aa_12x24;
-		int x = profile_device_slot(&right, tx ? 36 : 40, 2 * pane_w + gap);
+		int x = panels_device_slot(&right, tx ? 36 : 40, 2 * pane_w + gap);
 		int y = cy - mark_h / 2;
 		for (int pane = 0; pane < 2; pane++) {
 			const char *letter = pane == 0 ? "A" : "B";
-			profile_round_fill(x, y, pane_w, mark_h, ink);
-			profile_round_fill(x + 2, y + 2, pane_w - 4, mark_h - 4, ui_col.strip_bg);
-			profile_native_caps(font, x + (pane_w - font->w) / 2, cy, letter, ink);
+			panels_round_fill(x, y, pane_w, mark_h, ink);
+			panels_round_fill(x + 2, y + 2, pane_w - 4, mark_h - 4, ui_col.strip_bg);
+			panels_native_caps(font, x + (pane_w - font->w) / 2, cy, letter, ink);
 			x += pane_w + gap;
 		}
 	}
 #endif
 #ifdef GFX_FIT_TRACE
 	if (s->gui_sim_recording) {
-		int x = profile_device_slot(&right, slot_w, mark_h);
-		profile_recording(x, cy, mark_h, s);
+		int x = panels_device_slot(&right, slot_w, mark_h);
+		panels_recording(x, cy, mark_h, s);
 	}
 #endif
 	if (v->vox_on) {
 		const font_t *font = &font_aa_12x24;
-		int x = profile_device_slot(&right, tx ? 36 : 42, 3 * font->w);
-		profile_native_caps(font, x, cy, "VOX", ink);
+		int x = panels_device_slot(&right, tx ? 36 : 42, 3 * font->w);
+		panels_native_caps(font, x, cy, "VOX", ink);
 	}
-	int strength = profile_signal_bars(v, s);
+	int strength = panels_signal_bars(v, s);
 	for (int bar = 0; bar < strength; bar++) {
 		int height = (bar + 1) * (strip_h - 8) / 4;
-		profile_round_fill(15 + bar * 6, strip_h - 4 - height, 5, height, ink);
+		panels_round_fill(15 + bar * 6, strip_h - 4 - height, 5, height, ink);
 	}
 	if (tx) {
 		char clock[32], fit[32];
 		color_t activity_ink;
-		const char *activity = profile_status_activity(v, v->state, s, false, clock, &activity_ink);
+		const char *activity = panels_status_activity(v, v->state, s, false, clock, &activity_ink);
 		const font_t *font = &font_aa_8x16;
 		const int left = 42;
 		int room = right - left - 3;
@@ -971,34 +971,34 @@ static void profile_home_devices(const radio_view_t *v, const ui_state_t *s, int
 	}
 }
 
-static int profile_home_marks(const radio_view_t *v, const ui_state_t *s, int top, color_t ink,
-	profile_row_cursor_t row)
+static int panels_home_marks(const radio_view_t *v, const ui_state_t *s, int top, color_t ink,
+	panels_row_cursor_t row)
 {
 	const int y = top + 7;
 #if CONFIG_DMR_ROAMING
 	if (v->roam.state != RROAM_STATE_OFF && !v->aprs_tx) {
-		int x = profile_slot(&row, PROFILE_ORBIT_W + (row.tight ? 2 : 5));
+		int x = panels_slot(&row, PANELS_ORBIT_W + (row.tight ? 2 : 5));
 		if (!row.measure) {
 			bool moving = v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY;
-			profile_roaming(x, top + 14, moving ? s->now_ms / 125u : 0, ink);
+			panels_roaming(x, top + 14, moving ? s->now_ms / 125u : 0, ink);
 		}
 	}
 #endif
-	row.x = profile_operating_marks(v, s, y, 6, ink, row);
+	row.x = panels_operating_marks(v, s, y, 6, ink, row);
 	if ((v->monitor || s->hear_all) && !v->aprs_tx) {
-		int x = profile_slot(&row, PROFILE_SPEAKER_W + (row.tight ? 2 : 3));
+		int x = panels_slot(&row, PANELS_SPEAKER_W + (row.tight ? 2 : 3));
 		if (!row.measure)
-			profile_mask(x, y - 1, profile_speaker_19, PROFILE_SPEAKER_W, 16, ink);
+			panels_mask(x, y - 1, panels_speaker_19, PANELS_SPEAKER_W, 16, ink);
 	}
 	if (v->ch.rx_only || v->am || v->bcast) {
-		int x = profile_slot(&row, 24) + 4;
+		int x = panels_slot(&row, 24) + 4;
 		if (!row.measure)
-			PROFILE_PIXELS(x, top + 7, profile_rx_art, 20, ink);
+			PANELS_PIXELS(x, top + 7, panels_rx_art, 20, ink);
 	}
 	return row.x;
 }
 
-static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t *s, int top)
+static void panels_home_operating_marks(const radio_view_t *v, const ui_state_t *s, int top)
 {
 	char date[32];
 	char *time = NULL;
@@ -1010,7 +1010,7 @@ static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t
 	const font_t *time_font = &font_aa_6x12;
 	int right = gfx_width() - 12;
 	int marks_right = right;
-	if (v->state == RS_IDLE && profile_clock(s, date, sizeof date)) {
+	if (v->state == RS_IDLE && panels_clock(s, date, sizeof date)) {
 		time = strrchr(date, ' ');
 		*time++ = '\0';
 		int date_w = gfx_text_width(date_font, date);
@@ -1018,17 +1018,17 @@ static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t
 		marks_right -= (date_w > time_w ? date_w : time_w) + 5;
 	}
 
-	const char *mode = profile_status_mode(v, s);
-	color_t ink = profile_ink(s);
+	const char *mode = panels_status_mode(v, s);
+	color_t ink = panels_ink(s);
 	const font_t *font = FONT_AA_LARGEST;
 	const int left = 15, gap = 5;
 	// Keep a full-size mode label where possible. Pack the gaps before stepping down a native font size.
-	profile_row_cursor_t row = { .measure = true };
-	int marks_w = profile_home_marks(v, s, top, ink, row);
+	panels_row_cursor_t row = { .measure = true };
+	int marks_w = panels_home_marks(v, s, top, ink, row);
 	int mode_room = marks_right - left - gap - marks_w;
 	if (gfx_text_width(font, mode) > mode_room) {
 		row.tight = true;
-		marks_w = profile_home_marks(v, s, top, ink, row);
+		marks_w = panels_home_marks(v, s, top, ink, row);
 		mode_room = marks_right - left - gap - marks_w;
 		if (gfx_text_width(font, mode) > mode_room)
 			font = &font_aa_12x24;
@@ -1036,11 +1036,11 @@ static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t
 			font = &font_aa_8x16;
 	}
 	row.measure = false;
-	row.x = profile_native_caps(font, left, top + PROFILE_HOME_OPERATING_H / 2, mode, ui_col.fg) + gap;
-	profile_home_marks(v, s, top, ink, row);
+	row.x = panels_native_caps(font, left, top + PANELS_HOME_OPERATING_H / 2, mode, ui_col.fg) + gap;
+	panels_home_marks(v, s, top, ink, row);
 
 	if (time) {
-		int y = top + (PROFILE_HOME_OPERATING_H - date_font->h - time_font->h) / 2;
+		int y = top + (PANELS_HOME_OPERATING_H - date_font->h - time_font->h) / 2;
 		gfx_text(date_font, right - gfx_text_width(date_font, date), y, date, ui_col.dim);
 		gfx_text(time_font, right - gfx_text_width(time_font, time), y + date_font->h, time, ui_col.dim);
 	}
@@ -1048,59 +1048,59 @@ static void profile_home_operating_marks(const radio_view_t *v, const ui_state_t
 
 static int draw_home_status(const radio_view_t *v, const ui_state_t *s)
 {
-	int strip_h = s->gui_profile ? ui_layout.strip_h : PROFILE_COMMERCIAL_STATUS_H;
-	int operating_top = strip_h + PROFILE_HOME_GAP;
+	int strip_h = s->gui_profile ? ui_layout.strip_h : PANELS_COMMERCIAL_STATUS_H;
+	int operating_top = strip_h + PANELS_HOME_GAP;
 	ui_strip_draws++;
-	profile_home_devices(v, s, strip_h);
-	profile_pane(operating_top, PROFILE_HOME_OPERATING_H, profile_row_bg);
-	profile_home_operating_marks(v, s, operating_top);
-	return operating_top + PROFILE_HOME_OPERATING_H + PROFILE_HOME_GAP;
+	panels_home_devices(v, s, strip_h);
+	panels_pane(operating_top, PANELS_HOME_OPERATING_H, panels_row_bg);
+	panels_home_operating_marks(v, s, operating_top);
+	return operating_top + PANELS_HOME_OPERATING_H + PANELS_HOME_GAP;
 }
 
-static void profile_home_footer(const ui_state_t *s, const char *hint)
+static void panels_home_footer(const ui_state_t *s, const char *hint)
 {
 	// Above the footer pane; what it reads of the screen under it stays clear of the panes' rounded corners
-	ui_banner_box(s, profile_footer_top() - PROFILE_HOME_GAP, PROFILE_HOME_INSET + 5, PROFILE_HOME_INSET + 5,
+	ui_banner_box(s, panels_footer_top() - PANELS_HOME_GAP, PANELS_HOME_INSET + 5, PANELS_HOME_INSET + 5,
 		ui_col.strip_bg);
 	ui_draw_bottom_key(s, hint, ui_home_soft_key(s));
 }
 
 // noinline: inlined in panels_home, its buffers would be in the frame the reference Home is drawn from
-static void __attribute__((noinline)) draw_profile_home(const radio_view_t *v, const ui_state_t *s)
+static void __attribute__((noinline)) panels_draw_home(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
-	gfx_clear(profile_home_gutter);
+	gfx_clear(panels_home_gutter);
 	int channel_top = draw_home_status(v, s);
-	int channel_bottom = profile_footer_top() - PROFILE_HOME_GAP;
-	profile_pane(channel_top, channel_bottom - channel_top, ui_col.bg);
+	int channel_bottom = panels_footer_top() - PANELS_HOME_GAP;
+	panels_pane(channel_top, channel_bottom - channel_top, ui_col.bg);
 
 	bool commercial = s->gui_profile == 0;
 	bool amateur = !commercial && !s->large_text;
 	const char *label;
 	bool private_call;
-	uint32_t id = profile_talk_id(v, &private_call, &label);
+	uint32_t id = panels_talk_id(v, &private_call, &label);
 	char buf[64];
 	color_t c = ui_col.fg;
-	const char *target = profile_home_target(v, s, buf, sizeof buf, id, private_call, label, &c);
+	const char *target = panels_home_target(v, s, buf, sizeof buf, id, private_call, label, &c);
 	int center = (channel_top + channel_bottom) / 2 - 12;
 	int y = center - (amateur ? 48 : 26);
 	const char *zone = v->vfo ? "VFO" : v->zone_name;
-	profile_center(commercial ? L->large : L->medium, commercial ? center - 47 : y - 4, zone, ui_col.dim);
+	panels_center(commercial ? L->large : L->medium, commercial ? center - 47 : y - 4, zone, ui_col.dim);
 	y += L->medium->h + 5;
 	int baseline = commercial ? center + 26 : y + L->large->ascent;
 	int height_quarters = commercial ? 6 : 5;
 	int w = gfx_width();
 	if (!gfx_text_title(L->large, w / 2, baseline, w - 30, target, c, height_quarters) &&
 	    !gfx_text_title(L->medium, w / 2, baseline, w - 30, target, c, height_quarters))
-		profile_center(L->medium, baseline - L->medium->ascent, target, c);
+		panels_center(L->medium, baseline - L->medium->ascent, target, c);
 	if (amateur && !s->entry)
-		profile_home_details(v, s, y + L->large->h, id, private_call);
+		panels_home_details(v, s, y + L->large->h, id, private_call);
 
-	profile_home_activity(v, s);
-	profile_home_footer(s, ui_home_hint(v, s));
+	panels_home_activity(v, s);
+	panels_home_footer(s, ui_home_hint(v, s));
 }
 
-static bool profile_operational_home(const radio_view_t *v)
+static bool panels_operational_home(const radio_view_t *v)
 {
 #if CONFIG_DMR_TRUNK
 	if (v->t3.sys != 0)
@@ -1117,11 +1117,11 @@ static bool profile_operational_home(const radio_view_t *v)
 }
 
 // The palette entries the profile look's rows and icons need, taken before anything else is drawn
-static void profile_list_colors(const ui_list_t *l)
+static void panels_list_colors(const ui_list_t *l)
 {
-	const color_t row_colors[] = { profile_row_bg, profile_row_focus, ui_col.fg };
+	const color_t row_colors[] = { panels_row_bg, panels_row_focus, ui_col.fg };
 	const color_t icon_colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx,
-		PROFILE_GEAR_FILL, PROFILE_GEAR_OUTLINE };
+		PANELS_GEAR_FILL, PANELS_GEAR_OUTLINE };
 	gfx_reserve_colors(row_colors, sizeof row_colors / sizeof row_colors[0]);
 	if (l->kind != UI_LIST_PLAIN)
 		gfx_reserve_colors(icon_colors, sizeof icon_colors / sizeof icon_colors[0]);
@@ -1129,7 +1129,7 @@ static void profile_list_colors(const ui_list_t *l)
 
 // The profile look's list heading. noinline, as list_header in ui_screens.c: its buffers stay out of the frame of
 // panels_list_head, which also leads to the theme's top op
-static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l,
+static int __attribute__((noinline)) panels_list_title(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l,
 	bool draw)
 {
 	char title[64];
@@ -1148,7 +1148,7 @@ static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, co
 	int y = ui_layout.strip_h + 5;
 	if (draw) {
 		char fit[48];
-		draw_profile_status(v, v->state, s, true, ui_layout.strip_h);
+		panels_draw_status(v, v->state, s, true, ui_layout.strip_h);
 		gfx_text_fit(f, title, gfx_width() - 30, fit, sizeof fit);
 		gfx_text(f, 15, y, fit, ui_col.fg);
 	}
@@ -1166,12 +1166,12 @@ static void draw_menu_icon(uint8_t icon, int x, int y)
 			0x0000, 0x0060, 0x00F0, 0x071C, 0x0E0E, 0x0404, 0x0404,
 			0x0406, 0x0E0E, 0x071C, 0x00F0, 0x0060, 0x0000,
 		};
-		PROFILE_MARK(x, y, outline, 13, PROFILE_GEAR_OUTLINE);
-		PROFILE_MARK(x, y, fill, 13, PROFILE_GEAR_FILL);
+		PANELS_MARK(x, y, outline, 13, PANELS_GEAR_OUTLINE);
+		PANELS_MARK(x, y, fill, 13, PANELS_GEAR_FILL);
 		return;
 	}
 	if (icon == UI_MENU_ICON_PRIVACY) {
-		profile_mask(x, y + 3, profile_key_13, 13, 7, ui_col.warn);
+		panels_mask(x, y + 3, panels_key_13, 13, 7, ui_col.warn);
 		return;
 	}
 
@@ -1214,10 +1214,10 @@ static void draw_menu_icon(uint8_t icon, int x, int y)
 			0x0770, 0x0EF0, 0x1DE0, 0x1BC0, 0x0F80, 0x0700 } },
 	};
 	const color_t colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx };
-	PROFILE_MARK(x, y, marks[icon].rows, 13, colors[marks[icon].tint]);
+	PANELS_MARK(x, y, marks[icon].rows, 13, colors[marks[icon].tint]);
 }
 
-static void profile_row(int x, int y, int w, int h, color_t ink)
+static void panels_row(int x, int y, int w, int h, color_t ink)
 {
 	// Three stepped bands round off the corners cleanly at native resolution.
 	gfx_fill(x + 3, y, w - 6, h, ink);
@@ -1231,10 +1231,10 @@ static void profile_row(int x, int y, int w, int h, color_t ink)
 // Home body, drawn in this theme's strip, regions and footer (its top and bottom ops)
 static void panels_home(const radio_view_t *v, const ui_state_t *s)
 {
-	if (profile_operational_home(v))
+	if (panels_operational_home(v))
 		ui_reference_home(v, s);
 	else
-		draw_profile_home(v, s);
+		panels_draw_home(v, s);
 }
 
 #if CONFIG_DUAL_WATCH
@@ -1248,12 +1248,12 @@ static const ui_dual_style_t panels_dual[] = {
 
 static void panels_home_dual(const radio_view_t *v, const ui_state_t *s)
 {
-	gfx_clear(profile_home_gutter);
+	gfx_clear(panels_home_gutter);
 	int top = draw_home_status(v, s);
-	int bottom = profile_footer_top() - PROFILE_HOME_GAP;
-	profile_pane(top, bottom - top, ui_col.bg);
+	int bottom = panels_footer_top() - PANELS_HOME_GAP;
+	panels_pane(top, bottom - top, ui_col.bg);
 	ui_home_dual_body(v, s, top + 4, bottom - 4, &panels_dual[s->gui_profile != 0]);
-	profile_home_footer(s, ui_dual_hint(v, s));
+	panels_home_footer(s, ui_dual_hint(v, s));
 }
 #endif
 
@@ -1280,9 +1280,9 @@ static bool panels_animate(const radio_view_t *v, const ui_state_t *s, uint32_t 
 static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
 	if (draw)
-		profile_list_colors(l);
+		panels_list_colors(l);
 	if (l->prefix || l->name || l->kind == UI_LIST_HUB)
-		return profile_list_head(v, s, l, draw);
+		return panels_list_title(v, s, l, draw);
 	return panels_top(v, draw ? v->state : RS_IDLE, s, NULL, NULL, draw);
 }
 
@@ -1368,12 +1368,12 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 	if (flags & UI_ITEM_TEMP)
 		vfg = ui_col.warn;
 	if (focus) {
-		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
+		panels_row(c->x, c->y + gap, c->w, pitch - 2 * gap, flags & UI_ITEM_EDIT ? ui_col.warn : panels_row_focus);
 		gfx_fill(c->x + 2, c->y + gap + 5, 2, pitch - 2 * gap - 10, ui_col.fg);
 		fg = (flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
 		vfg = fg;
 	} else if (!(flags & UI_ITEM_INFO)) {
-		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, profile_row_bg);
+		panels_row(c->x, c->y + gap, c->w, pitch - 2 * gap, panels_row_bg);
 	}
 	int x = c->x + 5;
 	if (l->kind != UI_LIST_PLAIN && it->icon != UI_MENU_ICON_NONE) {
@@ -1473,13 +1473,13 @@ static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
 #endif
 	bool toast = flags & UI_BAR_TOAST;
 	const ui_layout_t *L = &ui_layout;
-	const int inset = PROFILE_HOME_INSET;
-	int top = profile_footer_top();
-	const int h = PROFILE_FOOTER_H;
+	const int inset = PANELS_HOME_INSET;
+	int top = panels_footer_top();
+	const int h = PANELS_FOOTER_H;
 	const font_t *f = toast ? L->small : FONT_AA_LARGEST;
 	char fit[64];
 	color_t bg = toast ? ui_col.fg : ui_col.hint_bg;
-	color_t fg = toast ? ui_col.bg : profile_bar_fg;
+	color_t fg = toast ? ui_col.bg : panels_bar_fg;
 	int text_y = top + (h - f->h) / 2;
 	int w = gfx_width() - 2 * inset;
 	if (toast) {
@@ -1512,7 +1512,7 @@ static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
 			y -= f->h;
 			top = ui_overlay_top(y, inset + 5, inset + 5);
 		}
-		profile_pane(top, gfx_height() - PROFILE_HOME_INSET - top, bg);
+		panels_pane(top, gfx_height() - PANELS_HOME_INSET - top, bg);
 		gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y, fit, fg);
 		if (second[0]) {
 			gfx_text_fit(f, second, w - 2, fit, sizeof fit);
@@ -1520,7 +1520,7 @@ static void panels_bottom(const char *text, uint8_t flags, const char *soft_key)
 		}
 		return;
 	}
-	profile_pane(top, h, bg);
+	panels_pane(top, h, bg);
 	// The longest alternate whose groups fit side by side in the largest font, then in the next ones
 	char form[64], left[64], right[24];
 	bool more = true;
@@ -1583,7 +1583,7 @@ static void panels_banner(const ui_state_t *s)
 static void panels_layout(ui_layout_t *L)
 {
 	ui_layout_fonts(L);
-	ui_layout_regions(L, PROFILE_BAND_H, profile_footer_top());
+	ui_layout_regions(L, PANELS_BAND_H, panels_footer_top());
 }
 
 // The ops left NULL are the reference theme's
@@ -1605,8 +1605,8 @@ static const ui_theme_ops_t panels_ops = {
 };
 
 const ui_theme_t ui_theme_panels = {
-	.palettes = profile_palettes,
-	.palette_count = sizeof profile_palettes / sizeof profile_palettes[0],
+	.palettes = panels_palettes,
+	.palette_count = sizeof panels_palettes / sizeof panels_palettes[0],
 	.id = UI_THEME_ID_PANELS,
 	.options = UI_THEME_OPT_DAY_NIGHT | UI_THEME_OPT_LAYOUT | UI_THEME_OPT_GPS_CLOCK,
 	.ops = &panels_ops,
