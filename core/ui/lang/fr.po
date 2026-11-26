@@ -2630,7 +2630,7 @@ msgstr "Oui, enregistrer"
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_ROW_DISCARD"
 msgid "Yes, discard"
-msgstr "Oui, ignorer"
+msgstr "Oui, abandonner"
 
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_ASK_KIND"
@@ -5775,12 +5775,12 @@ msgstr "* plus  Retour"
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_CODEPLUG_WRITE"
 msgid "Couldn't write the codeplug: not saved"
-msgstr "Erreur écrit codeplug"
+msgstr "Écriture du codeplug impossible : non enregistré"
 
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_CHANNEL_READ"
 msgid "Couldn't read the channel: not saved"
-msgstr "Erreur lect. canal"
+msgstr "Lecture du canal impossible : non enregistré"
 
 #: core/ui/ui_svc_storage.c
 msgctxt "STORE_ERR_ZONE_FULL"
