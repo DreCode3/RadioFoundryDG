@@ -220,7 +220,7 @@ msgstr "Rapide"
 #: core/ui/themes/panels/panels.c core/ui/ui_screens.c
 msgctxt "QUICK_HINT_ALL_SETTINGS"
 msgid "0 All settings  Hold OK save"
-msgstr "0 Tous param mtnOK"
+msgstr "0 Tous param.  Maint. OK enreg."
 
 #: core/ui/themes/panels/panels.c core/ui/ui_aprs.c core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "HINT_BACK"
@@ -240,7 +240,7 @@ msgstr "OK Menu  * Rapide"
 #: core/ui/ui_app.c
 msgctxt "HOME_HINT_MENU_HOLD_QUICK"
 msgid "OK Menu  Hold OK Quick"
-msgstr "OK Menu Main.OK Rap."
+msgstr "OK Menu  Maint. OK Rapide"
 
 #: core/ui/ui_app.c
 msgctxt "CPLUG_TOAST_NOT_SAVED"
@@ -1420,7 +1420,7 @@ msgstr "Écouter sur"
 #: core/ui/ui_dual.c
 msgctxt "DUAL_HINT_PICK"
 msgid "{OK watch  0-9 find  Back|OK watch  Back}"
-msgstr "{OK écouter 0-9|OK écouter Ret.}"
+msgstr "{OK écouter  0-9 chercher  Retour|OK écouter  Retour}"
 
 #: core/ui/ui_dual.c
 msgctxt "DUAL_TITLE_ZONE_FOR"
@@ -1540,7 +1540,7 @@ msgstr "Aucune action"
 #: core/ui/ui_find.c
 msgctxt "FIND_HINT"
 msgid "PTT talk  OK open  # more"
-msgstr "PTT Parler OK #+"
+msgstr "PTT parler  OK ouvrir  # plus"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_TITLE_STATUS"
@@ -1670,7 +1670,7 @@ msgstr "Réglages de position"
 #: core/ui/ui_gps.c
 msgctxt "GPS_HINT"
 msgid "Up Down page  Back"
-msgstr "Haut/Bas page  Ret."
+msgstr "Haut/Bas page  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "HUB_ROW_LAST_CALLER"
@@ -1800,7 +1800,7 @@ msgstr "Interrogation "
 #: core/ui/ui_menus.c
 msgctxt "ACT_HINT"
 msgid "1-9 pick  PTT talk  Back"
-msgstr "1-9 choix PTT Ret"
+msgstr "1-9 choix  PTT parler  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_BODY_CANNED_OK"
@@ -1880,7 +1880,7 @@ msgstr "Nouveau contact"
 #: core/ui/ui_menus.c
 msgctxt "CONTACT_HINT_LIST"
 msgid "{0-9 find  OK talk  # more|0-9  OK talk  # more}"
-msgstr "{0-9 cherche OK par. #+|0-9 OK par. #+}"
+msgstr "{0-9 chercher  OK parler  # plus|0-9  OK parler  # plus}"
 
 #: core/ui/ui_menus.c
 msgctxt "CONTACT_EMPTY_NO_MATCH"
@@ -1910,7 +1910,7 @@ msgstr "Nouveau message APRS"
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_LIST"
 msgid "OK open  # reply  Back"
-msgstr "OK ouv  # rép  Ret"
+msgstr "OK ouvrir  # répondre  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_OPEN_BACK"
@@ -1975,7 +1975,7 @@ msgstr "À "
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHOOSE_MORE_BACK"
 msgid "OK choose  # more  Back"
-msgstr "OK choix  #+  Ret"
+msgstr "OK choisir  # plus  Retour"
 
 #: core/ui/ui_menus.c core/ui/ui_screens.c
 msgctxt "CALL_VALUE_TO_YOU"
@@ -1990,7 +1990,7 @@ msgstr "Privé"
 #: core/ui/ui_menus.c
 msgctxt "RECENT_HINT"
 msgid "PTT talk  # more  Back"
-msgstr "PTT parl. #+  Ret"
+msgstr "PTT parler  # plus  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_ROW_CREATE"
@@ -2035,7 +2035,7 @@ msgstr "VFO sans liste canal"
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_LIST"
 msgid "{OK go  # channels  0-9 find|OK go  # channels}"
-msgstr "{OK va  # canaux 0-9|OK va  # canaux}"
+msgstr "{OK aller  # canaux  0-9 chercher|OK aller  # canaux}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_EMPTY_NO_ZONES"
@@ -2120,7 +2120,7 @@ msgstr "Partager avec"
 #: core/ui/ui_menus.c
 msgctxt "SHARE_HINT_TO"
 msgid "{0-9 find or ID  OK send  Back|0-9 find or ID  OK send}"
-msgstr "{0-9/ID OK envoi Ret|0-9/ID OK envoi}"
+msgstr "{0-9 chercher ou ID  OK envoyer  Retour|0-9 ou ID  OK envoyer}"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_EMPTY_TYPE_AN_ID"
@@ -2235,17 +2235,17 @@ msgstr "OK ajouter  Retour"
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_CHANNELS_EDIT"
 msgid "{OK go  # edit  0-9 find|OK go  # edit}"
-msgstr "{OK va  # édite 0-9|OK va  # édite}"
+msgstr "{OK aller  # modifier  0-9 chercher|OK aller  # modifier}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_CHANNELS_SHARE"
 msgid "{OK go  # share  0-9 find|OK go  # share}"
-msgstr "{OK va  # part. 0-9|OK va  # part.}"
+msgstr "{OK aller  # partager  0-9 chercher|OK aller  # partager}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_CHANNELS"
 msgid "OK go  0-9 find  Back"
-msgstr "OK va 0-9 cherch Ret"
+msgstr "OK aller  0-9 chercher  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_EMPTY_NO_CHANNELS"
@@ -2300,7 +2300,7 @@ msgstr "2 abc"
 #: core/ui/ui_menus.c
 msgctxt "TEXT_HINT_KEEP"
 msgid "{Back delete  # ABC/123/abc  OK keep|Back del  # mode  OK}"
-msgstr "{Ret eff  # mode  OK|Ret eff  # mode  OK}"
+msgstr "{Retour effacer  # ABC/123/abc  OK garder|Retour eff.  # mode  OK}"
 
 #: core/ui/ui_menus.c
 msgctxt "TEXT_HINT_SEND"
@@ -2325,7 +2325,7 @@ msgstr "Aucun canal libre"
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_LIST"
 msgid "{OK details  # go  0-9 find|OK details  # go}"
-msgstr "{OK détail # va 0-9|OK détail # va}"
+msgstr "{OK détail  # aller  0-9 chercher|OK détail  # aller}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_EMPTY_NO_CHANNELS"
@@ -2595,7 +2595,7 @@ msgstr "Canal vide"
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
 msgid "{OK change  hold OK save  Back|OK change  hold OK save}"
-msgstr "{OK modif mtnOK sauv|OK modif mtnOK sauv}"
+msgstr "{OK modifier  maint. OK enregistrer  Retour|OK modifier  maint. OK enreg.}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_TUNE"
@@ -2650,7 +2650,7 @@ msgstr "Sauver en FM?"
 #: core/ui/ui_menus.c
 msgctxt "DISCARD_HINT"
 msgid "{OK choose  Back keep editing|OK choose  Back}"
-msgstr "{OK choix  Ret continu|OK choix  Retour}"
+msgstr "{OK choisir  Retour continuer|OK choisir  Retour}"
 
 #: core/ui/ui_menus.c
 msgctxt "CONTACT_LABEL_TYPE"
@@ -2775,7 +2775,7 @@ msgstr "Ajouter canal"
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_ADD_CHANNEL"
 msgid "{OK add  0-9 find  Back|OK add  Back}"
-msgstr "{OK ajout 0-9 cher Ret|OK ajout  Retour}"
+msgstr "{OK ajouter  0-9 chercher  Retour|OK ajouter  Retour}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_EMPTY_ALL_CHANNELS_IN"
@@ -2875,12 +2875,12 @@ msgstr "Supprimer zone"
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHOOSE_BACK_CANCELS"
 msgid "OK choose  Back cancel"
-msgstr "OK choix  Ret annule"
+msgstr "OK choisir  Retour annuler"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_PICK_FIND_BACK"
 msgid "OK pick  0-9 find  Back"
-msgstr "OK choix 0-9 cher Ret"
+msgstr "OK choisir  0-9 chercher  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_EMPTY_NONE_STORED"
@@ -3205,7 +3205,7 @@ msgstr "ID DMR et nom"
 #: core/ui/ui_menus.c
 msgctxt "HINT_TYPE_OK_EDIT_SAVE_BACK"
 msgid "0-9 type  OK edit/save  Back"
-msgstr "0-9 tape OK mod/sauv"
+msgstr "0-9 saisir  OK modif./valider  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_EDIT_BACK"
@@ -3270,12 +3270,12 @@ msgstr "+ p/ augm. fréq"
 #: core/ui/ui_menus.c
 msgctxt "TRIM_HINT_TYPING"
 msgid "0-9 type  # +/-  OK set"
-msgstr "0-9 sst # +/- OK val"
+msgstr "0-9 saisir  # +/-  OK valider"
 
 #: core/ui/ui_menus.c
 msgctxt "TRIM_HINT"
 msgid "Up Down  # +/-  OK done"
-msgstr "Haut/Bas # +/- OK ok"
+msgstr "Haut/Bas  # +/-  OK terminé"
 
 #: core/ui/ui_menus.c
 msgctxt "TRIM_TOAST_MAX"
@@ -3635,7 +3635,7 @@ msgstr "Envoyer à"
 #: core/ui/ui_menus.c
 msgctxt "HINT_FIND_OK_PICK_BACK"
 msgid "0-9 find  OK pick  Back"
-msgstr "0-9 cher OK chois Ret"
+msgstr "0-9 chercher  OK choisir  Retour"
 
 #: core/ui/ui_menus.c
 msgctxt "CRASH_TOAST_SENT"
@@ -4565,7 +4565,7 @@ msgstr "Sauvegarde auto param"
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_SAVE_BACK_CANCEL"
 msgid "OK save  Back cancel"
-msgstr "OK valider  Ret annule"
+msgstr "OK valider  Retour annuler"
 
 #: core/ui/ui_menus.c core/ui/ui_position.c
 msgctxt "HINT_OK_CHANGE_BACK"
@@ -4635,7 +4635,7 @@ msgstr "{Groupe / Contact|TG / Contact}"
 #: core/ui/ui_menus.c
 msgctxt "PICKER_HINT"
 msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set}"
-msgstr "{PTT 1x OK val mtnOK|OK val mtnOK}"
+msgstr "{PTT une fois  OK utiliser  Maint. OK définir|OK utiliser  Maint. OK définir}"
 
 #: core/ui/ui_menus.c
 msgctxt "SCAN_ROW_SKIP_FOR_NOW"
@@ -5460,42 +5460,42 @@ msgstr "Aucune activité"
 #: core/ui/ui_screens.c
 msgctxt "FREQ_HINT_ENTRY"
 msgid "OK tune  Back delete"
-msgstr "OK accord Ret efface"
+msgstr "OK accorder  Retour effacer"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_SCANNING"
 msgid "# skip  Back stop scan"
-msgstr "# ignorer Ret stop"
+msgstr "# ignorer  Retour arrêt"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_REPLY"
 msgid "# caller  Back end reply"
-msgstr "# appelant Ret fin"
+msgstr "# appelant  Retour fin"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_DMON"
 msgid "Digital monitor  Back off"
-msgstr "Moniteur num. Ret off"
+msgstr "Moniteur numérique  Retour arrêt"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_UNSAVED"
 msgid "Back undo  Hold OK save"
-msgstr "Ret annul mtnOK sauv"
+msgstr "Retour annuler  Maint. OK enreg."
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_VFO"
 msgid "{Back: VFO's talk target|Back default target}"
-msgstr "{Ret: cible VFO|Ret cible déf.}"
+msgstr "{Retour : cible du VFO|Retour cible par déf.}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_CHANNEL"
 msgid "{Back: channel's talkgroup|Back default target}"
-msgstr "{Ret: TG canal|Ret cible déf.}"
+msgstr "{Retour : TG du canal|Retour cible par déf.}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_VFO"
 msgid "0-9 freq  * Quick  Up/Dn"
-msgstr "0-9 frq *Rap Ht/Bas"
+msgstr "0-9 fréq  * Rapide  Haut/Bas"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_BODY_HEARD"
@@ -5535,27 +5535,27 @@ msgstr ", en sourdine"
 #: core/ui/ui_screens.c
 msgctxt "DUAL_HINT_BACK_TO_B"
 msgid "{# 1 back to B  Back stop|# 1 back to B}"
-msgstr "{# 1 ret B Ret stop|# 1 ret B}"
+msgstr "{# 1 retour à B  Retour arrêt|# 1 retour à B}"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_HINT_BACK_TO_A"
 msgid "{# 1 back to A  Back stop|# 1 back to A}"
-msgstr "{# 1 ret A Ret stop|# 1 ret A}"
+msgstr "{# 1 retour à A  Retour arrêt|# 1 retour à A}"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_HINT_TALK_ON_B"
 msgid "{# 1 talk on B  Back stop|# 1 talk on B}"
-msgstr "{# 1 parl B Ret stop|# 1 parl B}"
+msgstr "{# 1 parler sur B  Retour arrêt|# 1 parler sur B}"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_HINT_TALK_ON_A"
 msgid "{# 1 talk on A  Back stop|# 1 talk on A}"
-msgstr "{# 1 parl A Ret stop|# 1 parl A}"
+msgstr "{# 1 parler sur A  Retour arrêt|# 1 parler sur A}"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_HINT_OPTIONS"
 msgid "# options  Back stop"
-msgstr "# options  Ret stop"
+msgstr "# options  Retour arrêt"
 
 #: core/ui/ui_screens.c
 msgctxt "BANNER_HINT_OPEN"
@@ -5575,7 +5575,7 @@ msgstr "Retour masquer"
 #: core/ui/ui_screens.c
 msgctxt "PAGE_HINT_MORE"
 msgid "Up/Dn more  Back"
-msgstr "Ht/Bas plus Ret."
+msgstr "Haut/Bas plus  Retour"
 
 #: core/ui/ui_screens.c
 msgctxt "EMERG_STATE_EMERGENCY"
@@ -5585,7 +5585,7 @@ msgstr "URGENCE"
 #: core/ui/ui_screens.c
 msgctxt "EMERG_HINT"
 msgid "OK acknowledge  Back hide"
-msgstr "OK acquit. Ret cahe"
+msgstr "OK acquitter  Retour masquer"
 
 #: core/ui/ui_screens.c
 msgctxt "VOL_LABEL_SHORT"
@@ -5600,7 +5600,7 @@ msgstr "En sourdine"
 #: core/ui/ui_screens.c
 msgctxt "VOL_HINT"
 msgid "Up Down change  OK done"
-msgstr "Ht/Bas modif OK ok"
+msgstr "Haut/Bas modifier  OK terminé"
 
 #: core/ui/ui_screens.c
 msgctxt "HOTSPOT_STATE_STARTING"
@@ -5730,7 +5730,7 @@ msgstr "Tous"
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT_SPLIT"
 msgid "{Up/Dn: +/- offset  Type: TX freq|Up/Dn +/- offset  0-9 TX freq|Up/Dn offset  0-9 TX freq|Up/Dn +/-  0-9 TX freq}"
-msgstr "{Ht/Bas: +/- shift 0-9 TX|Ht/Bas shift 0-9 TX|Ht/Bas shift 0-9 TX|Ht/Bas +/- 0-9 TX}"
+msgstr "{Haut/Bas : +/- écart  Saisie : fréq TX|Haut/Bas +/- écart  0-9 fréq TX|Haut/Bas écart  0-9 fréq TX|Haut/Bas +/-  0-9 TX}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT_OK_SETS"
@@ -5740,7 +5740,7 @@ msgstr "  OK valide"
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"
 msgid "1-9 change  Hold OK save"
-msgstr "1-9 modif mtnOK sauv"
+msgstr "1-9 modifier  Maint. OK enreg."
 
 #: core/ui/ui_screens.c
 msgctxt "DIAG_VARIANT_MISMATCH"

@@ -237,12 +237,12 @@ msgstr "菜单"
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
 msgid "OK Menu  * Quick"
-msgstr "OK 菜单 * 快捷"
+msgstr "OK 菜单  * 快捷"
 
 #: core/ui/ui_app.c
 msgctxt "HOME_HINT_MENU_HOLD_QUICK"
 msgid "OK Menu  Hold OK Quick"
-msgstr "OK 菜单 长按OK 快捷"
+msgstr "OK 菜单  长按 OK 快捷"
 
 #: core/ui/ui_app.c
 msgctxt "CPLUG_TOAST_NOT_SAVED"
