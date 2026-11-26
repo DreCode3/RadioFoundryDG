@@ -36,7 +36,7 @@ static bool ui_strip_fill;
 #define PROFILE_FOOTER_H 34
 static color_t profile_bar_fg;
 static color_t profile_row_bg, profile_row_focus, profile_home_gutter;
-static void layout_regions(ui_layout_t *L);
+static void theme_layout(ui_layout_t *L);
 static int profile_footer_top(void);
 
 static bool profile_theme(void)
@@ -169,6 +169,10 @@ static const ui_colors_t palettes[] = {
 #endif
 };
 
+#if CONFIG_UI_COLOR
+_Static_assert(sizeof palettes / sizeof palettes[0] == UI_THEME_COUNT, "a palette for every UI_THEME_*");
+#endif
+
 void ui_theme_set(uint8_t theme)
 {
 	const ui_theme_t *t = ui_theme_cur();
@@ -188,11 +192,11 @@ void ui_theme_set(uint8_t theme)
 	if (profile_theme()) {
 		profile_palette(theme == UI_THEME_PROFILE_NIGHT);
 		if (!was_profile && ui_layout.small != NULL)
-			layout_regions(&ui_layout);
+			theme_layout(&ui_layout);
 		return;
 	}
 	if (was_profile && ui_layout.small != NULL)
-		layout_regions(&ui_layout);
+		theme_layout(&ui_layout);
 #endif
 	ui_col = t->palettes[theme];
 	if (t->ops->colors != NULL)
@@ -1070,6 +1074,14 @@ static int draw_profile_top(const radio_view_t *v, radio_state_t st, const ui_st
 }
 #endif
 
+// Where a screen's content starts under the reference strip: below the title's row on a tall display, else right
+// under the strip, which then carries the title. reference_top returns it after drawing that row (its two earlier
+// returns are the cases without one); a caller that only measures asks here
+static int reference_top_y(bool titled)
+{
+	return ui_layout.strip_h + (titled && gfx_height() >= UI_TALL_PX ? ui_layout.small->h + 2 : 0);
+}
+
 static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name)
 {
 #if CONFIG_UI_PROFILES
@@ -1260,7 +1272,7 @@ static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state
 	gfx_fill(0, y, w, f->h + 2, ui_col.bg);
 	ui_draw_title(f, 0, y + 1, w, prefix, name, ui_col.fg);
 	gfx_hline(0, y + f->h + 1, w, ui_col.line);
-	return y + f->h + 2;
+	return reference_top_y(titled);
 }
 
 // The pill shows st instead of v->state: the hotspot screen shows what the hotspot does without a copy of the whole
@@ -4478,7 +4490,8 @@ static void banner_box(const ui_state_t *s, int bottom, int x0, int right_inset,
 	gfx_text(f, w - 2 - gfx_text_width(f, sec), ty, sec, gfx_bpp() == 1 ? fg : ui_col.dim);
 }
 
-// The reference theme's banner: above the hint row, on its color
+// The reference theme's banner: above the hint row, on its color. The profile look's lists and its other screens
+// come here too, until it is a theme of its own: its strip color, and the columns right of the dual watch tags
 static void reference_banner(const ui_state_t *s)
 {
 	int x0 = 0;
@@ -4549,22 +4562,26 @@ static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, co
 }
 #endif
 
+// The reference theme's list head: the strip and the title, as on every screen. The profile look's branches in this
+// op and the three below (until it is a theme of its own) all take the look from l->roomy
 static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
 #if CONFIG_UI_PROFILES
-	if (draw && s->gui_profiles)
+	if (draw && l->roomy)
 		profile_list_colors(l);
 	if (l->roomy && (l->prefix || l->name))
 		return profile_list_head(v, s, l, draw);
 #endif
-	return draw ? ui_draw_top(v, s, l->prefix, l->name) : ui_layout.strip_h +
-		((l->prefix || l->name) && gfx_height() >= UI_TALL_PX ? ui_layout.small->h + 2 : 0);
+	return draw ? ui_draw_top(v, s, l->prefix, l->name) : reference_top_y(l->prefix || l->name);
 }
 
-// noinline: its buffer stays out of list_top's frame. The stack check follows list_top from a screen that only measures
-// (ui_list_body_fits) on through the theme's head and the strip, one of the UI task's deepest paths, and the head is a
-// frame of its own there
-static void __attribute__((noinline)) list_header(const char *header, int y)
+// With the profile look, noinline: its buffer stays out of list_top's frame. The stack check follows list_top from a
+// screen that only measures (ui_list_body_fits) on through the theme's head into the profile strip, one of the UI task's
+// deepest paths. Without that look the path is not among them, and a function of its own would only cost flash
+#if CONFIG_UI_PROFILES
+__attribute__((noinline))
+#endif
+static void list_header(const char *header, int y)
 {
 	char fit[48];
 	gfx_text_fit(ui_layout.small, header, gfx_width(), fit, sizeof fit);
@@ -4588,15 +4605,6 @@ static int list_top(const radio_view_t *v, const ui_state_t *s, const ui_list_t 
 static int list_bottom(const ui_state_t *s)
 {
 	return s == NULL || s->hints || s->toast ? ui_layout.hint_y : gfx_height();
-}
-
-static int list_pitch(const ui_list_t *l)
-{
-#if CONFIG_UI_PROFILES
-	if (l->roomy)
-		return ui_layout.row_h + 10;
-#endif
-	return ui_layout.row_h;
 }
 
 // One line of word-wrapped text: copies into line what fits in max_w pixels (breaking at the last space, or inside a
@@ -4829,6 +4837,8 @@ static int list_body_end(const ui_list_t *l, int y, int y_end)
 	return l->count ? y + (y_end - y) / 2 + ui_layout.small->h : y_end;
 }
 
+// The body is the frame's (ui_draw_list): its font, its width and the half of the room it may take are the same in
+// every theme. Only where it starts is the theme's, so this asks the theme for its head and for nothing about its rows
 bool ui_list_body_fits(const ui_state_t *s, const ui_list_t *l)
 {
 	const font_t *f = ui_layout.small;
@@ -4842,15 +4852,6 @@ bool ui_list_body_fits(const ui_state_t *s, const ui_list_t *l)
 		t = wrap_line(f, t, gfx_width(), line, sizeof line);
 	}
 	return true;
-}
-
-int ui_list_rows(const ui_list_t *l)
-{
-	int y = list_top(NULL, NULL, l, false);
-	if (l->body != NULL)
-		y = wrap_text(ui_layout.small, l->body, y, y + (ui_layout.hint_y - y) / 2 + ui_layout.small->h, false, 0) + 2;
-	int n = (ui_layout.hint_y - y) / list_pitch(l);
-	return n < 1 ? 1 : n;
 }
 
 #if CONFIG_UI_PROFILES
@@ -4925,13 +4926,20 @@ static void profile_row(int x, int y, int w, int h, color_t ink)
 }
 #endif
 
-// The reference theme's rows: one column of them from edge to edge, as many as fit
+// The reference theme's rows: one column of them from edge to edge, as many as fit. The profile look's (l->roomy):
+// taller rows inset from the edges, and its top-level menus as a grid of two columns and three rows, a page at a time
 static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 {
 	g->font = ui_layout.small;
 	g->x = 0;
 	g->y = (int16_t)y;
-	g->pitch = (int16_t)list_pitch(l);
+	g->pitch = (int16_t)ui_layout.row_h;
+#if CONFIG_UI_PROFILES
+	if (l->roomy) {
+		g->x = 7;
+		g->pitch += 10;
+	}
+#endif
 	int rows = (y_end - y) / g->pitch;
 	if (rows < 1)
 		rows = 1;
@@ -4940,8 +4948,6 @@ static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_ge
 	g->col_gap = 0;
 	g->paged = false;
 #if CONFIG_UI_PROFILES
-	if (l->roomy)
-		g->x = 7;
 	if (l->two_columns) {
 		rows = 3;
 		g->pitch = (int16_t)((y_end - y) / rows);
@@ -4990,7 +4996,9 @@ static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_ge
 #endif
 }
 
-// The reference theme's row: the focus as a filled bar, the key's digit, the label and its value
+// The reference theme's row: the focus as a filled bar, the key's digit, the label and its value. The profile look's
+// (l->roomy): each row a rounded panel with an accent bar on the focus, an icon on its top-level menus, and in the grid
+// (the geometry's two columns) the digit centered and a long label on two lines
 static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
 {
 	const ui_layout_t *L = &ui_layout;
@@ -4998,15 +5006,16 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 	int pitch = c->h;
 	bool paginated = false;
 	bool main_menu = false;
-	int inset = 0, gap = 0;
+	bool panel = false;	// the profile look: the row is a panel
+	int gap = 0;
 	color_t disabled = ui_col.line;
 #if CONFIG_UI_PROFILES
 	bool two_columns = g->cols > 1;
 	paginated = two_columns && l->count > g->rows * g->cols;
 	main_menu = l->main_menu;
-	inset = g->x;
-	if (inset) {
-		gap = l->roomy ? 4 : 2;
+	panel = l->roomy;
+	if (panel) {
+		gap = 4;
 		disabled = ui_col.dim;
 	}
 #else
@@ -5024,7 +5033,7 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 	if (focus) {
 		color_t bg = (it->flags & UI_ITEM_EDIT) ? ui_col.warn : ui_col.focus;
 #if CONFIG_UI_PROFILES
-		if (inset) {
+		if (panel) {
 			profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap,
 				    it->flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
 			gfx_fill(c->x + 2, c->y + gap + 5, 2, pitch - 2 * gap - 10, ui_col.fg);
@@ -5034,11 +5043,11 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 		fg = gfx_bpp() == 1 ? ui_col.bg : (it->flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
 		vfg = fg;
 #if CONFIG_UI_PROFILES
-	} else if (inset && !(it->flags & UI_ITEM_INFO)) {
+	} else if (panel && !(it->flags & UI_ITEM_INFO)) {
 		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, profile_row_bg);
 #endif
 	}
-	int x = inset ? c->x + 5 : 1;
+	int x = panel ? c->x + 5 : 1;
 #if CONFIG_UI_PROFILES
 	if (l->menu_icons && it->icon != UI_MENU_ICON_NONE) {
 		draw_menu_icon(it->icon, x, c->y + (pitch - 13) / 2);
@@ -5047,7 +5056,7 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 			x += two_columns ? f->w + 3 : 2 * f->w;
 	}
 #endif
-	int right = c->x + c->w - (paginated ? 3 : inset ? 5 : 0);
+	int right = c->x + c->w - (paginated ? 3 : panel ? 5 : 0);
 	const font_t *row_font = f;
 	int digit_gap = main_menu ? 5 : 3;
 	if (main_menu && gfx_text_width(f, it->label) + (it->num ? f->w + digit_gap : 0) > right - x) {
@@ -5097,7 +5106,8 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 		 (it->flags & UI_ITEM_PREVIEW) != 0);
 }
 
-// The reference theme's scroll marks, over the rows: more above / below
+// The reference theme's scroll marks, over the rows: more above / below. The profile look's grid (the geometry's two
+// columns) shows its page in the title instead
 static void reference_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t count, bool over)
 {
 	int w = gfx_width();
@@ -5134,7 +5144,8 @@ static void reference_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t cou
 		gfx_fill(w - 3, g->y + g->rows * g->pitch - 2, 3, 2, ui_col.dim);
 }
 
-// The theme's three ops for the cells of a list
+// The theme's three ops for the cells of a list. Its geometry is brought into the bounds ui_theme.h gives: the frame
+// divides by the rows and by the cells on screen and reads a width for each column
 static void list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 {
 	const ui_theme_ops_t *o = ui_theme_cur()->ops;
@@ -5142,6 +5153,12 @@ static void list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g)
 		o->list_geom(l, y, y_end, g);
 	else
 		reference_list_geom(l, y, y_end, g);
+	if (g->rows < 1)
+		g->rows = 1;
+	if (g->cols < 1)
+		g->cols = 1;
+	if (g->cols > UI_LIST_COLS)
+		g->cols = UI_LIST_COLS;
 }
 
 static void list_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)

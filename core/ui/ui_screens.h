@@ -277,7 +277,9 @@ typedef struct {
 	const char *empty;		// shown when count is 0
 	const char *hint;
 #if CONFIG_UI_PROFILES
-	bool roomy;			// a larger left-aligned heading and taller rows
+	// The profile look draws this list: a larger left-aligned heading and taller rows, each a panel. The one field the
+	// list drawing takes the look from (the screen sets it from ui_state_t.gui_profiles); the four below add to it
+	bool roomy;
 	bool menu_icons;		// first-level Menu and Settings only
 	bool two_columns;		// first-level Menu and Settings on a wide profile display
 	bool main_menu;			// larger three-row tiles
@@ -291,8 +293,6 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 // status strip only while the radio isn't idle. Returns the largest *first (0: all fits)
 int ui_draw_text_page(const radio_view_t *v, const ui_state_t *s, const char *title, const char *text,
 	uint16_t *first, bool labels);
-// Rows that fit below the title (and header) on this display, for paging
-int ui_list_rows(const ui_list_t *l);
 // The list's body fits above its rows as ui_draw_list draws it, without being shortened
 bool ui_list_body_fits(const ui_state_t *s, const ui_list_t *l);
 

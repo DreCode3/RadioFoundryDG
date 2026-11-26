@@ -16,7 +16,9 @@
 #define UI_THEME_SELECT	0
 #endif
 
-// The bottom row's text (ops->bottom)
+// The bottom row's text (ops->bottom). The two list flags carry ui_list_t.roomy and .numbered, fields that exist only
+// with CONFIG_UI_PROFILES, to the one piece of code that reads them, which is built only with it. So they follow the
+// switch too: without it nothing would set or test them
 #define UI_BAR_TOAST	0x01u	// a toast, not key hints (the value of ui_draw_hint's toast)
 #if CONFIG_UI_PROFILES
 #define UI_BAR_LIST	0x02u	// under a roomy list (ui_list_t.roomy)
@@ -24,12 +26,14 @@
 #endif
 
 // Where a list's cells go (ops->list_geom). The shared list code (ui_draw_list) picks the cells on screen from it and
-// moves the list; the first column is filled first
+// moves the list; the first column is filled first. The op sets every field. rows is at least 1 and cols is 1 to
+// UI_LIST_COLS: ui_draw_list brings anything else into that range, so a theme's mistake shows as a wrong layout
+#define UI_LIST_COLS	2
 typedef struct {
 	const font_t *font;	// the rows' text
 	int16_t x, y;		// the first cell's corner
 	int16_t pitch;		// from one row to the next: a cell's height
-	int16_t col_w[2];	// each column's width
+	int16_t col_w[UI_LIST_COLS];	// each column's width
 	int16_t col_gap;	// between columns
 	uint8_t rows, cols;	// cells on screen: rows * cols
 	bool paged;		// the list moves a page at a time, not a row
@@ -53,8 +57,8 @@ typedef struct ui_theme_ops {
 	// screen's content starts
 	int (*top)(const radio_view_t *v, radio_state_t st, const ui_state_t *s, const char *prefix, const char *name);
 	// The bottom row: key hints (groups separated by two spaces, with text alternates) or a toast. soft_key: the label
-	// of Home's assigned soft key, NULL without one. Plain arguments, no struct: the UI task's deepest path runs
-	// through here (docs/dev/stack-check.md), and a caller's struct would be a frame more on it
+	// of Home's assigned soft key, NULL without one. Plain arguments, no struct: ui_draw_hint has only the text and
+	// the flag, and a struct would be built in the frame of every screen that draws a hint
 	void (*bottom)(const char *text, uint8_t flags, const char *soft_key);
 	// The banner, if one is up, over the lower part of the screen
 	void (*banner)(const ui_state_t *s);
@@ -67,7 +71,9 @@ typedef struct ui_theme_ops {
 	void (*quick)(const radio_view_t *v, const ui_state_t *s);
 	// A list screen. ui_draw_list owns its frame (the body text, which cells are on screen, the banner, the bottom row)
 	// and calls these four.
-	// The strip and the title; returns the y below them. draw false: only measure (v and s are NULL)
+	// The strip and the title; returns the y below them. draw false: only measure (v and s are NULL). With draw true
+	// it is the first thing drawn after the screen is cleared: a theme whose rows or icons need palette entries of
+	// their own on a 16-color display takes them here (gfx_reserve_colors), before the strip's shades use them up
 	int (*list_head)(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw);
 	// Where the cells go, between y and y_end
 	void (*list_geom)(const ui_list_t *l, int y, int y_end, ui_list_geom_t *g);
