@@ -34,15 +34,18 @@ talkgroup. While you transmit, they show where **PTT** talks to and, if a transm
 The same place shows what needs attention when the radio is idle, such as **No TX frequency**. The text above these
 lines stays where it is.
 
-The status bar at the top is the same on every screen. When it has more to show than fits, the items at the end of
-this list give way first, and none is drawn over another: battery, TX or NO TX, signal, mode, lock, encryption key,
-scan, monitor, unread message, GPS, IP, power, receive-only, VOX, the GPS clock, Dual Watch, roaming. The mode moves
-to a smaller size before anything gives way.
+The status bar at the top is the same on every screen, except that Home's has no mode: Home's mode bar shows it.
+When the status bar has more to show than fits, the items at the end of this list give way first, and none is drawn
+over another: battery, TX or NO TX, signal, mode, lock, encryption key, scan, monitor, unread message, the GPS clock,
+GPS, IP, power, receive-only, VOX, Dual Watch, roaming. The mode moves to a smaller size before anything gives way. On
+Home, a GPS clock the status bar has no room for is shown in the mode bar.
 
 The bottom bar has two labels, one over each soft key: **OK** and **Back** (on Home, **Menu** and the right soft
-key's function) where they do something. With **Settings > Display > Hint row** on, the line above the bar shows the
-rest of the hint: the other keys (**#**, **\***, the number keys, **PTT**, a key you hold) and what **OK** and **Back**
-do on that screen, such as "OK save  Back cancel".
+key's function) where they do something. While the keys are locked, Home's bar says how to unlock them instead. With
+**Settings > Display > Hint row** on, the line above the bar shows what the bar can't: the other keys (**#**, **\***,
+the number keys, **PTT**, a key you hold) and what **OK** and **Back** do when it isn't their usual job, such as
+"OK save  Back cancel" while you change a value or "Back stop scan". With Hint row off, the bar stays and only that
+line goes.
 
 | Place | Indicator | Meaning |
 |---|---|---|
@@ -65,7 +68,8 @@ do on that screen, such as "OK save  Back cancel".
 | Status bar, right | Battery | Filled segments show charge. The icon changes color at the low battery threshold |
 
 With **Settings > Display > GPS clock** on, the status bar shows the date and UTC time on every screen, where it has
-room. The clock appears once a valid fix supplies date and time, and goes when the fix is lost.
+room (on Home, in the mode bar when the status bar is full). The clock appears once a valid fix supplies date and
+time, and goes when the fix is lost.
 **Day/Night** changes the palette on Home and in menus. See [Display settings](17-settings.md#display-key-1) for
 defaults.
 
