@@ -357,6 +357,20 @@ class PrototypeTest(unittest.TestCase):
         label_rows = [y for y in range(202, 236)
                       if any(min(frame[y][x * 3:x * 3 + 3]) > 220 for x in range(15, 99))]
         self.assertGreaterEqual(max(label_rows) - min(label_rows) + 1, 18)
+    def test_theme_switch_applies_the_colors_again(self):
+        # Colors belongs to the reference theme. Light set in Original, then Panels and back to Original: the switch
+        # applies the appearance settings again, so Home is light, not the dark it would keep without that
+        light = ("ok 8 1 ok row:Original ok row:Colors ok row:Light ok up ok row:Panels ok ok row:Original ok "
+                 "long:back expect:screen=home")
+        for x, y in ((250, 130), (150, 180)):
+            self.assertEqual(self.render_frame(light)[y][x * 3:x * 3 + 3], b"\xff\xff\xff")
+        self.assertEqual(self.render_frame("ok 8 1 ok row:Original ok long:back")[130][750:753], b"\x00\x00\x00")
+
+    def test_find_lists_settings_before_radio_info(self):
+        # Find's three settings rows: "GPS" lists GPS clock, GPS and Answer GPS requests, Radio info's GPS value
+        # after them and so left out
+        self.run_script("4 7 7 row:Answer_GPS_requests ok expect:screen=group expect:focus=Answer_GPS_requests")
+
     def test_menu_pages_and_footer_match_home(self):
         self.run_script("ok expect:shows=OK expect:shows=Back expect:hides=1-8_open expect:shows=Settings "
                         "down down down down down down down expect:focus=Settings ok expect:screen=settings "

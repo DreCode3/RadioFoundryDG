@@ -184,6 +184,14 @@ static const flow_t flows[] = {
 	{ "Find: Connections as tools", "", "8 6 6 5 7 ok", "screen=connections", 6, false },
 	// A typed number: Use TG 91 and Private call 91
 	{ "Find: a number offers Use TG", "", "9 1", "screen=find focus=Use_TG_91 shows=Private_call_91", 2, false },
+	// The action rows: "Use TG 3100" for the talkgroup a call was heard on, "Use 9991500" after a private call
+	{ "Caller actions: Use their talkgroup", "rx:9991234,3100,g,Morgan_Reed wait:4000", "ctx",
+	  "screen=actions focus=Use_TG_3100", 1, false },
+	{ "Caller actions after a private call: Use them", "privcall:9991500,Maria wait:4000", "ctx",
+	  "screen=actions focus=Use_9991500", 1, false },
+	// Radio info's values come after the settings to change: "codeplug" lists TFTP codeplug write first
+	{ "Find: settings before Radio info's values", "", "2 6 3 3 7 5 8", "screen=find focus=TFTP_codeplug_write", 7,
+	  false },
 	// A row with several values opens a pick list, the value in use checked and focused; OK takes the focused one,
 	// Back leaves it as it was. An on/off row flips on OK
 	{ "Pick list: the value in use", "ok 8 4 row:TX_timeout", "ok",
@@ -971,6 +979,8 @@ static const flow_t flows[] = {
 	{ "S DMR ID opens", "", "ok 8 9 row:DMR_ID_and_name ok", "screen=dmr-id shows=DMR_ID", 7, false },
 	{ "S About from My radio", "", "ok 8 up ok row:About ok", "screen=about shows=Build:", 8, false },
 	{ "S DMR ID typed and saved", "ok 8 9 row:DMR_ID_and_name ok", "9 9 9 9 9 9 9 ok", "set76=9999999 toast=DMR_ID_saved", 8, false },
+	{ "S Radio info shows the DMR ID", "ok 8 9 row:DMR_ID_and_name ok 9 9 9 9 9 9 9 ok long:back", "ok 8 up ok row:DMR_ID",
+	  "screen=group focus=DMR_ID shows=9999999", 5, false },
 	{ "S DMR ID: BACK takes a digit back", "ok 8 9 row:DMR_ID_and_name ok", "3 1 back ok", "set76=3 toast=DMR_ID_saved", 4, false },
 	{ "S DMR ID: BACK with none typed leaves it", "ok 8 9 row:DMR_ID_and_name ok 9 9 9 9 9 9 9 ok", "3 1 back back back",
 	  "set76=9999999 screen=dmr-id shows=9999999", 5, false },
