@@ -44,7 +44,7 @@ void gfx_clip(int x, int y, int w, int h);
 void gfx_clip_off(void);
 
 void gfx_pixel(int x, int y, color_t c);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 // Blend foreground coverage from 0 (transparent) to 3 (solid) at one native pixel.
 void gfx_coverage_pixel(int x, int y, color_t fg, unsigned coverage);
 #endif
@@ -69,7 +69,7 @@ void gfx_fb_rect(gfx_fb_rect_t *r);
 // bpp 4 the palette (0 for an entry not set), bpp 1 the paper (0) and ink (1) of the UI gallery's screenshots, bpp 16
 // 0
 color_t gfx_palette(uint8_t i);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 // Reserve solid colors for the current frame before anti-aliased text can consume their palette slots.
 void gfx_reserve_colors(const color_t *colors, size_t count);
 #endif
@@ -101,7 +101,7 @@ int gfx_text(const font_t *f, int x, int y, const char *s, color_t fg);
 // The same with each glyph cell filled with bg first
 int gfx_text_bg(const font_t *f, int x, int y, const char *s, color_t fg, color_t bg);
 int gfx_text_width(const font_t *f, const char *s);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 // Center an enlarged, emboldened title on cx, with its baseline at y. False if it can't fit in max_w.
 bool gfx_text_title(const font_t *f, int cx, int y, int max_w, const char *s, color_t fg, int height_quarters);
 #endif

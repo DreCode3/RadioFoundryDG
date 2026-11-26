@@ -235,7 +235,7 @@ typedef struct {
 	uint16_t hdop10;	// horizontal dilution x 10, 0xFFFF unknown
 	uint16_t speed_kmh, course;	// 0xFFFF unknown
 	uint32_t utc_hms;	// hhmmss, 0xFFFFFFFF unknown
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	uint32_t utc_ymd;	// YYYYMMDD from a recent RMC fix, 0 unknown
 	uint32_t utc_clock_hms;	// hhmmss from the same RMC sentence
 #endif

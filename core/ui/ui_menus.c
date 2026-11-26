@@ -103,7 +103,7 @@ static void hub_item(uint16_t i, ui_item_t *it)
 	uint8_t e = hub_entry(i);
 	str_copy(it->label, sizeof it->label, tr(names[e]));
 	item_num(it, e);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	static const uint8_t icons[] = {
 		UI_MENU_ICON_CALLER, UI_MENU_ICON_CONTACTS, UI_MENU_ICON_MESSAGES, UI_MENU_ICON_RECENT,
 		UI_MENU_ICON_ZONES, UI_MENU_ICON_CHANNELS, UI_MENU_ICON_TOOLS, UI_MENU_ICON_SETTINGS,
@@ -956,7 +956,7 @@ static void msg_enter(void)
 	l.name = msg_title();
 	l.body = msg_body();
 	l.count = MV_COUNT;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	l.roomy = ui_st.gui_profiles;
 #endif
 	if (!ui_list_body_fits(&ui_st, &l))
@@ -6597,7 +6597,7 @@ static const ui_scr_def_t tools_screen = {
 
 typedef enum {
 	ST_TOGGLE, ST_LIST, ST_NUMBER, ST_ACTION,
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	ST_CHOICE,
 #endif
 } set_type_t;
@@ -6631,7 +6631,7 @@ typedef struct {
 	tr_id_t title;		// the group's page title, in Title Case (the name is its row in Settings)
 	const set_item_t *items;
 	uint8_t count;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	uint8_t icon;
 #endif
 } set_group_t;
@@ -6655,7 +6655,7 @@ static const tr_id_t n_accent[] = { TRN(VALUE_DEFAULT, "Default"), TRN(SET_VALUE
 	TRN(SET_VALUE_ACCENT_TEAL, "Teal"), TRN(SET_VALUE_ACCENT_LIGHT_BLUE, "Light blue"),
 	TRN(SET_VALUE_ACCENT_PURPLE, "Purple"), TRN(SET_VALUE_ACCENT_PINK, "Pink") };
 #endif
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static const int16_t v_display_choice[] = { 0, 1 };
 static const tr_id_t n_gui_profile[] = { TRN(SET_VALUE_PROFILE_COMMERCIAL, "Commercial"),
 	TRN(SET_VALUE_PROFILE_AMATEUR, "Amateur") };
@@ -6922,7 +6922,7 @@ static const set_item_t s_sigtones[] = {
 };
 #endif
 static const set_item_t s_display[] = {
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	DISPLAY_CHOICE(TRN(SET_LABEL_GUI_PROFILE, "Display Profile"), "home layout gui profile", UI_SET_GUI_PROFILE, n_gui_profile),
 	DISPLAY_CHOICE(TRN(SET_LABEL_DAY_NIGHT, "Day/Night"), "theme palette contrast", UI_SET_GUI_NIGHT, n_gui_mode),
 	DISPLAY_CHOICE(TRN(SET_LABEL_GPS_CLOCK, "GPS clock"), "date time UTC", UI_SET_GPS_CLOCK, n_gps_clock),
@@ -7127,7 +7127,7 @@ static const set_item_t s_advanced[] = {
 #endif
 };
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 #define GROUP_ICON(icon)	, UI_MENU_ICON_##icon
 #else
 #define GROUP_ICON(icon)
@@ -7176,7 +7176,7 @@ static uint16_t hwopt_visible(void)
 // shown disabled
 static bool set_hidden(const set_item_t *s)
 {
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->type == ST_CHOICE)
 		return !ui_st.gui_profiles || (s->id == UI_SET_GPS_CLOCK && !(feats() & UI_FEAT_GPS));
 	if (ui_st.gui_profiles && s->type != ST_ACTION &&
@@ -7268,7 +7268,7 @@ static void settings_item(uint16_t i, ui_item_t *it)
 	if (groups[i].items == NULL)
 		it->flags |= UI_ITEM_DIM;	// the Privacy placeholder
 #endif
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	it->icon = groups[i].icon;
 #endif
 }
@@ -7508,7 +7508,7 @@ static const set_item_t *set_item_at(uint16_t i)
 static uint8_t set_key_next(const set_item_t *s, uint8_t at)
 {
 	uint8_t next = (uint8_t)((at + 1u) % s->n);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (ui_st.gui_profiles && s->values[next] == KEYFN_TALK_LABEL)
 		next = (uint8_t)((next + 1u) % s->n);
 #endif
@@ -7546,7 +7546,7 @@ static void set_value_text(const set_item_t *s, int32_t v, char *out, size_t len
 		sb_str(&b, v ? TR(VALUE_ON, "On") : TR(VALUE_OFF, "Off"));
 		break;
 	case ST_LIST:
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	case ST_CHOICE:
 #endif
 #if CONFIG_KEY_ASSIGN
@@ -7748,7 +7748,7 @@ static void group_select(uint16_t i, bool hold)
 	case ST_TOGGLE:
 		set_store(s, !v);
 		break;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	case ST_CHOICE:
 		ui_push(SCR_DISPLAY_CHOICE, (uint16_t)(s - s_display));
 		return;
@@ -8305,7 +8305,7 @@ static const ui_scr_def_t lang_screen = {
 	.count = lang_list_count, .item = lang_list_item, .select = lang_list_select, .enter = lang_list_enter,
 };
 
-#if CONFIG_UI_SETTINGS && CONFIG_UI_PROFILES
+#if CONFIG_UI_SETTINGS && CONFIG_UI_THEME_PANELS
 static const set_item_t *display_choice(void) { return &s_display[ui_frame()->arg]; }
 static const char *display_choice_title(void) { return tr(display_choice()->name); }
 static uint16_t display_choice_count(void) { return display_choice()->n; }
@@ -8411,7 +8411,7 @@ const ui_scr_def_t *const ui_scr[SCR_COUNT] = {
 #if CONFIG_UI_SETTINGS && CONFIG_SIG_TONES
 	[SCR_SIG_CHAIN] = &sc_screen,
 #endif
-#if CONFIG_UI_SETTINGS && CONFIG_UI_PROFILES
+#if CONFIG_UI_SETTINGS && CONFIG_UI_THEME_PANELS
 	[SCR_DISPLAY_CHOICE] = &display_choice_screen,
 #endif
 #if CONFIG_APRS_AFSK

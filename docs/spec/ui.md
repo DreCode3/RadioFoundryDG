@@ -613,7 +613,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 | `CONFIG_GPS_SKY` | = GPS and APRS | Tools > Position is a page of text instead of the GPS screen (2.3) and the satellite sentences aren't read (about 5.2 KB, 176 B of RAM) |
 | `CONFIG_LANG_ES` | y | Spanish is listed dimmed in Settings > Display > Language (2.5); without any language the lookup and the fonts' Latin-1 glyphs are left out |
 | `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Theme, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 600 B). For radios whose only screen is monochrome |
-| `CONFIG_UI_PROFILES` | n | Off keeps the existing Home layout, status strip and color settings. On enables the profile layout when `UI_FEAT_GUI_PROFILES` is set and the color display is 240 px high with at least 310 drawable pixels across |
+| `CONFIG_UI_THEME_PANELS` | n | Off keeps the existing Home layout, status strip and color settings. On enables the profile layout when `UI_FEAT_GUI_PROFILES` is set and the color display is 240 px high with at least 310 drawable pixels across |
 
 Screens for features that are off (`CONFIG_DMR`, `CONFIG_HOTSPOT`, `CONFIG_VFO_FM`, `CONFIG_VFO_DMR`, `CONFIG_SCAN`, data features) are
 left out or dimmed with the feature. Some radios' default images have only a few KB free (`docs/feature-matrix.md`); the UI was about 50 KB when last measured (`gfx` + fonts about 11 KB, screens and behavior the rest). The frame buffer (40 KB by default) bounds the display: 240x320 at
@@ -756,7 +756,7 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   least 5:1 on its strip after RGB565 rounding. The shades are light so black
   text reads on them (at least 7.5:1 after RGB565 rounding); the red is lighter and pinker than TX's red, and there is
   no green, which would hide the RX pill. Gallery: `home_dmr*`, `home_plain`, `channels*` (section 7).
-- `CONFIG_UI_PROFILES` enables Commercial (default) and Amateur on color displays with a 240 px drawable height
+- `CONFIG_UI_THEME_PANELS` enables Commercial (default) and Amateur on color displays with a 240 px drawable height
   and at least 310 px of drawable width after insets. Other geometries use the standard layout. Both profiles
   show the zone and prefer a named talk target. Use the target ID if it has no name, the channel label if there is
   no target, or the frequency when tuning the VFO. Amateur also shows channel and tuning details.

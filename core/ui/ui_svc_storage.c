@@ -79,7 +79,7 @@ static uint16_t clamp16(int32_t v, int32_t lo, int32_t hi)
 }
 
 // The UI's on / off settings kept as settings_t.ui_flags bits (0: not one of them)
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static uint8_t gui_flag(uint8_t id)
 {
 	switch (id) {
@@ -326,7 +326,7 @@ static __attribute__((noinline)) int32_t setting_get_flash(uint8_t id)
 		return (SETTINGS_FIELD(ui_flags) & SETTINGS_UI_NO_VIBRATE) == 0;
 	case UI_SET_THEME:
 		return settings_theme_of(SETTINGS_FIELD(theme));
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	case UI_SET_GUI_PROFILE:
 	case UI_SET_GUI_NIGHT:
 	case UI_SET_GPS_CLOCK:
@@ -504,7 +504,7 @@ bool ui_svc_setting_set(uint8_t id, int32_t value)
 					 st->ui_flags | SETTINGS_UI_NO_VIBRATE);
 		settings_end(hal_millis());
 		return true;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	case UI_SET_GUI_PROFILE:
 	case UI_SET_GUI_NIGHT:
 	case UI_SET_GPS_CLOCK: {

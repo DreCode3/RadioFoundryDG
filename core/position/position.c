@@ -30,7 +30,7 @@ static struct {
 	bool gps_off;		// Settings > Location > GPS is off: the board's fix doesn't count (position_gps_enable)
 	bool gps_heard;		// the board GPS has sent a valid sentence (fix or not), last at gps_heard_ms
 	uint32_t gps_heard_ms;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	uint32_t gps_clock_ms;
 	uint32_t gps_utc_ymd, gps_utc_hms;
 #endif
@@ -341,7 +341,7 @@ bool position_now(int32_t *lat, int32_t *lon, uint32_t *err_m, bool *dmr_gps, ui
 }
 
 #if CONFIG_GPS || CONFIG_POSITION_HOST
-#if CONFIG_GPS && CONFIG_UI_PROFILES
+#if CONFIG_GPS && CONFIG_UI_THEME_PANELS
 // RMC carries the date and time together. GGA reports just the time, so it cannot advance this clock.
 static uint32_t gps_date(uint32_t date, uint32_t hms)
 {
@@ -396,7 +396,7 @@ void position_nmea(const char *s, size_t n, bool gps, uint32_t now_ms)
 		UNLOCK();
 		return;
 	}
-#if CONFIG_GPS && CONFIG_UI_PROFILES
+#if CONFIG_GPS && CONFIG_UI_THEME_PANELS
 	if (gps && !x.fix)
 		p.gps_utc_ymd = 0;
 	else if (gps && x.kind == NMEA_RMC) {
@@ -454,7 +454,7 @@ void position_gps_enable(bool on)
 		p.gps_heard = false;
 		p.gps.utc_date_valid = false;
 		p.gps.utc_time_valid = false;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		p.gps_utc_ymd = 0;
 #endif
 #if CONFIG_GPS_SKY
@@ -483,7 +483,7 @@ bool position_gps(position_gps_t *out, uint32_t now_ms)
 		out->speed_kmh = p.gps.f.speed_kmh;
 		out->course = p.gps.f.course;
 		out->utc_hms = p.gps.f.utc_hms;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		out->utc_ymd = out->fix && (int32_t)(now_ms - p.gps_clock_ms) < (int32_t)POSITION_STALE_MS ?
 			      p.gps_utc_ymd : 0;
 		out->utc_clock_hms = out->utc_ymd != 0 ? p.gps_utc_hms : 0;

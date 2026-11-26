@@ -28,7 +28,7 @@ static uint8_t ui_palette;	// the palette in use: UI_THEME_* (what Settings > Di
 static uint8_t ui_accent;	// UI_ACCENT_*
 static bool ui_strip_fill;
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 #define PROFILE_BAND_H 29
 #define PROFILE_COMMERCIAL_STATUS_H 36
 #define PROFILE_HOME_GAP 3
@@ -177,18 +177,18 @@ void ui_theme_set(uint8_t theme)
 {
 	const ui_theme_t *t = ui_theme_cur();
 	if (!CONFIG_UI_COLOR || (theme >= t->palette_count
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	    && theme != UI_THEME_PROFILE_DAY && theme != UI_THEME_PROFILE_NIGHT
 #endif
 	   ))
 		theme = UI_THEME_DARK;	// without color settings: the dark theme only
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	bool was_profile = profile_theme();
 #endif
 	ui_palette = theme;
 	if (gfx_bpp() == 1)
 		return;		// ink on paper whatever the theme
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (profile_theme()) {
 		profile_palette(theme == UI_THEME_PROFILE_NIGHT);
 		if (!was_profile && ui_layout.small != NULL)
@@ -228,7 +228,7 @@ static void layout_regions(ui_layout_t *L)
 	bool tall = h >= UI_TALL_PX;
 	L->strip_h = L->small->h + 1;
 	L->hint_y = h - L->small->h;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (profile_theme()) {
 		L->strip_h = PROFILE_BAND_H;
 		L->hint_y = profile_footer_top();
@@ -479,7 +479,7 @@ static bool strip_fits(const font_t *f, int lx, int rx, const char *word)
 	return lx + gfx_text_width(f, word) + 2 * f->w <= rx;
 }
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 #include "ui_profile_icons.h"
 
 typedef struct { int x, y, scale; } profile_mark_pos_t;
@@ -1087,7 +1087,7 @@ static int reference_top(const radio_view_t *v, radio_state_t st, const ui_state
 {
 	if (!draw)
 		return reference_top_y(prefix != NULL || name != NULL);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->gui_profiles)
 		return draw_profile_top(v, st, s, prefix, name);
 #endif
@@ -1389,7 +1389,7 @@ static bool alt_mark(char c)
 	return c == TEXT_ALT_OPEN[0] || c == TEXT_ALT_NEXT[0] || c == TEXT_ALT_CLOSE[0];
 }
 
-#if CONFIG_UI_PROFILES || CONFIG_KEY_ASSIGN
+#if CONFIG_UI_THEME_PANELS || CONFIG_KEY_ASSIGN
 static void secondary_hint_split(char *left, char *right, size_t cap, bool quick_only)
 {
 	// Use Quick before the last-caller shortcut. With an assigned soft key, only remove Quick
@@ -1437,7 +1437,7 @@ static bool board_has_digits(void)
 	return false;
 }
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static void compact_menu_hint(char *left, bool numbered)
 {
 	for (char *group = left; *group;) {
@@ -1516,7 +1516,7 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 	color_t bg = toast ? ui_col.fg : ui_col.hint_bg;
 	color_t fg = toast ? ui_col.bg : ui_col.dim;
 	int text_y = L->hint_y;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (profile_theme()) {
 		inset = PROFILE_HOME_INSET;
 		top = profile_footer_top();
@@ -1560,7 +1560,7 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 			y -= f->h;
 			top = overlay_top(y, inset ? inset + 5 : 0, inset ? inset + 5 : 0);
 		}
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (inset)
 			profile_pane(top, gfx_height() - PROFILE_HOME_INSET - top, bg);
 		else
@@ -1573,7 +1573,7 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 		}
 		return;
 	}
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (inset)
 		profile_pane(top, h, bg);
 	else
@@ -1588,12 +1588,12 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 	int room = w - (inset ? 12 : 0);
 	for (int level = 0; more; level++) {
 		gfx_text_alt(text, level, form, sizeof form, &more);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (flags & UI_BAR_LIST)
 			compact_menu_hint(form, flags & UI_BAR_NUMBERED);
 #endif
 		hint_split(key_names(form, fit, sizeof fit, true), left, sizeof left, right, sizeof right);
-#if CONFIG_UI_PROFILES || CONFIG_KEY_ASSIGN
+#if CONFIG_UI_THEME_PANELS || CONFIG_KEY_ASSIGN
 		if (inset || soft_key != NULL)
 			secondary_hint_split(left, right, sizeof right, soft_key != NULL);
 #endif
@@ -1601,7 +1601,7 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 		rw = gfx_text_width(f, soft_key != NULL ? soft_key : right);
 		if (lw + (rw && lw ? f->w : 0) + rw <= room)
 			break;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (!more && inset && f != L->small) {
 			f = f == FONT_AA_LARGEST && f != &font_aa_12x24 ? &font_aa_12x24 : L->small;
 			text_y = top + (h - f->h) / 2;
@@ -1621,7 +1621,7 @@ static void reference_bottom(const char *text, uint8_t flags, const char *soft_k
 		lw = gfx_text_width(f, left);
 	}
 	int margin = lw + (rw && lw ? f->w : 0) + rw <= w - 2 ? 1 : 0;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (profile_theme() && lw + (rw && lw ? f->w : 0) + rw <= w - 30)
 		margin = 15 - inset;
 	else if (inset)
@@ -3318,7 +3318,7 @@ static void draw_home_large(const radio_view_t *v, const ui_state_t *s)
 	gfx_text(f, 0, y, fit, v->state == RS_TX ? ui_col.tx : v->state == RS_RX ? ui_col.rx : ui_col.fg);
 }
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static void fit_end(const font_t *f, const char *s, int max_w, char *out, size_t len);
 
 static void profile_center(const font_t *f, int y, const char *text, color_t c)
@@ -3753,7 +3753,7 @@ static bool profile_operational_home(const radio_view_t *v)
 
 static void reference_home(const radio_view_t *v, const ui_state_t *s)
 {
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->gui_profiles && !profile_operational_home(v)) {
 		draw_profile_home(v, s);
 		return;
@@ -3934,7 +3934,7 @@ static void dual_arrow(int x, int y, int ah, int aw, color_t c)
 
 static int dual_home_inset(const ui_state_t *s)
 {
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->gui_profiles)
 		return 12;
 #else
@@ -3953,7 +3953,7 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	bool tx = v->state == RS_TX && d->sel == i, rx = !tx && p->rx, sel = d->sel == i;
 	bool entry = s->entry && sel && p->vfo;
 	bool commercial = false;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	commercial = s->gui_profiles && s->gui_profile == 0;
 #endif
 	bool quiet = !rx && d->pane[!i].rx;	// the other pane has a call: this one steps back
@@ -4090,7 +4090,7 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 		}
 		sb_str(&b, caller[0] ? caller : TR(STATE_RECEIVING, "Receiving"));
 		c2 = ui_col.rx;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	} else if (commercial) {
 		sb_str(&b, p->target_label[0] ? p->target_label : p->zone);
 #endif
@@ -4242,7 +4242,7 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 	sbuf_t b;
 	if (lines <= 0)
 		return;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->gui_profiles && v->state == RS_TX_DENIED) {
 		profile_center(sm, y, ui_deny_text(v, v->tx_deny, buf, sizeof buf), ui_col.warn);
 		return;
@@ -4290,7 +4290,7 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 		}
 	}
 	// Then the calls heard, newest first, as many as fit
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->gui_profiles)
 		return;	// the current alias is only a live receiving indication on the profile Homes
 #endif
@@ -4362,7 +4362,7 @@ static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
 	int bottom = L->hint_y;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	gfx_clear(s->gui_profiles ? profile_home_gutter : ui_col.bg);
 	int top = draw_home_status(v, s);
 	if (s->gui_profiles) {
@@ -4381,7 +4381,7 @@ static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
 		int gap = gfx_height() >= UI_TALL_PX ? 6 : 2, pad;
 		dual_fit_t fit;
 		bool commercial = false;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		commercial = s->gui_profiles && s->gui_profile == 0;
 #endif
 		dual_choose(bottom - top, gap, commercial, &fit, &pad);
@@ -4399,7 +4399,7 @@ static void reference_home_dual(const radio_view_t *v, const ui_state_t *s)
 		int ay = top + 2 * ph + gap + 2;
 		dual_activity(v, s, ay, ft->act ? (bottom - ay) / sm->h : 0);
 	}
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->gui_profiles) {
 		profile_home_footer(s, dual_hint(v, s));
 		return;
@@ -4512,7 +4512,7 @@ static void reference_banner(const ui_state_t *s)
 {
 	int x0 = 0;
 	color_t bg = ui_col.hint_bg;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (s->gui_profiles) {
 		bg = ui_col.strip_bg;
 #if CONFIG_DUAL_WATCH
@@ -4535,7 +4535,7 @@ void ui_draw_banner(const ui_state_t *s)
 
 // --- List screens (Hub, Contacts, Find, Settings, ...): title, optional header and body, rows, hint ---
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 #define PROFILE_GEAR_OUTLINE RGB565(0, 0, 0)
 #define PROFILE_GEAR_FILL RGB565(148, 148, 148)
 
@@ -4583,7 +4583,7 @@ static int __attribute__((noinline)) profile_list_head(const radio_view_t *v, co
 // from l->roomy
 static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (draw && l->roomy)
 		profile_list_colors(l);
 	if (l->roomy && (l->prefix || l->name))
@@ -4595,7 +4595,7 @@ static int reference_list_head(const radio_view_t *v, const ui_state_t *s, const
 // With the profile look, noinline: its buffer stays out of list_top's frame. The stack check follows list_top from a
 // screen that only measures (ui_list_body_fits) on through the theme's head into the profile strip, one of the UI task's
 // deepest paths. Without that look the path is not among them, and a function of its own would only cost flash
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 __attribute__((noinline))
 #endif
 static void list_header(const char *header, int y)
@@ -4871,7 +4871,7 @@ bool ui_list_body_fits(const ui_state_t *s, const ui_list_t *l)
 	return true;
 }
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static void draw_menu_icon(uint8_t icon, int x, int y)
 {
 	if (icon == UI_MENU_ICON_SETTINGS) {
@@ -4951,7 +4951,7 @@ static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_ge
 	g->x = 0;
 	g->y = (int16_t)y;
 	g->pitch = (int16_t)ui_layout.row_h;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (l->roomy) {
 		g->x = 7;
 		g->pitch += 10;
@@ -4964,7 +4964,7 @@ static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_ge
 	g->col_w[1] = 0;
 	g->col_gap = 0;
 	g->paged = false;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (l->two_columns) {
 		rows = 3;
 		g->pitch = (int16_t)((y_end - y) / rows);
@@ -4978,7 +4978,7 @@ static void reference_list_geom(const ui_list_t *l, int y, int y_end, ui_list_ge
 	g->rows = (uint8_t)rows;
 	int inner_w = gfx_width() - 2 * g->x;
 	g->col_w[0] = (int16_t)inner_w;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (l->two_columns) {
 		int visible = 2 * rows;
 		bool paginated = l->count > visible;
@@ -5026,7 +5026,7 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 	bool panel = false;	// the profile look: the row is a panel
 	int gap = 0;
 	color_t disabled = ui_col.line;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	bool two_columns = g->cols > 1;
 	paginated = two_columns && l->count > g->rows * g->cols;
 	main_menu = l->main_menu;
@@ -5049,7 +5049,7 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 		vfg = ui_col.warn;
 	if (focus) {
 		color_t bg = (it->flags & UI_ITEM_EDIT) ? ui_col.warn : ui_col.focus;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (panel) {
 			profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap,
 				    it->flags & UI_ITEM_EDIT ? ui_col.warn : profile_row_focus);
@@ -5059,13 +5059,13 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 			gfx_fill(c->x, c->y + gap, c->w, pitch - 2 * gap, bg);
 		fg = gfx_bpp() == 1 ? ui_col.bg : (it->flags & UI_ITEM_EDIT) ? ui_col.pill_dark_fg : ui_col.focus_fg;
 		vfg = fg;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	} else if (panel && !(it->flags & UI_ITEM_INFO)) {
 		profile_row(c->x, c->y + gap, c->w, pitch - 2 * gap, profile_row_bg);
 #endif
 	}
 	int x = panel ? c->x + 5 : 1;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (l->menu_icons && it->icon != UI_MENU_ICON_NONE) {
 		draw_menu_icon(it->icon, x, c->y + (pitch - 13) / 2);
 		x += two_columns ? 16 : 19;
@@ -5095,7 +5095,7 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 	if (it->num) {
 		char n[3] = { it->num, ' ', 0 };
 		color_t num_ink = focus || gfx_bpp() == 1 ? fg : ui_col.dim;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (two_columns) {
 			n[1] = '\0';
 			int digit_w = row_font->w + 1;
@@ -5129,7 +5129,7 @@ static void reference_scroll(const ui_list_geom_t *g, uint16_t top, uint16_t cou
 {
 	int w = gfx_width();
 	int visible = g->rows * g->cols;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	if (g->cols > 1) {
 		// The page in the title, before the cells: its shades take their palette entries ahead of the cells' (gfx.c)
 		if (over || count <= visible)
@@ -5235,7 +5235,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		it.label[0] = it.value[0] = 0;
 		it.num = 0;
 		it.flags = 0;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		it.icon = UI_MENU_ICON_NONE;
 #endif
 		l->item(i, &it);
@@ -5253,7 +5253,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		ui_draw_hint(s->toast, true);
 	else if (s->hints && l->hint) {
 		uint8_t bar = 0;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		bar = (l->roomy ? UI_BAR_LIST : 0) | (l->numbered ? UI_BAR_NUMBERED : 0);
 #endif
 		draw_hint(l->hint, bar, NULL);

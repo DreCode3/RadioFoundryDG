@@ -17,10 +17,10 @@
 #endif
 
 // The bottom row's text (ops->bottom). The two list flags carry ui_list_t.roomy and .numbered, fields that exist only
-// with CONFIG_UI_PROFILES, to the one piece of code that reads them, which is built only with it. So they follow the
-// switch too: without it nothing would set or test them
+// with CONFIG_UI_THEME_PANELS, to the one piece of code that reads them, which is built only with it. So they follow
+// the switch too: without it nothing would set or test them
 #define UI_BAR_TOAST	0x01u	// a toast, not key hints (the value of ui_draw_hint's toast)
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 #define UI_BAR_LIST	0x02u	// under a roomy list (ui_list_t.roomy)
 #define UI_BAR_NUMBERED	0x04u	// ... whose rows the digit keys pick (ui_list_t.numbered)
 #endif

@@ -2344,7 +2344,7 @@ bool ui_svc_position(ui_position_t *out)
 	out->speed_kmh = 4;
 	out->course = 45;
 	out->utc_hms = gui_profiles ? 140800u : 123519u;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	out->utc_ymd = 20261121u;
 	out->utc_clock_hms = out->utc_hms;
 #endif
@@ -2859,7 +2859,7 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_LOW_BATTERY, 15);
 	ui_svc_setting_set(UI_SET_THEME, 0);
 	ui_svc_setting_set(UI_SET_GPS, gui_profiles);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	ui_svc_setting_set(UI_SET_GUI_PROFILE, 0);
 	ui_svc_setting_set(UI_SET_GUI_NIGHT, 0);
 	ui_svc_setting_set(UI_SET_GPS_CLOCK, 0);
@@ -3202,7 +3202,7 @@ static bool run_token(char *t, char *err, size_t len)
 	char *arg = strchr(t, ':');
 	if (arg != NULL)
 		*arg++ = 0;
-#if CONFIG_UI_PROFILES && defined(GFX_FIT_TRACE)
+#if CONFIG_UI_THEME_PANELS && defined(GFX_FIT_TRACE)
 	if (strcmp(t, "gui") == 0 && arg != NULL && gui_profiles) {
 		bool use_prototype = strcmp(arg, "prototype") == 0;
 		if (!use_prototype && strcmp(arg, "original") != 0) {

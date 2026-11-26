@@ -293,7 +293,7 @@ void gfx_pixel(int x, int y, color_t c)
 		span(x, x + 1, y, c);
 }
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 void gfx_coverage_pixel(int x, int y, color_t fg, unsigned coverage)
 {
 	x += ox;
@@ -405,7 +405,7 @@ void gfx_hline(int x, int y, int w, color_t c) { gfx_fill(x, y, w, 1, c); }
 void gfx_vline(int x, int y, int h, color_t c) { gfx_fill(x, y, 1, h, c); }
 
 // gfx_fill directly, not through the line helpers: one frame less on the deepest drawing path (stack-check.md)
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 void gfx_reserve_colors(const color_t *colors, size_t count)
 {
 #if GFX_INDEXED
@@ -767,7 +767,7 @@ int gfx_text(const font_t *f, int x, int y, const char *s, color_t fg)
 	return text(f, x, y, s, fg, false, 0);
 }
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static unsigned title_coverage(const uint8_t *row, int x, int glyph_bpp)
 {
 #if CONFIG_FONT_AA

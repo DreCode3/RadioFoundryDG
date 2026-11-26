@@ -4532,13 +4532,13 @@ static void test_position(void)
 	CHECK(position_utc_fields(&gps_date, &gps_utc, now));
 	CHECK(gps_date == 230394u && gps_utc == 123519u);
 #endif
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	CHECK(ui_svc_position(&up) && up.fix && up.utc_ymd == 0);	// GGA alone has no date
 #endif
 	position_nmea(rmc, strlen(rmc), true, now);
 	CHECK(ui_svc_position(&up) && up.fix && up.sats == 8 && up.lat_e7 == 481173000 && up.lon_e7 == 115166666);
 	CHECK(up.alt_ok && up.alt_m == 545 && up.course == 84);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	CHECK(up.utc_ymd == 20940323 && up.utc_clock_hms == 123519);
 #endif
 	position_cfg_t original_cfg;
@@ -4606,7 +4606,7 @@ static void test_position(void)
 	      lp.location.lonMinutes10000 == 310000);
 	CHECK(lp.location.speedKnots == 22 && lp.hasCourse && lp.courseDegrees == 84 && lp.utcYear == 2094 &&
 	      lp.utcMonth == 3 && lp.utcDay == 23 && lp.location.utcHours == 12 && lp.location.utcMinutes == 35);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	static const char *const bad_clock[] = {
 		"$GPRMC,,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*67",
 		"$GPRMC,bogus,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*0B",
@@ -6535,7 +6535,7 @@ static const hal_flash_map_t reset_map = {
 	.native_addr = 0x30000u, .native_size = 0x4000u,
 };
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static void test_display_profile_settings(void)
 {
 	sim_flash_create(0x40000u, &reset_map);
@@ -12222,7 +12222,7 @@ int main(void)
 #endif
 	test_dmr_data_glue();	// (last: the data service's state carries over)
 	test_factory_reset();
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	test_display_profile_settings();
 #endif
 #if CONFIG_RADIO_DETOUR

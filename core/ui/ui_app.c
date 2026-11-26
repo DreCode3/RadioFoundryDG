@@ -1952,7 +1952,7 @@ static void list_draw(const ui_scr_def_t *d)
 	l.empty = tr(d->empty);
 	l.hint = (d->flags & SF_HINT_FN) ? d->hint_fn() : tr(d->hint);
 	l.body = d->body != NULL ? d->body() : NULL;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	l.roomy = ui_st.gui_profiles;
 	l.menu_icons = l.roomy && (f->scr == SCR_HUB || f->scr == SCR_SETTINGS);
 	l.two_columns = l.menu_icons;
@@ -1996,7 +1996,7 @@ void ui_app_init(void)
 #endif
 	view = &view_none;
 	memset(&ui_st, 0, sizeof ui_st);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	// The profile layout needs a 240 px panel with room for its full status strip and caller line.
 	ui_st.gui_profiles = CONFIG_UI_COLOR && (ui_svc_features() & UI_FEAT_GUI_PROFILES) != 0 &&
 			     gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
@@ -2024,7 +2024,7 @@ void ui_app_init(void)
 					  UI_SET_UPDOWN_HOME, UI_SET_LABEL_FIRST, UI_SET_LOW_BATTERY, UI_SET_AUTO_OFF_MIN, UI_SET_THEME, UI_SET_ACCENT,
 					  UI_SET_STRIP, UI_SET_VIBRATE, UI_SET_VOLUME, UI_SET_LANGUAGE,
 					  UI_SET_KNOB_WHEN_LOCKED,
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 					  UI_SET_GUI_PROFILE, UI_SET_GUI_NIGHT, UI_SET_GPS_CLOCK,
 #endif
 #if CONFIG_DUAL_WATCH
@@ -2118,27 +2118,27 @@ void ui_apply_setting(uint8_t id, int32_t v)
 		ui_svc_ptt_block(ui_st.locked && !ui_st.ptt_locked);
 		break;
 	case UI_SET_THEME:
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (ui_st.gui_profiles)
 			break;
 #endif
 		ui_theme_set((uint8_t)v);
 		break;
 	case UI_SET_ACCENT:
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (ui_st.gui_profiles)
 			v = UI_ACCENT_DEFAULT;
 #endif
 		ui_accent_set((uint8_t)v);
 		break;
 	case UI_SET_STRIP:
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 		if (ui_st.gui_profiles)
 			v = 0;
 #endif
 		ui_strip_set(v != 0);
 		break;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	case UI_SET_GUI_PROFILE: ui_st.gui_profile = v == 1; break;
 	case UI_SET_GUI_NIGHT:
 		ui_st.gui_night = v == 1;
@@ -2344,7 +2344,7 @@ void ui_app_key(const input_event_t *ev)
 			return;
 #if CONFIG_DMR
 		case ACT_TALK_LABEL:
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 			if (ui_st.gui_profiles)
 				return;		// both profiles already lead with the talkgroup name
 #endif
@@ -2558,7 +2558,7 @@ __attribute__((noinline)) static void knob_tick(const radio_view_t *v)
 }
 #endif
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 static void profile_tick(const radio_view_t *v, uint32_t now_ms)
 {
 	if (!ui_st.gui_profiles)
@@ -2599,7 +2599,7 @@ bool ui_app_tick(const radio_view_t *v, uint32_t now_ms)
 	view = v;
 #endif
 	now = now_ms;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	profile_tick(v, now_ms);
 #endif
 	ui_st.now_ms = now_ms;

@@ -244,7 +244,7 @@ static void pane_fill(uint8_t i)
 		}
 		if (have_target) {
 			ui_sb_target(p->target, sizeof p->target, &t);
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 			if (t.id == 0xFFFFFFu)
 				str_copy(p->target_label, sizeof p->target_label, TR(VALUE_ALL_CALL, "All call"));
 			else if (!ui_name_is_id(t.name, t.id, !t.group))

@@ -59,7 +59,7 @@ typedef struct {
 	char name[CODEPLUG_NAME_LEN + 1];
 	char zone[CODEPLUG_NAME_LEN + 1];	// the zone's name, "VFO" for the VFO
 	char target[32];	// what PTT talks to here on DMR: "TG 3100 USA" ("" on FM: Home shows the frequency)
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	char target_label[CODEPLUG_NAME_LEN + 1];	// the target's label for Commercial Home
 #endif
 	char detail[24];	// the rest, short: "TS1 CC1" (DMR), "T100.0 25k" (FM)
@@ -139,7 +139,7 @@ typedef struct {
 #if CONFIG_KEY_ASSIGN
 	const char *home_soft_key_label;	// NULL without an assignable Back key, empty for Nothing
 #endif
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	bool gui_profiles;	// the display can use the Commercial and Amateur layouts
 	uint8_t gui_profile;	// 0 Commercial, 1 Amateur
 	bool gui_night;
@@ -210,7 +210,7 @@ extern ui_colors_t ui_col;
 // on black, for eyes adapted to the dark: it has no highlight color of its own choosing
 enum { UI_THEME_DARK, UI_THEME_LIGHT, UI_THEME_HIGH_CONTRAST, UI_THEME_NIGHT, UI_THEME_COUNT };
 // After ui_layout_init; a value out of range is the dark theme
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 enum { UI_THEME_PROFILE_DAY = UI_THEME_COUNT, UI_THEME_PROFILE_NIGHT };
 #endif
 void ui_theme_set(uint8_t theme);
@@ -244,7 +244,7 @@ void ui_draw_banner(const ui_state_t *s);
 #define UI_ITEM_INFO	0x10u	// a text line, not something to pick (never focused)
 #define UI_ITEM_PREVIEW	0x20u	// the label is the start of a longer text (a message): shortened at its end, not the middle
 
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 typedef enum {
 	UI_MENU_ICON_NONE, UI_MENU_ICON_SOUND, UI_MENU_ICON_DISPLAY, UI_MENU_ICON_TALK, UI_MENU_ICON_PRIVACY,
 	UI_MENU_ICON_LOCATION, UI_MENU_ICON_CONNECTIONS, UI_MENU_ICON_POWER, UI_MENU_ICON_KEYS, UI_MENU_ICON_LOCK,
@@ -259,7 +259,7 @@ typedef struct {
 	char value[44];		// may hold text alternates (font.h); an empty last alternate leaves the value out
 	char num;		// key shown before the label ('1'..'9', '0'), 0 = none
 	uint8_t flags;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	uint8_t icon;			// a top-level Menu or Settings entry
 #endif
 } ui_item_t;
@@ -276,7 +276,7 @@ typedef struct {
 	ui_item_fn item;
 	const char *empty;		// shown when count is 0
 	const char *hint;
-#if CONFIG_UI_PROFILES
+#if CONFIG_UI_THEME_PANELS
 	// The profile look draws this list: a larger left-aligned heading and taller rows, each a panel. The one field the
 	// list drawing takes the look from (the screen sets it from ui_state_t.gui_profiles); the four below add to it
 	bool roomy;
