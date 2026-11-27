@@ -435,7 +435,8 @@ static const char *act_title(void)
 }
 
 static const ui_scr_def_t actions_screen = {
-	.name = "actions", .flags = SF_LIST | SF_NUMBERED | SF_FIELD, .hint = TRN(ACT_HINT, "1-9 pick  PTT talk  Back"),
+	.name = "actions", .flags = SF_LIST | SF_NUMBERED | SF_FIELD, .hint = TRN(ACT_HINT, TEXT_ALT_OPEN "1-9 pick  PTT talk  Back"
+		TEXT_ALT_NEXT "1-9 pick  PTT talk" TEXT_ALT_CLOSE),
 	.count = act_count, .item = act_item, .select = act_select, .target = act_target, .title = act_title,
 };
 
@@ -972,7 +973,8 @@ static const char *msgs_hint(bool *ok_acts)
 	if (msg_row(focus, &aprs, &index)) {
 		ui_msg_t message;
 		if (aprs || (ui_svc_msg_get(index, &message) && !message.sent))
-			return TR(MSG_HINT_LIST, "OK open  # reply  Back");
+			return TR(MSG_HINT_LIST, TEXT_ALT_OPEN "OK open  # reply  Back"
+				TEXT_ALT_NEXT "OK open  # reply" TEXT_ALT_CLOSE);
 		return TR(HINT_OK_OPEN_BACK, "OK open  Back");
 	}
 	if (focus < msgs_count() && msgs_is_offer(focus))
@@ -2163,7 +2165,7 @@ static bool offer_waiting(void)
 #define ZONE_HINT	TRN(ZONE_HINT_CHANNELS_SHARE, TEXT_ALT_OPEN "OK go  # share  0-9 find" TEXT_ALT_NEXT "OK go  # share" TEXT_ALT_CLOSE)
 #define ZONE_CONTEXT	zone_context
 #else
-#define ZONE_HINT	TRN(ZONE_HINT_CHANNELS, "OK go  0-9 find  Back")
+#define ZONE_HINT	TRN(ZONE_HINT_CHANNELS, TEXT_ALT_OPEN "OK go  0-9 find  Back" TEXT_ALT_NEXT "OK go  0-9 find" TEXT_ALT_CLOSE)
 #define ZONE_CONTEXT	NULL
 #endif
 
@@ -3927,7 +3929,7 @@ static const ui_scr_def_t chinfo_screen = {
 	.name = "channel", .flags = SF_LIST | SF_OK_ACTS, .empty = TRN(CHAN_EMPTY_CHANNEL, "Empty channel"),
 #if CONFIG_CHANNEL_EDIT
 	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  Hold OK save  Back"
-		TEXT_ALT_NEXT "OK change  Hold OK save" TEXT_ALT_CLOSE),
+		TEXT_ALT_NEXT "OK change  Hold OK save" TEXT_ALT_NEXT "Hold OK save" TEXT_ALT_CLOSE),
 	.key = chinfo_key,
 #else
 	.hint = TRN(CHAN_HINT_TUNE, "OK tunes to it  Back"),
@@ -4230,7 +4232,7 @@ static bool ct_key(const input_event_t *ev)
 static const ui_scr_def_t contact_edit_screen = {
 	.name = "contactedit", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(CONTACT_TITLE_NEW, "New contact"),
 	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  Hold OK save  Back"
-		TEXT_ALT_NEXT "OK change  Hold OK save" TEXT_ALT_CLOSE),
+		TEXT_ALT_NEXT "OK change  Hold OK save" TEXT_ALT_NEXT "Hold OK save" TEXT_ALT_CLOSE),
 	.count = ct_count, .item = ct_item, .select = ct_select, .key = ct_key,
 };
 #endif
@@ -4727,7 +4729,8 @@ static const char *chpick_title(void) { return ui_frame()->arg == 0 ? TR(CHAN_LA
 	TR(CHAN_LABEL_RX_GROUP_LIST, "RX group list"); }
 
 static const ui_scr_def_t chpick_screen = {
-	.name = "chpick", .flags = SF_LIST | SF_FILTER, .hint = TRN(HINT_OK_PICK_FIND_BACK, "OK pick  0-9 find  Back"),
+	.name = "chpick", .flags = SF_LIST | SF_FILTER, .hint = TRN(HINT_OK_PICK_FIND_BACK,
+		TEXT_ALT_OPEN "OK pick  0-9 find  Back" TEXT_ALT_NEXT "OK pick  0-9 find" TEXT_ALT_CLOSE),
 	.empty = TRN(CHAN_EMPTY_NONE_STORED, "None stored"),
 	.count = ui_filter_count, .item = chpick_item, .select = chpick_select, .title = chpick_title,
 	.enter = chpick_enter,
@@ -6431,7 +6434,8 @@ static void crash_to_raw_each(ui_raw_fn fn, void *ctx, bool labels) { (void)labe
 
 static const ui_scr_def_t crash_to_screen = {
 	.name = "crash_to", .flags = SF_LIST | SF_FILTER, .prefix = TRN(CRASH_TITLE_SEND_TO, "Send to"),
-	.hint = TRN(HINT_FIND_OK_PICK_BACK, "0-9 find  OK pick  Back"),
+	.hint = TRN(HINT_FIND_OK_PICK_BACK, TEXT_ALT_OPEN "0-9 find  OK pick  Back"
+		TEXT_ALT_NEXT "0-9 find  OK pick" TEXT_ALT_CLOSE),
 	.empty = TRN(EMPTY_NO_CONTACTS_USE_QDMR, "No contacts: add them in qdmr"),
 	.count = ui_filter_count, .item = contacts_item, .select = crash_to_select,
 	.filter = &(const ui_filter_def_t){ .raw_count = contacts_raw_count, .raw_label = contacts_raw_label,
@@ -7809,7 +7813,8 @@ static bool sc_key(const input_event_t *ev)
 static void sc_enter(void) { sc_row = SIG_STEPS; }
 
 static const ui_scr_def_t sc_screen = {
-	.name = "sig-chain", .flags = SF_LIST | SF_OK_ACTS, .hint = TRN(SIG_HINT_TYPE_OK_NEXT_BACK, "0-9 type  OK next  Back"),
+	.name = "sig-chain", .flags = SF_LIST | SF_OK_ACTS, .hint = TRN(SIG_HINT_TYPE_OK_NEXT_BACK,
+		TEXT_ALT_OPEN "0-9 type  OK next  Back" TEXT_ALT_NEXT "0-9 type  OK next" TEXT_ALT_CLOSE),
 	.count = sc_count, .item = sc_item, .select = sc_select, .key = sc_key, .enter = sc_enter, .body = sc_body,
 	.title = sc_title,
 };
@@ -8731,7 +8736,7 @@ static const ui_scr_def_t picker_screen = {
 	.name = "picker", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS,
 	.prefix = TRN(PICKER_TITLE, TEXT_ALT_OPEN "Talkgroup / Contact" TEXT_ALT_NEXT "TG / Contact" TEXT_ALT_CLOSE),
 	.hint = TRN(PICKER_HINT, TEXT_ALT_OPEN "PTT once  OK use  Hold OK set"
-		TEXT_ALT_NEXT "OK use  Hold OK set" TEXT_ALT_CLOSE),
+		TEXT_ALT_NEXT "OK use  Hold OK set" TEXT_ALT_NEXT "Hold OK set" TEXT_ALT_CLOSE),
 	.count = picker_count, .item = picker_item, .select = picker_select, .context = picker_context,
 	.target = picker_target, .enter = picker_enter, .title = picker_title,
 };

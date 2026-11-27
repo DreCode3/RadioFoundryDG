@@ -1551,8 +1551,8 @@ msgstr "此结果无操作"
 
 #: core/ui/ui_find.c
 msgctxt "FIND_HINT"
-msgid "PTT talk  OK open  # more"
-msgstr "PTT 通话  OK 打开  # 更多"
+msgid "{PTT talk  OK open  # more|OK open  # more}"
+msgstr "{PTT 通话  OK 打开  # 更多|OK 打开  # 更多}"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_TITLE_STATUS"
@@ -1816,8 +1816,8 @@ msgstr "正在请求 "
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_HINT"
-msgid "1-9 pick  PTT talk  Back"
-msgstr "1-9 选  PTT 通话  返回"
+msgid "{1-9 pick  PTT talk  Back|1-9 pick  PTT talk}"
+msgstr "{1-9 选  PTT 通话  返回|1-9 选  PTT 通话}"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_BODY_CANNED_OK"
@@ -1926,8 +1926,8 @@ msgstr "新 APRS 消息"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_LIST"
-msgid "OK open  # reply  Back"
-msgstr "OK 打开  # 回复  返回"
+msgid "{OK open  # reply  Back|OK open  # reply}"
+msgstr "{OK 打开  # 回复  返回|OK 打开  # 回复}"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_OPEN_BACK"
@@ -2261,8 +2261,8 @@ msgstr "{OK 进入  # 共享  0-9 查找|OK 进入  # 共享}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_CHANNELS"
-msgid "OK go  0-9 find  Back"
-msgstr "OK 进入  0-9 查找  返回"
+msgid "{OK go  0-9 find  Back|OK go  0-9 find}"
+msgstr "{OK 进入  0-9 查找  返回|OK 进入  0-9 查找}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_EMPTY_NO_CHANNELS"
@@ -2611,8 +2611,8 @@ msgstr "空信道"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
-msgid "{OK change  Hold OK save  Back|OK change  Hold OK save}"
-msgstr "{OK 改  长按 OK 保存  返回|OK 改  长按 OK 保存}"
+msgid "{OK change  Hold OK save  Back|OK change  Hold OK save|Hold OK save}"
+msgstr "{OK 改  长按 OK 保存  返回|OK 改  长按 OK 保存|长按 OK 保存}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_TUNE"
@@ -2906,8 +2906,8 @@ msgstr "OK 选  返回取消"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_PICK_FIND_BACK"
-msgid "OK pick  0-9 find  Back"
-msgstr "OK 选  0-9 查找  返回"
+msgid "{OK pick  0-9 find  Back|OK pick  0-9 find}"
+msgstr "{OK 选  0-9 查找  返回|OK 选  0-9 查找}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_EMPTY_NONE_STORED"
@@ -3661,8 +3661,8 @@ msgstr "发送至"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_FIND_OK_PICK_BACK"
-msgid "0-9 find  OK pick  Back"
-msgstr "0-9 查找  OK 选  返回"
+msgid "{0-9 find  OK pick  Back|0-9 find  OK pick}"
+msgstr "{0-9 查找  OK 选  返回|0-9 查找  OK 选}"
 
 #: core/ui/ui_menus.c
 msgctxt "CRASH_TOAST_SENT"
@@ -4481,8 +4481,8 @@ msgstr "，步进 "
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_HINT_TYPE_OK_NEXT_BACK"
-msgid "0-9 type  OK next  Back"
-msgstr "0-9 输入  OK 下一步  返回"
+msgid "{0-9 type  OK next  Back|0-9 type  OK next}"
+msgstr "{0-9 输入  OK 下一步  返回|0-9 输入  OK 下一步}"
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_VALUE_STANDARD"
@@ -4666,8 +4666,8 @@ msgstr "{通话组 / 联系人|TG / 联系人}"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_HINT"
-msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set}"
-msgstr "{PTT 一次  OK 使用  长按 OK 设定|OK 使用  长按 OK 设定}"
+msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set|Hold OK set}"
+msgstr "{PTT 一次  OK 使用  长按 OK 设定|OK 使用  长按 OK 设定|长按 OK 设定}"
 
 #: core/ui/ui_menus.c
 msgctxt "SCAN_ROW_SKIP_FOR_NOW"
@@ -5511,8 +5511,8 @@ msgstr "数字监听  返回 关闭"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_UNSAVED"
-msgid "Back undo  Hold OK save"
-msgstr "返回 撤销  长按 OK 保存"
+msgid "{Back undo  Hold OK save|Hold OK save}"
+msgstr "{返回 撤销  长按 OK 保存|长按 OK 保存}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_VFO"
@@ -5526,8 +5526,8 @@ msgstr "{返回：信道通话组|返回 默认目标}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_VFO"
-msgid "0-9 freq  * Quick  Up/Dn"
-msgstr "0-9 频率  * 快捷  上下"
+msgid "{0-9 freq  * Quick  Up/Dn|0-9 freq  Up/Dn}"
+msgstr "{0-9 频率  * 快捷  上下|0-9 频率  上下}"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_BODY_HEARD"
@@ -5771,8 +5771,8 @@ msgstr "  OK 设定"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"
-msgid "1-9 change  Hold OK save"
-msgstr "1-9 更改  长按 OK 保存"
+msgid "{1-9 change  Hold OK save|Hold OK save}"
+msgstr "{1-9 更改  长按 OK 保存|长按 OK 保存}"
 
 #: core/ui/ui_screens.c
 msgctxt "DIAG_VARIANT_MISMATCH"

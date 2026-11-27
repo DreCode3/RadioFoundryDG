@@ -240,7 +240,7 @@ msgstr "Rápido"
 #: core/ui/themes/panels/panels.c core/ui/ui_screens.c
 msgctxt "QUICK_HINT_ALL_SETTINGS"
 msgid "0 All settings  Hold OK save"
-msgstr "0 Ajustes  Mant OK guardar"
+msgstr "0 Ajustes  Mantén OK guardar"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -250,7 +250,7 @@ msgstr "OK Menú  * Rápido"
 #: core/ui/ui_app.c
 msgctxt "HOME_HINT_MENU_HOLD_QUICK"
 msgid "OK Menu  Hold OK Quick"
-msgstr "OK Menú  Mant OK Rápido"
+msgstr "OK Menú  Mantén OK Rápido"
 
 #: core/ui/ui_app.c
 msgctxt "CPLUG_TOAST_NOT_SAVED"
@@ -1549,8 +1549,8 @@ msgstr "Sin acciones para esto"
 
 #: core/ui/ui_find.c
 msgctxt "FIND_HINT"
-msgid "PTT talk  OK open  # more"
-msgstr "PTT hablar  OK abrir  # más"
+msgid "{PTT talk  OK open  # more|OK open  # more}"
+msgstr "{PTT hablar  OK abrir  # más|OK abrir  # más}"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_TITLE_STATUS"
@@ -1814,8 +1814,8 @@ msgstr "Consultando a "
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_HINT"
-msgid "1-9 pick  PTT talk  Back"
-msgstr "1-9 elegir  PTT hablar  Atrás"
+msgid "{1-9 pick  PTT talk  Back|1-9 pick  PTT talk}"
+msgstr "{1-9 elegir  PTT hablar  Atrás|1-9 elegir  PTT hablar}"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_BODY_CANNED_OK"
@@ -1924,8 +1924,8 @@ msgstr "Nuevo mensaje APRS"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_LIST"
-msgid "OK open  # reply  Back"
-msgstr "OK abrir  # responder  Atrás"
+msgid "{OK open  # reply  Back|OK open  # reply}"
+msgstr "{OK abrir  # responder  Atrás|OK abrir  # responder}"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_OPEN_BACK"
@@ -2259,8 +2259,8 @@ msgstr "{OK ir  # enviar  0-9 buscar|OK ir  # enviar}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_CHANNELS"
-msgid "OK go  0-9 find  Back"
-msgstr "OK ir  0-9 buscar  Atrás"
+msgid "{OK go  0-9 find  Back|OK go  0-9 find}"
+msgstr "{OK ir  0-9 buscar  Atrás|OK ir  0-9 buscar}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_EMPTY_NO_CHANNELS"
@@ -2609,8 +2609,8 @@ msgstr "Canal vacío"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
-msgid "{OK change  Hold OK save  Back|OK change  Hold OK save}"
-msgstr "{OK cambiar  mant OK guardar  Atrás|OK cambiar  mant OK guardar}"
+msgid "{OK change  Hold OK save  Back|OK change  Hold OK save|Hold OK save}"
+msgstr "{OK cambiar  Mantén OK guardar  Atrás|OK cambiar  Mantén OK guardar|Mantén OK guardar}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_TUNE"
@@ -2904,8 +2904,8 @@ msgstr "OK elegir  Atrás cancelar"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_PICK_FIND_BACK"
-msgid "OK pick  0-9 find  Back"
-msgstr "OK elegir  0-9 buscar  Atrás"
+msgid "{OK pick  0-9 find  Back|OK pick  0-9 find}"
+msgstr "{OK elegir  0-9 buscar  Atrás|OK elegir  0-9 buscar}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_EMPTY_NONE_STORED"
@@ -3659,8 +3659,8 @@ msgstr "Enviar a"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_FIND_OK_PICK_BACK"
-msgid "0-9 find  OK pick  Back"
-msgstr "0-9 buscar  OK elegir  Atrás"
+msgid "{0-9 find  OK pick  Back|0-9 find  OK pick}"
+msgstr "{0-9 buscar  OK elegir  Atrás|0-9 buscar  OK elegir}"
 
 #: core/ui/ui_menus.c
 msgctxt "CRASH_TOAST_SENT"
@@ -4479,8 +4479,8 @@ msgstr ", pasos de "
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_HINT_TYPE_OK_NEXT_BACK"
-msgid "0-9 type  OK next  Back"
-msgstr "0-9 teclear  OK sigue  Atrás"
+msgid "{0-9 type  OK next  Back|0-9 type  OK next}"
+msgstr "{0-9 teclear  OK sigue  Atrás|0-9 teclear  OK sigue}"
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_VALUE_STANDARD"
@@ -4664,8 +4664,8 @@ msgstr "{Grupo / Contacto|TG / Contacto}"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_HINT"
-msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set}"
-msgstr "{PTT una vez  OK usar  Mant OK fijar|OK usar  Mant OK fijar}"
+msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set|Hold OK set}"
+msgstr "{PTT una vez  OK usar  Mantén OK fijar|OK usar  Mantén OK fijar|Mantén OK fijar}"
 
 #: core/ui/ui_menus.c
 msgctxt "SCAN_ROW_SKIP_FOR_NOW"
@@ -5500,32 +5500,32 @@ msgstr "# saltar  Atrás parar"
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_REPLY"
 msgid "# caller  Back end reply"
-msgstr "# origen  Atrás fin resp"
+msgstr "# origen  Atrás fin"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_DMON"
 msgid "Digital monitor  Back off"
-msgstr "Monitor dig.  Atrás apagar"
+msgstr "Monitor DMR  Atrás apagar"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_UNSAVED"
-msgid "Back undo  Hold OK save"
-msgstr "Atrás anular  Mant OK guardar"
+msgid "{Back undo  Hold OK save|Hold OK save}"
+msgstr "{Atrás anular  Mantén OK guardar|Mantén OK guardar}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_VFO"
 msgid "{Back: VFO's talk target|Back default target}"
-msgstr "{Atrás: destino del VFO|Atrás destino predet.}"
+msgstr "{Atrás: destino del VFO|Atrás destino por defecto}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_CHANNEL"
 msgid "{Back: channel's talkgroup|Back default target}"
-msgstr "{Atrás: grupo del canal|Atrás destino predet.}"
+msgstr "{Atrás: grupo del canal|Atrás destino por defecto}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_VFO"
-msgid "0-9 freq  * Quick  Up/Dn"
-msgstr "0-9 frec  * Rápido  Arr/Ab"
+msgid "{0-9 freq  * Quick  Up/Dn|0-9 freq  Up/Dn}"
+msgstr "{0-9 frec  * Rápido  Arr/Ab|0-9 frec  Arr/Ab}"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_BODY_HEARD"
@@ -5760,7 +5760,7 @@ msgstr "Todos"
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT_SPLIT"
 msgid "{Up/Dn: +/- offset  Type: TX freq|Up/Dn +/- offset  0-9 TX freq|Up/Dn offset  0-9 TX freq|Up/Dn +/-  0-9 TX freq}"
-msgstr "{Arr/Ab: +/- desplaz.  Teclea: frec TX|Arr/Ab +/- desplaz.  0-9 frec TX|Arr/Ab despl.  0-9 frec TX|Arr/Ab +/-  0-9 frec TX}"
+msgstr "{Arr/Ab: +/- desplazamiento  Teclea: frec TX|Arr/Ab +/- desplazamiento  0-9 frec TX|Arr/Ab desplazamiento  0-9 frec TX|Arr/Ab +/-  0-9 frec TX}"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT_OK_SETS"
@@ -5769,8 +5769,8 @@ msgstr "  OK fija"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"
-msgid "1-9 change  Hold OK save"
-msgstr "1-9 cambiar  Mant OK guardar"
+msgid "{1-9 change  Hold OK save|Hold OK save}"
+msgstr "{1-9 cambiar  Mantén OK guardar|Mantén OK guardar}"
 
 #: core/ui/ui_screens.c
 msgctxt "DIAG_VARIANT_MISMATCH"

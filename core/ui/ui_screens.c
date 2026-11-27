@@ -2534,7 +2534,8 @@ UI_THEME_SHARED const char *ui_home_hint(const radio_view_t *v, const ui_state_t
 	}
 #endif
 	if (v->temporary)
-		return TR(HOME_HINT_UNSAVED, "Back undo  Hold OK save");
+		return TR(HOME_HINT_UNSAVED, TEXT_ALT_OPEN "Back undo  Hold OK save" TEXT_ALT_NEXT "Hold OK save"
+			TEXT_ALT_CLOSE);
 #if CONFIG_DMR
 	if (v->ch.mode == RADIO_MODE_DMR && v->dmr.target_manual)
 		return v->vfo ?
@@ -2544,7 +2545,8 @@ UI_THEME_SHARED const char *ui_home_hint(const radio_view_t *v, const ui_state_t
 				TEXT_ALT_NEXT "Back default target" TEXT_ALT_CLOSE);
 #endif
 	if (v->vfo)
-		return TR(HOME_HINT_VFO, "0-9 freq  * Quick  Up/Dn");
+		return TR(HOME_HINT_VFO, TEXT_ALT_OPEN "0-9 freq  * Quick  Up/Dn" TEXT_ALT_NEXT "0-9 freq  Up/Dn"
+			TEXT_ALT_CLOSE);
 	return s->home_hint != NULL ? s->home_hint : TR(HOME_HINT_MENU_QUICK, "OK Menu  * Quick");
 }
 
@@ -4275,7 +4277,8 @@ static void __attribute__((noinline)) draw_quick_list(const radio_view_t *v, con
 	quick_list_focus = s->quick_focus;
 	ui_list_t l = { .prefix = TR(QUICK_TITLE, "Quick"), .name = v->vfo ? "VFO" : v->ch.name,
 		.count = UI_QUICK_TILES, .focus = quick_list_focus, .top = &top, .item = quick_list_item,
-		.hint = split_hint != NULL ? split_hint : TR(QUICK_HINT, "1-9 change  Hold OK save") };
+		.hint = split_hint != NULL ? split_hint : TR(QUICK_HINT,
+			TEXT_ALT_OPEN "1-9 change  Hold OK save" TEXT_ALT_NEXT "Hold OK save" TEXT_ALT_CLOSE) };
 	ui_draw_list(v, s, &l);
 }
 

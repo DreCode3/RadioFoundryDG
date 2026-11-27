@@ -240,7 +240,7 @@ msgstr "Rapido"
 #: core/ui/themes/panels/panels.c core/ui/ui_screens.c
 msgctxt "QUICK_HINT_ALL_SETTINGS"
 msgid "0 All settings  Hold OK save"
-msgstr "0 Tutte impost.  Tieni OK salva"
+msgstr "0 Impostazioni  Tieni OK salva"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -1549,8 +1549,8 @@ msgstr "Nessuna azione per questo risultato"
 
 #: core/ui/ui_find.c
 msgctxt "FIND_HINT"
-msgid "PTT talk  OK open  # more"
-msgstr "PTT parla  OK apri  # altro"
+msgid "{PTT talk  OK open  # more|OK open  # more}"
+msgstr "{PTT parla  OK apri  # altro|OK apri  # altro}"
 
 #: core/ui/ui_gps.c
 msgctxt "GPS_TITLE_STATUS"
@@ -1814,8 +1814,8 @@ msgstr "Interrogo "
 
 #: core/ui/ui_menus.c
 msgctxt "ACT_HINT"
-msgid "1-9 pick  PTT talk  Back"
-msgstr "1-9 scegli  PTT parla  Indietro"
+msgid "{1-9 pick  PTT talk  Back|1-9 pick  PTT talk}"
+msgstr "{1-9 scegli  PTT parla  Indietro|1-9 scegli  PTT parla}"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_BODY_CANNED_OK"
@@ -1924,8 +1924,8 @@ msgstr "Nuovo messaggio APRS"
 
 #: core/ui/ui_menus.c
 msgctxt "MSG_HINT_LIST"
-msgid "OK open  # reply  Back"
-msgstr "OK apri  # rispondi  Indietro"
+msgid "{OK open  # reply  Back|OK open  # reply}"
+msgstr "{OK apri  # rispondi  Indietro|OK apri  # rispondi}"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_OPEN_BACK"
@@ -2259,8 +2259,8 @@ msgstr "{OK vai  # invia  0-9 cerca|OK vai  # invia}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_CHANNELS"
-msgid "OK go  0-9 find  Back"
-msgstr "OK vai  0-9 cerca  Indietro"
+msgid "{OK go  0-9 find  Back|OK go  0-9 find}"
+msgstr "{OK vai  0-9 cerca  Indietro|OK vai  0-9 cerca}"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_EMPTY_NO_CHANNELS"
@@ -2315,12 +2315,12 @@ msgstr "2 abc"
 #: core/ui/ui_menus.c
 msgctxt "TEXT_HINT_KEEP"
 msgid "{Back delete  # ABC/123/abc  OK keep|Back del  # mode  OK}"
-msgstr "{Indietro canc.  # ABC/123/abc  OK tieni|Indietro canc  # modo  OK}"
+msgstr "{Indietro cancella  # ABC/123/abc  OK tieni|Indietro canc  # modo  OK}"
 
 #: core/ui/ui_menus.c
 msgctxt "TEXT_HINT_SEND"
 msgid "{Back delete  # ABC/123/abc  OK send|Back del  # mode  OK}"
-msgstr "{Indietro canc.  # ABC/123/abc  OK invia|Indietro canc  # modo  OK}"
+msgstr "{Indietro cancella  # ABC/123/abc  OK invia|Indietro canc  # modo  OK}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_ROW_NEW_FROM_CURRENT"
@@ -2609,8 +2609,8 @@ msgstr "Canale vuoto"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
-msgid "{OK change  Hold OK save  Back|OK change  Hold OK save}"
-msgstr "{OK cambia  Tieni OK salva  Indietro|OK cambia  Tieni OK salva}"
+msgid "{OK change  Hold OK save  Back|OK change  Hold OK save|Hold OK save}"
+msgstr "{OK cambia  Tieni OK salva  Indietro|OK cambia  Tieni OK salva|Tieni OK salva}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_TUNE"
@@ -2810,7 +2810,7 @@ msgstr "Nelle zone"
 #: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_IN_ZONES"
 msgid "OK in/out  Back"
-msgstr "OK aggiungi/togli  Indietro"
+msgstr "OK metti/togli  Indietro"
 
 #: core/ui/ui_menus.c
 msgctxt "ZONE_ROW_RENAME"
@@ -2904,8 +2904,8 @@ msgstr "OK scegli  Indietro annulla"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_PICK_FIND_BACK"
-msgid "OK pick  0-9 find  Back"
-msgstr "OK scegli  0-9 cerca  Indietro"
+msgid "{OK pick  0-9 find  Back|OK pick  0-9 find}"
+msgstr "{OK scegli  0-9 cerca  Indietro|OK scegli  0-9 cerca}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_EMPTY_NONE_STORED"
@@ -3659,8 +3659,8 @@ msgstr "Invia a"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_FIND_OK_PICK_BACK"
-msgid "0-9 find  OK pick  Back"
-msgstr "0-9 cerca  OK scegli  Indietro"
+msgid "{0-9 find  OK pick  Back|0-9 find  OK pick}"
+msgstr "{0-9 cerca  OK scegli  Indietro|0-9 cerca  OK scegli}"
 
 #: core/ui/ui_menus.c
 msgctxt "CRASH_TOAST_SENT"
@@ -4479,8 +4479,8 @@ msgstr ", passi di "
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_HINT_TYPE_OK_NEXT_BACK"
-msgid "0-9 type  OK next  Back"
-msgstr "0-9 digita  OK avanti  Indietro"
+msgid "{0-9 type  OK next  Back|0-9 type  OK next}"
+msgstr "{0-9 digita  OK avanti  Indietro|0-9 digita  OK avanti}"
 
 #: core/ui/ui_menus.c
 msgctxt "SIG_VALUE_STANDARD"
@@ -4664,8 +4664,8 @@ msgstr "{Gruppo / Contatto|TG / Contatto}"
 
 #: core/ui/ui_menus.c
 msgctxt "PICKER_HINT"
-msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set}"
-msgstr "{PTT una volta  OK usa  Tieni OK imposta|OK usa  Tieni OK imposta}"
+msgid "{PTT once  OK use  Hold OK set|OK use  Hold OK set|Hold OK set}"
+msgstr "{PTT una volta  OK usa  Tieni OK imposta|OK usa  Tieni OK imposta|Tieni OK imposta}"
 
 #: core/ui/ui_menus.c
 msgctxt "SCAN_ROW_SKIP_FOR_NOW"
@@ -5490,17 +5490,17 @@ msgstr "Ancora nessuna attività"
 #: core/ui/ui_screens.c
 msgctxt "FREQ_HINT_ENTRY"
 msgid "OK tune  Back delete"
-msgstr "OK sintonizza  Indietro canc."
+msgstr "OK vai  Indietro cancella"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_SCANNING"
 msgid "# skip  Back stop scan"
-msgstr "# salta  Indietro ferma scan."
+msgstr "# salta  Indietro ferma"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_REPLY"
 msgid "# caller  Back end reply"
-msgstr "# chiamante  Indietro fine risp."
+msgstr "# chiamante  Indietro fine"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_DMON"
@@ -5509,23 +5509,23 @@ msgstr "Monitor digitale  Indietro off"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_UNSAVED"
-msgid "Back undo  Hold OK save"
-msgstr "Indietro annulla  Tieni OK salva"
+msgid "{Back undo  Hold OK save|Hold OK save}"
+msgstr "{Indietro annulla  Tieni OK salva|Tieni OK salva}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_VFO"
 msgid "{Back: VFO's talk target|Back default target}"
-msgstr "{Indietro: destinaz. VFO|Indietro predef.}"
+msgstr "{Indietro: destinazione VFO|Indietro predefinito}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_TALK_TARGET_CHANNEL"
 msgid "{Back: channel's talkgroup|Back default target}"
-msgstr "{Indietro: gruppo canale|Indietro predef.}"
+msgstr "{Indietro: gruppo canale|Indietro predefinito}"
 
 #: core/ui/ui_screens.c
 msgctxt "HOME_HINT_VFO"
-msgid "0-9 freq  * Quick  Up/Dn"
-msgstr "0-9 freq  * Rapido  Su/Giù"
+msgid "{0-9 freq  * Quick  Up/Dn|0-9 freq  Up/Dn}"
+msgstr "{0-9 freq  * Rapido  Su/Giù|0-9 freq  Su/Giù}"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_BODY_HEARD"
@@ -5769,8 +5769,8 @@ msgstr "  OK imposta"
 
 #: core/ui/ui_screens.c
 msgctxt "QUICK_HINT"
-msgid "1-9 change  Hold OK save"
-msgstr "1-9 cambia  Tieni OK salva"
+msgid "{1-9 change  Hold OK save|Hold OK save}"
+msgstr "{1-9 cambia  Tieni OK salva|Tieni OK salva}"
 
 #: core/ui/ui_screens.c
 msgctxt "DIAG_VARIANT_MISMATCH"

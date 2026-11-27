@@ -517,7 +517,7 @@ static bool find_key(const input_event_t *ev)
 
 const ui_scr_def_t ui_find_screen = {
 	.name = "find", .flags = SF_LIST | SF_FIND | SF_FIELD,
-	.hint = TRN(FIND_HINT, "PTT talk  OK open  # more"),
+	.hint = TRN(FIND_HINT, TEXT_ALT_OPEN "PTT talk  OK open  # more" TEXT_ALT_NEXT "OK open  # more" TEXT_ALT_CLOSE),
 	.empty = TRN(LIST_EMPTY_NO_MATCH, "No match: Back deletes a key"),
 	.count = find_count, .item = find_item, .select = find_select, .context = find_context, .target = find_target,
 	.key = find_key,
