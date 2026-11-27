@@ -104,7 +104,7 @@ cleanup() {
 trap 'echo; echo "ci-par: interrupted, removing the worktrees"; cleanup; exit 130' INT TERM
 
 T0=$(date +%s)
-echo "ci-par: HEAD $SHA, $LANES lanes x JOBS=$JOBS_LANE, host CC ${HOST_CC:-cc}, $PYNOTE, output $OUT"
+echo "ci-par: HEAD $SHA, $LANES lanes x JOBS=$JOBS_LANE, make $( [ "${RF_GNU_MAKE:-1}" = 1 ] && command -v gmake >/dev/null && echo "GNU (gmake)" || echo system), host CC ${HOST_CC:-cc}, $PYNOTE, output $OUT"
 echo "ci-par: boards (configurations): $(printf '%s\n' "${BOARDS[@]+"${BOARDS[@]}"}" | sort -rn |
 	awk 'NF == 2 { printf "%s%s %s", (NR > 1 ? ", " : ""), $2, $1 }')"
 for s in ${SKIPPED[@]+"${SKIPPED[@]}"}; do echo "ci-par: skip $s"; done
@@ -135,9 +135,17 @@ for ((i = 0; i < LANES; i++)); do
 	WTS+=("$w")
 	tools/worktree.sh add "$w" --detach HEAD >"$OUT/logs/worktree-$i.log" 2>&1 || { echo "ci-par: worktree $w failed (see $OUT/logs/worktree-$i.log)"; cleanup; exit 2; }
 done
+# GNU make 4.4 (Homebrew's, installed as gmake) for the firmware lanes: it hands -flto=auto its job server, so a
+# link-time-optimized link uses the lane's JOBS slots instead of one process per core (macOS's make 3.81 has no job
+# server for it). Same firmware either way, byte for byte. RF_GNU_MAKE=0 keeps the system make.
+GNUBIN=""
+if [ "${RF_GNU_MAKE:-1}" = 1 ] && command -v brew >/dev/null && [ -x "$(brew --prefix make 2>/dev/null)/libexec/gnubin/make" ]; then
+	GNUBIN="$(brew --prefix make)/libexec/gnubin"
+fi
 for ((i = 0; i < LANES; i++)); do
 	(
 		cd "${WTS[i]}" || exit 2
+		[ -n "$GNUBIN" ] && PATH="$GNUBIN:$PATH"
 		while b=$(next) && [ -n "$b" ]; do
 			echo "ci-par: lane $i: $b ($(date '+%H:%M'))"
 			t=$(date +%s)
