@@ -397,6 +397,10 @@ resources spent on diminishing returns):
      DM-32 panels by default, Links, the third-line value, the 8x16 fallbacks, the title's room for "n/N" beside a
      body. GD-88 frames and profile renders 0 differ. Open for the user: the DM-32 panels gallery and `--layout` (61
      middle cuts: list labels and three Quick values), so the gallery still shows the reference theme on that class.
+   - Part B (Nov 27, `7e9e2363`..HEAD, not yet QA'd): the 160 x 128 fit rule, the compact layout under 200 px high
+     (strip 18, rows and bar 18, 8x16, the 16 px icon set, icon tiles, no mode bar, call lines only in a call, the hint
+     row's room back, no GPS clock), "Hold * to unlock", the 160x128-panels and 220x176-panels gallery sets, DB25-D
+     panels selectable with FONT_AA. MD-380 and MD-UV380 wait on the user: their insets leave 158 x 127.
 
 ## Planned, not now
 
