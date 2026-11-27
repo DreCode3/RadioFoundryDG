@@ -8,8 +8,8 @@
 #include "pins.h"
 #include "hal_time.h"
 #include "radio/power_switch.h"
+#include "radio/volume_pot.h"
 #include "audio/miclevel/miclevel.h"
-#include "power/knob/knob.h"
 
 enum { CH_VOLUME, CH_BATTERY, CH_MIC, CH_TEMP, CH_COUNT };
 #define SCANS			16		// about 220 us per scan at 9 MHz ADC clock and 480-cycle sampling: 3.5 ms window
@@ -17,18 +17,14 @@ enum { CH_VOLUME, CH_BATTERY, CH_MIC, CH_TEMP, CH_COUNT };
 #define SETTLE_MS		1500		// readings settle after power-up (spec 11.1)
 #define FILTER_MS		10000		// time constant of the displayed battery voltage
 
-// Volume pot (spec 11.2): log taper, the breakpoint sits near the middle of the rotation; the ends and the break are the
-// radio's (uvf_variant)
-#define VOL_MIN			((int32_t)uvf_variant.vol_min)
 #define VOL_MUTE_ZONE		5		// counts above the minimum that still read 0
-#define VOL_HYSTERESIS		5
 
 static volatile uint16_t samples[SCANS * CH_COUNT];
 static bool started;
 static uint32_t start_ms;
 static uint32_t filtered_mv, filter_ms;
 static pwrsw_t pwrsw;
-static bool vol_muted = true;
+static volume_pot_t vol_pot;
 
 static void adc_start(void)
 {
@@ -151,22 +147,12 @@ static uint8_t battery_pct(void)
 	return 100;
 }
 
-// Two linear segments: minimum..breakpoint is 0..50 %, breakpoint..maximum is 50..100 %. The bottom reads 0 with
-// a little hysteresis so a knob resting at the stop doesn't flicker
+// Volume potentiometer (spec 11.2): each radio has its own readings (uvf_variant)
 static int8_t volume(void)
 {
-	int32_t raw = adc_read(CH_VOLUME);
-	int32_t mute_edge = VOL_MIN + VOL_MUTE_ZONE + (vol_muted ? VOL_HYSTERESIS : 0);
-	vol_muted = raw <= mute_edge;
-	if (vol_muted) {
-		return 0;
-	}
-	const uint16_t pts[3] = { uvf_variant.vol_min, uvf_variant.vol_break, uvf_variant.vol_max };
-	int32_t pct = knob_curve_pct(raw, pts, 3);
-	if (pct < 1) {
-		pct = 1;	// out of the mute zone always means some volume
-	}
-	return (int8_t)pct;
+	const volume_pot_cal_t cal = { (int16_t)uvf_variant.vol_min, (int16_t)uvf_variant.vol_break,
+				       (int16_t)uvf_variant.vol_max, VOL_MUTE_ZONE };
+	return volume_pot_percent(&vol_pot, &cal, adc_read(CH_VOLUME));
 }
 
 // The volume knob switch cuts the battery sense line: a few low readings in a row mean the user switched off
