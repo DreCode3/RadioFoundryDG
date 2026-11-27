@@ -37,8 +37,8 @@ lines stays where it is.
 The status bar at the top is the same on every screen, except that Home's has no mode: Home's mode bar shows it.
 When the status bar has more to show than fits, the items at the end of this list give way first, and none is drawn
 over another: battery, TX or NO TX, signal, mode, lock, encryption key, scan, monitor, unread message, the GPS clock,
-GPS, IP, power, receive-only, VOX, Dual Watch, roaming. The mode moves to a smaller size before anything gives way. On
-Home, a GPS clock the status bar has no room for is shown in the mode bar.
+GPS, IP, power, receive-only, VOX, Dual Watch, roaming. The words (the mode, TX, IP, RX, VOX) move to a smaller size
+before anything gives way. On Home, a GPS clock the status bar has no room for is shown in the mode bar.
 
 The bottom bar has two labels, one over each soft key: **OK** and **Back** (on Home, **Menu** and the right soft
 key's function) where they do something. While the keys are locked, Home's bar says how to unlock them instead. With
@@ -51,15 +51,15 @@ line goes.
 |---|---|---|
 | Status bar, left | Signal bars | Reception is active. The bars clear when reception ends. In Dual Watch they follow the audible receiver |
 | Status bar, left | Mode text | The channel mode, for example FM or DMR |
-| Status bar, left | R inside a circular arrow | Roaming is active. The arrow rotates while the radio searches or surveys |
+| Status bar, left | Ring with a dot | Roaming is active. The dot moves round the ring while the radio searches or surveys |
 | Status bar, left | TX, NO TX | The radio is transmitting, or a transmission was refused |
 | Status bar, left | Speaker with one wave | FM monitor or DMR digital monitor is on |
-| Status bar, left | A and B in a box | Dual Watch is active |
+| Status bar, left | A and B, each in a box | Dual Watch is active. The filled box is the channel **PTT** uses |
 | Status bar, left | VOX | Voice-operated transmit is armed |
-| Status bar, right | Zigzag arrow | Scan is on. The highlight travels along the line and ends at the arrowhead |
+| Status bar, right | Zigzag arrow | Scan is on. A small gap travels along the line and ends at the arrowhead |
 | Status bar, right | RX | The channel is receive-only |
-| Status bar, right | Green key | DMR encryption is configured. An AES channel adds the **AES** label |
-| Status bar, right | Key with a red X | The radio hears encrypted traffic that does not match its configuration or that it cannot decrypt. A clear channel leaves the key slot blank while idle |
+| Status bar, right | Key | DMR encryption is configured. An AES channel adds the **AES** label |
+| Status bar, right | Dimmed key with a red slash | The radio hears encrypted traffic that does not match its configuration or that it cannot decrypt. A clear channel leaves the key slot blank while idle |
 | Status bar, right | Envelope | An unread message is waiting |
 | Status bar, right | IP | USB is a network adapter, brighter once the computer has connected to it |
 | Status bar, right | GPS pin | The GPS receiver has a fix. A dimmed pin: GPS is on and searching |

@@ -788,20 +788,29 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   and a label too long for its room is shortened, never drawn smaller:
   - **Status strip**, 29 px, a rounded pane at the top of every screen, Home included, the same items at the same size
     on each, except that Home's has no mode word (its mode bar shows the mode): signal bars (only while receiving, from
-    the audible pane during Dual Watch) and the mode on the left, then roaming (an arrow around a fixed R, moving only
-    while it searches or surveys), TX, TX APRS or NO TX, and the monitor (a speaker with one wave), Dual Watch and VOX
-    marks. On the right, from the edge: battery (an upright outline with three segments), power (L, M, H), lock, GPS (a
-    pin, dimmed while it searches), IP while USB is a network adapter (dimmed until the computer connects), then the
-    operating marks: the privacy key (green when DMR privacy is configured, with an AES label in 8x16 under it on AES
-    channels; a red X on encrypted receive activity without a usable key; no key on a clear channel), unread mail, RX
-    for a receive-only channel and the scan zigzag, whose highlight follows the stroke and ends on the arrowhead. The
-    GPS clock is centered in the room between. Nothing overlaps: items get room in a fixed order, and a crowded strip
-    gives up the last first: battery, TX/NO TX, signal, mode, lock, privacy key, scan, monitor, unread, the GPS clock,
-    GPS, IP, power, RX, VOX, Dual Watch, roaming. The mode takes the 8x16 font (from 12x24) before anything goes, the
-    clock counted. Where Home's strip has no room for the clock, it is at the right end of Home's mode bar; another
-    screen drops it in the worst crowd. Status marks are black in Day and light ink in Night. The masks come from
-    `tools/profile_icons.py` (`core/ui/themes/panels/panels_icons.h`); Bluetooth, recording, the TA arrow and the D-STAR
-    label are host simulator examples.
+    the audible pane during Dual Watch) and the mode on the left, then roaming (a ring with a dot on it, the dot
+    stepping round while it searches or surveys), TX, TX APRS or NO TX, the monitor (a speaker with one wave), Dual
+    Watch (A and B in 8x16 capitals, each in a rounded box, the selected pane's filled) and VOX. On the right, from the
+    edge: battery (an upright outline with three segments), power (L, M, H), lock, GPS (a pin, dimmed while it
+    searches), IP while USB is a network adapter (dimmed until the computer connects), then the operating marks: the
+    privacy key (in the ink when DMR privacy is configured, with an AES label in 8x16 under it on AES channels; dimmed
+    under a red slash on encrypted receive activity without a usable key; no key on a clear channel), unread mail, RX
+    for a receive-only channel and the scan zigzag, a small gap moving along its stroke and then over the arrowhead.
+    The GPS clock is centered in the room between. Nothing overlaps: items get room in a fixed order, and a crowded
+    strip gives up the last first: battery, TX/NO TX, signal, mode, lock, privacy key, scan, monitor, unread, the GPS
+    clock, GPS, IP, power, RX, VOX, Dual Watch, roaming. The words (the mode, TX, IP, RX, VOX) are in 12x24 where
+    everything fits, the clock counted, else in 8x16, before anything goes. Where Home's strip has no room for the
+    clock, it is at the right end of Home's mode bar; another screen drops it in the worst crowd. Status marks are in
+    the palette's ink, Day and Night; color only means something (TX red, NO TX amber, the slash red, a low battery
+    red).
+  - **Icons**: one family for the strip's marks and the Menu and Settings tiles, drawn by `tools/profile_icons.py`
+    from first principles into `core/ui/themes/panels/panels_icons.h`: a 24 px canvas with 20 px of ink, 2 px strokes,
+    each a 2-bit coverage mask trimmed to its ink in one const table, drawn by one blitter (`panels_icon`). Contacts a
+    person, Messages and unread mail an envelope, Call log a clock, Zones a folder, Scan the zigzag, Location and GPS a
+    pin, Connections two opposite arrows, Settings a gear, Display a monitor, Tones & alerts a bell, Audio headphones,
+    Call settings a handset, Receive & VFO a tuning dial, Privacy a key, Security & keypad lock a padlock, Buttons a
+    keypad, Programming sliders, Radio info an "i" in a circle. In the theme's ink, the focused tile's in its accent;
+    no decorative tints. Bluetooth, recording, the TA arrow and the D-STAR label are host simulator examples.
   - **Home**, on a darker gutter: the strip, the mode bar (a pane with the mode in the largest font, and the GPS clock
     where the strip has no room for it), the channel pane and the soft key bar. In the channel pane: the zone, then the
     channel's codeplug name as the main line (the frequency in the VFO, the digits while one is typed), enlarged in
@@ -825,14 +834,15 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
     palette entries first on a 16-color display; the title keeps room for it only then. The main menu is a grid of three
     columns in the keypad's order (1 2 3 across, `ui_list_geom_t.across`; slot 9 empty) and the first level of Settings
     one of two columns (1 2 3 down), each three tiles high a page, one split of the columns for the whole list; Up and
-    Down follow the numbers, then turn the page. A tile is two lines of the 8x16 font: in the menu its icon, digit and
-    value (unread, scan, the zone's name shortened at its end) over its label; in Settings its icon, digit and label,
-    which goes on to the second line at a space ("Security &" / "keypad lock"), a first word too long for the room
-    beside the icon going whole to the second line. Zones' tile has no value (Home shows the zone); the Scan tile's Off
-    is `HUB_VALUE_OFF`, so a translation can give a word short enough for a tile. Menu and Settings categories have
-    colored icons.
-  - **Soft key bar**: a rounded pane the same height on every screen with two labels, one per soft key, in the largest
-    native font that fits them: OK on the left and Back on the right where the hint declares those keys (a list: Back
+    Down follow the numbers, then turn the page. The menu's tiles are 39 px high and 2 px apart: the icon (20 px of
+    ink) with its digit and value (unread, scan) beside it, the label under it in the 8x16 font. Settings' tiles keep
+    two lines of the 8x16 font right of the icon, centered at the tile's left: the digit and the label, which goes on to
+    the second line at a space ("Security &" / "keypad lock"), a first word too long for the first line's room going
+    whole to the second. Zones' tile has no value (Home shows the zone); the Scan tile's Off is `HUB_VALUE_OFF`, so a
+    translation can give a word short enough for a tile.
+  - **Soft key bar**: a rounded pane 32 px high on every screen, 2 px under the hint row, with two labels, one per soft
+    key, in the largest native font that fits them (where either is Chinese, both in the 8x16 font, the CJK glyphs'
+    height, centered): OK on the left and Back on the right where the hint declares those keys (a list: Back
     always, and OK in a numbered one; Quick: both; Home: Menu wherever OK opens the menu, `ui_home_ok_menu`, and its
     assigned soft key on the right). While the keys are locked Home's bar has the unlock sentence instead, in the
     largest font one of its forms fits. The bar stays with Hint row off (`UI_THEME_OPT_SOFT_KEYS`: the shared code calls
