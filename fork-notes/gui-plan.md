@@ -385,6 +385,10 @@ resources spent on diminishing returns):
        keeps the rule as frozen.
      - The GPS clock is off on this class (it never fits the strip, and Home has no mode bar here).
      - Keys locked: a new short form, **"Hold * to unlock"** (128 px, a `{long|short}` alternate, translated).
+   - Part A (Nov 27, `c9ae518b`..`cc296f81`, not yet QA'd): the fit rule (color, 160 x 128, 240 px high until part B),
+     DM-32 panels by default, Links, the third-line value, the 8x16 fallbacks, the title's room for "n/N" beside a
+     body. GD-88 frames and profile renders 0 differ. Open for the user: the DM-32 panels gallery and `--layout` (61
+     middle cuts: list labels and three Quick values), so the gallery still shows the reference theme on that class.
 
 ## Planned, not now
 
