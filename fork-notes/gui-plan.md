@@ -311,6 +311,18 @@ resources spent on diminishing returns):
      - The drawings approved as in `../rf-step5-out/icons_revised.png` (the tuning dial with its ticks outside, as
        drawn). The strip's scan animation is a small gap moving along the stroke, then the arrowhead lit (it stays
        visible with the new Day ink, where the old lighter highlight fades).
+     - Built in `934d80c5`, then checked by the user: the scan gap's last step covers the arrowhead (it blinks out
+       for one 100 ms step), kept as built. Accepted as side effects: 12x24 strip words 1 px higher (clear of Home's
+       mode bar), Home's channel pane 2 px taller (the bar is 2 px shorter), and Home's strip now has room for the
+       clock in the states that used to push it into the mode bar.
+   - **QA-approved at `934d80c5`** in one review ([reports/theme-step5-review.md](reports/theme-step5-review.md)), no
+     blocking findings. Cost against `d51930b7`: GD-88 -1832 B flash, RAM and UI stack unchanged; panels=n 0 B. Not
+     run: `tools/ci.sh`, `reuse lint`, HIL, on air.
+   - Logged, not blocking: no test reaches the clock's move into Home's mode bar any more (a crowd with
+     `rxonly:on pttdown` does); the 12x24 placement fix (`934d80c5`) has no test of its own; the key under the red
+     slash is drawn dim, not full ink; the Chinese locked sentence is left-aligned on the bar (older than step 5);
+     `panels.c:383`'s comment is stale. Flash sizes on this toolchain change with the build path's length: compare
+     sizes from paths of equal length.
      - Logged by the design pass for the build: two roaming animation frames reach the strip pane's outer rows.
 6. Freeze on the GD-88, then port to other display classes.
 
