@@ -2999,6 +2999,9 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	sim_reset_name_first = -1;
 	sim_setting_writes = 0;
 	ui_app_init();
+#if CONFIG_UI_THEME_PANELS
+	ui_st.gui_sim_still = true;	// a gallery frame shows a sliding label at its start, whatever the script waited
+#endif
 	sim_settings_new = false;
 	presses = 0;
 	advance(200);
@@ -3651,6 +3654,12 @@ static bool run_token(char *t, char *err, size_t len)
 		}
 		return true;
 	}
+#if CONFIG_UI_THEME_PANELS
+	if (strcmp(t, "slide") == 0) {	// the focused row's long label slides (the panels theme's compact layout)
+		ui_st.gui_sim_still = false;
+		return true;
+	}
+#endif
 	if (strcmp(t, "receivers") == 0 && arg != NULL) {
 		sim_receivers = (uint8_t)atoi(arg);
 		return true;
@@ -4097,6 +4106,9 @@ static bool run_token(char *t, char *err, size_t len)
 		view.scan = 0;
 		sim_setting_writes = 0;
 		ui_app_init();
+#if CONFIG_UI_THEME_PANELS
+		ui_st.gui_sim_still = true;
+#endif
 		advance(200);
 		return true;
 	}

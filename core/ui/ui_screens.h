@@ -150,6 +150,7 @@ typedef struct {
 	bool gui_sim_recording, gui_sim_dstar, gui_sim_talkaround;
 	uint8_t gui_sim_bt;	// 0 off, 1 on, 2 connected
 	uint8_t gui_sim_crypt;	// 0 radio state, 1 ARC4, 2 AES
+	bool gui_sim_still;	// sliding text holds its start (the simulator: a frame after a wait is the same)
 #endif
 #endif
 	ui_banner_t banner;

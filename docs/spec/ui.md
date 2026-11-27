@@ -794,7 +794,10 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   it edits, where they fit), and the title row names the focused tile, with a Menu tile's value. A hidden or empty hint
   row (Hint row off, or a hint whose groups the bar says) gives its height to a list: 4 rows instead of 3 on 160 x 128 (158 x 127 keeps 3);
   the full layout keeps the row's room. There is no GPS clock. A title, a list label and a hint group too long for
-  their room are shortened at their end. The keys-locked bar takes the hint's shortest form ("Hold * to unlock").
+  their room are shortened at their end; the focused list row's label, where it is (one form, beside the value in its
+  shortest form), rests so for 1 s, then slides left 2 px every 100 ms until its end shows, rests 1 s and starts again
+  (`panels_animate` asks for the frames; only the changed lines go to the panel). The simulator holds it at its start
+  unless a script says `slide`. The keys-locked bar takes the hint's shortest form ("Hold * to unlock").
   Layout on the 310 x 240 drawable area (`core/ui/themes/panels/panels.c`). Rounded panes on every screen are the look;
   no text is smaller than 8x16 (the theme's tiny font is its small one, so the screens the shared code draws follow),
   and a label too long for its room is shortened, never drawn smaller:

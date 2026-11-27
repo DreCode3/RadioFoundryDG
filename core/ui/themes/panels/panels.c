@@ -739,6 +739,36 @@ static const uint8_t panels_strip_right[] = {
 	PANELS_SI_RX_ONLY, PANELS_SI_SCAN,
 };
 
+// The compact layout's focused list row whose label is too long for it: the label rests shortened at its end for
+// PANELS_MARQUEE_PAUSE_MS, then slides left PANELS_MARQUEE_STEP_PX every PANELS_MARQUEE_STEP_MS until its end shows,
+// rests there as long, and starts again (panels_marquee_pos). The row is drawn whole each time; only the lines that
+// changed go to the panel (gfx_flush)
+#define PANELS_MARQUEE_PAUSE_MS	1000u
+#define PANELS_MARQUEE_STEP_MS	100u
+#define PANELS_MARQUEE_STEP_PX	2
+static struct {
+	ui_item_fn item;	// the list and its focused entry the label is, and how wide (a new one starts again)
+	uint16_t focus, width;
+	uint16_t max;		// how far it slides: its width less the room
+	uint32_t since;		// when it started resting
+	bool live, was_live;	// the frame being drawn has one; the one before had
+} panels_marquee;
+static uint32_t panels_now;	// the time of the frame being drawn (panels_draw_status)
+#ifdef GFX_FIT_TRACE
+static bool panels_still;	// the simulator holds the label at its start (ui_state_t gui_sim_still)
+#endif
+
+// How far the label has slid at now_ms: -1 while it rests shortened, else 0 to max
+static int panels_marquee_pos(uint32_t now_ms)
+{
+	unsigned steps = (panels_marquee.max + PANELS_MARQUEE_STEP_PX - 1u) / PANELS_MARQUEE_STEP_PX;
+	uint32_t t = (now_ms - panels_marquee.since) % (2u * PANELS_MARQUEE_PAUSE_MS + steps * PANELS_MARQUEE_STEP_MS);
+	if (t < PANELS_MARQUEE_PAUSE_MS)
+		return -1;
+	unsigned step = (t - PANELS_MARQUEE_PAUSE_MS) / PANELS_MARQUEE_STEP_MS;
+	return step < steps ? (int)(step * PANELS_MARQUEE_STEP_PX) : panels_marquee.max;
+}
+
 // The status strip, a rounded pane at the top of every screen, the same marks at the same size on every one: signal
 // bars, the mode, roaming, TX or NO TX and the monitor, dual watch and VOX marks from the left; battery, power, lock,
 // GPS, the USB network and the operating marks (unread mail, the privacy key, a receive-only channel, scanning) from
@@ -750,6 +780,15 @@ static const uint8_t panels_strip_right[] = {
 static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, color_t under, bool home)
 {
 	ui_strip_draws++;
+	if (panels_small()) {
+		// Every frame starts with the strip: the focused row's sliding label is the list's, if it draws one
+		panels_now = s->now_ms;
+		panels_marquee.was_live = panels_marquee.live;
+		panels_marquee.live = false;
+#ifdef GFX_FIT_TRACE
+		panels_still = s->gui_sim_still;
+#endif
+	}
 	const panels_metrics_t *m = panels_m();
 	int w = gfx_width(), h = ui_layout.strip_h;
 	color_t ink = ui_col.fg;	// the marks in the palette's ink, Day and Night (Day's were black: an entry of their own)
@@ -1636,6 +1675,12 @@ static bool panels_animate(const radio_view_t *v, const ui_state_t *s, uint32_t 
 {
 	if (v->scan != 0 && v->scan != 3 && now_ms / 100u != s->now_ms / 100u)
 		return true;
+	bool slides = panels_small() && panels_marquee.live;
+#ifdef GFX_FIT_TRACE
+	slides = slides && !s->gui_sim_still;
+#endif
+	if (slides && panels_marquee_pos(now_ms) != panels_marquee_pos(s->now_ms))
+		return true;
 #if CONFIG_DMR_ROAMING
 	if ((v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY) &&
 	    now_ms / 125u != s->now_ms / 125u)
@@ -1895,6 +1940,44 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 	}
 }
 
+// The compact layout's focused row whose label (one form) doesn't fit beside its value: the value in its shortest form
+// as ui_row_text draws it, and the label resting shortened (false: ui_row_text draws the row) or slid by
+// panels_marquee_pos, clipped to its room. noinline: its buffer stays out of the list frame's
+static bool __attribute__((noinline)) panels_row_slide(const ui_list_t *l, const ui_cell_t *c, const font_t *f, int x,
+	int ty, int right, const char *label, const char *value, color_t fg, color_t vfg)
+{
+	char val[sizeof ((ui_item_t *)0)->value];
+	bool more = true;
+	val[0] = 0;
+	for (int level = 0; value[0] && more; level++)
+		gfx_text_alt(value, level, val, sizeof val, &more);
+	int vw = gfx_text_width(f, val), lw = gfx_text_width(f, label);
+	int room = right - x - (vw ? vw + f->w / 2 + 1 : 0);
+	if (strchr(label, TEXT_ALT_OPEN[0]) != NULL || lw <= room)
+		return false;
+	bool again = !panels_marquee.was_live || panels_marquee.item != l->item || panels_marquee.focus != l->focus ||
+		panels_marquee.width != lw;
+#ifdef GFX_FIT_TRACE
+	again = again || panels_still;
+#endif
+	if (again)
+		panels_marquee.since = panels_now;
+	panels_marquee.item = l->item;
+	panels_marquee.focus = l->focus;
+	panels_marquee.width = (uint16_t)lw;
+	panels_marquee.max = (uint16_t)(lw - room);
+	panels_marquee.live = true;
+	int pos = panels_marquee_pos(panels_now);
+	if (pos < 0)
+		return false;	// resting: shortened at its end, as the other rows
+	if (vw)
+		gfx_text(f, right - vw, ty, val, vfg);
+	gfx_clip(x, c->y, room, c->h);
+	gfx_text(f, x - pos, ty, label, fg);
+	gfx_clip_off();
+	return true;
+}
+
 // Each row or tile a rounded panel, the focus filled with its accent bar; a row has the key's digit, the label and the
 // value in the 8x16 font, shortened where it is too long, never in a smaller font; a tile as panels_tile_text
 static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_cell_t *c, const ui_item_t *it)
@@ -1934,6 +2017,8 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 		ui_row_edit(f, x, ty, right, it->label, value, fg, panels_accent, panels_small());
 		return;
 	}
+	if (focus && panels_small() && panels_row_slide(l, c, f, x, ty, right, it->label, value, fg, vfg))
+		return;
 	// A label too long for the compact layout's row is shortened at its end, as a preview's (a label with shorter
 	// forms takes the longest that fits first)
 	ui_row_text(f, x, ty, right, it->label, value, fg, vfg, (flags & UI_ITEM_PREVIEW) || panels_small());

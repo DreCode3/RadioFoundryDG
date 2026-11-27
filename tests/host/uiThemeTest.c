@@ -1573,6 +1573,51 @@ static void test_compact_grids(bool compact)
 	base();
 }
 
+// A list whose rows have long labels: "Timeout warning tone" and the like, each with "On"
+static void long_item(uint16_t i, ui_item_t *it)
+{
+	snprintf(it->label, sizeof it->label, "Timeout warning tone %u", (unsigned)i);
+	strcpy(it->value, "On");
+}
+
+// The compact layout's focused row whose label is cut slides it sideways: shortened at its end for a second, then 2 px
+// every 100 ms, the animate op asking for a frame at each step, until its end shows; the other rows stay shortened.
+// The full layout has room for it
+static void test_compact_marquee(bool compact)
+{
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(5, 1, &top);
+	l.item = long_item;
+	uint32_t t0 = state.now_ms;
+	ui_draw_list(&view, &state, &l);
+	int k = text_with("Timeout"), whole = find_text("Timeout warning tone 1");
+	CHECKT(compact ? k >= 0 && whole < 0 && strstr(texts[k].s, GLYPH_ELLIPSIS) != NULL : whole >= 0);
+	if (!compact) {
+		base();
+		return;
+	}
+	const ui_theme_ops_t *o = ui_theme_panels.ops;
+	CHECK(!o->animate(&view, &state, t0 + 999) && o->animate(&view, &state, t0 + 1000));
+	state.now_ms = t0 + 1550;	// 5 steps in: 10 px
+	ui_draw_list(&view, &state, &l);
+	whole = find_text("Timeout warning tone 1");
+	int x0 = 3 + 8;	// the row's text: the list 3 px from the edge, the text 8 px into the row
+	CHECKT(whole >= 0 && texts[whole].x == x0 - 10 && find_text("On") >= 0);
+	CHECKT(find_text("Timeout warning tone 0") < 0 && find_text("Timeout warning tone 2") < 0);	// shortened
+	CHECK(!o->animate(&view, &state, t0 + 1599) && o->animate(&view, &state, t0 + 1600));
+	// Its end shows and rests: "Timeout warning tone 1" is 176 px in a room of 120
+	state.now_ms = t0 + 1000 + 28 * 100 + 500;
+	ui_draw_list(&view, &state, &l);
+	whole = find_text("Timeout warning tone 1");
+	CHECKT(whole >= 0 && texts[whole].x == x0 - (176 - 120));
+	// A new focus starts again, shortened
+	l.focus = 2;
+	ui_draw_list(&view, &state, &l);
+	CHECKT(find_text("Timeout warning tone 2") < 0);
+	base();
+}
+
 static void test_panels_frames(void)
 {
 	CHECK(gfx_init(&panel));
@@ -1607,6 +1652,7 @@ static void test_panels_frames(void)
 	test_compact_call(false);
 #endif
 	test_compact_grids(false);
+	test_compact_marquee(false);
 #if GFX_MIN_ROWS < UI_TALL_PX
 	// The 160 x 128 panel: the compact layout
 	hal_display_t compact = { .width = 160, .height = 128, .bpp = 4, .init = d_init, .flush = d_flush,
@@ -1620,6 +1666,7 @@ static void test_panels_frames(void)
 	test_compact_call(true);
 #endif
 	test_compact_grids(true);
+	test_compact_marquee(true);
 	test_panels_min_font();
 	// 158 x 127 (a 160 x 128 panel behind a bezel that hides a row and two columns): 3 list rows, the hint row empty
 	// or not (4 need 128 px)
