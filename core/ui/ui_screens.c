@@ -1903,19 +1903,28 @@ void ui_draw_incoming_call(const radio_view_t *v, const ui_state_t *s, const cha
 	sb_u32(&b, v->t3.ring_src, 1);
 	const char *title = TR(TRUNK_TITLE_INCOMING_CALL, "Incoming private call");
 	const font_t *title_font = gfx_text_width(L->medium, title) <= w - 4 ? L->medium : L->small;
+	// Two lines where even the small font can't hold it on one (the panels theme's compact layout: 8x16)
+	char title1[64];
+	const char *title2 = ui_wrap_line(title_font, title, w - 4, title1, sizeof title1);
+	int title_h = (*title2 ? 2 : 1) * title_font->h;
 	int lines = wrap_lines(L->small, TR(TRUNK_HINT_PTT_ANSWER, "Press PTT to answer"),
 			       w - 4, 2, prompt, false);
 
 	gfx_clear(ui_col.bg);
 	int top = ui_draw_top(v, s, NULL, NULL);
 	int labels = (lines + named) * L->small->h;
-	int height = title_font->h + L->large->h + labels;
+	int height = title_h + L->large->h + labels;
 	const font_t *id_font = height + 4 <= gfx_height() - top ? L->large : L->medium;
-	height = title_font->h + id_font->h + labels;
+	height = title_h + id_font->h + labels;
 	int gap = (gfx_height() - top - height) / 4;
 	int y = top + gap;
-	ui_draw_title(title_font, 2, y, w - 4, title, NULL, ui_col.fg);
-	y += title_font->h + gap;
+	if (*title2) {
+		gfx_text(title_font, (w - gfx_text_width(title_font, title1)) / 2, y, title1, ui_col.fg);
+		ui_draw_title(title_font, 2, y + title_font->h, w - 4, title2, NULL, ui_col.fg);
+	} else {
+		ui_draw_title(title_font, 2, y, w - 4, title, NULL, ui_col.fg);
+	}
+	y += title_h + gap;
 	if (named) {
 		gfx_text_fit(L->small, name, w - 4, fit, sizeof fit);
 		gfx_text(L->small, (w - gfx_text_width(L->small, fit)) / 2, y, fit, ui_col.fg);
@@ -3515,8 +3524,12 @@ static int wrap_text(const font_t *f, const char *t, int y, int y_end, bool draw
 	char line[64];
 	while (*t && y + f->h <= y_end) {
 		const char *next = ui_wrap_line(f, t, gfx_width(), line, sizeof line);
-		if (*next && y + 2 * f->h > y_end)
+		if (*next && y + 2 * f->h > y_end) {
 			ui_fit_end(f, t, gfx_width(), line, sizeof line);	// the last line that fits: never drop text silently
+			for (char *p = line; *p; p++)
+				if (*p == '\n')
+					*p = ' ';	// a line break the shortened rest spans: a space, not a missing glyph
+		}
 		t = next;
 		if (draw)
 			gfx_text(f, 0, y, line, c);
@@ -4421,8 +4434,8 @@ void ui_draw_diag(const radio_view_t *v, uint32_t keys, int32_t enc_total, uint8
 		enc_total = -enc_total;
 	}
 	sb_u32(&b, (uint32_t)enc_total, 1);
-	gfx_text(f, 0, y, buf, ui_col.fg);
-	y += f->h;
+	// Wrapped where a narrow screen's small print can't hold a line (the panels theme's compact layout: 8x16)
+	y = wrap_text(f, buf, y, gfx_height() - f->h, true, ui_col.fg);
 
 	sb_init(&b, buf, sizeof buf);
 	sb_str(&b, "rx ");
@@ -4437,8 +4450,7 @@ void ui_draw_diag(const radio_view_t *v, uint32_t keys, int32_t enc_total, uint8
 	sb_str(&b, v->state == RS_RX ? " open" : v->state == RS_TX ? " TX" : " closed");
 	if (v->ch.rx_tone.type != TONE_NONE)
 		sb_str(&b, v->tone_ok ? " tone" : " -tone");
-	gfx_text(f, 0, y, buf, ui_col.fg);
-	y += f->h;
+	y = wrap_text(f, buf, y, gfx_height() - f->h, true, ui_col.fg);
 
 	diag_lines_per_page = 0;
 	for (uint8_t i = first_line; board.diag_line != NULL && y + f->h <= gfx_height() - f->h; i++) {

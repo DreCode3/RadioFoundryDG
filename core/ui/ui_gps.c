@@ -298,6 +298,10 @@ static bool label_clear(uint8_t i, uint32_t labeled, uint32_t left, int lx, int 
 	int dot)
 {
 	const font_t *t = ui_layout.tiny;
+	// Not over the plot's "N" (draw_sky)
+	int nx = cx + 2, ny = cy - r;
+	if (lx < nx + gfx_text_width(t, "N") && nx < lx + lw && ly < ny + t->h && ny < ly + t->h)
+		return false;
 	ui_gps_sat_t o;
 	for (uint8_t j = 0; ui_svc_gps_sat(j, &o); j++) {
 		int ox, oy;
