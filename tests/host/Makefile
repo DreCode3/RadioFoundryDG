@@ -2006,7 +2006,7 @@ run-boards::
 # Every test in TESTS must be run by a group: run: $(TESTS) above expands before the later TESTS += lines, so a test
 # missing from its group's run lines is built by no rule and run by none (two were, unnoticed). HELPERS are programs
 # a test script drives, not tests of their own
-HELPERS := pppPeer cpsSim snmpPeer
+HELPERS := pppPeer cpsSim snmpPeer uiSimZh
 run: check-run
 check-run:
 	@for t in $(filter-out $(HELPERS),$(TESTS)); do \
