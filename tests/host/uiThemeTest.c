@@ -1281,6 +1281,16 @@ static void group_tile_item(uint16_t i, ui_item_t *it)
 	strcpy(it->label, labels[i % 9]);
 }
 
+// The main menu with the Zones tile first, its value the zone's name
+static void zones_tile_item(uint16_t i, ui_item_t *it)
+{
+	it->num = (char)('1' + i);
+	it->icon = i == 0 ? UI_MENU_ICON_ZONES : UI_MENU_ICON_SCAN;
+	snprintf(it->label, sizeof it->label, i == 0 ? "Zones" : "Entry %u", (unsigned)i);
+	if (i == 0)
+		strcpy(it->value, "Club");
+}
+
 static void hub_tile_item(uint16_t i, ui_item_t *it)
 {
 	it->num = (char)('1' + i);
@@ -1668,6 +1678,45 @@ static void test_compact_grids(bool compact)
 	ntexts = 0;
 	ui_theme_panels.ops->bottom("# reply  PTT talk  Hold OK save", 0, NULL);
 	CHECKT(find_text(compact ? "# reply  PTT talk" : "# reply  PTT talk  Hold OK save") >= 0);
+	if (!compact) {
+		base();
+		return;
+	}
+	// A toast of three forms whose first form two lines can't hold (a longer translation) takes its shortest, on one
+	// line ("Hold * to unlock", the compact bar's)
+	gfx_clear(ui_col.bg);
+	ntexts = 0;
+	ui_theme_panels.ops->bottom(TEXT_ALT_OPEN "Keys are locked now: hold the star key down to unlock them" TEXT_ALT_NEXT
+				    "Locked: hold * to unlock" TEXT_ALT_NEXT "Hold * to unlock" TEXT_ALT_CLOSE, UI_BAR_TOAST, NULL);
+	CHECKT(find_text("Hold * to unlock") >= 0 && text_with("Keys") < 0 && ntexts == 1);
+	// ... and only there: English's first form fits two lines, so it keeps its words
+	gfx_clear(ui_col.bg);
+	ntexts = 0;
+	ui_theme_panels.ops->bottom(TEXT_ALT_OPEN "Keys locked: hold * to unlock" TEXT_ALT_NEXT "Locked: hold * to unlock"
+				    TEXT_ALT_NEXT "Hold * to unlock" TEXT_ALT_CLOSE, UI_BAR_TOAST, NULL);
+	CHECKT(find_text("Keys locked: hold") >= 0 && find_text("* to unlock") >= 0 && ntexts == 2);
+	// The Zones tile's value (the zone's name) is not in the title row when it is focused; Home shows the zone
+	l = list(9, 0, &top);
+	l.kind = UI_LIST_HUB;
+	l.numbered = true;
+	l.item = zones_tile_item;
+	l.prefix = "Menu";
+	l.name = NULL;
+	ui_draw_list(&view, &state, &l);
+	CHECKT(find_text("Zones") >= 0 && text_with("Club") < 0);
+	// Quick's tiles take the hint row's room with Hint row off: its last row lower than with it on
+	base();
+	int low[2];
+	for (int hints_off = 0; hints_off < 2; hints_off++) {
+		state.hints = !hints_off;
+		ui_draw_quick(&view, &state);
+		low[hints_off] = 0;
+		for (int i = 0; i < ntexts; i++)
+			if (texts[i].y + texts[i].h <= gfx_height() - 20 && texts[i].y > low[hints_off] &&	// above the bar
+			    (hints_off || texts[i].y + texts[i].h <= ui_layout.hint_y))
+				low[hints_off] = texts[i].y;
+	}
+	CHECKT(low[1] > low[0]);
 	base();
 }
 
@@ -1722,7 +1771,11 @@ static void test_compact_marquee(bool compact)
 	ui_draw_list(&view, &state, &l);
 	whole = find_text("Timeout warning tone 1");
 	int x0 = 3 + 8;	// the row's text: the list 3 px from the edge, the text 8 px into the row
-	CHECKT(whole >= 0 && texts[whole].x == x0 - 10 && find_text("On") >= 0);
+	// The value stays on the sliding row: an "On" on its line, not only on the other rows'
+	bool on_row = false;
+	for (int i = 0; whole >= 0 && i < ntexts; i++)
+		on_row = on_row || (strcmp(texts[i].s, "On") == 0 && texts[i].y == texts[whole].y);
+	CHECKT(whole >= 0 && texts[whole].x == x0 - 10 && on_row);
 	CHECKT(find_text("Timeout warning tone 0") < 0 && find_text("Timeout warning tone 2") < 0);	// shortened
 	CHECK(!o->animate(&view, &state, t0 + 1599) && o->animate(&view, &state, t0 + 1600));
 	// Its end shows and rests: "Timeout warning tone 1" is 176 px in a room of 120

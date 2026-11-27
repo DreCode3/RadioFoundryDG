@@ -1868,7 +1868,8 @@ static void panels_focus_title(const char *label, const char *value, int reserve
 // with its digit and its value beside it, its label under them, each the longest of its alternates that fits (else
 // shortened); in a tile high enough for three lines a value that doesn't fit beside the digit goes under the label.
 // Settings': its icon left of its digit and its label, the label going on to the second line at a word where it is too
-// long for one. A label two lines can't hold is shortened
+// long for one (on a narrow screen the main menu's order: the icon and digit above the label's two lines). A label two
+// lines can't hold is shortened
 static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_item_t *it, color_t fg, color_t vfg,
 	color_t num_ink)
 {
