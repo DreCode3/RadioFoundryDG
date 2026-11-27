@@ -1563,7 +1563,9 @@ static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui
 		return ui_layout.strip_h;
 	char badge[16];
 	int y = panels_title(NULL, NULL, 0, false);
-	int reserve = l->count > panels_list_page(l, y) ? panels_badge(l, l->count, badge, sizeof badge) + 8 : 0;
+	// A header or a body takes rows from the page, so with one the position may show for any list of two or more
+	bool over = l->count > panels_list_page(l, y) || ((l->header != NULL || l->body != NULL) && l->count > 1);
+	int reserve = over ? panels_badge(l, l->count, badge, sizeof badge) + 8 : 0;
 	return panels_title(l->prefix, l->name, reserve, draw);
 }
 

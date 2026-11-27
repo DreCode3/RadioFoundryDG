@@ -1312,6 +1312,28 @@ static void test_panels_narrow_text(bool narrow)
 	base();
 }
 
+// A list with a body: its title keeps room for the scroll position, which shows once the body has taken rows (on the
+// narrow screen a long title ran under it)
+static void test_panels_badge_room(void)
+{
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(5, 0, &top);
+	l.prefix = "Message 1 of 1";
+	l.name = NULL;
+	l.body = "From Q1ABC Joe, 0s ago. Your special configuration is: active SMS long SMS, delay 2.5 s, retries 3, "
+		 "language English";
+	ui_draw_list(&view, &state, &l);
+	int b = find_text("1/5"), t = -1;
+	for (int i = 0; i < ntexts; i++)
+		if (strncmp(texts[i].s, "Message", 7) == 0)
+			t = i;
+	CHECK(b >= 0 && t >= 0);
+	if (b >= 0 && t >= 0)
+		CHECK(texts[t].x + texts[t].w <= texts[b].x);
+	base();
+}
+
 static void test_panels_frames(void)
 {
 	CHECK(gfx_init(&panel));
@@ -1324,6 +1346,7 @@ static void test_panels_frames(void)
 	test_panels_geometry();
 	test_panels_tiles(false);
 	test_panels_narrow_text(false);
+	test_panels_badge_room();
 	// The 240 x 320 panel behind a bezel that hides 10 px left and right and 5 top and bottom: 220 x 310
 	hal_display_t narrow = inset_panel(240, 320, 10, 5, 4);
 	narrow.flush_indexed = d_flush_indexed;
@@ -1333,6 +1356,7 @@ static void test_panels_frames(void)
 	CHECK(gfx_width() == 220 && gfx_height() == 310);
 	test_panels_tiles(true);
 	test_panels_narrow_text(true);
+	test_panels_badge_room();
 	ui_theme_use(&ui_theme_reference);
 	CHECK(gfx_init(&disp));
 	ui_layout_init();
