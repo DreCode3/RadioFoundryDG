@@ -1228,6 +1228,90 @@ static void test_panels_geometry(void)
 	CHECK(g.rows == (gfx_height() - y) / g.pitch);
 }
 
+// The main menu's tiles: one with a label of two forms, one with a value (Scan's "Off")
+static void hub_tile_item(uint16_t i, ui_item_t *it)
+{
+	it->num = (char)('1' + i);
+	it->icon = UI_MENU_ICON_SCAN;
+	if (i == 0) {
+		strcpy(it->label, TEXT_ALT_OPEN "Connections" TEXT_ALT_NEXT "Links" TEXT_ALT_CLOSE);
+	} else if (i == 1) {
+		strcpy(it->label, "Scan");
+		strcpy(it->value, "Off");
+	} else {
+		snprintf(it->label, sizeof it->label, "Entry %u", (unsigned)i);
+	}
+}
+
+// The grids' tiles and the rows from the screen's size. On the narrow screen (220 px across): tiles 2 px from the edges
+// and apart, the label of two forms in its short one, a value that doesn't fit beside the digit on a third line under
+// the label, seven list rows. On the wide one: the full margins, the long form, the value beside the digit
+static void test_panels_tiles(bool narrow)
+{
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(9, 4, &top);
+	l.kind = UI_LIST_HUB;
+	l.numbered = true;
+	l.item = hub_tile_item;
+	l.prefix = "Menu";
+	l.name = NULL;
+	nshortened = 0;
+	ui_draw_list(&view, &state, &l);
+	int links = find_text("Links"), conn = find_text("Connections");
+	CHECK(narrow ? links >= 0 && conn < 0 : conn >= 0 && links < 0);
+	int scan = find_text("Scan"), off = find_text("Off"), digit = find_text("2 ");
+	CHECK(scan >= 0 && off >= 0 && digit >= 0 && nshortened == 0);
+	if (scan >= 0 && off >= 0 && digit >= 0) {
+		if (narrow)
+			CHECK(texts[off].x == texts[scan].x && texts[off].y == texts[scan].y + texts[scan].h &&
+			      texts[off].y + texts[off].h <= ui_layout.hint_y);
+		else
+			CHECK(texts[off].y == texts[digit].y && texts[off].y < texts[scan].y);
+	}
+	const ui_theme_ops_t *o = ui_theme_panels.ops;
+	ui_list_geom_t g;
+	int y = o->list_head(NULL, NULL, &l, false);
+	o->list_geom(&l, y, ui_layout.hint_y, &g);
+	if (narrow)
+		CHECK(g.x == 2 && g.col_gap == 2 && g.col_w[0] == 70 && g.pitch == 65);
+	else
+		CHECK(g.x == 5 && g.col_gap == 3 && g.col_w[0] == 98);
+	l = list(30, 0, &top);
+	o->list_geom(&l, o->list_head(NULL, NULL, &l, false), ui_layout.hint_y, &g);
+	CHECK(g.rows == (narrow ? 7 : 5) && g.pitch == 26);
+}
+
+// Text that falls back to 8x16 on the narrow screen where its larger font doesn't hold it whole: the keys-locked
+// sentence in the bar, Amateur Home's details row
+static void test_panels_narrow_text(bool narrow)
+{
+	base();
+	state.locked = true;
+	ui_draw_home(&view, &state);
+	int k = -1;
+	for (int i = 0; i < ntexts; i++)
+		if (strstr(texts[i].s, "to unlock") != NULL)
+			k = i;
+	CHECK(k >= 0 && strchr(texts[k].s, GLYPH_ELLIPSIS[0]) == NULL && (narrow ? texts[k].h == 16 : texts[k].h >= 24));
+#if CONFIG_DMR
+	base();
+	state.gui_profile = 1;
+	view.ch.mode = RADIO_MODE_DMR;
+	view.ch.rx_hz = view.ch.tx_hz = 453625000;
+	view.ch.timeslot = 1;
+	view.ch.color_code = 1;
+	ui_draw_home(&view, &state);
+	int d = -1;
+	for (int i = 0; i < ntexts; i++)
+		if (strstr(texts[i].s, "453.625 MHz") != NULL)
+			d = i;
+	CHECK(ui_layout.small->h > 16);
+	CHECK(d >= 0 && strstr(texts[d].s, "CC1") != NULL && texts[d].h == (narrow ? 16 : ui_layout.small->h));
+#endif
+	base();
+}
+
 static void test_panels_frames(void)
 {
 	CHECK(gfx_init(&panel));
@@ -1238,6 +1322,17 @@ static void test_panels_frames(void)
 	test_panels_min_font();
 	test_panels_quick_entry();
 	test_panels_geometry();
+	test_panels_tiles(false);
+	test_panels_narrow_text(false);
+	// The 240 x 320 panel behind a bezel that hides 10 px left and right and 5 top and bottom: 220 x 310
+	hal_display_t narrow = inset_panel(240, 320, 10, 5, 4);
+	narrow.flush_indexed = d_flush_indexed;
+	CHECK(gfx_init(&narrow));
+	CHECK(ui_theme_use(&ui_theme_panels));
+	ui_theme_set(UI_PALETTE_DAY);
+	CHECK(gfx_width() == 220 && gfx_height() == 310);
+	test_panels_tiles(true);
+	test_panels_narrow_text(true);
 	ui_theme_use(&ui_theme_reference);
 	CHECK(gfx_init(&disp));
 	ui_layout_init();

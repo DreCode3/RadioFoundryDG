@@ -959,7 +959,8 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 }
 
 // The bar with one sentence in place of the two labels (Home while the keys are locked: what unlocks them), in the
-// largest font one of its forms fits (Chinese: the 8x16 font, its height), centered, whether Hint row is on or off
+// largest font one of its forms fits, 8x16 last on a narrow screen (Chinese: the 8x16 font, its height), centered,
+// whether Hint row is on or off
 static void panels_bar_sentence(const char *text)
 {
 	const ui_layout_t *L = &ui_layout;
@@ -967,7 +968,7 @@ static void panels_bar_sentence(const char *text)
 	int top = panels_footer_top(), room = gfx_width() - 2 * inset - 2 * margin;
 	char form[64], names[64];
 	bool wide = panels_wide(text);
-	const font_t *fonts[] = { wide ? &font_aa_8x16 : FONT_AA_LARGEST, &font_aa_12x24, L->small };
+	const font_t *fonts[] = { wide ? &font_aa_8x16 : FONT_AA_LARGEST, &font_aa_12x24, L->small, &font_aa_8x16 };
 	const char *line = NULL;
 	const font_t *f = wide ? fonts[0] : L->small;
 #if CONFIG_VOLUME_BAR
@@ -1114,7 +1115,8 @@ static bool panels_target_differs(const radio_view_t *v)
 #endif
 }
 
-// Amateur's details: the frequency, the timeslot and color code, a VFO's split, a dot for a temporary change
+// Amateur's details: the frequency, the timeslot and color code, a VFO's split, a dot for a temporary change. In the
+// small font, or 8x16 where only that holds them whole (a narrow screen); too long for both, shortened in the small font
 static void panels_home_details(const radio_view_t *v, const ui_state_t *s, int y)
 {
 	const font_t *f = ui_layout.small;
@@ -1136,6 +1138,8 @@ static void panels_home_details(const radio_view_t *v, const ui_state_t *s, int 
 		sb_str(&b, " " GLYPH_DOT " TX ");
 		sb_freq(&b, v->ch.tx_hz);
 	}
+	if (gfx_text_width(f, buf) > gfx_width() - 30 && gfx_text_width(&font_aa_8x16, buf) <= gfx_width() - 30)
+		f = &font_aa_8x16;
 	if (buf[0])
 		panels_center(f, y, buf, ui_col.dim);
 }
@@ -1509,6 +1513,19 @@ static int panels_badge(const ui_list_t *l, unsigned n, char *out, size_t cap)
 }
 
 #define PANELS_GRID_ROWS 3	// a grid's rows of tiles, each two lines of text high
+#define PANELS_TILE_CHARS 11	// a grid tile's room for text at the full margins, in characters of the 8x16 font
+
+// The margins of the 3x3 grids (the main menu, Quick): from the screen's edges, between the tiles, and the main menu's
+// label from its tile's left edge (its right one 3 px). The full ones where a tile keeps room for PANELS_TILE_CHARS
+// characters with them, else narrow ones that give their room to the text (a narrow screen)
+typedef struct { int x0, gap, label; } panels_grid_t;
+
+static panels_grid_t panels_grid(void)
+{
+	const panels_grid_t full = { 5, 3, 7 }, narrow = { 2, 2, 3 };
+	int tile = (gfx_width() - 2 * full.x0 - 2 * full.gap) / 3;
+	return tile - full.label - 3 >= PANELS_TILE_CHARS * font_aa_8x16.w ? full : narrow;
+}
 
 // Where a list's cells end: a row's panel may run under the hint row's text where the row's text ends above it; a
 // grid's tiles end above the hint row. Without the bar (Hint row off) at y_end
@@ -1558,9 +1575,10 @@ static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_
 	g->y = (int16_t)y;
 	y_end = panels_list_end(l, y_end);
 	int cols = l->kind == UI_LIST_HUB ? 3 : l->kind == UI_LIST_MENU ? 2 : 1;
-	g->x = cols == 3 ? 5 : 7;
+	panels_grid_t grid = panels_grid();
+	g->x = cols == 3 ? grid.x0 : 7;
 	g->cols = (uint8_t)cols;
-	g->col_gap = (int8_t)(cols == 3 ? 3 : cols == 2 ? 8 : 0);
+	g->col_gap = (int8_t)(cols == 3 ? grid.gap : cols == 2 ? 8 : 0);
 	g->paged = cols > 1;
 	g->across = cols == 3;
 	g->font = cols > 1 ? &font_aa_8x16 : ui_layout.small;
@@ -1572,10 +1590,24 @@ static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_
 		g->col_w[i] = (int16_t)(i < cols - 1 ? col_w : i == cols - 1 ? inner_w - (cols - 1) * (col_w + g->col_gap) : 0);
 }
 
+// Into line the longest of text's alternates that fits room whole (true), else its first (to be shortened)
+static bool panels_alt(const font_t *f, const char *text, int room, char *line, size_t cap)
+{
+	bool more = true, whole = false;
+	for (int level = 0; more && !whole; level++) {
+		gfx_text_alt(text, level, line, cap, &more);
+		whole = line[0] && gfx_text_width(f, line) <= room;
+	}
+	if (!whole)
+		gfx_text_alt(text, 0, line, cap, &more);
+	return whole;
+}
+
 // A grid tile: its icon (in the ink, the accent on focus) and two lines of the 8x16 font. The main menu's: its icon
-// with its digit and its value (shortened to the room) beside it, its label under them. Settings': its icon left of
-// its digit and its label, the label going on to the second line at a word where it is too long for one. A label two
-// lines can't hold is shortened
+// with its digit and its value beside it, its label under them, each the longest of its alternates that fits (else
+// shortened); in a tile high enough for three lines a value that doesn't fit beside the digit goes under the label.
+// Settings': its icon left of its digit and its label, the label going on to the second line at a word where it is too
+// long for one. A label two lines can't hold is shortened
 static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_item_t *it, color_t fg, color_t vfg,
 	color_t num_ink)
 {
@@ -1583,7 +1615,7 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 	char line[40], fit[40];
 	bool hub = l->kind == UI_LIST_HUB, icon = it->icon != UI_MENU_ICON_NONE;
 	color_t icon_ink = c->focus ? panels_accent : ui_col.fg;
-	int x = c->x + (hub ? 7 : PANELS_TEXT_X), right = c->x + c->w - 3;
+	int x = c->x + (hub ? panels_grid().label : PANELS_TEXT_X), right = c->x + c->w - 3;
 	if (!hub && icon)
 		x = c->x + 30;	// right of the icon's canvas, centered in the tile at its left
 	int label_x = x, text_x = x + (it->num ? 2 * f->w : 0);
@@ -1602,11 +1634,14 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 	// Two lines, or one centered in the tile (a label that fits beside the icon and the digit). The main menu's: the
 	// icon's 20 px of ink with the digit centered beside it, the label under it
 	int y1 = !hub && !*rest ? c->y + (c->h - f->h) / 2 + 1 : c->y + c->h / 2 - f->h, y2 = y1 + f->h;
+	// Three lines: the icon's canvas and two lines of text, 3 px clear of the tile's top and bottom
+	bool three = hub && c->h >= PANELS_ICON_CANVAS + 2 * f->h + 6;
 	if (hub && icon) {
-		panels_icon(it->icon, c->x + 3, c->y + c->h / 2 - 19, icon_ink);
+		int cy = c->y + c->h / 2;
+		panels_icon(it->icon, c->x + 3, three ? cy - 28 : cy - 19, icon_ink);
 		x = c->x + 28;
-		y1 = c->y + c->h / 2 - 14;
-		y2 = c->y + c->h / 2 + 3;
+		y1 = three ? cy - 24 : cy - 14;
+		y2 = three ? cy - 4 : cy + 3;
 	} else if (icon) {
 		panels_icon(it->icon, c->x + 4, c->y + (c->h - PANELS_ICON_CANVAS) / 2, icon_ink);
 	}
@@ -1615,23 +1650,22 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 		x = gfx_text(f, x, y1, n, num_ink);
 	}
 	if (hub) {
-		// The value's longest form that fits whole, else its first shortened at the end. Not the zone's name on
-		// Zones' tile: Home shows the zone (gui-plan.md, decided Nov 26)
-		int room = right - x - f->w;
-		bool more = true, whole = false;
-		for (int level = 0; more && !whole; level++) {
-			gfx_text_alt(it->value, level, line, sizeof line, &more);
-			whole = line[0] && gfx_text_width(f, line) <= room;
+		// Not the zone's name on Zones' tile: Home shows the zone (gui-plan.md, decided Nov 26)
+		if (it->value[0] && it->icon != UI_MENU_ICON_ZONES) {
+			int room = right - x - f->w;
+			bool beside = panels_alt(f, it->value, room, line, sizeof line) || !three;
+			if (!beside) {
+				room = right - label_x;
+				panels_alt(f, it->value, room, line, sizeof line);
+			}
+			if (line[0]) {
+				ui_fit_end(f, line, room, fit, sizeof fit);
+				gfx_text(f, beside ? right - gfx_text_width(f, fit) : label_x, beside ? y1 : y2 + f->h, fit,
+					 vfg);
+			}
 		}
-		if (!whole)
-			gfx_text_alt(it->value, 0, line, sizeof line, &more);
-		if (it->icon == UI_MENU_ICON_ZONES)
-			line[0] = 0;
-		if (line[0]) {
-			ui_fit_end(f, line, room, fit, sizeof fit);
-			gfx_text(f, right - gfx_text_width(f, fit), y1, fit, vfg);
-		}
-		ui_fit_end(f, it->label, right - label_x, fit, sizeof fit);
+		panels_alt(f, it->label, right - label_x, line, sizeof line);
+		ui_fit_end(f, line, right - label_x, fit, sizeof fit);
 		gfx_text(f, label_x, y2, fit, fg);
 		return;
 	}
@@ -1766,7 +1800,8 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 	panels_draw_status(v, v->state, s, ui_col.bg, false);
 	int top = panels_title(TR(QUICK_TITLE, "Quick"), v->vfo ? "VFO" : v->ch.name, 0, true);
 	int bottom = panels_hint_top() - 2;	// Quick always has its bottom row, as the reference theme's
-	const int x0 = 5, gap = 3;
+	const panels_grid_t grid = panels_grid();
+	const int x0 = grid.x0, gap = grid.gap;
 	int tw = (gfx_width() - 2 * x0 - 2 * gap) / 3, th = (bottom - top) / 3;
 	int room = tw - 10;
 	for (int i = 0; i < UI_QUICK_TILES; i++) {
