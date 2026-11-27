@@ -2,6 +2,7 @@
 # Copyright (c) 2026 The RadioFoundry Authors
 """Exercise the display profiles through the native simulator's public entry points."""
 
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -10,6 +11,8 @@ import zlib
 
 
 SIM = Path(__file__).resolve().with_name("uiSim")
+# The simulator with Chinese built in (make uiSimZh; run-ui builds it before this test)
+SIM_ZH = Path(__file__).resolve().with_name("uiSimZh")
 GEOMETRY = "320x240iR10"
 # Settings > Display's panels rows: Display profile and Day/Night, each a pick list, after Theme
 AMATEUR = "ok 8 1 row:Display_profile ok down ok long:back "
@@ -105,11 +108,12 @@ class PrototypeTest(unittest.TestCase):
                                       "expect:hides=Nothing expect:hides=Quick expect:layout=0")
             self.assertTrue(all(row[570:870] == row[570:573] * 100 for row in frame[208:230]))
 
-    def render_frame(self, script):
+    def render_frame(self, script, sim=SIM, lang=None):
         with tempfile.TemporaryDirectory() as temp:
             image = Path(temp) / "frame.png"
-            subprocess.run([SIM, "--geom", GEOMETRY, "--scale", "1", "--out", image,
-                            "--script", script], check=True, capture_output=True, timeout=15)
+            env = dict(os.environ, UI_LANG=lang) if lang else None
+            subprocess.run([sim, "--geom", GEOMETRY, "--scale", "1", "--out", image,
+                            "--script", script], check=True, capture_output=True, timeout=15, env=env)
             png = image.read_bytes()
         offset, compressed = 8, bytearray()
         while offset < len(png):
@@ -830,7 +834,8 @@ class PrototypeTest(unittest.TestCase):
         # Where Home's strip has no room for the clock, it is at the mode bar's right end (as in step 2); with room,
         # in the strip. A list can drop it in the worst crowd. With step 5's marks Home's strip holds the clock beside
         # every state ranked before it (receiving with signal bars, the monitor, ARC4 privacy, an unread message, a scan
-        # and the lock), so the mode bar keeps no clock there; a list's strip, which has the mode word too, drops it
+        # and the lock), so the mode bar keeps no clock there; with NO TX as well it does. A list's strip, which has the
+        # mode word too, drops it
         crowd = ("gps:fix mon prototype:crypt_arc4 msg:9991234,Hello wait:9000 scankey wait:3000 lockkey wait:3000 "
                  "rx:9991234,3100,g ")
         setup = GPS_CLOCK + "long:back "
@@ -843,8 +848,60 @@ class PrototypeTest(unittest.TestCase):
                     return any(frame[y][160 * 3:300 * 3] != plain[y][160 * 3:300 * 3] for y in range(STRIP_H + 2, 54))
                 self.assertFalse(clock_in_mode_bar("gps:fix "), "the clock in the strip")
                 self.assertFalse(clock_in_mode_bar(crowd), "the clock in the crowded strip")
+                # NO TX (PTT on a receive-only channel) joins that crowd: the strip has no room left, the mode bar has it
+                self.assertTrue(clock_in_mode_bar(crowd + "rxonly:on pttdown "), "the clock in the mode bar")
         self.run_script(setup + crowd.replace("lockkey wait:3000 ", "") + "ok 1 expect:screen=contacts "
                         "expect:hides=14:08 expect:layout=0")
+
+    def test_strip_words_in_12x24_stay_clear_of_home_mode_bar(self):
+        # TX on Home is a 12x24 word in the strip: its cell ends above the mode bar's text (934d80c5), both layouts
+        for profile in ("", AMATEUR):
+            self.run_script(profile + "pttdown expect:shows=TX expect:layout=0")
+
+    def test_strip_words_take_8x16_before_an_item_drops(self):
+        # On a list (the strip has the mode word) VOX, RX, the monitor and the clock fit only with the words in 8x16:
+        # the words shrink, and VOX, the last of them, stays
+        self.run_script(GPS_CLOCK + "long:back gps:fix vox:on rxonly:on mon ok 1 expect:screen=contacts "
+                        "expect:shows=VOX expect:shows=RX expect:shows=14:08 expect:layout=0")
+
+    def test_scan_gap_moves_along_the_zigzag(self):
+        # The scan mark's 13 steps of 100 ms (a gap moving along the stroke, then the arrowhead out) are 13 different
+        # strips, Day and Night
+        for profile in ("", NIGHT):
+            strips = {tuple(self.render_frame(profile + f"scankey wait:2000 wait:{k * 100}")[2:STRIP_H - 1])
+                      for k in range(13)}
+            self.assertEqual(len(strips), 13, f"{profile!r}: the scan mark doesn't step")
+
+    def test_strip_marks_keep_their_gap(self):
+        # The strip's icons start at their ink, the canvas offset taken off (panels_strip_icon): from the scan mark,
+        # the unread mail, the lock and the pin to the power letter and the battery, each pair of neighbors is the
+        # strip's 4 px gap apart (5 where an anti-aliased edge fades)
+        for script in ("gps:fix msg:9991234,Hello wait:9000 lockkey wait:3000",
+                       "gps:fix mon msg:9991234,Hello wait:9000 scankey wait:3000"):
+            frame = self.render_frame(script)
+            pane = frame[15][6 * 3:7 * 3]
+            inked = [any(frame[y][x * 3:x * 3 + 3] != pane for y in range(4, STRIP_H - 2)) for x in range(155, 302)]
+            runs = [x + 155 for x in range(len(inked)) if inked[x] and (x == 0 or not inked[x - 1])]
+            ends = [x + 155 for x in range(len(inked)) if inked[x] and (x == len(inked) - 1 or not inked[x + 1])]
+            gaps = [start - end - 1 for end, start in zip(ends, runs[1:])]
+            self.assertGreaterEqual(len(gaps), 3, f"{script!r}: {runs}")
+            self.assertTrue(all(4 <= g <= 5 for g in gaps), f"{script!r}: gaps {gaps}")
+
+    @unittest.skipUnless(SIM_ZH.exists(), "uiSimZh not built (make -C tests/host uiSimZh)")
+    def test_chinese_bar_labels_at_their_height_and_unlock_sentence_centered(self):
+        # A bar with Chinese text puts both labels in the 8x16 font, centered on the bar (OK too: its ink is about
+        # 11 px high, in 12x24 or larger more); Home's unlock sentence is centered on the bar
+        bar = range(BAR_Y, BAR_Y + 32)
+        for script in ("", "ok", "ok 8"):
+            frame = self.render_frame(script, SIM_ZH, "zh")
+            ground = frame[BAR_Y + 2][8 * 3:9 * 3]
+            rows = [y for y in bar if any(frame[y][x * 3:x * 3 + 3] != ground for x in range(14, 40))]
+            self.assertTrue(rows and max(rows) - min(rows) + 1 <= 16, f"{script!r}: OK's ink rows {rows}")
+            self.assertLessEqual(abs((min(rows) + max(rows)) / 2 - (BAR_Y + 15.5)), 4, f"{script!r}: rows {rows}")
+        frame = self.render_frame("lockkey wait:5000", SIM_ZH, "zh")
+        ground = frame[BAR_Y + 2][8 * 3:9 * 3]
+        cols = [x for x in range(6, 304) if any(frame[y][x * 3:x * 3 + 3] != ground for y in range(BAR_Y + 4, BAR_Y + 28))]
+        self.assertLessEqual(abs((min(cols) + max(cols)) / 2 - 155), 2, f"the unlock sentence spans {min(cols)}-{max(cols)}")
 
     def test_commercial_crowded_status_keeps_the_clock_and_device_icons(self):
         setup = (

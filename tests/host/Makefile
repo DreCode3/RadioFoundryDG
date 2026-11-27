@@ -752,7 +752,7 @@ $(shell python3 $(ROOT)/tools/gen_about.py $(ROOT)/AUTHORS $(ROOT)/platform/stm3
 UIFLAGS := -std=gnu99 -Wall -Wextra -Wno-unused-parameter -Wshadow -g $(COVFLAGS) $(SANFLAGS) -I$(CORE) -I$(ROOT)/hal -I. -Iout/gen \
            '-DGFX_FB_BYTES=(320u*320u*2u)' -DGFX_MAX_ROWS=320 -DCONFIG_FONT_XL=1 -DFONT_BOTH -DGFX_INDEXED=1 -DGFX_FIT_TRACE
 UIDEPS  := $(UIAPP) $(ABOUT_H) $(LANG_H) $(CORE)/input/keyassign.h $(wildcard $(CORE)/ui/*.h $(CORE)/ui/themes/*/*.h $(CORE)/ui/fonts/*.inc sim/ui_sim.h)
-TESTS   += uiFlowTest uiFlowTestNoColor uiSim uiSimNoSettings uiSimFr
+TESTS   += uiFlowTest uiFlowTestNoColor uiSim uiSimNoSettings uiSimFr uiSimZh
 TESTS   += uiFlowTestSatellite
 
 uiFlowTest: uiFlowTest.c $(UIDEPS)
@@ -782,6 +782,11 @@ uiSimNoSettings: uiSim.c Makefile $(UIDEPS)
 # as another key's (the Menu Scan tile's Off, HUB_VALUE_OFF, is "Arret" there, the rows' "Desactive")
 uiSimFr: uiSim.c Makefile $(UIDEPS)
 	$(CC) $(UIFLAGS) -DCONFIG_LANG_FR=1 -DCONFIG_UI_THEME_PANELS=1 -o $@ uiSim.c $(UIAPP) -lz
+
+# The simulator with Chinese built in (CONFIG_LANG_ZH and its CJK face): uiPrototypeTest checks the panels theme's bars
+# with Chinese labels (their 8x16 height, the unlock sentence centered)
+uiSimZh: uiSim.c Makefile $(UIDEPS) $(CJK)
+	$(CC) $(UIFLAGS) -DCONFIG_LANG_ZH=1 -DCONFIG_UI_THEME_PANELS=1 -o $@ uiSim.c $(UIAPP) $(CJK) -lz
 
 uiSim: uiSim.c Makefile $(UIDEPS) $(CJK)
 	$(CC) $(UIFLAGS) $(UI_LANG_FLAG) -DCONFIG_UI_THEME_PANELS=1 -DCONFIG_SATELLITE_TLE=1 -DCONFIG_P25=1 -DCONFIG_P25_TRUNK=1 -DCONFIG_NXDN=1 \
@@ -821,7 +826,7 @@ ui-sheets: uiSim
 	UI_GALLERY_COLORS="$(UI_GALLERY_COLORS)" ./uiSim --sheets out/sheets $(GEOM)
 
 run: run-ui
-run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim uiSimNoSettings uiSimFr beepReel
+run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim uiSimNoSettings uiSimFr uiSimZh beepReel
 	./gfxTest
 	./gfxTestZh
 	./uiThemeTest
