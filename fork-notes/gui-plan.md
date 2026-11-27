@@ -393,6 +393,18 @@ resources spent on diminishing returns):
        keeps the rule as frozen.
      - The GPS clock is off on this class (it never fits the strip, and Home has no mode bar here).
      - Keys locked: a new short form, **"Hold * to unlock"** (128 px, a `{long|short}` alternate, translated).
+   - Decided Nov 27 (user), after part B's build (`d04d9c40..e48913c5`):
+     - **The focused row scrolls:** on this class a text cut at the end in the focused list row slides sideways to
+       show it whole; other rows stay cut at the end. The GD-88 and DM-32 don't change.
+     - **MD-380 and MD-UV380 fit at 158 x 127** (their insets): the fit rule takes that size. Lists show 3 rows there
+       even with the hint row hidden. MD-380 selectable (reference default); MD-UV380 off by default and in
+       `MAXIMAL_SKIP`. The MD-380's UI stack grows as needed (84 B free with panels forced on).
+     - **A GD-88 with the 220 x 176 panel starts in the compact panels layout**, like the rest of the GD-88 (about
+       4.4 KB on every GD-88 build).
+     - **Home on this class shows no hint line**, so both layouts always fit whole ("* Quick" isn't shown there).
+     - Kept as built: Settings' first level uses the Menu rule (icon and digit tiles, the title names the focused
+       group); idle "needs attention" lines take Home room only when shown, like call lines; a long Quick value is
+       cut in its tile and shown whole in the title row ("Tone  T100.0").
    - Part A (Nov 27, `c9ae518b`..`cc296f81`, not yet QA'd): the fit rule (color, 160 x 128, 240 px high until part B),
      DM-32 panels by default, Links, the third-line value, the 8x16 fallbacks, the title's room for "n/N" beside a
      body. GD-88 frames and profile renders 0 differ. Open for the user: the DM-32 panels gallery and `--layout` (61
