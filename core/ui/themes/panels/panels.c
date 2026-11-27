@@ -380,8 +380,8 @@ typedef struct {
 	bool encrypted, warning;
 } panels_strip_t;
 
-// The privacy key: green while DMR privacy is configured (with AES on an AES channel), a red X on encrypted receive
-// activity without a usable key
+// The privacy key: in the theme's ink while DMR privacy is configured (with AES on an AES channel); dimmed under a red
+// slash on encrypted receive activity without a usable key (panels_strip draws it)
 static void panels_strip_key(const radio_view_t *v, const ui_state_t *s, panels_strip_t *t)
 {
 #if CONFIG_DMR
