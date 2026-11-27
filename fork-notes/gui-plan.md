@@ -269,6 +269,9 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
      - A text fix of its own (it changes 70 reference gallery screens): English "hold OK save" becomes "Hold OK save".
      - Shared wrap: `ui_wrap_line` can start a line with French ":" or "?" (it breaks at the space before them).
      - Native speakers to review: French (the hint rewrites, "Tenir OK"), Italian "Opzioni".
+   - After approval, the user found the battery's cap 1 px above the strip's pane (every frame; plain on Home's
+     gutter and at night). Fixed in `42f3557a`: marks centered on the pane, the battery at 1.25x (22 px), and a
+     uiPrototypeTest check that no strip mark reaches the pane's outer two rows. Checked in one pass, scoped to the fix.
 5. Icons and palettes. Also: the VOX and dual watch A/B marks, large on step 2's Home and about 10 px bitmaps since
    step 4; the Settings gear's dark outline at night; Chinese hint row and bar labels touching the bar's edge.
 6. Freeze on the GD-88, then port to other display classes.
