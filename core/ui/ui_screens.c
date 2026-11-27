@@ -3421,8 +3421,15 @@ static int list_bottom(const ui_state_t *s)
 	return s == NULL || s->hints || s->toast || ui_theme_soft_keys() ? ui_layout.hint_y : gfx_height();
 }
 
-// One line of word-wrapped text: copies into line what fits in max_w pixels (breaking at the last space, or inside a
-// word longer than the line, never shortening), returns where the next line starts
+// A space a line may break at: not one before ':', ';', '?' or '!', which French writes after a space ("impossible :
+// non enregistré"), so a line never starts with one
+static bool wrap_space(const char *p)
+{
+	return *p == ' ' && p[1] != ':' && p[1] != ';' && p[1] != '?' && p[1] != '!';
+}
+
+// One line of word-wrapped text: copies into line what fits in max_w pixels (breaking at the last space a line may
+// start after, or inside a word longer than the line, never shortening), returns where the next line starts
 UI_THEME_SHARED const char *ui_wrap_line(const font_t *f, const char *t, int max_w, char *line, size_t cap)
 {
 #if CONFIG_LANG_ZH
@@ -3442,7 +3449,7 @@ UI_THEME_SHARED const char *ui_wrap_line(const font_t *f, const char *t, int max
 			line[n] = 0;
 			break;
 		}
-		if (t[n - seq] == ' ' || cp > 0xFF)
+		if (wrap_space(t + n - seq) || cp > 0xFF)
 			cut = n;
 	}
 	bool fits_all = t[n] == 0 || t[n] == '\n';
@@ -3468,7 +3475,7 @@ UI_THEME_SHARED const char *ui_wrap_line(const font_t *f, const char *t, int max
 		line[n + 1] = 0;
 		if (gfx_text_width(f, line) > max_w)
 			break;
-		if (t[n] == ' ')
+		if (wrap_space(t + n))
 			cut = n;
 		n++;
 	}

@@ -1218,6 +1218,27 @@ static void test_panels_frames(void)
 }
 #endif
 
+#if CONFIG_UI_THEME_PANELS	// ui_wrap_line is external only with a theme of its own (UI_THEME_SHARED)
+// Word wrap never starts a line with the ':', ';', '?' or '!' French writes after a space: the word before it moves down
+// too. Any other space still breaks, and a line still fills to its width
+static void test_wrap_keeps_punctuation_on_its_word(void)
+{
+	static const struct { const char *text; int cols; const char *first, *rest; } cases[] = {
+		{ "Codeplug impossible : non", 20, "Codeplug", "impossible : non" },
+		{ "Supprimer ce canal ?", 19, "Supprimer ce", "canal ?" },
+		{ "Envoyer ; puis attendre !", 24, "Envoyer ; puis", "attendre !" },
+		{ "Couldn't write it: not saved", 19, "Couldn't write it:", "not saved" },
+		{ "abc def", 5, "abc", "def" },
+	};
+	for (size_t i = 0; i < sizeof cases / sizeof cases[0]; i++) {
+		char line[64];
+		const char *rest = ui_wrap_line(&font_6x12, cases[i].text, cases[i].cols * font_6x12.w, line, sizeof line);
+		CHECK(strcmp(line, cases[i].first) == 0);
+		CHECK(strcmp(rest, cases[i].rest) == 0);
+	}
+}
+#endif
+
 int main(void)
 {
 	CHECK(gfx_init(&disp));
@@ -1243,6 +1264,7 @@ int main(void)
 	test_pick();
 #if CONFIG_UI_THEME_PANELS
 	test_panels_frames();
+	test_wrap_keeps_punctuation_on_its_word();
 #endif
 	ui_layout_init();
 
