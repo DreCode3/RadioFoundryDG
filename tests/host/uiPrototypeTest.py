@@ -728,7 +728,7 @@ class PrototypeTest(unittest.TestCase):
             ("160x120i5", "ok 8 9 row:DMR_ID_and_name ok", ["OK_edit/save", "0-9_type"], []),
             ("160x128", "ok 6 3 ok", ["OK_track", "#_TLE"], ["Up_Down"]),
             ("160x128-panels", "quick", ["0_Settings"], ["All_settings"]),
-            ("220x176-panels", "quick", ["0_Settings", "Hold_OK_save"], ["All_settings"]),
+            ("220x176iR10-panels", "quick", ["0_Settings", "Hold_OK_save"], ["All_settings"]),
         )
         for geometry, script, shown, hidden in cases:
             with self.subTest(geometry=geometry, script=script):

@@ -359,22 +359,22 @@ void gfx_draw_trace(gfx_trace_kind_t kind, int x, int y, int w, int h, const int
 }
 
 const sim_geom_t sim_geoms[] = {
-	{ "160x120i5", 160, 120, 4, 5, 0, false, false, false, 0, false, false, 0, 0 },	// DM-1701: the lens hides 5 px left and right (boards/dm1701/config.mk)
-	{ "160x128", 160, 128, 4, 0, 0, false, false, false, 0, false, false, 0, 0 },	// MD-380 / MD-UV380 / MD-9600 class
-	{ "128x64", 128, 64, 1, 0, 0, false, false, false, 0, false, false, 0, 0 },	// GD-77 class, mono
+	{ "160x120i5", 160, 120, 4, 5, 0, false, false, false, 0, false, false, 0, 0, false },	// DM-1701: the lens hides 5 px left and right (boards/dm1701/config.mk)
+	{ "160x128", 160, 128, 4, 0, 0, false, false, false, 0, false, false, 0, 0, false },	// MD-380 / MD-UV380 / MD-9600 class
+	{ "128x64", 128, 64, 1, 0, 0, false, false, false, 0, false, false, 0, 0, false },	// GD-77 class, mono
 	// DM-32UV: 16 colors, the bezel hides 10 px left and right, 5 top and bottom; FONT_BIG; a frame buffer of the
 	// safe area only (boards/dm32/board.mk GFX_FB_SAFE_AREA); the panels theme, as the radio starts in it
-	{ "240x320i10x5", 240, 320, 4, 10, 5, true, true, true, 0, false, true, 0, 0 },
-	{ "240x320", 240, 320, 16, 0, 0, true, false, false, 0, false, false, 0, 0 },	// 240x320 class at full resolution, standard text size
-	{ "320x240", 320, 240, 4, 0, 0, true, true, false, 0, false, false, 0, 0 },	// GD-88: landscape, 16 colors, the larger text as its build
-	{ "220x176", 220, 176, 4, 0, 0, true, true, false, 0, false, false, 0, 0 },	// GD-88 with the 220x176 panel: the same build, found at start-up
+	{ "240x320i10x5", 240, 320, 4, 10, 5, true, true, true, 0, false, true, 0, 0, false },
+	{ "240x320", 240, 320, 16, 0, 0, true, false, false, 0, false, false, 0, 0, false },	// 240x320 class at full resolution, standard text size
+	{ "320x240", 320, 240, 4, 0, 0, true, true, false, 0, false, false, 0, 0, false },	// GD-88: landscape, 16 colors, the larger text as its build
+	{ "220x176", 220, 176, 4, 0, 0, true, true, false, 0, false, false, 0, 0, false },	// GD-88 with the 220x176 panel: the same build, found at start-up
 	// The panels theme's compact layout on the classes under 200 px high where it fits, beside their radios' default
 	// look above: the 160x128 radios' build with the anti-aliased fonts (FONT_AA), without insets (DB25-D) and with
 	// the bezel that hides two columns on the left and a row at the top (MD-380, 158 x 127 to draw on); and the
-	// GD-88's 220x176 panel
-	{ "160x128-panels", 160, 128, 4, 0, 0, true, false, false, 0, false, true, 0, 0 },
-	{ "160x128iL2T1-panels", 160, 128, 4, 0, 0, true, false, false, 0, false, true, 2, 1 },
-	{ "220x176-panels", 220, 176, 4, 0, 0, true, true, false, 0, false, true, 0, 0 },
+	// GD-88's 220x176 panel, whose 10 px on the right are hidden as on its 320x240 one (210 x 176), with its Home keys
+	{ "160x128-panels", 160, 128, 4, 0, 0, true, false, false, 0, false, true, 0, 0, false },
+	{ "160x128iL2T1-panels", 160, 128, 4, 0, 0, true, false, false, 0, false, true, 2, 1, false },
+	{ "220x176iR10-panels", 220, 176, 4, 0, 0, true, true, false, 10, false, true, 0, 0, true },
 };
 const int sim_geom_count = sizeof sim_geoms / sizeof sim_geoms[0];
 static const sim_geom_t profile_geom = {
@@ -2828,7 +2828,7 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	board.side_key_names = maps[map].names;
 	board.side_key_count = maps[map].side_n;
 #if CONFIG_KEY_ASSIGN
-	board.home_keys = gui_profiles && map == SIM_MAP_K ? profile_home_keys : NULL;
+	board.home_keys = (gui_profiles || g->home_back) && map == SIM_MAP_K ? profile_home_keys : NULL;
 	board.home_key_count = board.home_keys != NULL ? sizeof(profile_home_keys) : 0;
 	memset(sim_key_slots, 0, sizeof sim_key_slots);
 #endif

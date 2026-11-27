@@ -25,6 +25,7 @@ typedef struct {
 	bool panels;		// the class's radio starts in the panels theme (its build's default): the gallery shows it
 	uint8_t inset_left;	// extra inset on the left only
 	uint8_t inset_top;	// extra inset at the top only
+	bool home_back;		// the radio's Back key is a Home soft key (board_t home_keys), as on the profile geometry
 } sim_geom_t;
 
 // K full keypad, M navigation keys, V a mobile's front panel + hand-mic keypad, F few keys, P that front panel
