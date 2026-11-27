@@ -278,11 +278,13 @@ enum {
 	PANELS_DUAL_W = 26,	// dual watch's two boxes
 };
 
+#if CONFIG_DMR_ROAMING
 // The roaming ring with its dot at any of its places: the canvas's live width
 static int panels_orbit_w(void)
 {
 	return panels_set()->canvas - 4;
 }
+#endif
 
 static void panels_native_caps(const font_t *font, int x, int cy, const char *label, color_t ink);
 
