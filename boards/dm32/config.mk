@@ -14,6 +14,8 @@ CONFIG_FONT_XL ?= y
 CONFIG_FONT_AA ?= y
 # FONT_BIG needs FONT_AA: off with it
 CONFIG_FONT_BIG ?= $(CONFIG_FONT_AA)
+# The panels theme is the radio's look on a color build; the original look stays in Settings > Display > Theme
+CONFIG_UI_THEME_PANELS ?= $(CONFIG_UI_COLOR)
 # The bezel hides the panel's edges, in panel pixels: text 6 px from the left or right edge was still clipped on the
 # radio, so 10 px left and right (the 8 px measured on the right leaves no more 8 px columns), 5 px top and bottom
 CONFIG_DISPLAY_INSET_LEFT ?= 10

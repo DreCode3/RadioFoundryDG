@@ -79,7 +79,7 @@ is `tools/bringup.py list --radio <id>`.
 | `volume_bar` | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded |
 | `volume_lock` | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded |
 | `key_assign` | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded |
-| `ui_theme_panels` | off | ✕ | ✕ | ✕ | ✕ | ✕ | ✕ | not recorded | ✕ |
+| `ui_theme_panels` | not recorded | ✕ | ✕ | ✕ | ✕ | ✕ | ✕ | not recorded | ✕ |
 | `scan` | not recorded | pass (seed) | not recorded | not recorded | not recorded | not recorded | pass, needs re-run | fail | partial, needs re-run |
 | `dual_watch` | not recorded | pass (seed) | not recorded | not recorded | not recorded | not recorded | partial, needs re-run | partial, needs re-run | ✕ |
 | `beep` | not recorded | not recorded | not recorded | not recorded | not recorded | not recorded | partial, needs re-run | fail | partial, needs re-run |
@@ -269,7 +269,7 @@ clock`; ? = not known yet). No driver reads the clock yet ([radio-features.md](s
 | `LANG_DEFAULT_FR` | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ | ○ |
 | `LANG_DEFAULT_ZH` | ○ | ○ | ✕ | ✕ | ✕ | ○ | ○ | ○ | ✕ |
 | `UI_COLOR` | ● | ● | ✕ | ● | ● | ● | ✕ | ● | ✕ |
-| `UI_THEME_PANELS` | ○ | ✕ | ✕ | ✕ | ✕ | ✕ | ✕ | ● | ✕ |
+| `UI_THEME_PANELS` | ● | ✕ | ✕ | ✕ | ✕ | ✕ | ✕ | ● | ✕ |
 | `UI_SETTINGS` | ● | ● | ● | ● | ● | ● | ● | ● | ✕ |
 | `SCAN` | ● | ● | ● | ● | ● | ● | ● | ● | ● |
 | `DUAL_WATCH` | ● | ● | ● | ● | ● | ● | ● | ● | ✕ |
@@ -436,7 +436,7 @@ clock`; ? = not known yet). No driver reads the clock yet ([radio-features.md](s
 | Support info on About and the debug link (build source, chips, image hash) | `SUPPORT_INFO` | 3,016 | 2,572 | About 515 bytes of RAM, most of it About's longer text. Read only when About opens or a host asks ([support-info.md](spec/support-info.md)) |
 | Backlight test pages | `BACKLIGHT_TEST` | 1,320* | 1,196* | Off by default; bench work ([backlight-curve.md](testing/backlight-curve.md)) |
 | Color screen settings (theme, highlight color, filled status bar) | `UI_COLOR` | 1,088 | 1,040 | Off on the DM-1801 Pro (monochrome screen) |
-| Panels theme (Commercial and Amateur Home layouts, Day/Night) | `UI_THEME_PANELS` | — | — | Needs a color display with a drawable area of at least 160 x 128 px, and for now 240 px high. |
+| Panels theme (Commercial and Amateur Home layouts, Day/Night) | `UI_THEME_PANELS` | — | — | Needs a color display with a drawable area of at least 160 x 128 px, and for now 240 px high. About 17.9 KB on the DM-32UV, where it is on by default |
 | 16x32 font | `FONT_XL` | 6,352* | — | Only useful at 240 px and wider (MD-380 is 160 px). Anti-aliased on the DM-32 (7.4 KB of glyphs) |
 | Anti-aliased fonts | `FONT_AA` | 6,040* | 6,032* | Smooth text on color panels; the DM-32's image grew 9.5 KB with it and `FONT_XL` |
 | Larger text | `FONT_BIG` | — | — | 9x18 lists and labels on 240 px color panels (needs `FONT_AA`); 3,588 B on the DM-32 |

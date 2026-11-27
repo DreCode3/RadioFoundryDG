@@ -465,6 +465,9 @@ The volume control works on the audio amplifier directly. RadioFoundry doesn't r
 ### DM-32UV display
 
 A 240 x 320 color screen. RadioFoundry uses its full resolution, with smooth (anti-aliased) bold text one size larger than on other 240 x 320 radios.
+The radio starts in the Panels look, with the [Commercial and Amateur display profiles](06-home-screen.md#commercial-and-amateur-home).
+To use the Original look, select it in [Settings > Display > Theme](17-settings.md#display-key-1). On this narrower
+screen the Menu's Connections tile reads **Links**, and lists show 7 rows.
 
 ### What the DM-32UV lacks
 
