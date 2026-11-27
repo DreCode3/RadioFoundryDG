@@ -933,6 +933,9 @@ class PrototypeTest(unittest.TestCase):
         self.run_script(panels + "quick expect:shows=Slot expect:shows=TG expect:hides=Timeslot expect:layout=0",
                         narrow)
         self.run_script(panels + "down quick expect:shows=T100.0 expect:layout=0", narrow)
+        # Display profile's row takes its short form beside its value; the GD-88 keeps the long one
+        self.run_script(panels + "ok 8 1 expect:shows=Profile expect:hides=Display_p expect:shows=Commercial "
+                        "expect:layout=0", narrow)
 
     def test_gui_switch_keeps_channel_and_display_preferences(self):
         self.run_script(

@@ -7118,7 +7118,8 @@ static const set_item_t s_display[] = {
 	LIST(TRN(SET_LABEL_THEME, "Theme"), "look style appearance", UI_SET_GUI_THEME, v_gui_theme, n_gui_theme),
 #endif
 #if CONFIG_UI_THEME_PANELS
-	LIST(TRN(SET_LABEL_GUI_PROFILE, "Display profile"), "home layout gui profile commercial amateur",
+	LIST(TRN(SET_LABEL_GUI_PROFILE, TEXT_ALT_OPEN "Display profile" TEXT_ALT_NEXT "Profile" TEXT_ALT_CLOSE),	// a narrow row
+		"home layout gui profile commercial amateur",
 		UI_SET_GUI_PROFILE, v_display_choice, n_gui_profile),
 	LIST(TRN(SET_LABEL_DAY_NIGHT, "Day/Night"), "theme palette contrast", UI_SET_GUI_NIGHT, v_display_choice,
 		n_gui_mode),

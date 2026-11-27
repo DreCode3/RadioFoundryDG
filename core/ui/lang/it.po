@@ -3989,8 +3989,8 @@ msgstr "Tema"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_GUI_PROFILE"
-msgid "Display profile"
-msgstr "Profilo display"
+msgid "{Display profile|Profile}"
+msgstr "{Profilo display|Profilo}"
 
 #: core/ui/ui_menus.c
 msgctxt "SET_LABEL_DAY_NIGHT"
