@@ -13,6 +13,7 @@
 #include "ui/gfx.h"
 #include "ui/ui_screens.h"
 #include "ui/ui_theme.h"
+#include "codeplug/codeplug_modes.h"
 
 static int fails;
 #define CHECK(c) do { if (!(c)) { printf("FAIL %s:%d: %s\n", __FILE__, __LINE__, #c); fails++; } } while (0)
@@ -1526,6 +1527,49 @@ static void test_compact_call(bool compact)
 		CHECKT(texts[zone].y + texts[zone].h <= texts[joe].y);
 	base();
 }
+
+// No two texts drawn share a pixel
+static bool texts_apart(void)
+{
+	for (int i = 0; i < ntexts; i++)
+		for (int j = i + 1; j < ntexts; j++)
+			if (texts[i].x < texts[j].x + texts[j].w && texts[j].x < texts[i].x + texts[i].w &&
+			    texts[i].y < texts[j].y + texts[j].h && texts[j].y < texts[i].y + texts[i].h)
+				return false;
+	return true;
+}
+
+// Home on a channel whose body is the reference theme's (an SFR repeater here; trunked and unbuilt kinds go the same
+// way): its lines apart, the activity line under them. The compact layout has no hint line there either, its bar
+// "Menu", and a zone name too long beside the position is cut at its end; a call has this theme's Home and its lines
+static void test_compact_operational_home(bool compact)
+{
+	base();
+	state.volbar = -1;
+	view.ch.mode = RADIO_MODE_DMR;
+	view.dmr.codec = true;
+	view.dmr.sfr_rpt = true;
+	strcpy(view.zone_name, "Local repeaters");
+	ui_draw_home(&view, &state);
+	int act = find_text("No activity yet"), sfr = text_with("SFR repeater");
+	CHECKT(texts_apart() && act >= 0 && sfr >= 0 && texts[sfr].y < texts[act].y);
+	CHECKT(compact ? text_with("Quick") < 0 && find_text("Menu") >= 0 : text_with("* Quick") >= 0);
+	int zone = text_with("Local");
+	CHECKT(zone >= 0 && (strstr(texts[zone].s, GLYPH_ELLIPSIS) == NULL ||
+			     strcmp(texts[zone].s + strlen(texts[zone].s) - 1, GLYPH_ELLIPSIS) == 0));
+	view.dmr.sfr_rpt = false;
+	view.dmr.active = true;
+	view.state = RS_RX;
+	view.dmr.state = RDMR_RX;
+	view.dmr.call.group = true;
+	view.dmr.call.dst = 91;
+	strcpy(view.dmr.call.src_name, "Joe");
+	view.ch.kind = CODEPLUG_KIND_DMR_TRUNK;
+	ui_draw_home(&view, &state);
+	CHECKT(texts_apart() && find_text("Joe") >= 0 && text_with("TG 91") >= 0 &&
+	       (compact ? find_text("Menu") >= 0 && text_with("PTT") < 0 : true));
+	base();
+}
 #endif
 
 // The compact grids: the Menu's tiles have the icon and digit, the title row the focused tile's label and value; Quick's
@@ -1650,6 +1694,7 @@ static void test_panels_frames(void)
 	test_compact_home(false);
 #if CONFIG_DMR
 	test_compact_call(false);
+	test_compact_operational_home(false);
 #endif
 	test_compact_grids(false);
 	test_compact_marquee(false);
@@ -1664,6 +1709,7 @@ static void test_panels_frames(void)
 	test_compact_home(true);
 #if CONFIG_DMR
 	test_compact_call(true);
+	test_compact_operational_home(true);
 #endif
 	test_compact_grids(true);
 	test_compact_marquee(true);

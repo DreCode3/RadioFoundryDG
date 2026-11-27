@@ -1167,6 +1167,13 @@ static void draw_talk_dmr(const radio_view_t *v, bool label_first);
 static void draw_chips_dmr(const radio_view_t *v, const ui_state_t *s);
 #endif
 
+#if CONFIG_UI_THEME_PANELS
+static bool home_end_cut;	// ui_reference_home_body's end_cut, for the frame being drawn
+#else
+#define home_end_cut	false
+UI_THEME_SHARED void ui_fit_end(const font_t *f, const char *s, int max_w, char *out, size_t len);
+#endif
+
 static void draw_place(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
@@ -1210,7 +1217,10 @@ static void draw_place(const radio_view_t *v, const ui_state_t *s)
 		}
 		if (rw)
 			gfx_text(L->small, w - rw, L->zone_y, right, ui_col.dim);
-		gfx_text_fit(L->small, left, w - rw - L->small->w, fit, sizeof fit);
+		if (home_end_cut)
+			ui_fit_end(L->small, left, w - rw - L->small->w, fit, sizeof fit);
+		else
+			gfx_text_fit(L->small, left, w - rw - L->small->w, fit, sizeof fit);
 		gfx_text(L->small, 0, L->zone_y, fit, v->vfo ? ui_col.warn : ui_col.fg);
 	}
 
@@ -1827,7 +1837,7 @@ static void sb_call_dst(sbuf_t *b, const radio_dmr_call_t *c)
 	}
 }
 
-static bool dmr_call_screen(const radio_view_t *v)
+UI_THEME_SHARED bool ui_dmr_call_screen(const radio_view_t *v)
 {
 	if (v->aprs_tx || v->ch.mode != RADIO_MODE_DMR || !v->dmr.active || v->hotspot)
 		return false;
@@ -1988,7 +1998,10 @@ static void draw_chips_t3(const radio_view_t *v)
 	char fit[CODEPLUG_NAME_LEN + 4];
 	int x = 0;
 	if (room > 0) {
-		gfx_text_fit(f, name, room, fit, sizeof fit);
+		if (home_end_cut)
+			ui_fit_end(f, name, room, fit, sizeof fit);
+		else
+			gfx_text_fit(f, name, room, fit, sizeof fit);
 		x = gfx_text(f, x, L->chips_y, fit, ui_col.fg) + f->w;
 	}
 	x = gfx_text(f, x, L->chips_y, st, warn ? ui_col.warn : ui_col.fg) + f->w;
@@ -2622,20 +2635,16 @@ static void draw_home_large(const radio_view_t *v, const ui_state_t *s)
 	gfx_text(f, 0, y, fit, v->state == RS_TX ? ui_col.tx : v->state == RS_RX ? ui_col.rx : ui_col.fg);
 }
 
-UI_THEME_SHARED void ui_reference_home(const radio_view_t *v, const ui_state_t *s)
+UI_THEME_SHARED void ui_reference_home_body(const radio_view_t *v, const ui_state_t *s, bool end_cut)
 {
 #if CONFIG_DMR
 	ui_st_dmr_off = s->dmr_off;
-	if (dmr_call_screen(v)) {
-		draw_dmr_call(v, s);
-		ui_draw_banner(s);
-		if (s->toast != NULL)
-			ui_draw_hint(s->toast, true);
-		return;
-	}
 #endif
-	gfx_clear(ui_col.bg);
-	ui_draw_top(v, s, NULL, NULL);
+#if CONFIG_UI_THEME_PANELS
+	home_end_cut = end_cut;
+#else
+	(void)end_cut;
+#endif
 	if (s->large_text) {
 		draw_home_large(v, s);
 	} else {
@@ -2646,6 +2655,23 @@ UI_THEME_SHARED void ui_reference_home(const radio_view_t *v, const ui_state_t *
 			gfx_hline(0, ui_layout.sep_y, gfx_width(), ui_col.line);
 		draw_activity(v, s);
 	}
+}
+
+UI_THEME_SHARED void ui_reference_home(const radio_view_t *v, const ui_state_t *s)
+{
+#if CONFIG_DMR
+	ui_st_dmr_off = s->dmr_off;
+	if (ui_dmr_call_screen(v)) {
+		draw_dmr_call(v, s);
+		ui_draw_banner(s);
+		if (s->toast != NULL)
+			ui_draw_hint(s->toast, true);
+		return;
+	}
+#endif
+	gfx_clear(ui_col.bg);
+	ui_draw_top(v, s, NULL, NULL);
+	ui_reference_home_body(v, s, false);
 	ui_draw_banner(s);
 	ui_draw_bottom_key(s, ui_home_hint(v, s), ui_home_soft_key(s));
 }

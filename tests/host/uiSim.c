@@ -266,6 +266,9 @@ static const struct { const char *name, *script; } audit_extra[] = {
 	{ "quick_dmr_all", "quick" DOWN12 },
 	{ "quick_fm_all", "down quick" DOWN12 },
 	{ "picker", "call:9991234,91,g tt" DOWN12 },
+	// Home on a channel whose body is the reference theme's in the panels theme: trunked, and an SFR repeater
+	{ "home_trunked", "t3 dlpos:3 wait:3000" },
+	{ "home_sfr", "sfrrpt" },
 };
 
 // Worst-case screens for --layout (they run with sim_worst on, as the gallery screens do a second time)

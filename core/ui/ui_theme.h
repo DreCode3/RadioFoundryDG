@@ -195,6 +195,12 @@ void ui_row_text(const font_t *f, int x, int y, int w, const char *label, const 
 const char *ui_quick_split_hint(const radio_view_t *v, const ui_state_t *s, char *buf, size_t len);
 // The reference theme's Home, for a channel another theme leaves to it
 void ui_reference_home(const radio_view_t *v, const ui_state_t *s);
+// ... and its body under the strip, in ui_layout's regions: the place, talk target, chips and activity (or large text).
+// end_cut: a zone or trunked system name too long for its line is shortened at its end, not in the middle
+void ui_reference_home_body(const radio_view_t *v, const ui_state_t *s, bool end_cut);
+#if CONFIG_DMR
+bool ui_dmr_call_screen(const radio_view_t *v);		// a DMR call has Home: the reference theme draws its call screen
+#endif
 // The banner, if one is up, its lower edge at bottom (ui_screens.c has the details)
 void ui_banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg);
 #else

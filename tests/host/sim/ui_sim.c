@@ -48,6 +48,7 @@
 //   dlvfo:<hz>          the debug link tunes the VFO to hz (it opens, as Find's Tune VFO)
 //   chhz:<n>,<hz>       stored channel n is an FM channel on hz (the air band with "am": received in AM)
 //   hotspot:on|off      the host link enters / leaves hotspot mode
+//   sfrrpt              the DMR channel on view runs its SFR repeater role (until the channel changes)
 //   gps:fix|searching|off    simulated board GPS state
 //   gui:<mode>         choose original or prototype presentation on the profile geometry
 //   prototype:<state>   preview a Bluetooth, recording, D-STAR, encryption, or talkaround mark
@@ -1546,6 +1547,7 @@ static void load_channel(void)
 	temp_target = 0;
 	view.dmr.hear_all_latch = false;	// the latch ends with the channel, as in the radio core
 	view.dmr.hear_all = view.monitor;
+	view.dmr.sfr_rpt = false;		// so does an SFR repeater role (sfrrpt)
 #if CONFIG_DMR_TRUNK
 	t3_view();
 #endif
@@ -3721,6 +3723,14 @@ static bool run_token(char *t, char *err, size_t len)
 		return true;
 	}
 #endif
+	if (strcmp(t, "sfrrpt") == 0 && view.ch.mode == RADIO_MODE_DMR) {
+		// The channel's SFR repeater role runs in place of the call stack (radio.h sfr_rpt), until the channel changes
+		view.dmr.sfr_rpt = true;
+		view.dmr.active = false;
+		serial++;
+		advance(100);
+		return true;
+	}
 #if CONFIG_DMR_TRUNK
 	if (strcmp(t, "t3") == 0) {		// channels 3 and 5 become trunked (see t3_view)
 		t3_tagged = true;
