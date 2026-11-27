@@ -525,6 +525,14 @@ static uint32_t panels_strip_fit(const radio_view_t *v, const ui_state_t *s, con
 	return shown;
 }
 
+// A word in the strip, centered on cy, its font's cell inside the pane: a 12x24 cell ends above the text of Home's mode
+// bar, which starts in the strip's last rows
+static void panels_strip_word(const font_t *f, int x, int cy, const char *text, color_t c)
+{
+	int y = cy - f->h / 2, bottom = PANELS_BAND_H - 3;
+	gfx_text(f, x, y + f->h > bottom ? bottom - f->h : y, text, c);
+}
+
 // One item at x (its left edge), the strip's marks centered on cy
 static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, const ui_state_t *s,
 	const panels_strip_t *t, color_t ink)
@@ -538,7 +546,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 			(panels_mark_pos_t){ x, cy - panels_px(4, PANELS_BATTERY_SCALE), PANELS_BATTERY_SCALE }, ink);
 		break;
 	case PANELS_SI_ACTIVITY:
-		gfx_text(t->word_font, x, cy - t->word_font->h / 2, t->activity, t->activity_ink);
+		panels_strip_word(t->word_font, x, cy, t->activity, t->activity_ink);
 		break;
 	case PANELS_SI_SIGNAL: {
 		panels_mark_pos_t signal = { x, y - panels_px(4, scale), scale };
@@ -549,7 +557,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		break;
 	}
 	case PANELS_SI_MODE:
-		gfx_text(t->word_font, x, cy - t->word_font->h / 2, t->mode, ink);
+		panels_strip_word(t->word_font, x, cy, t->mode, ink);
 		break;
 	case PANELS_SI_LOCK:
 		panels_strip_icon(UI_MENU_ICON_LOCK, x, cy, ink);
@@ -581,18 +589,18 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		panels_strip_icon(UI_MENU_ICON_LOCATION, x, cy, s->gps_fix ? ink : ui_col.dim);
 		break;
 	case PANELS_SI_IP:
-		gfx_text(t->word_font, x, cy - t->word_font->h / 2, "IP", s->usb_net == UI_USB_NET_UP ? ink : ui_col.dim);
+		panels_strip_word(t->word_font, x, cy, "IP", s->usb_net == UI_USB_NET_UP ? ink : ui_col.dim);
 		break;
 	case PANELS_SI_POWER: {
 		char level[] = { "LMH"[panels_power_level(v)], 0 };
-		gfx_text(&font_aa_12x24, x, cy - font_aa_12x24.h / 2, level, ink);
+		panels_strip_word(&font_aa_12x24, x, cy, level, ink);
 		break;
 	}
 	case PANELS_SI_RX_ONLY:
-		gfx_text(t->word_font, x, cy - t->word_font->h / 2, "RX", ink);
+		panels_strip_word(t->word_font, x, cy, "RX", ink);
 		break;
 	case PANELS_SI_VOX:
-		gfx_text(t->word_font, x, cy - t->word_font->h / 2, "VOX", ink);
+		panels_strip_word(t->word_font, x, cy, "VOX", ink);
 		break;
 	case PANELS_SI_CLOCK:
 		gfx_text(&font_aa_8x16, x + 4, cy - font_aa_8x16.h / 2, t->clock, ui_col.dim);
