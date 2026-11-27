@@ -412,7 +412,8 @@ resources spent on diminishing returns):
    - Part B (Nov 27, `7e9e2363`..HEAD, not yet QA'd): the 160 x 128 fit rule, the compact layout under 200 px high
      (strip 18, rows and bar 18, 8x16, the 16 px icon set, icon tiles, no mode bar, call lines only in a call, the hint
      row's room back, no GPS clock), "Hold * to unlock", the 160x128-panels and 220x176-panels gallery sets, DB25-D
-     panels selectable with FONT_AA. MD-380 and MD-UV380 wait on the user: their insets leave 158 x 127.
+     panels selectable with FONT_AA. Follow-up (`f8ad4b94`..`b51b466e`): no hint line on the compact Home, the 158 x 127
+     fit (MD-380 selectable with a 548-word UI stack; MD-UV380 off and in `MAXIMAL_SKIP`), the sliding focused row.
 
 ## Planned, not now
 
