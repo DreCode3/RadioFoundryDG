@@ -846,7 +846,7 @@ static void test_pick(void)
 	CHECK(picks(W, 0, H, 16, 200, ref));			// a number from a later build
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_REFERENCE, ref));
 #if CONFIG_UI_THEME_PANELS
-	// A color display with at least 160 x 128 to draw on (the panel less its insets). The build's default: panels, or
+	// A color display with at least 158 x 127 to draw on (the panel less its insets). The build's default: panels, or
 	// the original theme where the build starts in it (CONFIG_UI_THEME_DEFAULT, uiThemeTestPanelsOriginal)
 	const ui_theme_t *panels = &ui_theme_panels;
 	const ui_theme_t *def = CONFIG_UI_THEME_DEFAULT == UI_THEME_ID_REFERENCE ? ref : panels;
@@ -856,16 +856,18 @@ static void test_pick(void)
 	CHECK(picks(320, 0, 240, 4, UI_THEME_ID_DEFAULT, def));
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_DEFAULT, def));	// 220 x 310
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_PANELS, panels));
-	CHECK(picks(170, 10, 240, 4, UI_THEME_ID_PANELS, panels));	// 160 across
-	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 159 across
-	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_PANELS, ref));
+	CHECK(picks(170, 12, 240, 4, UI_THEME_ID_PANELS, panels));	// 158 across
+	CHECK(picks(170, 13, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 157 across
+	CHECK(picks(170, 13, 240, 4, UI_THEME_ID_PANELS, ref));
 	// 160 x 128, the compact layout, where the build has it (a panel that may be under 200 rows: GFX_MIN_ROWS)
 	const ui_theme_t *compact = GFX_MIN_ROWS < UI_TALL_PX ? panels : ref;
 	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_PANELS, compact));
 	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_DEFAULT, GFX_MIN_ROWS < UI_TALL_PX ? def : ref));
 	CHECK(picks(220, 0, 176, 4, UI_THEME_ID_PANELS, compact));
-	CHECK(picks(160, 0, 127, 4, UI_THEME_ID_PANELS, ref));		// 127 high
-	CHECK(picks(161, 2, 128, 4, UI_THEME_ID_PANELS, ref));		// 159 across
+	CHECK(picks_on(inset_panel(160, 128, 1, 0, 4), UI_THEME_ID_PANELS, compact));	// 158 x 128
+	CHECK(picks(160, 0, 127, 4, UI_THEME_ID_PANELS, compact));	// 127 high
+	CHECK(picks(160, 0, 126, 4, UI_THEME_ID_PANELS, ref));		// 126 high
+	CHECK(picks(160, 3, 128, 4, UI_THEME_ID_PANELS, ref));		// 157 across
 	CHECK(picks_on(inset_panel(160, 120, 5, 0, 4), UI_THEME_ID_PANELS, ref));	// 150 x 120
 	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, panels));	// any height from 128 (200: the full layout)
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
@@ -886,7 +888,7 @@ static void test_pick(void)
 	      name_first_on(220, 0, 310, 4) == starts &&
 	      name_first_on(220, 0, 176, 4) == (starts && GFX_MIN_ROWS < UI_TALL_PX) &&
 	      name_first_on(160, 0, 128, 4) == (starts && GFX_MIN_ROWS < UI_TALL_PX));
-	CHECK(!name_first_on(159, 0, 240, 4) && !name_first_on(160, 0, 127, 4) && !name_first_on(320, 0, 240, 1));
+	CHECK(!name_first_on(157, 0, 240, 4) && !name_first_on(160, 0, 126, 4) && !name_first_on(320, 0, 240, 1));
 	CHECK(ui_theme_use(&ui_theme_panels) && !ui_theme_has(UI_THEME_OPT_PALETTE) &&
 	      ui_theme_has(UI_THEME_OPT_DAY_NIGHT));
 	ui_theme_use(&ui_theme_reference);
@@ -1619,6 +1621,15 @@ static void test_panels_frames(void)
 #endif
 	test_compact_grids(true);
 	test_panels_min_font();
+	// 158 x 127 (a 160 x 128 panel behind a bezel that hides a row and two columns): 3 list rows, the hint row empty
+	// or not (4 need 128 px)
+	hal_display_t bezel = compact;
+	bezel.inset_left = 2;
+	bezel.inset_top = 1;
+	CHECK(gfx_init(&bezel));
+	CHECK(ui_theme_use(&ui_theme_panels));
+	CHECK(gfx_width() == 158 && gfx_height() == 127 && ui_layout.strip_h == 18);
+	CHECK(list_rows("OK choose  Back", UI_BAR_LIST) == 3 && list_rows("OK change  Hold OK save  Back", UI_BAR_LIST) == 3);
 	// No GPS clock in the compact layout, even where a quiet strip would have room for it (220 x 176)
 	compact.width = 220;
 	compact.height = 176;

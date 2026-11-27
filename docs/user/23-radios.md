@@ -332,7 +332,10 @@ turn off. When RadioFoundry switches itself off (auto power off), it drops its p
 
 ### MD-380 display
 
-A 160 x 128 color screen, every row visible. The controller type is unconfirmed.
+A 160 x 128 color screen, every row visible, with smooth (anti-aliased) text. The controller type is unconfirmed. The
+radio starts in the Original look. The Panels look, with the [Commercial and Amateur display
+profiles](06-home-screen.md#commercial-and-amateur-home), is in [Settings > Display > Theme](17-settings.md#display-key-1);
+on this screen it shows 3 list rows, Menu tiles with their icon and number, and no GPS clock.
 
 ### What the MD-380 lacks
 
@@ -400,7 +403,8 @@ As on the DM-1701: the switch is on the volume knob, and RadioFoundry sees it tu
 
 ### MD-UV380 display
 
-A 160 x 128 color screen, every row visible.
+A 160 x 128 color screen, every row visible. The standard image has only the Original look: the Panels look doesn't fit
+beside the rest of its features.
 
 ### What the MD-UV380 lacks
 

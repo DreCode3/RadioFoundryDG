@@ -9,6 +9,13 @@
 CONFIG_DISPLAY_INSET ?= 0
 CONFIG_DISPLAY_INSET_TOP ?= 1
 CONFIG_DISPLAY_INSET_LEFT ?= 2
+# The panels theme's compact layout fits the 158 x 127 left inside the insets, but the default image has no room for it
+# with the anti-aliased fonts (about 2.4 KB would be left): off by default, and left out of ci's maximal configuration,
+# which already overflows without it. A build that turns it on starts in the original look, with the larger UI stack
+# its deepest chain needs on this platform (548 words)
+CONFIG_UI_THEME_PANELS ?= n
+CONFIG_UI_THEME_DEFAULT ?= 1
+MCU_DEFS += -DUI_TASK_STACK_WORDS=$(if $(filter y,$(CONFIG_UI_THEME_PANELS)),548,516)
 # APRS receive takes the HR_C6000's FM receive audio from the I2S stream (docs/spec/aprs.md 5.3). The iGate (RF to
 # APRS-IS through tools/aprs_gate.py, 1.9 KB) is off by default
 CONFIG_APRS_IGATE ?= n
@@ -16,8 +23,8 @@ MAXIMAL_VARS := LTO=1
 # Left out of tools/ci.sh's maximal configuration: PPP stands in for the USB network adapter on UART-only radios
 # (docs/spec/ppp.md), and this one has the adapter; the APRS iGate is off by default (above); French, off by
 # default, so that the maximal build keeps satellite tracking and still fits the app region; Chinese stays out too
-# (its glyph table does not fit beside the rest)
-MAXIMAL_SKIP := NET_PPP APRS_IGATE LANG_FR LANG_ZH LANG_DEFAULT_ZH
+# (its glyph table does not fit beside the rest); the panels theme, off by default (above)
+MAXIMAL_SKIP := NET_PPP APRS_IGATE LANG_FR LANG_ZH LANG_DEFAULT_ZH UI_THEME_PANELS
 
 # What the radio's hardware can't do, one switch per line with the reason (tools/boards.py checks there is one;
 # docs/build-config.md, "Unsupported, not written, unconfirmed"): ci's maximal configuration leaves these off

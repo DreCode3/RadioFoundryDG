@@ -20,7 +20,7 @@
 #define PANELS_MODE_H 24	// Home's mode bar
 
 // The metrics of the two layouts. The full one is the 310 x 240 display's. The compact one is for a display under
-// UI_TALL_PX high (160 x 128, 220 x 176), where the full one leaves no list rows: an 18 px strip with its marks at 0.8x
+// UI_TALL_PX high (158 x 127 to 220 x 176), where the full one leaves no list rows: an 18 px strip with its marks at 0.8x
 // (the 16 px icons, panels_icons.h) and its words in 8x16, every list, title, bar and hint in 8x16, rows and the bar
 // 18 px, 6 px margins, no mode bar on Home (its mode in the strip) and no GPS clock
 typedef struct {
@@ -97,11 +97,12 @@ static void panels_colors(ui_colors_t *c, uint8_t palette)
 	panels_gutter = panels_extra_colors[palette].gutter;
 }
 
-// A color display (monochrome has no color for the panes) with a drawable area of at least 160 x 128: three list rows
-// under the strip, the title and the soft key bar in the compact layout, where the build has it
+// A color display (monochrome has no color for the panes) with a drawable area of at least 158 x 127 (a 160 x 128 panel
+// whose bezel hides a row and two columns): three list rows under the strip, the title and the soft key bar in the
+// compact layout, where the build has it
 static bool panels_fits(void)
 {
-	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 160 && gfx_height() >= 128 &&
+	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 158 && gfx_height() >= 127 &&
 		(PANELS_COMPACT_BUILT || gfx_height() >= UI_TALL_PX);
 }
 

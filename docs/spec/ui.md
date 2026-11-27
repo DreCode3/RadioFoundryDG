@@ -619,7 +619,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 | `CONFIG_GPS_SKY` | = GPS and APRS | Menu > Location > GPS status is a page of text instead of the GPS screen (2.3) and the satellite sentences aren't read (about 5.2 KB, 176 B of RAM) |
 | `CONFIG_LANG_ES` | y | Spanish is listed dimmed in Settings > Display > Language (2.5); without any language the lookup and the fonts' Latin-1 glyphs are left out |
 | `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Colors, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 600 B). For radios whose only screen is monochrome |
-| `CONFIG_UI_THEME_PANELS` | n | Off keeps the existing Home layout, status strip and color settings. On builds the panels theme (the profile layout), which the radio starts with when the stored theme asks for it (`gui_theme`, [settings store](settings-store.md); 0, the default, is the build's default theme: panels, unless `CONFIG_UI_THEME_DEFAULT` names the original) and the color display has a drawable area of at least 160 x 128 |
+| `CONFIG_UI_THEME_PANELS` | n | Off keeps the existing Home layout, status strip and color settings. On builds the panels theme (the profile layout), which the radio starts with when the stored theme asks for it (`gui_theme`, [settings store](settings-store.md); 0, the default, is the build's default theme: panels, unless `CONFIG_UI_THEME_DEFAULT` names the original) and the color display has a drawable area of at least 158 x 127 |
 
 Screens for features that are off (`CONFIG_DMR`, `CONFIG_HOTSPOT`, `CONFIG_VFO_FM`, `CONFIG_VFO_DMR`, `CONFIG_SCAN`, data features) are
 left out or dimmed with the feature. Some radios' default images have only a few KB free (`docs/feature-matrix.md`); the UI was about 50 KB when last measured (`gfx` + fonts about 11 KB, screens and behavior the rest). The frame buffer (40 KB by default) bounds the display: 240x320 at
@@ -769,7 +769,7 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   text reads on them (at least 7.5:1 after RGB565 rounding); the red is lighter and pinker than TX's red, and there is
   no green, which would hide the RX pill. Gallery: `home_dmr*`, `home_plain`, `channels*` (section 7).
 - `CONFIG_UI_THEME_PANELS` builds the panels theme: Commercial (default) and Amateur on color displays with a drawable
-  area of at least 160 x 128 after insets. Other geometries use the standard layout. A display under 200 px high
+  area of at least 158 x 127 after insets. Other geometries use the standard layout. A display under 200 px high
   (`UI_TALL_PX`) gets the compact layout, below; the build's default theme is panels unless the board starts in the
   original look (`CONFIG_UI_THEME_DEFAULT` 1). The
   radio picks the theme at start, after the splash, from the stored theme (`gui_theme` in [the settings
@@ -792,7 +792,7 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   attention), and then the target and details rows go. The Menu and Quick keep the 3x3 keypad grid (Settings' first
   level its two columns): a Menu or Settings tile has its icon and digit, a Quick tile its value (arrows round it while
   it edits, where they fit), and the title row names the focused tile, with a Menu tile's value. A hidden or empty hint
-  row (Hint row off, or a hint whose groups the bar says) gives its height to a list: 4 rows instead of 3 on 160 x 128;
+  row (Hint row off, or a hint whose groups the bar says) gives its height to a list: 4 rows instead of 3 on 160 x 128 (158 x 127 keeps 3);
   the full layout keeps the row's room. There is no GPS clock. A title, a list label and a hint group too long for
   their room are shortened at their end. The keys-locked bar takes the hint's shortest form ("Hold * to unlock").
   Layout on the 310 x 240 drawable area (`core/ui/themes/panels/panels.c`). Rounded panes on every screen are the look;

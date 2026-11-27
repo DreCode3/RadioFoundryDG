@@ -8,6 +8,13 @@
 CONFIG_DISPLAY_INSET ?= 0
 CONFIG_DISPLAY_INSET_TOP ?= 1
 CONFIG_DISPLAY_INSET_LEFT ?= 2
+# The panels theme's compact layout fits the 158 x 127 left inside the insets: Settings > Display > Theme offers it, and
+# the radio starts in the original look. The anti-aliased fonts draw both looks (about 6 KB). Its deepest UI chain
+# needs 112 B more stack on this radio: 548 words leave about 200 B free, as on the other panels radios
+CONFIG_UI_THEME_PANELS ?= $(CONFIG_UI_COLOR)
+CONFIG_UI_THEME_DEFAULT ?= 1
+CONFIG_FONT_AA ?= y
+MCU_DEFS += -DUI_TASK_STACK_WORDS=$(if $(filter y,$(CONFIG_UI_THEME_PANELS)),548,516)
 # The FM TX tones (roger beep, 1750 Hz burst), DTMF and APRS AFSK need a TX tone path through the HR_C5000 or the PC7 PWM:
 # not written
 CONFIG_FM_TX_TONES ?= n
