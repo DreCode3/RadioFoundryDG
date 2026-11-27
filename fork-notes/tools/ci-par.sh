@@ -4,9 +4,9 @@
 # The full tools/ci.sh run, with the boards built in parallel (fork-notes/local-setup.md, "Parallel full CI").
 #   fork-notes/tools/ci-par.sh [-p LANES] [--board LIST] [--no-checks] [OUT_DIR]
 # ci.sh always writes build/ci, so each lane is a worktree of HEAD (tools/worktree.sh, third_party/ read from this
-# checkout) that runs `ci.sh --board <b> --steps firmware` for its boards one after another. The boards come from
-# boards/ (those with a board.mk and an installed compiler; --board picks some), spread over the lanes heaviest first
-# by their number of configurations. Each lane gets JOBS = cores / lanes (JOBS sets it). Meanwhile the main checkout
+# checkout) that runs `ci.sh --board <b> --steps firmware`, one board after another. The boards come from boards/
+# (those with a board.mk and an installed compiler; --board picks some) and wait in one queue, heaviest (most
+# configurations) first: a lane takes the next when it is free. Each lane gets JOBS = cores / lanes (JOBS sets it). Meanwhile the main checkout
 # runs every other step once (registry, host, bench, python, licenses, similarity; --no-checks leaves them out): the
 # host tests with Homebrew LLVM's clang on macOS (host-cc.sh, or RF_HOST_CC), whose AddressSanitizer works there.
 # The Python steps use the venv $RF_VENV (default ../rf-venv beside this checkout) when it exists.
@@ -65,14 +65,17 @@ done
 for b in $(echo "$ONLY" | tr ',' ' '); do [ -f "boards/$b/board.mk" ] || { echo "ci-par: unknown board $b" >&2; exit 2; }; done
 [ ${#BOARDS[@]} -gt 0 ] || [ $CHECKS = 1 ] || { echo "ci-par: no board to build" >&2; exit 2; }
 [ "$LANES" -gt ${#BOARDS[@]} ] && LANES=${#BOARDS[@]}
-# Longest first, each to the lane with the least so far: heavy boards share a lane with light ones
-LANE_BOARDS=(); LANE_W=()
-for ((i = 0; i < LANES; i++)); do LANE_BOARDS[i]=""; LANE_W[i]=0; done
-while read -r w b; do
-	[ -n "$b" ] || continue
-	m=0; for ((i = 1; i < LANES; i++)); do [ "${LANE_W[i]}" -lt "${LANE_W[m]}" ] && m=$i; done
-	LANE_BOARDS[m]="${LANE_BOARDS[m]} $b"; LANE_W[m]=$((LANE_W[m] + w))
-done < <(printf '%s\n' "${BOARDS[@]+"${BOARDS[@]}"}" | sort -rn)
+# The queue, heaviest first: each lane takes the next board when it is free, so the light boards fill in at the end
+QUEUE=$OUT/.status/queue
+printf '%s\n' "${BOARDS[@]+"${BOARDS[@]}"}" | sort -rn | awk 'NF == 2 { print $2 }' >"$QUEUE"
+# next: the queue's first board, taken under a lock (mkdir is atomic); empty when the queue is
+next() {
+	local b
+	until mkdir "$OUT/.status/lock" 2>/dev/null; do sleep 0.2; done
+	b=$(head -1 "$QUEUE"); tail -n +2 "$QUEUE" >"$QUEUE.tmp"; mv "$QUEUE.tmp" "$QUEUE"
+	rmdir "$OUT/.status/lock"
+	echo "$b"
+}
 JOBS_LANE=${JOBS:-$(( LANES > 0 ? (NCPU / LANES > 0 ? NCPU / LANES : 1) : NCPU ))}
 
 WTS=(); PIDS=(); MAIN_CI=0; [ -d build/ci ] && MAIN_CI=1
@@ -98,7 +101,8 @@ trap 'echo; echo "ci-par: interrupted, removing the worktrees"; cleanup; exit 13
 
 T0=$(date +%s)
 echo "ci-par: HEAD $SHA, $LANES lanes x JOBS=$JOBS_LANE, host CC ${HOST_CC:-cc}, $PYNOTE, output $OUT"
-for ((i = 0; i < LANES; i++)); do echo "ci-par: lane $i:${LANE_BOARDS[i]} (${LANE_W[i]} configurations)"; done
+echo "ci-par: boards (configurations): $(printf '%s\n' "${BOARDS[@]+"${BOARDS[@]}"}" | sort -rn |
+	awk 'NF == 2 { printf "%s%s %s", (NR > 1 ? ", " : ""), $2, $1 }')"
 for s in ${SKIPPED[@]+"${SKIPPED[@]}"}; do echo "ci-par: skip $s"; done
 
 # The other steps, once, in this checkout. The host tests build from clean with HOST_CC (make takes binaries from
@@ -131,7 +135,8 @@ done
 for ((i = 0; i < LANES; i++)); do
 	(
 		cd "${WTS[i]}" || exit 2
-		for b in ${LANE_BOARDS[i]}; do
+		while b=$(next) && [ -n "$b" ]; do
+			echo "ci-par: lane $i: $b ($(date '+%H:%M'))"
 			t=$(date +%s)
 			JOBS=$JOBS_LANE RFOUNDRY_THIRD_PARTY=$MAIN/third_party tools/ci.sh --board "$b" --steps firmware >"$OUT/$b.log" 2>&1
 			rc=$?
@@ -166,17 +171,17 @@ mins() { printf '%dm%02ds' $(($1 / 60)) $(($1 % 60)); }
 	if [ $CHECKS = 1 ]; then
 		if tail -1 "$OUT/checks.log" | grep -q '^ci: all checks passed'; then echo "  ok    checks (registry, host, bench, python, licenses, similarity)"
 		else echo "  FAIL  checks (registry, host, bench, python, licenses, similarity): see checks.log"; rc_all=1; fi
-		grep -E '^ci: FAIL' "$OUT/checks.log" | cut -c1-200 | sed 's/^/        /'
+		grep -E '^ci: FAIL  ' "$OUT/checks.log" | cut -c1-200 | sed 's/^/        /'
 	fi
 	for wb in ${BOARDS[@]+"${BOARDS[@]}"}; do
 		b=${wb#* }
 		if [ ! -f "$OUT/.status/$b" ]; then echo "  FAIL  $b: not run"; rc_all=1; continue; fi
 		read -r rc t <"$OUT/.status/$b"
 		n=$(grep -cE "^\| $b \| " "$OUT/$b-size-report.md" 2>/dev/null)
-		nf=$(grep -cE '^ci: FAIL' "$OUT/$b.log")
+		nf=$(grep -cE '^ci: FAIL  ' "$OUT/$b.log")
 		if [ "$rc" = 0 ]; then echo "  ok    $b: ${n:-0} configurations, $(mins "$t")"
 		else echo "  FAIL  $b: ${n:-0} configurations, $nf failed, $(mins "$t") (see $b.log)"; rc_all=1; fi
-		grep -E '^ci: FAIL' "$OUT/$b.log" | cut -c1-200 | sed 's/^/        /'
+		grep -E '^ci: FAIL  ' "$OUT/$b.log" | cut -c1-200 | sed 's/^/        /'
 	done
 	for s in ${SKIPPED[@]+"${SKIPPED[@]}"}; do echo "  skip  $s"; done
 	[ $rc_all = 0 ] && echo "ci-par: all checks passed" || echo "ci-par: FAILED"
