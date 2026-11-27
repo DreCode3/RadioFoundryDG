@@ -393,6 +393,12 @@ resources spent on diminishing returns):
        keeps the rule as frozen.
      - The GPS clock is off on this class (it never fits the strip, and Home has no mode bar here).
      - Keys locked: a new short form, **"Hold * to unlock"** (128 px, a `{long|short}` alternate, translated).
+   - Decided Nov 27 (user), part C: the two maximal overflows (after the merge `a7ae3db2`: DM-1701 2,984 B,
+     MD-UV380 4,244 B over; the branch adds 7.1 KB there, about 5 KB shared UI and 3.9 KB from the bring-up branch)
+     wait: "get the code complete and we'll optimize for storage later". Until then ci.sh's maximal step fails on
+     those two boards only. The five English hint short forms in `../rf-port-out/partC/hint-short-forms.md` are
+     approved ("0-9 type  OK edit/save", "Hold Back to unlock", "0 Settings  Hold OK save", "OK track  Hold OK arm",
+     "OK track  # TLE  Back"), with the French, Spanish and Italian proposed beside them (native review logged).
    - Decided Nov 27 (user), after part B's build (`d04d9c40..e48913c5`):
      - **The focused row scrolls:** on this class a text cut at the end in the focused list row slides sideways to
        show it whole; other rows stay cut at the end. The GD-88 and DM-32 don't change.
