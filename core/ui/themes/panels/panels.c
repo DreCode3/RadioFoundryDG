@@ -42,10 +42,10 @@ typedef struct {
 static const ui_colors_t panels_palettes[] = {	// by UI_PALETTE_*
 	{ .bg = RGB565(220, 234, 244), .fg = RGB565(23, 40, 53), .dim = RGB565(53, 78, 101),
 	  .line = RGB565(171, 195, 216), .tx = RGB565(189, 41, 41), .rx = RGB565(20, 101, 59),
-	  .warn = RGB565(135, 96, 0), .idle = RGB565(53, 78, 101), .pill_fg = RGB565(255, 255, 255),
+	  .warn = RGB565(122, 86, 0), .idle = RGB565(53, 78, 101), .pill_fg = RGB565(255, 255, 255),
 	  .pill_dark_fg = RGB565(255, 255, 255), .focus = RGB565(194, 217, 237), .hint_bg = RGB565(36, 79, 136),
 	  .priv = RGB565(29, 97, 165), .idle_fg = RGB565(255, 255, 255), .focus_fg = RGB565(23, 40, 53),
-	  .chnum = RGB565(53, 78, 101), .strip_bg = RGB565(244, 248, 252), .strip_warn = RGB565(135, 96, 0) },
+	  .chnum = RGB565(53, 78, 101), .strip_bg = RGB565(244, 248, 252), .strip_warn = RGB565(122, 86, 0) },
 	{ .bg = RGB565(17, 26, 36), .fg = RGB565(237, 242, 247), .dim = RGB565(180, 194, 209),
 	  .line = RGB565(74, 97, 121), .tx = RGB565(255, 119, 119), .rx = RGB565(116, 216, 153),
 	  .warn = RGB565(245, 198, 104), .idle = RGB565(180, 194, 209), .pill_fg = RGB565(0, 0, 0),
@@ -195,10 +195,6 @@ static void panels_bitmap(int x, int y, const uint32_t *rows, int w, int h, int 
 #define PANELS_STATUS_MARK(x, y, mark, width, ink) \
 	PANELS_MARK_AT(((panels_mark_pos_t){ x, y, scale }), mark, width, ink)
 
-static color_t panels_ink(const ui_state_t *s)
-{
-	return s->gui_night ? ui_col.fg : RGB565(0, 0, 0);
-}
 
 
 enum {
@@ -545,7 +541,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		const font_t *f = &font_aa_8x16;
 		int key_w = t->algorithm ? (int)strlen(t->algorithm) * f->w : panels_px(15, scale);
 		int kx = x + (key_w - panels_px(13, scale)) / 2;
-		color_t key_color = !t->warning ? ui_col.rx : s->gui_night ? RGB565(160, 168, 178) : RGB565(105, 114, 124);
+		color_t key_color = !t->warning ? ui_col.rx : ui_col.dim;
 		panels_mask(kx, t->algorithm ? cy - 11 : y + 1, panels_key_19, panels_px(13, scale), 10, key_color);
 		if (t->algorithm)
 			gfx_text(f, x + (key_w - gfx_text_width(f, t->algorithm)) / 2, cy - 4, t->algorithm, ui_col.rx);
@@ -645,7 +641,7 @@ static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui
 {
 	ui_strip_draws++;
 	int w = gfx_width(), h = ui_layout.strip_h;
-	color_t ink = panels_ink(s);
+	color_t ink = ui_col.fg;	// the marks in the palette's ink, Day and Night (Day's were black: an entry of their own)
 	gfx_fill(0, 0, w, h, under);
 	panels_pane(2, h - 2, ui_col.strip_bg);
 	panels_strip_t t = { 0 };

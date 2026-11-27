@@ -24,6 +24,8 @@ ROW_H = 26
 TILE_H = 41
 HINT_Y = 186
 BAR_Y = 202
+# The panels theme's Day ink, its palette's fg RGB(23, 40, 53), as the display shows it (RGB565)
+DAY_INK = bytes((16, 40, 49))
 
 
 def ink_map(frame):
@@ -112,14 +114,14 @@ class PrototypeTest(unittest.TestCase):
         idle = self.render_frame("")
 
         def black(x, y):
-            return frame[y][x * 3:x * 3 + 3] == bytes(3)
+            return frame[y][x * 3:x * 3 + 3] == DAY_INK
 
         battery = [(x, y) for y in range(STRIP_H) for x in range(285, 308) if black(x, y)]
         xs, ys = zip(*battery)
         self.assertLess(max(xs) - min(xs), max(ys) - min(ys))
         # The receive-only mark is in the strip, with the operating marks
         receive_only = {(x, y) for y in range(STRIP_H) for x in range(120, 285)
-                        if black(x, y) and idle[y][x * 3:x * 3 + 3] != bytes(3)}
+                        if black(x, y) and idle[y][x * 3:x * 3 + 3] != DAY_INK}
         left = min(x for x, _ in receive_only)
         # The R keeps its solid stem and the X is separated by a blank column.
         self.assertGreaterEqual(sum(x == left for x, _ in receive_only), 11)
@@ -129,7 +131,7 @@ class PrototypeTest(unittest.TestCase):
         monitor = self.render_frame("mon wait:3000")
         # In the strip, at its left end on Home (Home's strip has no mode word: the mode bar has it)
         pixels = {(x, y) for y in range(STRIP_H) for x in range(5, 200)
-                  if monitor[y][x * 3:x * 3 + 3] == bytes(3) and idle[y][x * 3:x * 3 + 3] != bytes(3)}
+                  if monitor[y][x * 3:x * 3 + 3] == DAY_INK and idle[y][x * 3:x * 3 + 3] != DAY_INK}
         left = min(x for x, _ in pixels)
         # A solid cone with a stem on the left and a separate wave on the right.
         self.assertGreaterEqual(sum(x == left + 10 for x, _ in pixels), 10)
