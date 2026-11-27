@@ -137,6 +137,9 @@ static const char features[] =
 #if CONFIG_NET_HTTP_GZIP
 	"NET_HTTP_GZIP,"
 #endif
+#if CONFIG_NET_WEBCTL
+	"NET_WEBCTL,"
+#endif
 #if CONFIG_NET_RIGCTL
 	"NET_RIGCTL,"
 #endif
