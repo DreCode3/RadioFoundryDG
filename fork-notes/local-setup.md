@@ -19,11 +19,13 @@ git remote add upstream https://github.com/radiofoundry/radiofoundry
 | Need | How | Notes |
 |---|---|---|
 | Host compiler, make, zlib | `xcode-select --install` | Host tests and the UI simulator (Apple clang 17, GNU make 3.81) |
+| Homebrew LLVM clang (AddressSanitizer tests) | `brew install llvm` (23.1.6 on this Mac) | Not on PATH: name it with `CC`. See "AddressSanitizer on macOS" below |
 | Python 3 and Pillow | `python3 -m pip install --user --break-system-packages pillow` (or `brew install pillow`) | Pillow is for `fork-notes/tools/` only. Homebrew's Python refuses a plain `pip install` (PEP 668, "externally-managed-environment") |
+| Python venv for CI (pytest, pyserial, numpy, reuse) | See "Python venv for CI" below | Outside the repository, at `../rf-venv` |
 | Arm GNU Toolchain 13.3.rel1 (pinned in `platform/stm32f4/platform.toml`) | Download and check it as below, then `mkdir -p ~/opt && tar -xJf <archive> -C ~/opt` | The Makefile finds `~/opt/arm-gnu-toolchain-*-arm-none-eabi/bin/` by itself. If macOS blocks the binaries: `xattr -dr com.apple.quarantine ~/opt/arm-gnu-toolchain-*` (not needed when downloaded with `curl`) |
 | Docker (C-SKY image, Linux host tests) | Docker Desktop, or Homebrew `docker` with `colima` (`colima start --arch aarch64`) | Either works; this Mac uses colima. Apple's `container` is untested |
 | C-SKY GCC 14.2.0 (GD-88) | `tools/docker/csky-toolchain/run.sh make -j$(sysctl -n hw.ncpu) BOARD=gd88` | The image is named in `platform/hrc7000/platform.toml` and pulled on first use. It is amd64 only, so it runs emulated on Apple silicon (a full build takes about 2 minutes) and Docker prints a platform `WARNING` line unless `DOCKER_DEFAULT_PLATFORM=linux/amd64` is set. Pass `-j` yourself: `run.sh`'s `JOBS` default uses `nproc`, which macOS lacks. A native build (`tools/build-csky-toolchain.sh`) is tested on Linux only |
-| Linux host-test image (AddressSanitizer tests) | `docker build -t local/rf-host-tests -f fork-notes/tools/Dockerfile.host-tests fork-notes/tools` | See "AddressSanitizer on macOS" below. Native arm64 |
+| Linux host-test image (Linux cross-check) | `docker build -t local/rf-host-tests -f fork-notes/tools/Dockerfile.host-tests fork-notes/tools` | See "AddressSanitizer on macOS" below. Native arm64 |
 | Claude Code | Start it in the clone (CLI `claude`, or open the folder as a local session in the desktop app) | `CLAUDE.md` loads by itself |
 
 The Arm archive is `arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi.tar.xz` (about 123 MB). Arm publishes its
@@ -44,21 +46,100 @@ matrix in the Linux VM if the Mac stalls.
 
 Apple clang 17's ASan runtime hangs at start-up on macOS 27 (checked on 27.3): every binary built with
 `-fsanitize=address`, even an empty `main`, spins forever in `__asan::InitializeShadowMemory` before `main` runs.
-UBSan alone is fine. That is the `gfxFbEdgeTest` stall above. It hits:
+UBSan alone is fine. That is the `gfxFbEdgeTest` stall above. It hits `uiThemeTest`, `uiThemeTestPanels*` and
+`gfxFbEdgeTest`, which always build with ASan (so the plain `make -C tests/host` run and `tools/ci.sh`'s host step),
+and `make -C tests/host SANITIZE=1` (`RFOUNDRY_CI_SANITIZE=1 tools/ci.sh`).
 
-- `uiThemeTest` and `gfxFbEdgeTest`, which always build with ASan. The plain `make -C tests/host` run reaches them
-  and hangs, and so does `tools/ci.sh`'s host step.
-- `make -C tests/host SANITIZE=1` (`RFOUNDRY_CI_SANITIZE=1 tools/ci.sh`).
-
-Run them in the Linux image. `fork-notes/tools/cc.sh` does this for `uiThemeTest` by itself. By hand, remove the Mac
-binary first, because make would take a binary from the other OS as up to date, and clean afterwards:
+Homebrew LLVM's clang has a working ASan on macOS 27. Name it with `CC`; neither `tools/ci.sh` nor
+`tests/host/Makefile` changes. `fork-notes/tools/host-cc.sh` runs it with one flag added (below). Clean first and
+afterwards, because make takes binaries from another compiler as up to date:
 
 ```bash
-rm -f tests/host/uiThemeTest
+HCC=$PWD/fork-notes/tools/host-cc.sh       # absolute: make -C changes directory
+make -s -C tests/host clean
+make -C tests/host CC=$HCC -j$(sysctl -n hw.ncpu)               # the whole suite
+make -s -C tests/host clean
+make -C tests/host CC=$HCC SANITIZE=1 -j$(sysctl -n hw.ncpu)    # under ASan and UBSan
+make -s -C tests/host clean
+CC=$HCC tools/ci.sh --steps host                                # make reads CC from the environment
+make -s -C tests/host clean
+```
+
+All three pass natively (Nov 27, `b87adff8`, LLVM 23.1.6): the suite in 2 minutes at `-j16`, `SANITIZE=1` in 6.5
+minutes with no sanitizer report, and the ci.sh host step with no warning. No test failed natively, so none
+needed the Linux image.
+
+The flag is `-Wno-unused-but-set-global`. LLVM 23 warns (`-Wall`) about a static global that is set and
+never read, and 19 test counters in `tests/host` and `boards/*/tests` are (Nov 27: `job_runs` in
+`radioCoreTest.c`, `prototype_gui` in `sim/ui_sim.c`, counters in `hrc6000DmrTest.c`, `netSvcCases.c`,
+`bootGd88Test.c`, `md9600RfSeqTest.c` and others). Apple clang 17 and the Linux GCC upstream CI uses don't have the
+warning, and ci.sh's host step fails on any `warning:` line. `host-cc.sh` puts the flag last, because the
+Makefile's `-Wall` after it would turn the warning back on. The real fix is in the tests (read each counter in a
+check, or drop it), for upstream to take.
+
+`fork-notes/tools/cc.sh` and `ci-par.sh` use `host-cc.sh` by themselves on macOS when LLVM is installed
+(`RF_HOST_CC` names another compiler; `RF_LLVM` another LLVM prefix).
+
+**Linux cross-check.** Upstream CI runs the host tests on Linux with GCC, so a result that matters goes through the
+Linux image too (`cc.sh` falls back to it when there is no LLVM). Start the VM first (`colima start`, and `colima
+stop` afterwards), remove the Mac binaries, and clean afterwards:
+
+```bash
+make -s -C tests/host clean
 docker run --rm -v "$PWD:$PWD" -w "$PWD" --user $(id -u):$(id -g) -e HOME=/tmp local/rf-host-tests \
 	sh -c 'make -s -C tests/host uiThemeTest && ./tests/host/uiThemeTest'
-rm -f tests/host/uiThemeTest
+make -s -C tests/host clean
 ```
+
+Inside the image a whole-suite make prints "Clock skew detected" about the bind-mounted tree, which `tools/ci.sh`'s
+warning check counts as a warning: run ci.sh's host step natively.
+
+### Python venv for CI
+
+`tools/ci.sh`'s Python step skips the HIL collection, the HIL helper and APRS tests without pytest and numpy, and the
+licenses step skips `reuse lint` without reuse. They go in a venv outside the repository, with Homebrew's Python
+(nothing system-wide; all four install as wheels for Python 3.15):
+
+```bash
+cd ..   # beside RadioFoundryDG
+/opt/homebrew/bin/python3 -m venv rf-venv
+rf-venv/bin/python3 -m pip install --upgrade pip
+rf-venv/bin/python3 -m pip install pytest pyserial numpy reuse
+```
+
+`ci-par.sh` puts `../rf-venv/bin` first on PATH when it exists (`RF_VENV` names another). By hand:
+`PATH=$PWD/../rf-venv/bin:$PATH tools/ci.sh --steps python,licenses`. The venv has no Pillow:
+`fork-notes/tools/` keep using the user install above.
+
+### Parallel full CI
+
+`tools/ci.sh` always writes `build/ci`, so one checkout runs one ci.sh at a time. `fork-notes/tools/ci-par.sh`
+runs the whole gate with the boards in parallel:
+
+```bash
+fork-notes/tools/ci-par.sh                      # every board, output in ../rf-ci-<short HEAD>
+fork-notes/tools/ci-par.sh -p 6 ../rf-ci-out    # 6 lanes
+fork-notes/tools/ci-par.sh --board dm1701,md380 --no-checks   # some boards, firmware only
+```
+
+- The boards are each `boards/<b>/board.mk` whose compiler is installed (C-SKY boards once
+  `~/toolchains/csky-elf/bin/csky-elf-gcc` exists, natively; never in Docker). They wait in one queue, the most
+  configurations first, and each lane takes the next board when it is free, so the light boards fill in at the end.
+- Each lane (default 4) is a worktree of HEAD (`tools/worktree.sh add ../rf-par-<sha>-<n>`, third_party from this
+  checkout) running `ci.sh --board <b> --steps firmware` for each board it takes, with `JOBS` = cores / lanes.
+- Meanwhile this checkout runs the other steps once (registry, host with the LLVM `CC`, bench, python, licenses,
+  similarity) with the venv. `tests/host` is cleaned before and after it, so rebuild `uiSim` afterwards.
+- It builds HEAD: commit first.
+- The output folder gets `summary.txt` (also printed), each board's ci.sh output (`<b>.log`), `checks.log`, the
+  size reports (one per board and `size-report.md` combined) and in `logs/` the build logs of the configurations
+  that failed. Then the worktrees and their build trees are removed, also on Ctrl-C. It exits 1 when anything failed.
+
+The first run (Nov 27, `799fca27`, 4 lanes x `JOBS=4`) built all 10 boards natively, 802 configurations (Arm and
+C-SKY), plus the other steps in 51 minutes: about 16 configurations a minute, against 9 for the sequential `JOBS=16`
+ci.sh run earlier that day (the four Arm boards, 362 configurations, in 41 minutes). Each board took 20 to 28 minutes
+(gd88b 2, rt10 6). The only failures were the known DM-1701 and MD-UV380 maximal overflows (FLASH over by 3552 bytes
+on the DM-1701, 4812 on the MD-UV380). Spotlight (`mds_stores`), the backup and antivirus daemons took several cores
+while the new worktrees and build trees appeared; excluding `../rf-par-*` from them would help.
 
 ## Check the setup
 
