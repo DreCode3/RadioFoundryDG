@@ -928,9 +928,11 @@ class PrototypeTest(unittest.TestCase):
                         "expect:shows=Contacts expect:shows=Messages expect:shows=Call_log expect:shows=Location "
                         "expect:shows=Settings expect:layout=0", narrow)
         self.run_script(panels + "ok 7 expect:screen=connections expect:shows=Connections expect:layout=0", narrow)
-        # Quick's tiles keep their short names there
+        # Quick's tiles keep their short names there; a value too long for its place beside the digit (a CTCSS tone)
+        # takes a third line, whole
         self.run_script(panels + "quick expect:shows=Slot expect:shows=TG expect:hides=Timeslot expect:layout=0",
                         narrow)
+        self.run_script(panels + "down quick expect:shows=T100.0 expect:layout=0", narrow)
 
     def test_gui_switch_keeps_channel_and_display_preferences(self):
         self.run_script(

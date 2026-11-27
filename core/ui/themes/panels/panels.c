@@ -1811,7 +1811,8 @@ static void panels_quick_entry(const ui_state_t *s, char *out, size_t cap)
 
 // Quick settings: the tiles 1-9 as rounded panels in three rows of three under the title, the focus as a list's. Each
 // has two lines of the 8x16 font: its name in whole words (panels_quick_word), then its key's digit and its value,
-// between arrows while it edits (the TX frequency's typed digits). The bottom row as the reference theme's Quick has it
+// between arrows while it edits (the TX frequency's typed digits); a value too long for that line takes a third where
+// the tile has the height. The bottom row as the reference theme's Quick has it
 static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 {
 	const font_t *f = &font_aa_8x16;
@@ -1833,12 +1834,6 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 		bool focus = i == s->quick_focus, edit = focus && s->quick_edit;
 		color_t fg = focus ? ui_col.focus_fg : ok ? ui_col.fg : ui_col.dim;
 		panels_cell_panel(x, y + PANELS_ROW_GAP, tw, th - 2 * PANELS_ROW_GAP, focus, edit);
-		int y1 = y + th / 2 - f->h, y2 = y1 + f->h;
-		const char *name = panels_quick_word(kind, label + 1, room, word, sizeof word);
-		gfx_text_fit(f, name, room, fit, sizeof fit);
-		gfx_text(f, x + 7, y1, fit, focus ? fg : ui_col.dim);
-		char key[2] = { label[0], 0 };
-		int vx = gfx_text(f, x + 7, y2, key, focus ? fg : ui_col.dim) + 4;
 		bool typed = edit && kind == QT_SPLIT && s->entry_len > 0;
 		if (typed)
 			panels_quick_entry(s, value, sizeof value);	// the digits say it edits: no arrows, room for all
@@ -1851,10 +1846,25 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 			sb_chr(&b, '>');
 			str_copy(value, sizeof value, fit);
 		}
-		int right = x + tw - 4;
+		char key[2] = { label[0], 0 };
+		int right = x + tw - 4, vx = x + 7 + gfx_text_width(f, key) + 4;
+		// A value too long for its place beside the digit goes on a third line, from the name's left edge, in a tile
+		// high enough for three lines (3 px clear of its top and bottom)
+		bool below = gfx_text_width(f, value) > right - vx && th - 2 * PANELS_ROW_GAP >= 3 * f->h + 6;
+		int y1 = y + th / 2 - f->h - (below ? f->h / 2 : 0), y2 = y1 + f->h;
+		const char *name = panels_quick_word(kind, label + 1, room, word, sizeof word);
+		gfx_text_fit(f, name, room, fit, sizeof fit);
+		gfx_text(f, x + 7, y1, fit, focus ? fg : ui_col.dim);
+		gfx_text(f, x + 7, y2, key, focus ? fg : ui_col.dim);
+		color_t vc = edit ? panels_accent : fg;
+		if (below) {
+			gfx_text_fit(f, value, right - (x + 7), fit, sizeof fit);
+			gfx_text(f, x + 7, y2 + f->h, fit, vc);
+			continue;
+		}
 		gfx_text_fit(f, value, right - vx, fit, sizeof fit);
 		int fw = gfx_text_width(f, fit), cx = x + (tw - fw) / 2;
-		gfx_text(f, cx > vx ? cx : vx, y2, fit, edit ? panels_accent : fg);
+		gfx_text(f, cx > vx ? cx : vx, y2, fit, vc);
 	}
 	ui_draw_banner(s);
 	if (s->toast != NULL)
