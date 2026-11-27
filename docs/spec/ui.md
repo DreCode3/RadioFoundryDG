@@ -854,7 +854,9 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
     ink) with its digit and value (unread, scan) beside it, the label under it in the 8x16 font. Settings' tiles keep
     two lines of the 8x16 font right of the icon, centered at the tile's left: the digit and the label, which goes on to
     the second line at a space ("Security &" / "keypad lock"), a first word too long for the first line's room going
-    whole to the second. Zones' tile has no value (Home shows the zone); the Scan tile's Off is `HUB_VALUE_OFF`, so a
+    whole to the second. On a narrower screen whose lists take 8x16 (220 x 310), a Settings tile has the menu's
+    order instead: the icon and digit above, the label under them across the tile on up to two lines. Zones' tile has
+    no value (Home shows the zone); the Scan tile's Off is `HUB_VALUE_OFF`, so a
     translation can give a word short enough for a tile.
   - **Soft key bar**: a rounded pane 32 px high on every screen, 2 px under the hint row, with two labels, one per soft
     key, in the largest native font that fits them (where either is Chinese, both in the 8x16 font, the CJK glyphs'

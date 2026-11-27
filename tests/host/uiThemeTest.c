@@ -1271,6 +1271,16 @@ static void test_panels_geometry(void)
 }
 
 // The main menu's tiles: one with a label of two forms, one with a value (Scan's "Off")
+// Settings' groups: an icon, a digit and a label of up to two lines' words
+static void group_tile_item(uint16_t i, ui_item_t *it)
+{
+	static const char *const labels[] = { "Display", "Tones & alerts", "Audio", "Call settings", "Receive & VFO",
+		"Privacy", "Security & keypad lock", "Buttons", "Programming" };
+	it->num = (char)('1' + i);
+	it->icon = UI_MENU_ICON_SCAN;
+	strcpy(it->label, labels[i % 9]);
+}
+
 static void hub_tile_item(uint16_t i, ui_item_t *it)
 {
 	it->num = (char)('1' + i);
@@ -1329,6 +1339,29 @@ static void test_panels_tiles(bool narrow)
 	CHECK(links >= 0 && scan >= 0 && nshortened == 0);
 	if (links >= 0 && scan >= 0)
 		CHECK(texts[links].x == g.x + (narrow ? 5 : 7) && texts[scan].x == col1 + (narrow ? 3 : 7));
+	// Settings' group tiles: on the narrow screen the icon and digit above the label, which takes the tile's width on
+	// up to two lines, so every group's name is whole (the wide screen keeps the label beside the icon)
+	for (uint16_t f = 0; narrow && f < 9; f += 6) {
+		l = list(9, f, &top);
+		l.kind = UI_LIST_MENU;
+		l.numbered = true;
+		l.item = group_tile_item;
+		l.prefix = "Settings";
+		l.name = NULL;
+		top = f;
+		nshortened = 0;
+		ui_draw_list(&view, &state, &l);
+		CHECK(nshortened == 0);
+		if (f == 0) {
+			int call = find_text("Call"), dig = find_text("4");
+			CHECK(call >= 0 && find_text("settings") >= 0 && find_text("Tones &") >= 0 && find_text("alerts") >= 0 &&
+			      find_text("Receive &") >= 0 && find_text("VFO") >= 0 && dig >= 0);
+			if (call >= 0 && dig >= 0)
+				CHECK(texts[call].y > texts[dig].y && texts[call].x < texts[dig].x);
+		} else {
+			CHECK(find_text("Security &") >= 0 && find_text("keypad lock") >= 0 && find_text("Programming") >= 0);
+		}
+	}
 	// Lists: rows of 26 px, seven on the narrow screen in 8x16 (its rows hold too few characters of the small font),
 	// five on the wide one in the small font
 	l = list(30, 0, &top);

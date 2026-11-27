@@ -1896,6 +1896,27 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 		return;
 	}
 	int x = c->x + (hub ? panels_grid().label : panels_m()->text_x), right = c->x + c->w - 3;
+	if (!hub && icon && panels_list_font() != ui_layout.small && c->h >= PANELS_ICON_CANVAS + 2 * f->h + 6) {
+		// A narrow screen's icon tiles (Settings' groups) as the main menu's: the icon and its digit above, the label
+		// under them across the tile on up to two lines, 1 px clear of the focus's accent bar
+		int cy = c->y + c->h / 2, lx = c->x + panels_grid().label, lright = right;
+		if (c->focus && lx < c->x + PANELS_ACCENT_W + 1) {
+			lright = c->x + c->w - 1;
+			lx = c->x + PANELS_ACCENT_W + 1;
+		}
+		panels_icon(it->icon, c->x + 3, cy - 28, icon_ink);
+		if (it->num) {
+			char n[2] = { it->num, 0 };
+			gfx_text(f, c->x + 28, cy - 24, n, num_ink);
+		}
+		const char *rest = ui_wrap_line(f, it->label, lright - lx, line, sizeof line);
+		gfx_text(f, lx, cy - 4, line, fg);
+		if (*rest) {
+			ui_fit_end(f, rest, lright - lx, fit, sizeof fit);
+			gfx_text(f, lx, cy + 12, fit, fg);
+		}
+		return;
+	}
 	if (!hub && icon)
 		x = c->x + 30;	// right of the icon's canvas, centered in the tile at its left
 	int label_x = x, text_x = x + (it->num ? 2 * f->w : 0);
