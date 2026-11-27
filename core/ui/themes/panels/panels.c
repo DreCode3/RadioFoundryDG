@@ -157,6 +157,8 @@ static void panels_round_block(panels_mark_pos_t at, int x, int y, int w, int h,
 	panels_round_fill(at.x + dx, at.y + dy, panels_px(x + w, at.scale) - dx, panels_px(y + h, at.scale) - dy, ink);
 }
 
+#ifdef GFX_FIT_TRACE
+// 1-bit marks scaled with rounded corners: the simulator's examples (Bluetooth, recording, the TA arrow)
 typedef struct { uint32_t left, right; } panels_subrow_t;
 
 // Round the four subpixels of a mask corner only when the edge turns in both directions.
@@ -204,34 +206,29 @@ static void panels_bitmap(int x, int y, const uint32_t *rows, int w, int h, int 
 	panels_bitmap(x, y, mark, w, PANELS_HEIGHT(mark), width, height, ink)
 #define PANELS_PIXELS(x, y, mark, w, ink) \
 	PANELS_SCALED_PIXELS(x, y, mark, w, w, PANELS_HEIGHT(mark), ink)
-#define PANELS_MARK_AT(at, mark, width, ink) \
-	PANELS_SCALED_PIXELS((at).x, (at).y, mark, width, panels_px(width, (at).scale), \
-		panels_px(PANELS_HEIGHT(mark), (at).scale), ink)
-#define PANELS_MARK(x, y, mark, width, ink) PANELS_PIXELS(x, y, mark, width, ink)
-#define PANELS_STATUS_MARK(x, y, mark, width, ink) \
-	PANELS_MARK_AT(((panels_mark_pos_t){ x, y, scale }), mark, width, ink)
-
-
+#endif
 
 enum {
-	PANELS_VOX_W = 22, PANELS_DUAL_W = 25, PANELS_DIRECT_W = 19, PANELS_BT_W = 24,
+	PANELS_DIRECT_W = 19, PANELS_BT_W = 24,
 	PANELS_ORBIT_W = 20,	// the roaming ring with its dot at any of its places: the canvas's live width
+	PANELS_DUAL_W = 26,	// dual watch's two boxes
 };
 
-static const uint32_t panels_vox_art[] = {
-	0x330C33, 0x330C33, 0x333333, 0x333333, 0x33330C, 0x33330C, 0x333333, 0x333333,
-	0x0C0C33, 0x0C0C33,
-};
-static const uint32_t panels_rx_art[] = {
-	0xFF0C3, 0xFF842, 0xC1C66, 0xC1C24, 0xFF83C, 0xFF018, 0xCE018, 0xC6018,
-	0xC703C, 0xC3824, 0xC1C66, 0xC0C42, 0xC0EC3, 0x00400,
-};
+static void panels_native_caps(const font_t *font, int x, int cy, const char *label, color_t ink);
 
 #if CONFIG_DUAL_WATCH
-static const uint32_t panels_dual_art[] = {
-	0x0FF83FE, 0x1FFC7FF, 0x180C603, 0x180C603, 0x180C603, 0x188C663, 0x194C653, 0x19CC663,
-	0x194C653, 0x194C663, 0x180C603, 0x180C603, 0x180C603, 0x1FFC7FF, 0x0FF83FE,
-};
+// Dual watch: A and B in 8x16 capitals, each in a rounded box 20 px high, the selected pane's filled
+static void panels_dual_mark(int x, int cy, const ui_state_t *s, color_t ink)
+{
+	for (int i = 0; i < 2; i++) {
+		int bx = x + i * 14;
+		bool sel = i == s->dual.sel;
+		panels_round_fill(bx, cy - 10, 12, 20, ink);
+		if (!sel)
+			panels_round_fill(bx + 2, cy - 8, 8, 16, ui_col.strip_bg);
+		panels_native_caps(&font_aa_8x16, bx + 2, cy, i ? "B" : "A", sel ? ui_col.strip_bg : ink);
+	}
+}
 #endif
 
 #ifdef GFX_FIT_TRACE
@@ -376,7 +373,7 @@ enum {
 typedef struct {
 	const char *mode, *activity, *algorithm;
 	color_t activity_ink;
-	const font_t *mode_font;
+	const font_t *word_font;	// the words' (the mode, TX, IP, RX, VOX): 12x24 where everything fits, else 8x16
 	char clock[24];
 	uint8_t strength;
 	bool encrypted, warning;
@@ -474,9 +471,9 @@ static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t
 	const font_t *f = &font_aa_8x16;
 	switch (item) {
 	case PANELS_SI_BATTERY: return s->no_battery ? 0 : panels_px(11, PANELS_BATTERY_SCALE);
-	case PANELS_SI_ACTIVITY: return t->activity ? gfx_text_width(f, t->activity) : 0;
+	case PANELS_SI_ACTIVITY: return t->activity ? gfx_text_width(t->word_font, t->activity) : 0;
 	case PANELS_SI_SIGNAL: return t->strength ? panels_px(18, scale) : 0;
-	case PANELS_SI_MODE: return t->mode != NULL ? gfx_text_width(t->mode_font, t->mode) : 0;
+	case PANELS_SI_MODE: return t->mode != NULL ? gfx_text_width(t->word_font, t->mode) : 0;
 	case PANELS_SI_LOCK: return s->locked ? panels_icon_w(UI_MENU_ICON_LOCK) : 0;
 	case PANELS_SI_KEY:
 		if (!t->encrypted && !t->warning)
@@ -486,10 +483,10 @@ static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t
 	case PANELS_SI_MONITOR: return (v->monitor || s->hear_all) && !v->aprs_tx ? panels_icon_w(PANELS_ICON_MONITOR) : 0;
 	case PANELS_SI_UNREAD: return s->unread ? panels_icon_w(UI_MENU_ICON_MESSAGES) : 0;
 	case PANELS_SI_GPS: return s->gps_fix || s->gps == UI_GPS_SEARCH ? panels_icon_w(UI_MENU_ICON_LOCATION) : 0;
-	case PANELS_SI_IP: return s->usb_net != UI_USB_NET_OFF ? gfx_text_width(f, "IP") : 0;
+	case PANELS_SI_IP: return s->usb_net != UI_USB_NET_OFF ? gfx_text_width(t->word_font, "IP") : 0;
 	case PANELS_SI_POWER: return board.power_count ? font_aa_12x24.w : 0;
-	case PANELS_SI_RX_ONLY: return v->ch.rx_only || v->am || v->bcast ? 20 : 0;
-	case PANELS_SI_VOX: return v->vox_on ? PANELS_VOX_W : 0;
+	case PANELS_SI_RX_ONLY: return v->ch.rx_only || v->am || v->bcast ? gfx_text_width(t->word_font, "RX") : 0;
+	case PANELS_SI_VOX: return v->vox_on ? gfx_text_width(t->word_font, "VOX") : 0;
 	case PANELS_SI_CLOCK: return t->clock[0] ? gfx_text_width(f, t->clock) + 8 : 0;	// kept apart from both sides
 #if CONFIG_DUAL_WATCH
 	case PANELS_SI_DUAL: return s->dual.on ? PANELS_DUAL_W : 0;
@@ -540,7 +537,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 			(panels_mark_pos_t){ x, cy - panels_px(4, PANELS_BATTERY_SCALE), PANELS_BATTERY_SCALE }, ink);
 		break;
 	case PANELS_SI_ACTIVITY:
-		gfx_text(&font_aa_8x16, x, cy - font_aa_8x16.h / 2, t->activity, t->activity_ink);
+		gfx_text(t->word_font, x, cy - t->word_font->h / 2, t->activity, t->activity_ink);
 		break;
 	case PANELS_SI_SIGNAL: {
 		panels_mark_pos_t signal = { x, y - panels_px(4, scale), scale };
@@ -551,7 +548,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		break;
 	}
 	case PANELS_SI_MODE:
-		gfx_text(t->mode_font, x, cy - t->mode_font->h / 2, t->mode, ink);
+		gfx_text(t->word_font, x, cy - t->word_font->h / 2, t->mode, ink);
 		break;
 	case PANELS_SI_LOCK:
 		panels_strip_icon(UI_MENU_ICON_LOCK, x, cy, ink);
@@ -583,7 +580,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		panels_strip_icon(UI_MENU_ICON_LOCATION, x, cy, s->gps_fix ? ink : ui_col.dim);
 		break;
 	case PANELS_SI_IP:
-		gfx_text(&font_aa_8x16, x, cy - font_aa_8x16.h / 2, "IP", s->usb_net == UI_USB_NET_UP ? ink : ui_col.dim);
+		gfx_text(t->word_font, x, cy - t->word_font->h / 2, "IP", s->usb_net == UI_USB_NET_UP ? ink : ui_col.dim);
 		break;
 	case PANELS_SI_POWER: {
 		char level[] = { "LMH"[panels_power_level(v)], 0 };
@@ -591,17 +588,17 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		break;
 	}
 	case PANELS_SI_RX_ONLY:
-		PANELS_PIXELS(x, cy - 7, panels_rx_art, 20, ink);
+		gfx_text(t->word_font, x, cy - t->word_font->h / 2, "RX", ink);
 		break;
 	case PANELS_SI_VOX:
-		PANELS_PIXELS(x, cy - 5, panels_vox_art, PANELS_VOX_W, ink);
+		gfx_text(t->word_font, x, cy - t->word_font->h / 2, "VOX", ink);
 		break;
 	case PANELS_SI_CLOCK:
 		gfx_text(&font_aa_8x16, x + 4, cy - font_aa_8x16.h / 2, t->clock, ui_col.dim);
 		break;
 #if CONFIG_DUAL_WATCH
 	case PANELS_SI_DUAL:
-		PANELS_PIXELS(x, cy - 7, panels_dual_art, PANELS_DUAL_W, ink);
+		panels_dual_mark(x, cy, s, ink);
 		break;
 #endif
 #if CONFIG_DMR_ROAMING
@@ -652,7 +649,7 @@ static const uint8_t panels_strip_right[] = {
 // bars, the mode, roaming, TX or NO TX and the monitor, dual watch and VOX marks from the left; battery, power, lock,
 // GPS, the USB network and the operating marks (unread mail, the privacy key, a receive-only channel, scanning) from
 // the right; the GPS clock in the room between. Home has no mode word in it: its mode bar has the mode. Nothing
-// overlaps: a crowded strip gives up items in the reverse of their order (PANELS_SI_*), and the mode takes the 8x16
+// overlaps: a crowded strip gives up items in the reverse of their order (PANELS_SI_*), and the words take the 8x16
 // font before anything else goes. under: the screen's color around the pane. Returns whether the GPS clock is due but
 // had no room (Home then has it in its mode bar)
 static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, color_t under, bool home)
@@ -670,13 +667,13 @@ static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui
 	int room = w - 2 * PANELS_STRIP_X;
 	if (!panels_clock(s, t.clock, sizeof t.clock))
 		t.clock[0] = 0;
-	// The mode in the large font where every item, the clock included, fits beside it
-	t.mode_font = &font_aa_12x24;
+	// The words in the large font where every item, the clock included, fits beside them
+	t.word_font = &font_aa_12x24;
 	int need = 0;
 	for (int i = 0; i < PANELS_SI_COUNT; i++)
 		need += panels_strip_w(i, v, s, &t);
 	if (need > room)
-		t.mode_font = &font_aa_8x16;
+		t.word_font = &font_aa_8x16;
 	uint32_t shown = panels_strip_fit(v, s, &t, room);
 	int cy = 2 + (h - 2) / 2;	// the pane's center: every mark inside it with 2 px clear above and below
 	int left = PANELS_STRIP_X, right = w - PANELS_STRIP_X;

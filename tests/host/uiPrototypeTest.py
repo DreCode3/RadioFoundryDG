@@ -156,13 +156,11 @@ class PrototypeTest(unittest.TestCase):
         battery = [(x, y) for y in range(STRIP_H) for x in range(285, 308) if black(x, y)]
         xs, ys = zip(*battery)
         self.assertLess(max(xs) - min(xs), max(ys) - min(ys))
-        # The receive-only mark is in the strip, with the operating marks
+        # The receive-only mark is in the strip, with the operating marks: the word RX, in the ink
         receive_only = {(x, y) for y in range(STRIP_H) for x in range(120, 285)
                         if black(x, y) and idle[y][x * 3:x * 3 + 3] != DAY_INK}
-        left = min(x for x, _ in receive_only)
-        # The R keeps its solid stem and the X is separated by a blank column.
-        self.assertGreaterEqual(sum(x == left for x, _ in receive_only), 11)
-        self.assertFalse(any(x == left + 11 for x, _ in receive_only))
+        self.assertTrue(receive_only)
+        self.run_script("rxonly:on expect:shows=RX expect:layout=0")
     def test_monitor_uses_separate_speaker_and_sound_wave(self):
         idle = self.render_frame("")
         monitor = self.render_frame("mon wait:3000")

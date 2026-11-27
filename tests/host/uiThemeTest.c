@@ -1135,6 +1135,24 @@ static void test_panels_min_font(void)
 		if (!ok)
 			fails++;
 	}
+	// The strip's words, VOX and RX among them, and dual watch's A and B are text, none smaller than 8x16 (until step 5
+	// they were bitmap letters 10 to 14 px high)
+	base();
+	view.vox_on = view.ch.rx_only = true;
+#if CONFIG_DUAL_WATCH
+	state.dual.on = true;
+#endif
+	l = list(14, 3, &top);
+	ui_draw_list(&view, &state, &l);
+	CHECK(find_text("VOX") >= 0 && find_text("RX") >= 0);
+#if CONFIG_DUAL_WATCH
+	CHECK(find_text("A") >= 0 && find_text("B") >= 0);
+#endif
+	for (int i = 0; i < ntexts; i++)
+		if (texts[i].h < 16) {
+			printf("FAIL %s:%d: \"%s\" %d px high\n", __FILE__, __LINE__, texts[i].s, texts[i].h);
+			fails++;
+		}
 	base();
 }
 
