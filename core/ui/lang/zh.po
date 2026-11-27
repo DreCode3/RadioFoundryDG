@@ -4607,7 +4607,7 @@ msgstr "OK 保存  返回"
 #: core/ui/ui_menus.c
 msgctxt "HW_HINT"
 msgid "OK next  Hold OK store"
-msgstr "OK 下一个  长按 OK 存储"
+msgstr "OK 换  长按 OK 存储"
 
 #: core/ui/ui_menus.c
 msgctxt "RESET_ROW_KEEP"
