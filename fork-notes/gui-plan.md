@@ -286,6 +286,29 @@ resources spent on diminishing returns):
      uiPrototypeTest check that no strip mark reaches the pane's outer two rows. Checked in one pass, scoped to the fix.
 5. Icons and palettes. Also: the VOX and dual watch A/B marks, large on step 2's Home and about 10 px bitmaps since
    step 4; the Settings gear's dark outline at night; Chinese hint row and bar labels touching the bar's edge.
+   - Design pass (mock-ups in `../rf-step5-out/`, not committed): inventory, contrast, conflicts with the layout.
+   - Decided Nov 26 (user), for the panels theme:
+     - **One icon family:** a 24 px canvas (20 px live, 2 px strokes) in the theme ink, the accent on focus, and no
+       decorative tints.
+     - **Pictures:**
+       - Scan: the zigzag with an arrowhead that the strip already draws (`docs/spec/ui.md`), also on the Menu tile.
+       - Audio: a speaker. Zones: a folder. Receive & VFO: a tuning dial (a knob with a pointer), not an antenna
+         with arcs.
+       - Call settings: a handset. Connections: two opposite arrows. Radio info: an "i" in a circle.
+       - The rest as in the proposal: contacts, messages, call log clock, location pin, settings gear, display,
+         tones bell, privacy key, padlock, buttons keypad, programming sliders.
+       - All of them are drawn from first principles (clean room), never copied from another firmware's artwork.
+     - **3x3 Menu tiles** are 2 px apart vertically and 39 px high.
+     - **The privacy key** is drawn in the theme ink, with a red slash when a call can't be decrypted (no longer green
+       while privacy is on).
+     - **The soft key bar** is 32 px with a 2 px gap above it, in every language. A bar with Chinese text puts both
+       labels at the Chinese text height.
+     - **Defaults taken from the proposal, no objection:**
+       - Strip words (VOX, RX, TX, IP, the mode) are in 12x24 where the whole strip fits, else in 8x16.
+       - The Settings tile icon sits left of the text.
+       - Palette fixes: Day strip ink is the palette's fg, not black; Day amber is RGB(122,86,0); the key's grays
+         come from the palette.
+     - Logged by the design pass for the build: two roaming animation frames reach the strip pane's outer rows.
 6. Freeze on the GD-88, then port to other display classes.
 
 ## Planned, not now
