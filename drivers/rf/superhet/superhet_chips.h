@@ -35,6 +35,8 @@ typedef struct {
 	// AT1141 LO: true = off for a transmission and restarted after (at1141_superhet_lo_restart); false = disabled at
 	// the end of its init and only gated (at1141_superhet_lo)
 	bool at1141_restart;
+	// AT1141 LO: true = its output at level 0 (register 0x26 = 0x7F40) after the init; false = the driver's level 2
+	bool at1141_level0;
 	const fd6818sh_cfg_t *fd_cfg;	// the board's FD6818 main set (fd6818sh_set_cfg); NULL = the driver's
 } superhet_chips_cfg_t;
 

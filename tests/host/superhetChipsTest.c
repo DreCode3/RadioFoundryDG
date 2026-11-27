@@ -76,6 +76,11 @@ static const superhet_chips_cfg_t cfg_gated = {
 	.bus_main = &main_chip.bus, .bus_lo = &lo_chip.bus, .css_line = NULL, .at1141_restart = false,
 };
 
+static const superhet_chips_cfg_t cfg_level0 = {
+	.bus_main = &main_chip.bus, .bus_lo = &lo_chip.bus, .css_line = NULL, .at1141_restart = false,
+	.at1141_level0 = true,
+};
+
 // --- tests ---
 
 static void test_kind(void)
@@ -147,6 +152,17 @@ static void test_at1141_gated(void)
 	superhet_chips_t c;
 	reset(0x6818, 0x1100);
 	CHECK(superhet_chips_init(&c, &cfg_gated));
+	CHECK(c.lo.ops == &at1141_superhet_lo);
+	CHECK(lo_chip.regs[0x26] != 0x7F40u);	// the driver's level 2
+}
+
+// The AT1141's output at level 0, by the board's choice; the other options as without it
+static void test_at1141_level0(void)
+{
+	superhet_chips_t c;
+	reset(0x6818, 0x1100);
+	CHECK(superhet_chips_init(&c, &cfg_level0));
+	CHECK(lo_chip.regs[0x26] == 0x7F40u);
 	CHECK(c.lo.ops == &at1141_superhet_lo);
 }
 
@@ -252,6 +268,7 @@ int main(void)
 	test_kind();
 	test_pairs();
 	test_at1141_gated();
+	test_at1141_level0();
 	test_unsupported();
 	test_answers_after_reset();
 	test_tone_heard();

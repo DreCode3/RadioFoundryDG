@@ -549,6 +549,27 @@ def test_long_press_time_reaches_input(home):
     r.wait_for(lambda x: as_int(x.get("input.long_ms")) == before, sections=("link",), what="long press time back")
 
 
+@pytest.mark.feature("vfo")
+@pytest.mark.needs_switch("UI_SETTINGS")
+def test_vfo_step_setting(home):
+    """Settings > Receive & VFO > VFO step: the radio core takes the new step (core.vfo_step_hz). The pick list opens on
+    the step the radio has, so the next one down changes it and the one up from there puts it back."""
+    r = home
+    if "VFO" not in r.features():
+        skip("not_built", "built without the VFO")
+    core = r.view(["core"])
+    if core.get("bcast") == "1":
+        skip("state", "in the broadcast band the step is the FM broadcast step's")
+    before = core["vfo_step_hz"]
+    row = "ok 8 5 down"
+    settings_keys(r, row + " ok down ok")
+    try:
+        r.wait_for(lambda x: x.get("vfo_step_hz") != before, sections=("core",), what="another VFO step")
+    finally:
+        settings_keys(r, row + " ok up ok")
+    r.wait_for(lambda x: x.get("vfo_step_hz") == before, sections=("core",), what="the VFO step back")
+
+
 @pytest.mark.feature("key_lock")
 def test_auto_lock(home):
     """Settings > Security & keypad lock > Auto lock 30 s locks the keys after 30 s without a key; set back to Off after."""

@@ -8,6 +8,7 @@
 #include "platform.h"
 #include "hal_time.h"
 #include "rf/rfbus/rfbus.h"
+#include "rf/fd6818/fd6818.h"
 #include "rf/superhet/superhet_chips.h"
 
 #define IF_HZ		51550000u
@@ -19,6 +20,7 @@
 // The LO's output that follows ADC 7 (hardware-db25d.md 3.3); what it drives is unknown
 #define GPIO_LO_AUX	4u		// FD6818 and AT1141 LO
 #define BK_LO_AUX	2u		// BK4819 LO (PRO)
+#define REG_PAGE	0x7F		// the FD6818 family's page select
 
 static rfbus_3w_t bus_main, bus_lo;
 static superhet_chips_t rf;
@@ -29,6 +31,7 @@ static bool css_line(void) { return hrc_pin_read(PIN_RF_CSS); }
 
 static const superhet_chips_cfg_t rf_cfg = {
 	.bus_main = &bus_main.bus, .bus_lo = &bus_lo.bus, .css_line = css_line, .at1141_restart = false,
+	.at1141_level0 = true,	// 0x26 = 0x7F40 on this radio's LO, not the driver's level 2 (hardware-db25d.md 4.8)
 };
 
 // ---- 3-wire bus: clock and data shared, one enable per chip ----
@@ -133,6 +136,36 @@ void db25d_main_af_gain(uint8_t gain) { rf.main.ops->af_gain(rf.main.chip, gain)
 void db25d_main_status(uint16_t *r67, uint16_t *r65, uint16_t *r0c)
 {
 	superhet_chips_status(&rf, r67, r65, r0c);
+}
+
+bool db25d_main_is_fd6818(void)
+{
+	return rf.main_kind == SUPERHET_CHIP_FD6818 || rf.main_kind == SUPERHET_CHIP_7813;
+}
+
+// Page 0 only: an FD6818-family page select and the access would be two frames, and the radio task's frames could
+// fall between them. Each frame is atomic (rfbus.h), so a single read or write is safe next to the radio task. Straight
+// on the bus: no driver follows a write, and its next set-up overwrites it
+bool db25d_chip_reg(uint8_t chip, uint8_t page, uint8_t reg, uint32_t *val, bool write)
+{
+	superhet_chip_t k = chip == 0 ? rf.main_kind : chip == 1 ? rf.lo_kind : SUPERHET_CHIP_NONE;
+	if (k == SUPERHET_CHIP_NONE || page != 0 || reg > 0x7Fu || (write && *val > 0xFFFFu)) {
+		return false;	// SUPERHET_CHIP_NONE also before db25d_rf_init identified the chips
+	}
+	if (write && reg == REG_PAGE && (k == SUPERHET_CHIP_FD6818 || k == SUPERHET_CHIP_7813)) {
+		return false;	// a page select would leave the radio task's page 0 accesses on another page
+	}
+	rfbus_t *bus = chip == 0 ? &bus_main.bus : &bus_lo.bus;
+	if (write) {
+		rfbus_write(bus, reg, (uint16_t)*val);
+	}
+	*val = rfbus_read(bus, reg);
+	return true;
+}
+
+uint16_t db25d_main_glitch(void)
+{
+	return rfbus_read(&bus_main.bus, FD6818_REG_GLITCH);
 }
 
 void db25d_main_tx_prepare(uint8_t type, uint16_t value, uint32_t hz, radio_bw_t bw)

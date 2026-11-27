@@ -70,6 +70,9 @@ static void init_lo(superhet_chips_t *c)
 	case SUPERHET_CHIP_AT1141:
 		at1141_attach(&c->lo_dev.at, c->cfg->bus_lo);
 		at1141_init(&c->lo_dev.at);
+		if (c->cfg->at1141_level0) {
+			at1141_level(&c->lo_dev.at, 0);
+		}
 		if (c->cfg->at1141_restart) {
 			c->lo = (superhet_lo_t){ &at1141_superhet_lo_restart, &c->lo_dev.at };
 		} else {

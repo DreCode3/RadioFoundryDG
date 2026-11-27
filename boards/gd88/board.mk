@@ -11,7 +11,7 @@ MCU_DEFS   := -DHRC_HOST_UART=1 -DHRC_LOADER_CPU_HZ=72000000u
 # 2 MB program flash: the debug link's READ_MEM window over it (platform/hrc7000/mem_window.h)
 MCU_DEFS   += -DHRC_XIP_FLASH_SIZE=0x200000u
 BOARD_DIRS := boards/gd88 boards/gd88/common drivers/rf/rfbus drivers/rf/superhet drivers/rf/bk4819 drivers/rf/fd6818 drivers/rf/at1141 drivers/rf/subaudio drivers/display/ili9341 drivers/input/keymatrix \
-	drivers/input/quadrature drivers/input/sharedptt drivers/flash/spi_nand drivers/audio/afsk_tonegen drivers/modem/hrc7000 \
+	drivers/input/quadrature drivers/input/sharedptt drivers/input/plugptt drivers/flash/spi_nand drivers/audio/afsk_tonegen drivers/modem/hrc7000 \
 	drivers/bcast/rda5807m drivers/bus/i2c_gpio
 # The link to SoC B (core/rx2): the main side runs here
 BOARD_CORE_DIRS := core/rx2
