@@ -122,7 +122,7 @@ static void hub_item(uint16_t i, ui_item_t *it)
 #if CONFIG_UI_THEME_PANELS
 	static const uint8_t icons[] = {
 		UI_MENU_ICON_CALLER, UI_MENU_ICON_CONTACTS, UI_MENU_ICON_MESSAGES, UI_MENU_ICON_RECENT,
-		UI_MENU_ICON_ZONES, UI_MENU_ICON_TOOLS, UI_MENU_ICON_LOCATION, UI_MENU_ICON_CONNECTIONS,
+		UI_MENU_ICON_ZONES, UI_MENU_ICON_SCAN, UI_MENU_ICON_LOCATION, UI_MENU_ICON_CONNECTIONS,
 		UI_MENU_ICON_SETTINGS,
 	};
 	it->icon = icons[e];
@@ -7386,9 +7386,9 @@ static const set_item_t s_radio_info[] = {
 static const set_group_t groups[] = {
 	[G_DISPLAY] = GROUP(TRN(SET_ROW_DISPLAY, "Display"), s_display, DISPLAY),
 	[G_TONES] = GROUP(TRN(SET_ROW_TONES_ALERTS, "Tones & alerts"), s_tones, TONES),
-	[G_AUDIO] = GROUP(TRN(SET_ROW_AUDIO, "Audio"), s_audio, SOUND),
-	[G_CALL] = GROUP(TRN(SET_ROW_CALL_SETTINGS, "Call settings"), s_call, TALK),
-	[G_RECEIVE] = GROUP(TRN(SET_ROW_RECEIVE_VFO, "Receive & VFO"), s_receive, CHANNELS),
+	[G_AUDIO] = GROUP(TRN(SET_ROW_AUDIO, "Audio"), s_audio, AUDIO),
+	[G_CALL] = GROUP(TRN(SET_ROW_CALL_SETTINGS, "Call settings"), s_call, CALL),
+	[G_RECEIVE] = GROUP(TRN(SET_ROW_RECEIVE_VFO, "Receive & VFO"), s_receive, RECEIVE),
 #if CONFIG_DMR && CONFIG_DMR_PRIVACY
 	[G_PRIVACY] = GROUP(TRN(SET_ROW_PRIVACY, "Privacy"), s_privacy, PRIVACY),
 #else

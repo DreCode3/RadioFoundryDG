@@ -28,9 +28,6 @@
 #define PANELS_TEXT_X 10	// a row's text from its left edge: clear of the accent bar
 #define PANELS_MODE_H 24	// Home's mode bar
 
-#define PANELS_GEAR_OUTLINE RGB565(0, 0, 0)
-#define PANELS_GEAR_FILL RGB565(148, 148, 148)
-
 static color_t panels_bar_fg;	// the bottom row's text
 static color_t panels_row_bg, panels_row_focus, panels_accent;
 static color_t panels_gutter;	// Home's background, around its panes
@@ -92,6 +89,25 @@ static void panels_mask(int x, int y, const uint8_t *mask, int w, int h, color_t
 			if (coverage)
 				gfx_coverage_pixel(x + dx, y + dy, ink, coverage);
 		}
+}
+
+// One icon of the family (panels_icons.h, from tools/profile_icons.py): the strip's marks and the menus' icons, in one
+// ink. Its 24 px canvas at x, y
+static void panels_icon(int id, int x, int y, color_t ink)
+{
+	const panels_icon_t *ic = &panels_icons[id];
+	panels_mask(x + ic->dx, y + ic->dy, panels_icon_bits + ic->at, ic->w, ic->h, ink);
+}
+
+// ... in the status strip: its ink from x, the item's left edge, its canvas centered on the pane's center cy
+static void panels_strip_icon(int id, int x, int cy, color_t ink)
+{
+	panels_icon(id, x - panels_icons[id].dx, cy - PANELS_ICON_CANVAS / 2, ink);
+}
+
+static int panels_icon_w(int id)
+{
+	return panels_icons[id].w;
 }
 
 static int panels_px(int n, int scale) { return n * scale / 4; }
@@ -198,8 +214,8 @@ static void panels_bitmap(int x, int y, const uint32_t *rows, int w, int h, int 
 
 
 enum {
-	PANELS_VOX_W = 22, PANELS_DUAL_W = 25, PANELS_MAIL_W = 23, PANELS_SPEAKER_W = 19,
-	PANELS_DIRECT_W = 19, PANELS_SCAN_W = 22, PANELS_ORBIT_W = 27, PANELS_BT_W = 24,
+	PANELS_VOX_W = 22, PANELS_DUAL_W = 25, PANELS_DIRECT_W = 19, PANELS_BT_W = 24,
+	PANELS_ORBIT_W = 20,	// the roaming ring with its dot at any of its places: the canvas's live width
 };
 
 static const uint32_t panels_vox_art[] = {
@@ -262,36 +278,40 @@ static void panels_bluetooth(int x, int cy, int height, const ui_state_t *s)
 #endif
 
 
-static void panels_scan(int x, int cy, uint32_t frame, color_t ink, color_t step)
+// The scan zigzag, a small gap moving along its stroke and then over the arrowhead: the pixels of step (0 to
+// PANELS_SCAN_STEPS - 1, panels_scan_steps) left out. Its ink from x, centered on cy
+static void panels_scan(int x, int cy, unsigned step, color_t ink)
 {
-	// The silhouette stays fixed while the highlight walks the three legs, then fills the arrowhead.
-	for (int dy = 0; dy < 17; dy++)
-		for (int dx = 0; dx < PANELS_SCAN_W; dx++) {
-			unsigned coverage = panels_mask_coverage(panels_scan_22, (PANELS_SCAN_W + 3) / 4, dx, dy);
-			if (!coverage)
-				continue;
-			unsigned segment;
-			if (dx >= 16 && dy >= 7)
-				segment = 12;
-			else if (dy < 4)
-				segment = (unsigned)dx / 4u;
-			else if (dy < 11)
-				segment = 4u + (unsigned)(dy - 4) / 2u;
-			else
-				segment = 8u + (unsigned)dx / 4u;
-			gfx_coverage_pixel(x + dx, cy - 8 + dy, frame == segment ? step : ink, coverage);
+	const panels_icon_t *ic = &panels_icons[UI_MENU_ICON_SCAN];
+	const uint8_t *bits = panels_icon_bits + ic->at;
+	int stride = (ic->w + 3) / 4, pairs = (ic->w + 1) / 2, y = cy - PANELS_ICON_CANVAS / 2 + ic->dy;
+	for (int dy = 0; dy < ic->h; dy++)
+		for (int dx = 0; dx < ic->w; dx++) {
+			unsigned coverage = panels_mask_coverage(bits, stride, dx, dy);
+			if (coverage && (panels_scan_steps[dy * pairs + dx / 2] >> (4 * (dx % 2)) & 15u) != step)
+				gfx_coverage_pixel(x + dx, y + dy, ink, coverage);
 		}
 }
 
 #if CONFIG_DMR_ROAMING
-
-static void panels_roaming(int x, int cy, uint32_t frame, color_t ink)
+// Roaming: a ring with a dot on it, the dot at the upper right, stepping round (step 0 to 7) while the radio searches
+// or surveys. Its ink from x, centered on cy
+static void panels_roaming(int x, int cy, unsigned step, color_t ink)
 {
-	static const uint32_t letter[] = { 0x3C, 0x3C, 0x33, 0x33, 0x3C, 0x3C, 0x33, 0x33, 0x33, 0x33 };
-	panels_mask(x, cy - 12, panels_orbit_frames[frame % 8u], PANELS_ORBIT_W, 25, ink);
-	PANELS_MARK(x + 10, cy - 5, letter, 6, ink);
+	int ox = x - 2, oy = cy - PANELS_ICON_CANVAS / 2;	// the canvas: its live area from x
+	int dx = panels_roam_dot[step % 8u][0], dy = panels_roam_dot[step % 8u][1];
+	panels_icon(PANELS_ICON_RING, ox, oy, ink);
+	panels_icon(PANELS_ICON_HALO, ox + dx, oy + dy, ui_col.strip_bg);	// the ring parted around the dot
+	panels_icon(PANELS_ICON_DOT, ox + dx, oy + dy, ink);
 }
 #endif
+
+// A slash across a mark (the privacy key without a usable key): 3 px high from its box's lower left to its upper right
+static void panels_slash(int x, int y, int w, int h, color_t c)
+{
+	for (int i = 0; i < w; i++)
+		gfx_fill(x + i, y + h - 2 - i * (h - 3) / (w - 1), 1, 3, c);
+}
 
 static bool panels_clock(const ui_state_t *s, char *out, size_t cap)
 {
@@ -457,15 +477,15 @@ static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t
 	case PANELS_SI_ACTIVITY: return t->activity ? gfx_text_width(f, t->activity) : 0;
 	case PANELS_SI_SIGNAL: return t->strength ? panels_px(18, scale) : 0;
 	case PANELS_SI_MODE: return t->mode != NULL ? gfx_text_width(t->mode_font, t->mode) : 0;
-	case PANELS_SI_LOCK: return s->locked ? panels_px(10, scale) : 0;
+	case PANELS_SI_LOCK: return s->locked ? panels_icon_w(UI_MENU_ICON_LOCK) : 0;
 	case PANELS_SI_KEY:
 		if (!t->encrypted && !t->warning)
 			return 0;
-		return t->algorithm ? gfx_text_width(f, t->algorithm) : panels_px(15, scale);
-	case PANELS_SI_SCAN: return panels_scanning(s) ? PANELS_SCAN_W : 0;
-	case PANELS_SI_MONITOR: return (v->monitor || s->hear_all) && !v->aprs_tx ? PANELS_SPEAKER_W : 0;
-	case PANELS_SI_UNREAD: return s->unread ? PANELS_MAIL_W : 0;
-	case PANELS_SI_GPS: return s->gps_fix || s->gps == UI_GPS_SEARCH ? panels_px(11, scale) : 0;
+		return t->algorithm ? gfx_text_width(f, t->algorithm) : panels_icon_w(UI_MENU_ICON_PRIVACY);
+	case PANELS_SI_SCAN: return panels_scanning(s) ? panels_icon_w(UI_MENU_ICON_SCAN) : 0;
+	case PANELS_SI_MONITOR: return (v->monitor || s->hear_all) && !v->aprs_tx ? panels_icon_w(PANELS_ICON_MONITOR) : 0;
+	case PANELS_SI_UNREAD: return s->unread ? panels_icon_w(UI_MENU_ICON_MESSAGES) : 0;
+	case PANELS_SI_GPS: return s->gps_fix || s->gps == UI_GPS_SEARCH ? panels_icon_w(UI_MENU_ICON_LOCATION) : 0;
 	case PANELS_SI_IP: return s->usb_net != UI_USB_NET_OFF ? gfx_text_width(f, "IP") : 0;
 	case PANELS_SI_POWER: return board.power_count ? font_aa_12x24.w : 0;
 	case PANELS_SI_RX_ONLY: return v->ch.rx_only || v->am || v->bcast ? 20 : 0;
@@ -534,35 +554,33 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		gfx_text(t->mode_font, x, cy - t->mode_font->h / 2, t->mode, ink);
 		break;
 	case PANELS_SI_LOCK:
-		panels_mask(x, y - 1, panels_lock_15, panels_px(10, scale), panels_px(11, scale), ink);
+		panels_strip_icon(UI_MENU_ICON_LOCK, x, cy, ink);
 		break;
 	case PANELS_SI_KEY: {
-		// The key over its algorithm's name (8x16, the strip's smallest text) where it has one
+		// The key in the ink, over its algorithm's name (8x16, the strip's smallest text) where it has one; on encrypted
+		// receive activity without a usable key, dimmed under a red slash
 		const font_t *f = &font_aa_8x16;
-		int key_w = t->algorithm ? (int)strlen(t->algorithm) * f->w : panels_px(15, scale);
-		int kx = x + (key_w - panels_px(13, scale)) / 2;
-		color_t key_color = !t->warning ? ui_col.rx : ui_col.dim;
-		panels_mask(kx, t->algorithm ? cy - 11 : y + 1, panels_key_19, panels_px(13, scale), 10, key_color);
+		const panels_icon_t *key = &panels_icons[UI_MENU_ICON_PRIVACY];
+		int key_w = t->algorithm ? gfx_text_width(f, t->algorithm) : key->w;
+		int kx = x + (key_w - key->w) / 2, ky = t->algorithm ? cy - 11 : cy - key->h / 2;
+		panels_mask(kx, ky, panels_icon_bits + key->at, key->w, key->h, t->warning ? ui_col.dim : ink);
 		if (t->algorithm)
-			gfx_text(f, x + (key_w - gfx_text_width(f, t->algorithm)) / 2, cy - 4, t->algorithm, ui_col.rx);
-		if (t->warning) {
-			static const uint32_t cross[] = { 0x1001, 0x0802, 0x040C, 0x0310, 0x00A0, 0x0040, 0x00A0, 0x0310,
-				0x040C, 0x0802, 0x1001 };
-			PANELS_STATUS_MARK(kx, y - panels_px(1, scale), cross, 13, ui_col.tx);
-		}
+			gfx_text(f, x + (key_w - gfx_text_width(f, t->algorithm)) / 2, cy - 2, t->algorithm, ink);
+		if (t->warning)
+			panels_slash(kx, ky - 3, key->w, key->h + 6, ui_col.tx);
 		break;
 	}
 	case PANELS_SI_SCAN:
-		panels_scan(x, cy, s->now_ms / 100u % 13u, ink, ui_col.dim);
+		panels_scan(x, cy, s->now_ms / 100u % PANELS_SCAN_STEPS, ink);
 		break;
 	case PANELS_SI_MONITOR:
-		panels_mask(x, cy - 8, panels_speaker_19, PANELS_SPEAKER_W, 16, ink);
+		panels_strip_icon(PANELS_ICON_MONITOR, x, cy, ink);
 		break;
 	case PANELS_SI_UNREAD:
-		panels_mask(x, cy - 7, panels_mail_23, PANELS_MAIL_W, 15, ink);
+		panels_strip_icon(UI_MENU_ICON_MESSAGES, x, cy, ink);
 		break;
 	case PANELS_SI_GPS:
-		panels_mask(x, y - 1, panels_pin_16, panels_px(11, scale), panels_px(11, scale), s->gps_fix ? ink : ui_col.dim);
+		panels_strip_icon(UI_MENU_ICON_LOCATION, x, cy, s->gps_fix ? ink : ui_col.dim);
 		break;
 	case PANELS_SI_IP:
 		gfx_text(&font_aa_8x16, x, cy - font_aa_8x16.h / 2, "IP", s->usb_net == UI_USB_NET_UP ? ink : ui_col.dim);
@@ -589,7 +607,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 #if CONFIG_DMR_ROAMING
 	case PANELS_SI_ROAM: {
 		bool moving = v->roam.state == RROAM_STATE_SEARCH || v->roam.state == RROAM_STATE_SURVEY;
-		panels_roaming(x, cy, moving ? s->now_ms / 125u : 0, ink);
+		panels_roaming(x, cy, moving ? s->now_ms / 125u : 7u, ink);
 		break;
 	}
 #endif
@@ -1357,68 +1375,6 @@ static bool panels_operational_home(const radio_view_t *v)
 	return v->ch.mode == RADIO_MODE_DMR;
 #endif
 }
-static void draw_menu_icon(uint8_t icon, int x, int y)
-{
-	if (icon == UI_MENU_ICON_SETTINGS) {
-		static const uint32_t outline[] = {
-			0x00F0, 0x00F0, 0x07FC, 0x0FFE, 0x1F1F, 0x0E0E, 0x0E0E,
-			0x0E0F, 0x1F1F, 0x0FFE, 0x07FC, 0x00F0, 0x00F0,
-		};
-		static const uint32_t fill[] = {
-			0x0000, 0x0060, 0x00F0, 0x071C, 0x0E0E, 0x0404, 0x0404,
-			0x0406, 0x0E0E, 0x071C, 0x00F0, 0x0060, 0x0000,
-		};
-		PANELS_MARK(x, y, outline, 13, PANELS_GEAR_OUTLINE);
-		PANELS_MARK(x, y, fill, 13, PANELS_GEAR_FILL);
-		return;
-	}
-	if (icon == UI_MENU_ICON_PRIVACY) {
-		panels_mask(x, y + 3, panels_key_13, 13, 7, ui_col.warn);
-		return;
-	}
-
-	static const struct { uint8_t tint; uint32_t rows[13]; } marks[UI_MENU_ICON_COUNT] = {
-		[UI_MENU_ICON_SOUND] = { 0, { 0x0000, 0x0080, 0x0188, 0x0384, 0x0FB2, 0x1F8A, 0x1F8A,
-			0x1F8A, 0x0FB2, 0x0384, 0x0188, 0x0080, 0x0000 } },
-		[UI_MENU_ICON_DISPLAY] = { 0, { 0x0FFE, 0x1803, 0x1803, 0x1803, 0x1803, 0x1803, 0x1803,
-			0x1803, 0x0FFE, 0x00E0, 0x00E0, 0x03F8, 0x0000 } },
-		[UI_MENU_ICON_TALK] = { 1, { 0x00E0, 0x01F0, 0x01F0, 0x01F0, 0x05F4, 0x05F4, 0x05F4,
-			0x060C, 0x03F8, 0x0040, 0x0040, 0x01F0, 0x0000 } },
-		[UI_MENU_ICON_LOCATION] = { 3, { 0x01F0, 0x071C, 0x060C, 0x0C46, 0x0CA6, 0x0C46, 0x060C,
-			0x060C, 0x0318, 0x01B0, 0x00E0, 0x0040, 0x0000 } },
-		[UI_MENU_ICON_CONNECTIONS] = { 0, { 0x0000, 0x0110, 0x0110, 0x0110, 0x01F0, 0x03F8, 0x03F8,
-			0x03F8, 0x01F0, 0x0060, 0x0060, 0x0060, 0x0060 } },
-		[UI_MENU_ICON_POWER] = { 1, { 0x00E0, 0x00E0, 0x07FC, 0x060C, 0x064C, 0x06CC, 0x06EC,
-			0x066C, 0x064C, 0x060C, 0x07FC, 0x0000, 0x0000 } },
-		[UI_MENU_ICON_KEYS] = { 0, { 0x07FC, 0x0C06, 0x0D56, 0x0C06, 0x0D56, 0x0C06, 0x0D56,
-			0x0C06, 0x0D56, 0x0C06, 0x07FC, 0x0000, 0x0000 } },
-		[UI_MENU_ICON_LOCK] = { 2, { 0x01F0, 0x0318, 0x0318, 0x0318, 0x07FC, 0x0C06, 0x0C46,
-			0x0CE6, 0x0C46, 0x0C46, 0x0C06, 0x07FC, 0x0000 } },
-		[UI_MENU_ICON_RADIO] = { 0, { 0x0000, 0x0300, 0x0300, 0x03F8, 0x07FC, 0x07FC, 0x060C,
-			0x060C, 0x07FC, 0x060C, 0x07FC, 0x07FC, 0x03F8 } },
-		[UI_MENU_ICON_TONES] = { 1, { 0x0000, 0x0306, 0x03FE, 0x0306, 0x0306, 0x0306, 0x0306,
-			0x0306, 0x0F1E, 0x1F3E, 0x1E3C, 0x0000, 0x0000 } },
-		[UI_MENU_ICON_ADVANCED] = { 2, { 0x0000, 0x0300, 0x1FFF, 0x1FFF, 0x0300, 0x0018, 0x1FFF,
-			0x1FFF, 0x0018, 0x00C0, 0x1FFF, 0x1FFF, 0x00C0 } },
-		[UI_MENU_ICON_CALLER] = { 1, { 0x0E00, 0x1E00, 0x1F00, 0x0F00, 0x0F00, 0x0700, 0x0780,
-			0x038C, 0x03DE, 0x01FF, 0x00FF, 0x003E, 0x000C } },
-		[UI_MENU_ICON_CONTACTS] = { 0, { 0x00E0, 0x01F0, 0x01F0, 0x01F0, 0x01F0, 0x00E0, 0x0000,
-			0x03F8, 0x07FC, 0x0FFE, 0x0FFE, 0x07FC, 0x03F8 } },
-		[UI_MENU_ICON_MESSAGES] = { 0, { 0x0000, 0x0FFE, 0x1FFF, 0x1803, 0x1C07, 0x1A0B, 0x1913,
-			0x18E3, 0x1803, 0x1803, 0x1FFF, 0x0FFE, 0x0000 } },
-		[UI_MENU_ICON_RECENT] = { 1, { 0x01F0, 0x060C, 0x0C06, 0x0842, 0x1843, 0x1843, 0x1873,
-			0x1803, 0x1803, 0x0802, 0x0C06, 0x060C, 0x01F0 } },
-		[UI_MENU_ICON_ZONES] = { 0, { 0x0000, 0x0000, 0x0000, 0x0FC0, 0x0FC0, 0x0FFE, 0x0FFF,
-			0x0C03, 0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF, 0x0000 } },
-		[UI_MENU_ICON_CHANNELS] = { 1, { 0x0000, 0x0000, 0x0DFE, 0x01FE, 0x0000, 0x0000, 0x0DFE,
-			0x01FE, 0x0000, 0x0000, 0x0DFE, 0x01FE, 0x0000 } },
-		[UI_MENU_ICON_TOOLS] = { 2, { 0x0001, 0x0007, 0x000F, 0x001E, 0x0038, 0x01F0, 0x03E0,
-			0x0770, 0x0EF0, 0x1DE0, 0x1BC0, 0x0F80, 0x0700 } },
-	};
-	const color_t colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx };
-	PANELS_MARK(x, y, marks[icon].rows, 13, colors[marks[icon].tint]);
-}
-
 static void panels_row(int x, int y, int w, int h, color_t ink)
 {
 	// Three stepped bands round off the corners cleanly at native resolution.
@@ -1504,16 +1460,12 @@ static bool panels_animate(const radio_view_t *v, const ui_state_t *s, uint32_t 
 	return false;
 }
 
-// The palette entries the rows and icons need, taken before anything else is drawn
-static void panels_list_colors(bool icons)
+// The palette entries the rows need, taken before anything else is drawn (the icons are in the ink and the accent)
+static void panels_list_colors(void)
 {
 	const color_t row_colors[] = { panels_row_bg, panels_row_focus, panels_accent, ui_col.fg, ui_col.hint_bg,
 		panels_bar_fg };
-	const color_t icon_colors[] = { ui_col.priv, ui_col.rx, ui_col.warn, ui_col.tx,
-		PANELS_GEAR_FILL, PANELS_GEAR_OUTLINE };
 	gfx_reserve_colors(row_colors, sizeof row_colors / sizeof row_colors[0]);
-	if (icons)
-		gfx_reserve_colors(icon_colors, sizeof icon_colors / sizeof icon_colors[0]);
 }
 
 static bool panels_titled(const ui_list_t *l)
@@ -1561,7 +1513,7 @@ static int panels_list_page(const ui_list_t *l, int y)
 static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l, bool draw)
 {
 	if (draw) {
-		panels_list_colors(l->kind != UI_LIST_PLAIN);
+		panels_list_colors();
 		// The strip straight from here, not through the top op: its title's frame would join the deepest path of
 		// the UI task (make stack-check)
 		panels_draw_status(v, v->state, s, ui_col.bg, false);
@@ -1596,17 +1548,21 @@ static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_
 		g->col_w[i] = (int16_t)(i < cols - 1 ? col_w : i == cols - 1 ? inner_w - (cols - 1) * (col_w + g->col_gap) : 0);
 }
 
-// A grid tile's text, two lines of the 8x16 font. The main menu's: its icon, its digit and its value (shortened to
-// the room) on the first line, its label on the second. Settings': its icon, its digit and its label, the label going
-// on to the second line at a word where it is too long for one. A label two lines can't hold is shortened
+// A grid tile: its icon (in the ink, the accent on focus) and two lines of the 8x16 font. The main menu's: its icon
+// with its digit and its value (shortened to the room) beside it, its label under them. Settings': its icon left of
+// its digit and its label, the label going on to the second line at a word where it is too long for one. A label two
+// lines can't hold is shortened
 static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_item_t *it, color_t fg, color_t vfg,
 	color_t num_ink)
 {
 	const font_t *f = &font_aa_8x16;
 	char line[40], fit[40];
-	bool hub = l->kind == UI_LIST_HUB;
+	bool hub = l->kind == UI_LIST_HUB, icon = it->icon != UI_MENU_ICON_NONE;
+	color_t icon_ink = c->focus ? panels_accent : ui_col.fg;
 	int x = c->x + (hub ? 7 : PANELS_TEXT_X), right = c->x + c->w - 3;
-	int label_x = x, text_x = x + (it->icon != UI_MENU_ICON_NONE ? 17 : 0) + (it->num ? 2 * f->w : 0);
+	if (!hub && icon)
+		x = c->x + 30;	// right of the icon's canvas, centered in the tile at its left
+	int label_x = x, text_x = x + (it->num ? 2 * f->w : 0);
 	const char *rest = "";
 	if (!hub) {
 		// Broken at a space; a first word too long for the room beside the icon and the digit goes whole to the
@@ -1619,11 +1575,16 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 			rest = it->label;
 		}
 	}
-	// Two lines, or one centered in the tile (a label that fits beside the icon and the digit)
+	// Two lines, or one centered in the tile (a label that fits beside the icon and the digit). The main menu's: the
+	// icon's 20 px of ink with the digit centered beside it, the label under it
 	int y1 = !hub && !*rest ? c->y + (c->h - f->h) / 2 + 1 : c->y + c->h / 2 - f->h, y2 = y1 + f->h;
-	if (it->icon != UI_MENU_ICON_NONE) {
-		draw_menu_icon(it->icon, x, y1 + (f->h - 13) / 2);
-		x += 17;
+	if (hub && icon) {
+		panels_icon(it->icon, c->x + 3, c->y + c->h / 2 - 19, icon_ink);
+		x = c->x + 28;
+		y1 = c->y + c->h / 2 - 14;
+		y2 = c->y + c->h / 2 + 3;
+	} else if (icon) {
+		panels_icon(it->icon, c->x + 4, c->y + (c->h - PANELS_ICON_CANVAS) / 2, icon_ink);
 	}
 	if (it->num) {
 		char n[3] = { it->num, ' ', 0 };
@@ -1672,9 +1633,10 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 	color_t vfg = (flags & UI_ITEM_DIM) ? disabled : ui_col.dim;
 	if (flags & UI_ITEM_TEMP)
 		vfg = ui_col.warn;
+	// The 3x3 main menu's tiles 2 px apart (39 px high on 310 x 240), room for an icon over a line of text
+	int gap = l->kind == UI_LIST_HUB ? 1 : PANELS_ROW_GAP;
 	if (!(flags & UI_ITEM_INFO) || focus)
-		panels_cell_panel(c->x, c->y + PANELS_ROW_GAP, c->w, c->h - 2 * PANELS_ROW_GAP, focus,
-			(flags & UI_ITEM_EDIT) != 0);
+		panels_cell_panel(c->x, c->y + gap, c->w, c->h - 2 * gap, focus, (flags & UI_ITEM_EDIT) != 0);
 	if (focus) {
 		fg = ui_col.focus_fg;
 		vfg = fg;
@@ -1685,8 +1647,8 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 	}
 	int x = c->x + PANELS_TEXT_X;
 	if (l->kind != UI_LIST_PLAIN && it->icon != UI_MENU_ICON_NONE) {
-		draw_menu_icon(it->icon, x, c->y + (c->h - 13) / 2);
-		x += 17;
+		panels_icon(it->icon, x - 2, c->y + (c->h - PANELS_ICON_CANVAS) / 2, focus ? panels_accent : ui_col.fg);
+		x += 24;
 	}
 	int right = c->x + c->w - 5;
 	const font_t *f = g->font;
@@ -1779,7 +1741,7 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 	char label[24], word[24], value[16], fit[24];
 	const char *split;
 	gfx_clear(ui_col.bg);
-	panels_list_colors(false);
+	panels_list_colors();
 	panels_draw_status(v, v->state, s, ui_col.bg, false);
 	int top = panels_title(TR(QUICK_TITLE, "Quick"), v->vfo ? "VFO" : v->ch.name, 0, true);
 	int bottom = panels_hint_top() - 2;	// Quick always has its bottom row, as the reference theme's

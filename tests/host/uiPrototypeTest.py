@@ -42,6 +42,43 @@ def row_starts(frame, x):
     return [y for y in range(ROWS_Y + 1, HINT_Y) if column[y - 1] == paper and column[y] != paper]
 
 
+def rgb565(c):
+    """A color as the display shows it (the simulator writes RGB565 expanded to 8 bits a channel)."""
+    return (c[0] >> 3) * 255 // 31, (c[1] >> 2) * 255 // 63, (c[2] >> 3) * 255 // 31
+
+
+# The panels theme's ink and focus accent (core/ui/themes/panels/panels.c), Day and Night
+PANELS_INK = {"": (rgb565((23, 40, 53)), rgb565((36, 79, 136)), rgb565((53, 78, 101)), rgb565((189, 41, 41))),
+              "night": (rgb565((237, 242, 247)), rgb565((152, 191, 231)), rgb565((180, 194, 209)),
+                        rgb565((255, 119, 119)))}
+
+
+def near_segment(p, a, b, tol=50):
+    """p within tol of the colors between a and b: one of them, or an anti-aliased blend of the two (on a 16-color
+    display an edge takes the nearest color in use, so the blends are loose)."""
+    d = [b[i] - a[i] for i in range(3)]
+    n = sum(v * v for v in d) or 1
+    t = max(0.0, min(1.0, sum((p[i] - a[i]) * d[i] for i in range(3)) / n))
+    return sum((p[i] - a[i] - t * d[i]) ** 2 for i in range(3)) <= tol * tol
+
+
+def pixel(frame, x, y):
+    return tuple(frame[y][x * 3:x * 3 + 3])
+
+
+def panel_runs(frame, x):
+    """The rows of each tile panel crossing column x, between the title and the hint row: (top, bottom) inclusive."""
+    paper, runs, top = pixel(frame, 0, ROWS_Y), [], None
+    for y in range(ROWS_Y, HINT_Y):
+        inside = pixel(frame, x, y) != paper
+        if inside and top is None:
+            top = y
+        if not inside and top is not None:
+            runs.append((top, y - 1))
+            top = None
+    return runs
+
+
 class PrototypeTest(unittest.TestCase):
     def test_right_soft_key_opens_quick_only_on_home(self):
         self.run_script("back expect:screen=home ok 8 8 up up "
@@ -134,9 +171,9 @@ class PrototypeTest(unittest.TestCase):
                   if monitor[y][x * 3:x * 3 + 3] == DAY_INK and idle[y][x * 3:x * 3 + 3] != DAY_INK}
         left = min(x for x, _ in pixels)
         # A solid cone with a stem on the left and a separate wave on the right.
-        self.assertGreaterEqual(sum(x == left + 10 for x, _ in pixels), 10)
-        self.assertFalse(any(x == left + 12 for x, _ in pixels))
-        self.assertTrue(any(x >= left + 14 for x, _ in pixels))
+        self.assertGreaterEqual(sum(x == left + 8 for x, _ in pixels), 10)
+        self.assertFalse(any(x == left + 10 for x, _ in pixels))
+        self.assertTrue(any(x >= left + 12 for x, _ in pixels))
 
         # Look for an intermediate edge color around the speaker's native pixels.
         edges = [monitor[y][x * 3:x * 3 + 3] for y in range(STRIP_H)
@@ -221,8 +258,9 @@ class PrototypeTest(unittest.TestCase):
                 # The operating marks: the strip's right half, left of the GPS pin
                 pixels = [frame[y][x * 3:x * 3 + 3]
                           for y in range(STRIP_H - 1) for x in range(150, 245)]
+                # A red slash, and a key in the strip's ink (dimmed under the slash)
                 return (any(r > 140 and g < 100 and b < 100 for r, g, b in pixels),
-                        any(g > r + 20 and g > b + 10 for r, g, b in pixels))
+                        any(max(r, g, b) < 70 for r, g, b in pixels))
 
             with self.subTest(profile=profile or "commercial"):
                 for script in ("", plain, encrypted + " rxend"):
@@ -236,9 +274,8 @@ class PrototypeTest(unittest.TestCase):
         key_columns = []
         for x in range(150, 245):
             count = 0
-            for y in range(0, 13):  # the key; its ARC4 label is below it
-                red, green, blue = frame[y][x * 3:x * 3 + 3]
-                count += green > red + 20 and green > blue + 10
+            for y in range(0, 13):  # the key, in the strip's ink; its ARC4 label is below it
+                count += max(frame[y][x * 3:x * 3 + 3]) < 70
             if count:
                 key_columns.append((x, count))
         middle = (key_columns[0][0] + key_columns[-1][0]) / 2
@@ -255,38 +292,33 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("ok 8 1 expect:count=13 expect:focus=Theme up expect:focus=Low_battery_warning "
                         "up expect:focus=Auto_power_off up expect:focus=Battery_saver "
                         "up expect:focus=Language up expect:focus=Talkgroup_name_first expect:layout=0")
-    def test_colored_icons_are_on_settings_categories_only(self):
+    def test_settings_grid_icons_digits_and_pages(self):
         first = self.render_frame("ok 8 expect:layout=0")
-        second = self.render_frame("ok 8 up expect:layout=0")
         display = self.render_frame("ok 8 1 expect:layout=0")
 
-        def saturated(frame, top, bottom, left):
-            return any(max(rgb) - min(rgb) > 70 for y in range(top, bottom)
-                       for x in range(left, left + 14) for rgb in [frame[y][x * 3:x * 3 + 3]])
+        def inked(frame, top, bottom, left, width=24):
+            return any(max(frame[y][x * 3:x * 3 + 3]) < 70 for y in range(top, bottom) for x in range(left, left + width))
 
-        # Two equal columns of tiles, three a column, the icon after the accent bar's room
-        left_icon, right_icon = 7 + 10, 7 + 144 + 8 + 10
-        for k in range(3):
+        # Two equal columns of tiles, three a column, the icon at the tile's left (its 24 px canvas from 4 px in)
+        left_icon, right_icon = 7 + 4, 7 + 144 + 8 + 4
+        for k in range(1, 3):
             y = ROWS_Y + TILE_H * k
-            self.assertTrue(saturated(first, y, y + TILE_H, left_icon))
-            self.assertTrue(saturated(first, y, y + TILE_H, right_icon))
-        for k in range(2):
-            y = ROWS_Y + TILE_H * k
-            self.assertTrue(saturated(second, y, y + TILE_H, left_icon))
-        # Shortcut 3 (Audio, one line) belongs in its tile's vertical center
+            self.assertTrue(inked(first, y, y + TILE_H, left_icon))
+            self.assertTrue(inked(first, y, y + TILE_H, right_icon))
+        # Shortcut 3 (Audio, one line) belongs in its tile's vertical center, its digit right of the icon
         row3 = ROWS_Y + 2 * TILE_H
-        digit_rows = [y for y in range(row3, row3 + TILE_H) for x in range(34, 42)
+        digit_rows = [y for y in range(row3, row3 + TILE_H) for x in range(37, 45)
                       if max(first[y][x * 3:x * 3 + 3]) < 150]
         self.assertLess(abs(sum(digit_rows) / len(digit_rows) - (row3 + TILE_H / 2)), 4)
         # The privacy key (6, the second column's third tile) has its bow on the left
         key_sides = [set(), set()]
         for y in range(row3, row3 + TILE_H):
-            for x in range(right_icon, right_icon + 13):
-                red, green, blue = first[y][x * 3:x * 3 + 3]
-                if red > blue + 40 and green > blue + 30:
-                    key_sides[x >= right_icon + 6].add(y)
+            for x in range(right_icon, right_icon + 24):
+                if max(first[y][x * 3:x * 3 + 3]) < 70:
+                    key_sides[x >= right_icon + 10].add(y)
         self.assertGreater(len(key_sides[0]), len(key_sides[1]))
-        self.assertFalse(saturated(display, ROWS_Y, HINT_Y, 12))
+        # Display's rows have no icons
+        self.assertFalse(inked(display, ROWS_Y, HINT_Y, 12, 6))
         # Two pages of six: groups 1-9 and Radio info (no digit), in shortcut order down the left column, then the
         # right; the position n/N in the title, the digits and Find in the hint row, OK and Back on the bar
         self.run_script("ok 8 expect:shows=1/10 expect:shows=OK expect:shows=Back expect:shows=1-9_open "
@@ -354,8 +386,9 @@ class PrototypeTest(unittest.TestCase):
         # Settings is the third row's second tile
         gy, gx = ROWS_Y + 2 * TILE_H, 5 + 98 + 3 + 7
         gear = {row[x * 3:x * 3 + 3] for row in settings[gy:gy + TILE_H] for x in range(gx, gx + 13)}
-        self.assertIn(bytes(3), gear)
-        self.assertTrue(any(100 < min(rgb) < 180 and max(rgb) - min(rgb) <= 4 for rgb in gear))
+        # in the accent (the focused tile), no black outline: it is the theme's ink on any other tile, Day and Night
+        self.assertIn(bytes(rgb565((36, 79, 136))), gear)
+        self.assertNotIn(bytes(3), gear)
     def test_inbox_hints_follow_the_focused_action(self):
         # Two labels, one per soft key: OK and Back. The # reply hint (not a soft key) is in the hint row, which follows
         # the focused row; what OK does in a list (open, compose) is its usual job and isn't repeated there
@@ -452,6 +485,65 @@ class PrototypeTest(unittest.TestCase):
                         want = surround if y < 2 else pane
                         stray = [x for x in range(10, len(frame[y]) // 3 - 10) if frame[y][x * 3:x * 3 + 3] != want]
                         self.assertEqual(stray, [], f"{profile + crowd + screen!r}: row {y}")
+    def test_strip_marks_stay_inside_the_pane_while_they_move(self):
+        # The marks that move stay in the pane at every step: the scan zigzag's gap (13 steps of 100 ms) and the
+        # roaming dot (8 of 125 ms). Before step 5 two roaming frames reached rows 3 and 27
+        for profile in ("", NIGHT):
+            for start, steps, ms in (("scankey wait:2000 ", 13, 100), ("roam:searching wait:2000 ", 8, 125)):
+                for k in range(steps):
+                    script = profile + start + f"wait:{k * ms}"
+                    frame = self.render_frame(script)
+                    surround, pane = frame[0][:3], frame[15][6 * 3:7 * 3]
+                    for y in (0, 1, 2, 3, STRIP_H - 2, STRIP_H - 1):
+                        want = surround if y < 2 else pane
+                        stray = [x for x in range(10, len(frame[y]) // 3 - 10) if frame[y][x * 3:x * 3 + 3] != want]
+                        self.assertEqual(stray, [], f"{script!r}: row {y}")
+
+    def test_tile_icons_stay_inside_their_tiles_in_the_theme_ink(self):
+        # The Menu (3x3, tiles 39 px high and 2 px apart) and both Settings pages, Day and Night: each tile's first and
+        # last rows are clear across its icon, and its icon (with the digit and the label beside and under it) is in
+        # the theme's ink, the focused tile's in the accent: no tints, no fixed colors (the gear's black outline)
+        menu, settings = ((5, 102), (106, 203), (207, 304)), ((7, 150), (159, 302))
+        for profile, key in (("", ""), (NIGHT, "night")):
+            fg, accent = PANELS_INK[key][:2]
+            for screen, spans, right in (("ok", menu, 28), ("ok 8", settings, 30),
+                                         ("ok 8 down down down down down down", settings, 30)):
+                frame = self.render_frame(profile + screen)
+                if screen == "ok":
+                    self.assertEqual(panel_runs(frame, 10), [(60, 98), (101, 139), (142, 180)])
+                for x0, x1 in spans:
+                    for top, bottom in panel_runs(frame, x0 + 5):
+                        panel = pixel(frame, x1 - 4, top + 2)
+                        focus = pixel(frame, x0 + 1, (top + bottom) // 2) == accent
+                        where = f"{profile + screen!r}: tile at {x0},{top}"
+                        for y in (top, bottom):
+                            stray = [x for x in range(x0 + 5, x0 + right) if pixel(frame, x, y) != panel]
+                            self.assertEqual(stray, [], f"{where}: row {y}")
+                        for y in range(top + 1, bottom):
+                            for x in range(x0 + 4, x0 + right):
+                                p = pixel(frame, x, y)
+                                self.assertTrue(near_segment(p, panel, fg) or (focus and near_segment(p, panel, accent)),
+                                                f"{where}: {p} at {x},{y}")
+
+    def test_strip_privacy_key_in_the_theme_ink(self):
+        # The privacy key and its AES label in the strip's ink, Day and Night (it was green); without a usable key on an
+        # encrypted call, the key in the dim ink with a red slash
+        for profile, key in (("", ""), (NIGHT, "night")):
+            fg, _, dim, tx = PANELS_INK[key]
+            for script, warning in (("prototype:crypt_aes", False), ("prototype:crypt_aes ok 1", False),
+                                    ("rx:9991234,91,e", True)):
+                frame = self.render_frame(profile + script)
+                pane, red = frame[15][6 * 3:7 * 3], 0
+                for y in range(4, STRIP_H - 2):
+                    for x in range(10, len(frame[y]) // 3 - 10):
+                        p = pixel(frame, x, y)
+                        ok = near_segment(p, pane, fg) or (warning and (near_segment(p, pane, dim) or
+                                                                       near_segment(p, pane, tx, 30)))
+                        self.assertTrue(ok, f"{profile + script!r}: {p} at {x},{y}")
+                        red += warning and near_segment(p, tx, tx, 30)
+                if warning:
+                    self.assertGreaterEqual(red, 10, f"{profile + script!r}: no red slash")
+
     def test_menu_status_uses_larger_mode_and_device_marks(self):
         for screen in ("ok", "ok 8", "ok 8 1 ok"):
             frame = self.render_frame("gps:fix " + screen + " expect:layout=0")
@@ -738,9 +830,9 @@ class PrototypeTest(unittest.TestCase):
 
     def test_home_clock_moves_to_the_mode_bar_in_a_crowd(self):
         # Where Home's strip has no room for the clock, it is at the mode bar's right end (as in step 2); with room,
-        # in the strip. A list can drop it in the worst crowd
-        # Receiving (signal bars), the monitor, ARC4 privacy, an unread message, a scan and the lock: the states that
-        # come before the clock leave Home's strip too little room for it
+        # in the strip. A list can drop it in the worst crowd. With step 5's marks Home's strip holds the clock beside
+        # every state ranked before it (receiving with signal bars, the monitor, ARC4 privacy, an unread message, a scan
+        # and the lock), so the mode bar keeps no clock there; a list's strip, which has the mode word too, drops it
         crowd = ("gps:fix mon prototype:crypt_arc4 msg:9991234,Hello wait:9000 scankey wait:3000 lockkey wait:3000 "
                  "rx:9991234,3100,g ")
         setup = GPS_CLOCK + "long:back "
@@ -752,7 +844,7 @@ class PrototypeTest(unittest.TestCase):
                     plain = self.render_frame(profile + script)
                     return any(frame[y][160 * 3:300 * 3] != plain[y][160 * 3:300 * 3] for y in range(STRIP_H + 2, 54))
                 self.assertFalse(clock_in_mode_bar("gps:fix "), "the clock in the strip")
-                self.assertTrue(clock_in_mode_bar(crowd), "the clock in the mode bar")
+                self.assertFalse(clock_in_mode_bar(crowd), "the clock in the crowded strip")
         self.run_script(setup + crowd.replace("lockkey wait:3000 ", "") + "ok 1 expect:screen=contacts "
                         "expect:hides=14:08 expect:layout=0")
 

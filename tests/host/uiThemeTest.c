@@ -923,7 +923,7 @@ static void menu_item(uint16_t i, ui_item_t *it)
 {
 	snprintf(it->label, sizeof it->label, "Entry %u", (unsigned)i);
 	it->num = (char)('0' + (i + 1) % 10);
-	it->icon = (uint8_t)(UI_MENU_ICON_SOUND + i % (UI_MENU_ICON_COUNT - UI_MENU_ICON_SOUND));
+	it->icon = (uint8_t)(UI_MENU_ICON_AUDIO + i % (UI_MENU_ICON_COUNT - UI_MENU_ICON_AUDIO));
 }
 
 // The scroll position is drawn before the cells (the scroll op's first call), so on a 16-color display its color and its
