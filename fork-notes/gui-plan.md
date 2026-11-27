@@ -376,6 +376,10 @@ resources spent on diminishing returns):
      (rows stay 26 px), since their 9x18 labels were cut in the middle; a label still cut goes to the user. Home's
      bar shows only "Menu" on the DM-32 (its Back key isn't a Home soft key; "* Quick" stays in the hint row). The
      focused Menu tile's label starts clear of the accent bar.
+   - Decided Nov 27 (user), the last DM-32 cuts: "Display profile" has the short form "Profile" (a `{Display
+     profile|Profile}` alternate; the GD-88 and titles keep the long one). A dual watch pane's line that 12x24 cuts
+     falls back to 8x16 (a name still too long keeps the shared middle cut). Quick tile 5 shows only the typed digits
+     of a TX frequency ("146.1"); the hint row keeps "TX 146.1____".
    - Decided Nov 27 (user), 160 x 128:
      - Strip 18 px with its marks at 0.8x and words in 8x16; margins 6 px; rows and the soft key bar 18 px; every
        list, title, bar and hint in 8x16. The hint row drops its last groups when it runs out of room.
