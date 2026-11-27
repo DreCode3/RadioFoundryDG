@@ -92,7 +92,8 @@ output outside the repository. `snapshot.py` uses one render thread per core.
 
 - [gui-plan.md](gui-plan.md): the approved design, the process, testing sizes, order of work.
 - [reports/](reports/): the theme inventory, step 1 reports and the QA reviews.
-- Steps 1, 2 and 3 are QA-approved (step 3, the menu tree and naming, at `e94841a2`). On Nov 26 the menu
+- Steps 1 to 4 are QA-approved (step 3, the menu tree and naming, at `e94841a2`; step 4, the panels layout, at
+  `7ab0bf3f`). On Nov 26 the menu
   tree and naming moved ahead of the panels layout; gui-plan.md's order of work has what each step starts with.
 - Step 3 (menu tree) changed the menus on purpose, and `snapshot.py`'s Amateur and Night prefixes follow its paths
   (Settings is Menu 8, Display profile and Day/Night are Display's first rows): a baseline from before it

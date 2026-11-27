@@ -139,9 +139,11 @@ Decided Nov 26, after step 4's second attempt:
 - **Quick tile 8 reads "TG/Contact"** in panels (no spaces around the slash; "TG / Contact" is 96 px and a tile
   holds about 88 px at 8x16). **VFO Quick tile 5 keeps "TX freq"**; the hint row says "0-9 TX frequency".
 - Forced by the 8x16 rule, accepted: the clock in Home's mode bar is one 8x16 line (step 2: two 6x12 lines).
-- The hint row's "only what the bar can't" hides only a list's plain open and choose. A list where OK does
-  something else ("OK send", "OK add", "OK go", "OK use", "OK edit/save", "Back keep editing") keeps that hint,
-  marked by a flag on the list, never by comparing text.
+- The hint row's "only what the bar can't" applies a key at a time: it hides OK's plain open or choose and Back's
+  usual job (a plain "Back cancel" on a confirmation included). An OK or Back that does more ("OK send", "OK add",
+  "OK in/out", "OK go", "OK use", "OK edit/save", "Back keep editing") keeps its hint, marked by separate OK and Back
+  flags on the screen, never by comparing text. So the discard prompt shows "Back keep editing" and not "OK choose",
+  and Programming > Channels shows "# go" and not "OK details".
 - Text entry, emergency and the hotspot screen keep their hint line with Hint row off (they need their instructions).
 - Italian Settings title "Opzioni" (fits the Menu tile) is kept until an Italian speaker reviews it.
 - French hints longer than a 160 px row (160 x 128, 160 x 120) go to the port step: their English keys have no short
@@ -257,8 +259,18 @@ Only defects and real latent risks block approval. Test gaps and nits are logged
    - For the port step's translation pass: the older clipped Spanish and Italian hints, now in the panels hint row
      (es "Mant OK guardar", "Atrás fin resp"; it "Tutte impost.", "Tieni OK", "fine risp.", "ferma scan."), and the
      French hints longer than a 160 px row (above).
+   - **QA-approved at `7ab0bf3f`**, after the review and four re-reviews in `reports/` (theme-step4-review.md,
+     theme-step4-rereview.md to -rereview4.md). Cost against `e0c529a5`: GD-88 +2448 B flash, RAM unchanged; UI stack
+     unchanged (GD-88 1664 deepest / 204 free, DM-1701 1640 / 88). Not run: `tools/ci.sh`, `reuse lint`, HIL, on air.
+   - Logged for later, not blocking:
+     - Port step: `CONFIG_UI_THEME_PANELS=n` costs +316 B flash on the GD-88 (shared code and catalogs), against "a
+       switch off costs nothing"; French and Italian cuts on 160 px displays (the reference toast's "…n enregistré");
+       the MD-9600 Hardware hint (`HW_HINT`) and the In zones title (`ZONE_TITLE_IN_ZONES`) are untranslated `TRX`.
+     - A text fix of its own (it changes 70 reference gallery screens): English "hold OK save" becomes "Hold OK save".
+     - Shared wrap: `ui_wrap_line` can start a line with French ":" or "?" (it breaks at the space before them).
+     - Native speakers to review: French (the hint rewrites, "Tenir OK"), Italian "Opzioni".
 5. Icons and palettes. Also: the VOX and dual watch A/B marks, large on step 2's Home and about 10 px bitmaps since
-   step 4; the Settings gear's dark outline at night.
+   step 4; the Settings gear's dark outline at night; Chinese hint row and bar labels touching the bar's edge.
 6. Freeze on the GD-88, then port to other display classes.
 
 ## Planned, not now
