@@ -23,7 +23,7 @@ ROWS_Y = 59
 ROW_H = 26
 TILE_H = 41
 HINT_Y = 186
-BAR_Y = 202
+BAR_Y = 204
 # The panels theme's Day ink, its palette's fg RGB(23, 40, 53), as the display shows it (RGB565)
 DAY_INK = bytes((16, 40, 49))
 

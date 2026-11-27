@@ -21,7 +21,8 @@
 #define PANELS_BATTERY_SCALE 5	// the battery's: its 18 units high fit 22 px, inside the strip's pane
 #define PANELS_HOME_GAP 3
 #define PANELS_HOME_INSET 4
-#define PANELS_FOOTER_H 34
+#define PANELS_FOOTER_H 32	// the soft key bar
+#define PANELS_BAR_GAP 2	// between the hint row and the bar
 #define PANELS_TITLE_PAD 3	// above and below a title, in its row of the medium font's height
 #define PANELS_ROW_GAP 2	// between a row's panel and the next one's
 #define PANELS_ACCENT_W 4	// the focus's accent bar
@@ -804,7 +805,20 @@ static unsigned panels_hint_parts(const char *form, unsigned flags, char *row, s
 
 static int panels_hint_top(void)
 {
-	return panels_footer_top() - font_aa_8x16.h;
+	return panels_footer_top() - PANELS_BAR_GAP - font_aa_8x16.h;
+}
+
+// Text with Chinese in it: the CJK face's glyphs fill their 16 px cell, the 8x16 font's height
+static bool panels_wide(const char *s)
+{
+#if CONFIG_LANG_ZH
+	for (int seq = 1; s != NULL && *s; s += seq)
+		if (gfx_utf8_next(s, &seq) > 0xFFu)
+			return true;
+#else
+	(void)s;
+#endif
+	return false;
 }
 
 // The hint has a group for the hint row (for Home, which ends its pane above the row then)
@@ -816,15 +830,17 @@ static bool panels_hint_has_row(const char *text, unsigned flags)
 	return (panels_hint_parts(ui_key_names(form, names, sizeof names, true), flags, NULL, 0) & 4u) != 0;
 }
 
-// The bar's text in the largest font that fits both labels, left at the left soft key, right at the right one
+// The bar's text in the largest font that fits both labels, left at the left soft key, right at the right one. Where
+// either is Chinese, both at the Chinese text's height (the 8x16 font), centered on the bar
 static void panels_bar_labels(const char *left, const char *right, int top, color_t fg)
 {
 	const ui_layout_t *L = &ui_layout;
 	const int inset = PANELS_HOME_INSET, h = PANELS_FOOTER_H, margin = 15 - inset;
 	int w = gfx_width() - 2 * inset;
 	const font_t *fonts[] = { FONT_AA_LARGEST, &font_aa_12x24, L->small };
-	const font_t *f = L->small;
-	for (unsigned i = 0; i < sizeof fonts / sizeof fonts[0]; i++) {
+	bool wide = panels_wide(left) || panels_wide(right);
+	const font_t *f = wide ? &font_aa_8x16 : L->small;
+	for (unsigned i = 0; !wide && i < sizeof fonts / sizeof fonts[0]; i++) {
 		int lw = left != NULL ? gfx_text_width(fonts[i], left) : 0, rw = right != NULL ? gfx_text_width(fonts[i], right) : 0;
 		if (lw + rw + fonts[i]->w <= w - 2 * margin) {
 			f = fonts[i];
@@ -934,21 +950,22 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 }
 
 // The bar with one sentence in place of the two labels (Home while the keys are locked: what unlocks them), in the
-// largest font one of its forms fits, whether Hint row is on or off
+// largest font one of its forms fits (Chinese: the 8x16 font, its height), whether Hint row is on or off
 static void panels_bar_sentence(const char *text)
 {
 	const ui_layout_t *L = &ui_layout;
 	const int inset = PANELS_HOME_INSET, margin = 4;	// a sentence spans the bar: "Locked: hold * to unlock" in 12x24
 	int top = panels_footer_top(), room = gfx_width() - 2 * inset - 2 * margin;
 	char form[64], names[64];
-	const font_t *fonts[] = { FONT_AA_LARGEST, &font_aa_12x24, L->small };
+	bool wide = panels_wide(text);
+	const font_t *fonts[] = { wide ? &font_aa_8x16 : FONT_AA_LARGEST, &font_aa_12x24, L->small };
 	const char *line = NULL;
-	const font_t *f = L->small;
+	const font_t *f = wide ? fonts[0] : L->small;
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
 #endif
 	panels_pane(top, PANELS_FOOTER_H, ui_col.hint_bg);
-	for (unsigned i = 0; i < sizeof fonts / sizeof fonts[0] && line == NULL; i++) {
+	for (unsigned i = 0; i < (wide ? 1u : sizeof fonts / sizeof fonts[0]) && line == NULL; i++) {
 		bool more = true;
 		for (int level = 0; more; level++) {
 			gfx_text_alt(text, level, form, sizeof form, &more);
