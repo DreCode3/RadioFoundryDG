@@ -325,6 +325,21 @@ resources spent on diminishing returns):
      - Logged by the design pass for the build: two roaming animation frames reach the strip pane's outer rows.
 5b. Cleanup before the freeze (the user, Nov 26): fix the low-priority issues logged in steps 4 and 5 and fill their
    test gaps, one round and one check. The key under the red slash drawn dim is accepted as built.
+   - Done at `5e8fa5f1` (`db0ae971..5e8fa5f1`), checked once. All eleven items and the test gaps are done: panels-only
+     list code guarded, the shared wrap never starts a line with ": ; ? !", HW_HINT and the In zones title
+     translated, "Hold OK save" (70 gallery PNGs), French, Italian and Spanish short forms and whole words, the
+     unlock sentence centered in every language, the bell and scan-speck fixes, the pppTest warning, the zh manual's
+     menus, and seven new tests. The panels cell's one-column icon branch was dead and is removed (-84 B).
+   - panels=n on the GD-88 is +736 B against `e0c529a5` (same path length). None of it is panels-only code: the
+     shared GPS empty-state fix (194 B), translation text (508 B: English short forms, Spanish fixes), the wrap fix
+     (26 B). The rule "a switch off costs nothing" holds for the panels code itself.
+   - Visible on another display class: 240 x 320 Find now shows "OK open  # more" (was "PTT talk  OK open").
+   - Left for the port step: French hints the English also cuts on 160 px (HINT_TYPE_OK_EDIT_SAVE_BACK,
+     LOCK_HINT_HOLD_BACK, QUICK_HINT_ALL_SETTINGS, the satellite hints).
+   - For native speakers: the French, Spanish, Italian and Chinese wording listed in the round's report, and the
+     whole zh manual update. It rewrote some passages; 8 pages have a different heading count from the English
+     (04, 06, 07, 10, 13, 15, 19, 23); zh.po's `SET_LABEL_PRIVACY_KEY` and `_KEY_TYPE` may read as a button. Also to
+     check: whether `docs/user/18-satellite.md` names the site's Tools menu correctly.
 6. Freeze on the GD-88, then port to other display classes.
 
 ## Planned, not now
