@@ -355,6 +355,36 @@ resources spent on diminishing returns):
 7. Port to other display classes. The GD-88's frames stay as frozen: compare against a baseline rendered from
    `226ad2d4`. It starts with the CI blockers (the two maximal overflows, the gallery, panels=n's shared bytes) and
    step 5b's leftovers: the French 160 px hints, the native-speaker list, the zh manual's heading counts.
+   - Design pass (Nov 27): sheets, facts and options in `../rf-port-out/` (`proposal.md`, `sheets/`). The panels
+     theme costs about 17 KB of flash in all (GD-88, on against off: +17,432 B; code 10.4 KB, icons 2.2 KB), about
+     23.6 KB with `FONT_AA` on an Arm radio that leaves it off.
+   - Decided Nov 27 (user), which radios:
+     - **DM-32 (240 x 320, 220 x 310 drawable):** panels, and the default theme. Lists show 7 rows.
+     - **MD-380 and DB25-D (160 x 128):** panels selectable in Settings > Display; the reference theme stays the
+       default. `FONT_AA` on for the GD-88's glyphs (+6-7 KB).
+     - **MD-UV380 (160 x 128):** the same panel, but its default image keeps about 2.4 KB with panels, and its
+       maximal build would be about 20.7 KB over. Panels is off in its default image and in `MAXIMAL_SKIP` (the
+       rule: off for flash, never `BOARD_UNSUPPORTED`, since the hardware can draw it).
+     - **DM-1701 (150 x 120 drawable)** and **128 x 64 mono (MD-9600, DM-1801 Pro):** the reference theme only.
+       The fit rule becomes a color drawable area at least 160 x 128 (lists need 3 rows); mono has no color for the
+       panes.
+   - Decided Nov 27 (user), DM-32: every GD-88 vertical metric kept. Forced by 220 px, accepted: the Connections
+     Menu tile reads **"Links"** (a `{Connections|Links}` alternate; titles keep "Connections"); a tile's value (Scan
+     "Off") on a third line; Quick tiles use their existing short names; the keys-locked sentence and Amateur's
+     details row in 8x16 where 9x18 doesn't fit.
+   - Decided Nov 27 (user), 160 x 128:
+     - Strip 18 px with its marks at 0.8x and words in 8x16; margins 6 px; rows and the soft key bar 18 px; every
+       list, title, bar and hint in 8x16. The hint row drops its last groups when it runs out of room.
+     - Icons: a second, drawn 16 px mask set from `tools/profile_icons.py` (about 1.2 KB), the same pictures.
+     - Menu and Quick keep the 3x3 keypad grid: Menu tiles show the icon and digit, Quick tiles the value; the
+       title row names the focused tile (and its value).
+     - Home: the mode word goes back in the strip on this class only (no mode bar; the GD-88 keeps its exception).
+       The call lines take room only during a call, over the target and details rows, so Commercial and Amateur
+       both fit whole.
+     - A hidden or empty hint row gives its height back on this class only: 4 list rows instead of 3. The GD-88
+       keeps the rule as frozen.
+     - The GPS clock is off on this class (it never fits the strip, and Home has no mode bar here).
+     - Keys locked: a new short form, **"Hold * to unlock"** (128 px, a `{long|short}` alternate, translated).
 
 ## Planned, not now
 
