@@ -3746,11 +3746,25 @@ static int list_body_end(const ui_list_t *l, int y, int y_end)
 	return l->count ? y + (y_end - y) / 2 + ui_layout.small->h : y_end;
 }
 
+#if CONFIG_UI_THEME_PANELS
+// The flags of l's bottom row (ui_list_bar), set by each entry point that asks the theme about a list (ui_draw_list,
+// ui_list_body_fits) before it does, so no op reads another list's. editing: its focused row's value editor is open
+// (from its item, which only a draw reads: a list that is measured may have no items yet)
+static void list_bar_set(const ui_state_t *s, const ui_list_t *l, bool editing)
+{
+	ui_list_bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0u) | (editing || l->ok_acts ? UI_BAR_OK_ACTS : 0u) |
+		(editing || l->back_acts ? UI_BAR_BACK_ACTS : 0u) | (s == NULL || s->hints ? 0u : UI_BAR_NO_HINTS);
+}
+#else
+#define list_bar_set(s, l, editing)	((void)(s), (void)(l), (void)(editing))
+#endif
+
 // The body is the frame's (ui_draw_list): its font, its width and the half of the room it may take are the same in
 // every theme. Only where it starts is the theme's, so this asks the theme for its head and for nothing about its rows
 bool ui_list_body_fits(const ui_state_t *s, const ui_list_t *l)
 {
 	const font_t *f = ui_layout.small;
+	list_bar_set(s, l, false);
 	int y = list_top(NULL, NULL, l, false);
 	int y_end = list_body_end(l, y, list_bottom(s));
 	char line[64];
@@ -3921,8 +3935,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 		l->item(l->focus, &it);
 		editing = (it.flags & UI_ITEM_EDIT) && !(it.flags & UI_ITEM_INFO);
 	}
-	ui_list_bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0u) | (editing || l->ok_acts ? UI_BAR_OK_ACTS : 0u) |
-		(editing || l->back_acts ? UI_BAR_BACK_ACTS : 0u) | (s->hints ? 0u : UI_BAR_NO_HINTS);
+	list_bar_set(s, l, editing);
 #endif
 	int y = list_top(v, s, l, true);
 	int y_end = list_bottom(s);

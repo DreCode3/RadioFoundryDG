@@ -1737,6 +1737,25 @@ static void test_compact_marquee(bool compact)
 	base();
 }
 
+// The bottom row's flags a theme reads (ui_list_bar) are the list's own when it is only measured, not the last list
+// drawn's: here a list drawn with Hint row off, then another measured with it on and its own flags
+static void test_list_bar_measured(void)
+{
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(5, 0, &top);
+	state.hints = false;
+	ui_draw_list(&view, &state, &l);
+	CHECK(ui_list_bar & UI_BAR_NO_HINTS);
+	state.hints = true;
+	l.numbered = true;
+	l.ok_acts = true;
+	l.body = "A line";
+	CHECK(ui_list_body_fits(&state, &l));
+	CHECK(ui_list_bar == (UI_BAR_LIST | UI_BAR_NUMBERED | UI_BAR_OK_ACTS));
+	base();
+}
+
 static void test_panels_frames(void)
 {
 	CHECK(gfx_init(&panel));
@@ -1773,6 +1792,7 @@ static void test_panels_frames(void)
 #endif
 	test_compact_grids(false);
 	test_compact_marquee(false);
+	test_list_bar_measured();
 #if GFX_MIN_ROWS < UI_TALL_PX
 	// The 160 x 128 panel: the compact layout
 	hal_display_t compact = { .width = 160, .height = 128, .bpp = 4, .init = d_init, .flush = d_flush,
