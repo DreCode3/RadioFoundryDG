@@ -208,7 +208,8 @@ CONFIG_LANG_DEFAULT_ZH ?= n
 # screen is monochrome)
 CONFIG_UI_COLOR ?= y
 # The panels theme (core/ui/themes/panels): rounded panels, Day/Night palettes, the Commercial and Amateur Home
-# layouts and a GPS clock, on color panels 240 px high with 310 px across (docs/spec/ui.md)
+# layouts and a GPS clock, on color displays with at least 158 x 127 px to draw on; under 220 x 200 in its compact
+# layout (docs/spec/ui.md)
 CONFIG_UI_THEME_PANELS ?= n
 # the Settings menu on the radio (off: settings keep their stored values and are set with qdmr; docs/spec/ui.md)
 CONFIG_UI_SETTINGS ?= y

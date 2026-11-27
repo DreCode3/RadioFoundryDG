@@ -770,8 +770,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   no green, which would hide the RX pill. Gallery: `home_dmr*`, `home_plain`, `channels*` (section 7).
 - `CONFIG_UI_THEME_PANELS` builds the panels theme: Commercial (default) and Amateur on color displays with a drawable
   area of at least 158 x 127 after insets. Other geometries use the standard layout. A display under 200 px high
-  (`UI_TALL_PX`) gets the compact layout, below; the build's default theme is panels unless the board starts in the
-  original look (`CONFIG_UI_THEME_DEFAULT` 1). The
+  (`UI_TALL_PX`) or narrower than 220 px gets the compact layout, below; the build's default theme is panels unless the
+  board starts in the original look (`CONFIG_UI_THEME_DEFAULT` 1). The
   radio picks the theme at start, after the splash, from the stored theme (`gui_theme` in [the settings
   store](settings-store.md); 0, the default, is the build's default theme). Settings > Display's first row, Theme
   (Original, Panels), is there when more than one theme fits the display (`ui_theme_fits`): the pick list checks the
@@ -785,7 +785,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   (`UI_THEME_OPT_NAME_FIRST`: a new radio or one installed over another firmware's settings area, `ui_app_init`, kept in
   RAM until the next save; a factory reset, `ui_svc_factory_reset`), not of a build that only has it; Commercial's
   target line, where it shows one, has the name alone with it on and "TG 91 · World" with it off.
-  The compact layout (a display under 200 px high, chosen by its measured height, `panels_small`): the status strip is
+  The compact layout (a display under 200 px high or 220 px wide, chosen by its measured size, `panels_small`): the
+  status strip is
   18 px, its marks at 0.8x (the icons from the 16 px set on a 20 px canvas, `panels_icons.h`) and its words in 8x16;
   6 px margins; rows and the soft key bar 18 px; every list, title, bar and hint in 8x16. Home has no mode bar (its strip
   has the mode word) and no hint line. Its lines at the foot take room only while they have something to say (a call, what needs

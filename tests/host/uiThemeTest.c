@@ -857,11 +857,15 @@ static void test_pick(void)
 	CHECK(picks(320, 0, 240, 4, UI_THEME_ID_DEFAULT, def));
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_DEFAULT, def));	// 220 x 310
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_PANELS, panels));
-	CHECK(picks(170, 12, 240, 4, UI_THEME_ID_PANELS, panels));	// 158 across
+	// 160 x 128, the compact layout, where the build has it (a panel that may be under 200 rows: GFX_MIN_ROWS); and
+	// any display narrower than 220 px, however high: the full layout's tiles need that width
+	const ui_theme_t *compact = GFX_MIN_ROWS < UI_TALL_PX ? panels : ref;
+	CHECK(picks(170, 12, 240, 4, UI_THEME_ID_PANELS, compact));	// 158 across
 	CHECK(picks(170, 13, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 157 across
 	CHECK(picks(170, 13, 240, 4, UI_THEME_ID_PANELS, ref));
-	// 160 x 128, the compact layout, where the build has it (a panel that may be under 200 rows: GFX_MIN_ROWS)
-	const ui_theme_t *compact = GFX_MIN_ROWS < UI_TALL_PX ? panels : ref;
+	CHECK(picks(230, 11, 240, 4, UI_THEME_ID_PANELS, compact));	// 219 across
+	CHECK(picks(230, 10, 240, 4, UI_THEME_ID_PANELS, panels));	// 220 across: the full layout
+	CHECK(picks(220, 0, 199, 4, UI_THEME_ID_PANELS, compact));	// 199 high
 	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_PANELS, compact));
 	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_DEFAULT, GFX_MIN_ROWS < UI_TALL_PX ? def : ref));
 	CHECK(picks(220, 0, 176, 4, UI_THEME_ID_PANELS, compact));
@@ -871,6 +875,23 @@ static void test_pick(void)
 	CHECK(picks(160, 3, 128, 4, UI_THEME_ID_PANELS, ref));		// 157 across
 	CHECK(picks_on(inset_panel(160, 120, 5, 0, 4), UI_THEME_ID_PANELS, ref));	// 150 x 120
 	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, panels));	// any height from 128 (200: the full layout)
+	CHECK(picks(220, 0, 200, 4, UI_THEME_ID_PANELS, panels));
+#if GFX_MIN_ROWS < UI_TALL_PX
+	// Which layout: the full one from 220 x 200, the compact one (its 18 px strip) on a narrower display however high
+	static const struct { int w, h, strip; } layouts[] = {
+		{ 220, 200, 29 }, { 320, 240, 29 }, { 219, 240, 18 }, { 158, 240, 18 }, { 220, 199, 18 }, { 158, 127, 18 },
+	};
+	for (unsigned i = 0; i < sizeof layouts / sizeof layouts[0]; i++) {
+		hal_display_t d = disp;
+		d.width = (uint16_t)layouts[i].w;
+		d.height = (uint16_t)layouts[i].h;
+		d.bpp = 4;
+		d.flush_indexed = d_flush_indexed;
+		CHECK(gfx_init(&d) && ui_theme_use(&ui_theme_panels) && ui_layout.strip_h == layouts[i].strip);
+		ui_theme_use(&ui_theme_reference);
+	}
+	CHECK(gfx_init(&disp));
+#endif
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 1), UI_THEME_ID_PANELS, ref));
 	CHECK(picks(128, 0, 64, 1, UI_THEME_ID_PANELS, ref));
@@ -1624,6 +1645,7 @@ static void long_item(uint16_t i, ui_item_t *it)
 	strcpy(it->value, "On");
 }
 
+#if GFX_MIN_ROWS < UI_TALL_PX
 // A row whose label has a shorter form, beside a value that takes most of the row (Settings > Display > Profile)
 static void alt_item(uint16_t i, ui_item_t *it)
 {
@@ -1642,6 +1664,7 @@ static bool no_middle_cut(void)
 	}
 	return true;
 }
+#endif
 
 // The compact layout's focused row whose label is cut slides it sideways: shortened at its end for a second, then 2 px
 // every 100 ms, the animate op asking for a frame at each step, until its end shows; the other rows stay shortened.
