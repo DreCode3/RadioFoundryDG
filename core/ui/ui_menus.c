@@ -4467,7 +4467,7 @@ static void chz_select(uint16_t i, bool hold)
 }
 
 static const ui_scr_def_t chz_screen = {
-	.name = "chzones", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRX(ZONE_TITLE_IN_ZONES, "In zones"),
+	.name = "chzones", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRN(ZONE_TITLE_IN_ZONES, "In zones"),
 	.hint = TRN(ZONE_HINT_IN_ZONES, "OK in/out  Back"),
 	.empty = TRN(ZONE_EMPTY_NO_ZONES, "No zones"),
 	.count = chz_count, .item = chz_item, .select = chz_select,
@@ -8476,7 +8476,7 @@ static void hwopt_select(uint16_t i, bool hold)
 
 static const ui_scr_def_t hwopt_screen = {
 	.name = "hwopt", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRX(HW_TITLE, "Hardware"),
-	.hint = TRX(HW_HINT, "OK next  Hold OK store"),
+	.hint = TRN(HW_HINT, "OK next  Hold OK store"),
 	.count = hwopt_count, .item = hwopt_item, .select = hwopt_select, .enter = hwopt_enter,
 };
 #endif

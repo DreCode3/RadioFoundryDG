@@ -2805,6 +2805,11 @@ msgid "In"
 msgstr "在"
 
 #: core/ui/ui_menus.c
+msgctxt "ZONE_TITLE_IN_ZONES"
+msgid "In zones"
+msgstr "所在区域"
+
+#: core/ui/ui_menus.c
 msgctxt "ZONE_HINT_IN_ZONES"
 msgid "OK in/out  Back"
 msgstr "OK 加入/移出  返回"
@@ -4598,6 +4603,11 @@ msgstr "OK 改  返回"
 msgctxt "HINT_OK_SAVE_BACK"
 msgid "OK save  Back"
 msgstr "OK 保存  返回"
+
+#: core/ui/ui_menus.c
+msgctxt "HW_HINT"
+msgid "OK next  Hold OK store"
+msgstr "OK 下一个  长按 OK 存储"
 
 #: core/ui/ui_menus.c
 msgctxt "RESET_ROW_KEEP"
