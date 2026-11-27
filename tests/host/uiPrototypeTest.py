@@ -431,6 +431,25 @@ class PrototypeTest(unittest.TestCase):
             frame = self.render_frame(screen + " expect:layout=0")
             for y in range(198, 240):
                 self.assertEqual(frame[y][450:453] == home[216][450:453], BAR_Y <= y < 236)
+    def test_strip_marks_stay_inside_the_pane(self):
+        # The strip's pane covers y 2 to 28 (inside the 29 px strip, 2 px of the screen's color above it). Every mark,
+        # the battery's cap included, is inside it with 2 px clear above and below: rows 0-1 are the screen's color
+        # and rows 2-3 and 27-28 the pane's, from the marks' left edge to their right one. Home and a list, both
+        # layouts, Day and Night, an empty strip and two crowded ones (8x16 mode word, the clock, privacy, the lock)
+        crowds = ("", GPS_CLOCK + "long:back gps:fix mon prototype:crypt_arc4 msg:9991234,Hello wait:9000 scankey "
+                  "wait:3000 lockkey wait:3000 rx:9991234,3100,g battery:5 wait:2000 ",
+                  GPS_CLOCK + "long:back gps:fix mon vox:on roam:searching prototype:bt_connected "
+                  "prototype:record_on prototype:dstar_on prototype:crypt_aes msg:9991234,Hello rxonly:on scankey "
+                  "wait:9000 ")
+        for profile in ("", AMATEUR, NIGHT, AMATEUR + NIGHT):
+            for crowd in crowds:
+                for screen in ("", "ok 1"):
+                    frame = self.render_frame(profile + crowd + screen)
+                    surround, pane = frame[0][:3], frame[15][6 * 3:7 * 3]
+                    for y in (0, 1, 2, 3, STRIP_H - 2, STRIP_H - 1):
+                        want = surround if y < 2 else pane
+                        stray = [x for x in range(10, len(frame[y]) // 3 - 10) if frame[y][x * 3:x * 3 + 3] != want]
+                        self.assertEqual(stray, [], f"{profile + crowd + screen!r}: row {y}")
     def test_menu_status_uses_larger_mode_and_device_marks(self):
         for screen in ("ok", "ok 8", "ok 8 1 ok"):
             frame = self.render_frame("gps:fix " + screen + " expect:layout=0")
@@ -670,9 +689,10 @@ class PrototypeTest(unittest.TestCase):
                 clock = self.render_frame(profile + setup +
                                           "expect:shows=21_Nov expect:shows=14:08 expect:layout=0")
                 plain = self.render_frame(profile + "gps:fix expect:layout=0")
-                # In the status strip, as on every screen; nothing under the strip changes
+                # In the status strip, as on every screen; nothing under the strip changes, compared by ink: the
+                # clock's anti-aliased shades can leave the 16-color palette fewer blends for the edges below
                 self.assertNotEqual(clock[:STRIP_H], plain[:STRIP_H])
-                self.assertEqual(clock[STRIP_H:], plain[STRIP_H:])
+                self.assertEqual(ink_map(clock[STRIP_H:]), ink_map(plain[STRIP_H:]))
                 # ... and on a list
                 self.run_script(profile + setup + "ok 1 expect:shows=21_Nov expect:shows=14:08 expect:layout=0")
     def test_profiles_keep_call_context_on_home(self):

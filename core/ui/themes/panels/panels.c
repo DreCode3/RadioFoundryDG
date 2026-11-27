@@ -18,6 +18,7 @@
 
 #define PANELS_BAND_H 29	// the status strip, the same on every screen
 #define PANELS_SCALE 6		// its marks, in quarters of their drawn size
+#define PANELS_BATTERY_SCALE 5	// the battery's: its 18 units high fit 22 px, inside the strip's pane
 #define PANELS_HOME_GAP 3
 #define PANELS_HOME_INSET 4
 #define PANELS_FOOTER_H 34
@@ -456,7 +457,7 @@ static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t
 	const int scale = PANELS_SCALE;
 	const font_t *f = &font_aa_8x16;
 	switch (item) {
-	case PANELS_SI_BATTERY: return s->no_battery ? 0 : panels_px(11, scale);
+	case PANELS_SI_BATTERY: return s->no_battery ? 0 : panels_px(11, PANELS_BATTERY_SCALE);
 	case PANELS_SI_ACTIVITY: return t->activity ? gfx_text_width(f, t->activity) : 0;
 	case PANELS_SI_SIGNAL: return t->strength ? panels_px(18, scale) : 0;
 	case PANELS_SI_MODE: return t->mode != NULL ? gfx_text_width(t->mode_font, t->mode) : 0;
@@ -518,7 +519,9 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 	int y = cy - panels_px(9, scale) / 2;	// the top of a mark drawn at the strip's scale
 	switch (item) {
 	case PANELS_SI_BATTERY:
-		panels_battery(v, s, (panels_mark_pos_t){ x, y, scale }, ink);
+		// Its cap's top to its body's bottom is -5 to 13 of its units: centered on cy
+		panels_battery(v, s,
+			(panels_mark_pos_t){ x, cy - panels_px(4, PANELS_BATTERY_SCALE), PANELS_BATTERY_SCALE }, ink);
 		break;
 	case PANELS_SI_ACTIVITY:
 		gfx_text(&font_aa_8x16, x, cy - font_aa_8x16.h / 2, t->activity, t->activity_ink);
@@ -661,7 +664,7 @@ static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui
 	if (need > room)
 		t.mode_font = &font_aa_8x16;
 	uint32_t shown = panels_strip_fit(v, s, &t, room);
-	int cy = (h - 1) / 2;	// a 24 px cell (the mode) from y 2, clear of Home's mode bar below
+	int cy = 2 + (h - 2) / 2;	// the pane's center: every mark inside it with 2 px clear above and below
 	int left = PANELS_STRIP_X, right = w - PANELS_STRIP_X;
 	for (unsigned i = 0; i < sizeof panels_strip_left; i++) {
 		int item = panels_strip_left[i];
