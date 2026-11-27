@@ -360,7 +360,8 @@ static int udp(uint8_t *p, uint32_t src, uint32_t dst, uint16_t sport, uint16_t 
 static void test_fcs(void)
 {
 	// The FCS-16 check value (CRC-16/X-25 of "123456789"): the peer's table is right
-	CHECK((uint16_t)~fcs(0xFFFF, (const uint8_t *)"123456789", 9) == 0x906E);
+	uint16_t check = (uint16_t)~fcs(0xFFFF, (const uint8_t *)"123456789", 9);	// gcc -Wsign-compare: not ~ in the comparison
+	CHECK(check == 0x906E);
 }
 
 static void test_negotiation(void)
