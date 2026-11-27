@@ -920,6 +920,18 @@ class PrototypeTest(unittest.TestCase):
         self.run_script("t3 dlpos:3 t3state:fallback expect:shows=Fallback")
         self.run_script("aprstx expect:shows=TX_APRS aprsend expect:hides=TX_APRS")
 
+    def test_narrow_display_short_forms(self):
+        # The 220 x 310 display (240x320i10x5) in the panels theme, chosen in Settings > Display > Theme: Connections'
+        # Menu tile takes its short form, which the screen's title doesn't need; the other labels fit whole
+        narrow, panels = "240x320i10x5", "ok 8 1 ok row:Panels ok long:back "
+        self.run_script(panels + "ok expect:screen=hub expect:shows=Links expect:hides=Connections "
+                        "expect:shows=Contacts expect:shows=Messages expect:shows=Call_log expect:shows=Location "
+                        "expect:shows=Settings expect:layout=0", narrow)
+        self.run_script(panels + "ok 7 expect:screen=connections expect:shows=Connections expect:layout=0", narrow)
+        # Quick's tiles keep their short names there
+        self.run_script(panels + "quick expect:shows=Slot expect:shows=TG expect:hides=Timeslot expect:layout=0",
+                        narrow)
+
     def test_gui_switch_keeps_channel_and_display_preferences(self):
         self.run_script(
             "down ok 8 1 row:Display_profile ok down ok gui:original expect:screen=home "

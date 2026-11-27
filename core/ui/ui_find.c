@@ -40,7 +40,8 @@ static const struct {
 	{ TRN(TITLE_CHANNELS, "Channels"), NULL, SCR_ZONES },
 	{ TRN(WORD_SCAN, "Scan"), NULL, SCR_SCAN_MENU },
 	{ TRN(TITLE_LOCATION, "Location"), "position GPS", SCR_LOCATION },
-	{ TRN(TITLE_CONNECTIONS, "Connections"), "hotspot USB network SFR tools", SCR_CONNECTIONS },
+	{ TRN(TITLE_CONNECTIONS, TEXT_ALT_OPEN "Connections" TEXT_ALT_NEXT "Links" TEXT_ALT_CLOSE),
+		"hotspot USB network SFR tools", SCR_CONNECTIONS },
 	{ TRN(TITLE_SETTINGS, "Settings"), NULL, SCR_SETTINGS },
 	{ TRX(WORD_VFO, "VFO"), NULL, SCR_ZONES },
 #if CONFIG_DMR_ROAMING

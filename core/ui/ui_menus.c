@@ -114,7 +114,8 @@ static void hub_item(uint16_t i, ui_item_t *it)
 {
 	static const tr_id_t names[] = { TRN(HUB_ROW_LAST_CALLER, "Last caller"), TRN(TITLE_CONTACTS, "Contacts"),
 		TRN(TITLE_MESSAGES, "Messages"), TRN(TITLE_CALL_LOG, "Call log"), TRN(TITLE_ZONES, "Zones"),
-		TRN(WORD_SCAN, "Scan"), TRN(TITLE_LOCATION, "Location"), TRN(TITLE_CONNECTIONS, "Connections"),
+		TRN(WORD_SCAN, "Scan"), TRN(TITLE_LOCATION, "Location"),
+		TRN(TITLE_CONNECTIONS, TEXT_ALT_OPEN "Connections" TEXT_ALT_NEXT "Links" TEXT_ALT_CLOSE),	// Links: a narrow tile
 		TRN(TITLE_SETTINGS, "Settings") };
 	uint8_t e = hub_entry(i);
 	str_copy(it->label, sizeof it->label, tr(names[e]));
@@ -6768,7 +6769,7 @@ static void conn_select(uint16_t row, bool hold)
 
 static const ui_scr_def_t connections_screen = {
 	.name = "connections", .flags = SF_LIST | SF_NUMBERED | SF_FIELD | SF_HINT_FN,
-	.prefix = TRN(TITLE_CONNECTIONS, "Connections"),
+	.prefix = TRN(TITLE_CONNECTIONS, TEXT_ALT_OPEN "Connections" TEXT_ALT_NEXT "Links" TEXT_ALT_CLOSE),
 	.hint_fn = menu_hint, .count = conn_count, .item = conn_item, .select = conn_select,
 };
 

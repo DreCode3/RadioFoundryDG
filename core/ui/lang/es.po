@@ -1474,8 +1474,8 @@ msgstr "Ubicación"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "TITLE_CONNECTIONS"
-msgid "Connections"
-msgstr "Conexiones"
+msgid "{Connections|Links}"
+msgstr "{Conexiones|Enlaces}"
 
 #: core/ui/ui_find.c core/ui/ui_menus.c
 msgctxt "TITLE_SETTINGS"
