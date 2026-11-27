@@ -1624,6 +1624,25 @@ static void long_item(uint16_t i, ui_item_t *it)
 	strcpy(it->value, "On");
 }
 
+// A row whose label has a shorter form, beside a value that takes most of the row (Settings > Display > Profile)
+static void alt_item(uint16_t i, ui_item_t *it)
+{
+	(void)i;
+	strcpy(it->label, TEXT_ALT_OPEN "Display profile" TEXT_ALT_NEXT "Profile" TEXT_ALT_CLOSE);
+	strcpy(it->value, "Commercial");
+}
+
+// No text drawn is shortened in the middle: an ellipsis only at its end
+static bool no_middle_cut(void)
+{
+	for (int i = 0; i < ntexts; i++) {
+		const char *e = strstr(texts[i].s, GLYPH_ELLIPSIS);
+		if (e != NULL && e[1] != 0)
+			return false;
+	}
+	return true;
+}
+
 // The compact layout's focused row whose label is cut slides it sideways: shortened at its end for a second, then 2 px
 // every 100 ms, the animate op asking for a frame at each step, until its end shows; the other rows stay shortened.
 // The full layout has room for it
@@ -1723,6 +1742,25 @@ static void test_panels_frames(void)
 	CHECK(ui_theme_use(&ui_theme_panels));
 	CHECK(gfx_width() == 158 && gfx_height() == 127 && ui_layout.strip_h == 18);
 	CHECK(list_rows("OK choose  Back", UI_BAR_LIST) == 3 && list_rows("OK change  Hold OK save  Back", UI_BAR_LIST) == 3);
+	ui_theme_set(UI_PALETTE_DAY);
+	// A label with a shorter form where not even that fits ("Profile" beside "Commercial" is 2 px too wide here):
+	// cut at its end as any label, never in the middle, and the focused row's slides to show it whole
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(3, 1, &top);
+	l.item = alt_item;
+	uint32_t t0 = state.now_ms;
+	ui_draw_list(&view, &state, &l);
+	CHECKT(no_middle_cut() && find_text("Profi" GLYPH_ELLIPSIS) >= 0 && find_text("Profile") < 0 &&
+	       text_with("Display") < 0 && find_text("Commercial") >= 0);
+	state.now_ms = t0 + 1550;
+	ui_draw_list(&view, &state, &l);
+	int whole = find_text("Profile");
+	CHECKT(no_middle_cut() && whole >= 0 && texts[whole].x < 3 + 8 && find_text("Profi" GLYPH_ELLIPSIS) >= 0);
+	base();
+#if CONFIG_DMR
+	test_compact_operational_home(true);
+#endif
 	// No GPS clock in the compact layout, even where a quiet strip would have room for it (220 x 176)
 	compact.width = 220;
 	compact.height = 176;

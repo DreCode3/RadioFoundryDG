@@ -158,14 +158,16 @@ static void count_sats(uint8_t used[UI_GNSS_COUNT], uint8_t seen[UI_GNSS_COUNT])
 	}
 }
 
-// "label  value" rows from y; false once the next would run into the hint row
+// "label  value" rows from y; false once the next would run into the hint row. The space between them narrows to the
+// list rows' gap (ui_row_text) where a whole space would push the value off the screen
 static bool row(int *y, const char *label, const char *value, color_t vc)
 {
 	const font_t *f = ui_layout.small;
 	if (*y + f->h > ui_layout.hint_y)
 		return false;
 	int x = gfx_text(f, 0, *y, label, ui_col.dim);
-	gfx_text(f, x + f->w, *y, value, vc);
+	int gap = x + f->w + gfx_text_width(f, value) <= gfx_width() ? f->w : f->w / 2 + 1;
+	gfx_text(f, x + gap, *y, value, vc);
 	*y += f->h + (ui_layout.row_h > f->h ? 1 : 0);
 	return true;
 }

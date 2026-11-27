@@ -1962,20 +1962,28 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 	}
 }
 
-// The compact layout's focused row whose label (one form) doesn't fit beside its value: the value in its shortest form
-// as ui_row_text draws it, and the label resting shortened (false: ui_row_text draws the row) or slid by
-// panels_marquee_pos, clipped to its room. noinline: its buffer stays out of the list frame's
+// The compact layout's focused row whose label (its shortest form) doesn't fit beside its value: the value in its
+// shortest form as ui_row_text draws it, and the label resting shortened (false: ui_row_text draws the row) or slid by
+// panels_marquee_pos, clipped to its room. noinline: its buffers stay out of the list frame's
 static bool __attribute__((noinline)) panels_row_slide(const ui_list_t *l, const ui_cell_t *c, const font_t *f, int x,
 	int ty, int right, const char *label, const char *value, color_t fg, color_t vfg)
 {
-	char val[sizeof ((ui_item_t *)0)->value];
+	char val[sizeof ((ui_item_t *)0)->value], lab[sizeof ((ui_item_t *)0)->label];
 	bool more = true;
 	val[0] = 0;
 	for (int level = 0; value[0] && more; level++)
 		gfx_text_alt(value, level, val, sizeof val, &more);
-	int vw = gfx_text_width(f, val), lw = gfx_text_width(f, label);
+	int vw = gfx_text_width(f, val);
 	int room = right - x - (vw ? vw + f->w / 2 + 1 : 0);
-	if (strchr(label, TEXT_ALT_OPEN[0]) != NULL || lw <= room)
+	// A label with shorter forms slides its shortest one, when not even that fits (ui_row_text draws one that does)
+	if (strchr(label, TEXT_ALT_OPEN[0]) != NULL) {
+		more = true;
+		for (int level = 0; more; level++)
+			gfx_text_alt(label, level, lab, sizeof lab, &more);
+		label = lab;
+	}
+	int lw = gfx_text_width(f, label);
+	if (lw <= room)
 		return false;
 	bool again = !panels_marquee.was_live || panels_marquee.item != l->item || panels_marquee.focus != l->focus ||
 		panels_marquee.width != lw;

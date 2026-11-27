@@ -3692,19 +3692,36 @@ UI_THEME_SHARED void ui_row_text(const font_t *f, int x, int y, int w, const cha
 			break;
 	}
 	int room = w - x - (vw ? vw + gap : 0);
+	int vx = w - vw - (x + (lw < room ? lw : room) + gap + vw < w ? 1 : 0);	// a pixel of margin if it is free
 	if (lw <= room) {
 		gfx_text(f, x, y, label, fg);
+	} else if (preview && !strchr(label, TEXT_ALT_OPEN[0])) {
+		ui_fit_end(f, label, room, lab, sizeof lab);
+		gfx_text(f, x, y, lab, fg);
+	} else if (preview) {
+		// Cut at the end too: the longest of the label's forms that fits, else its shortest one shortened (into val,
+		// once the value is drawn)
+		more = true;
+		for (int level = 0; more; level++) {
+			gfx_text_alt(label, level, lab, sizeof lab, &more);
+			if (gfx_text_width(f, lab) <= room)
+				break;
+		}
+		if (gfx_text_width(f, lab) > room) {
+			if (vw)
+				gfx_text(f, vx, y, val, vfg);
+			vw = 0;
+			ui_fit_end(f, lab, room, val, sizeof val);
+			gfx_text(f, x, y, val, fg);
+		} else {
+			gfx_text(f, x, y, lab, fg);
+		}
 	} else {
-		if (preview && !strchr(label, TEXT_ALT_OPEN[0]))
-			ui_fit_end(f, label, room, lab, sizeof lab);
-		else
-			gfx_text_fit(f, label, room, lab, sizeof lab);
+		gfx_text_fit(f, label, room, lab, sizeof lab);
 		gfx_text(f, x, y, lab, fg);
 	}
-	if (vw) {
-		int right = x + (lw < room ? lw : room) + gap + vw < w ? 1 : 0;	// a pixel of margin if it is free
-		gfx_text(f, w - vw - right, y, val, vfg);
-	}
+	if (vw)
+		gfx_text(f, vx, y, val, vfg);
 }
 
 // A row whose value editor is open: the label from x, the value right-aligned at w between a left and a right marker in
