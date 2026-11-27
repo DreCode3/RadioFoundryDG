@@ -340,7 +340,21 @@ resources spent on diminishing returns):
      whole zh manual update. It rewrote some passages; 8 pages have a different heading count from the English
      (04, 06, 07, 10, 13, 15, 19, 23); zh.po's `SET_LABEL_PRIVACY_KEY` and `_KEY_TYPE` may read as a button. Also to
      check: whether `docs/user/18-satellite.md` names the site's Tools menu correctly.
-6. Freeze on the GD-88, then port to other display classes.
+6. Freeze on the GD-88 (the user, Nov 27): frozen at `226ad2d4`.
+   - Upstream `main` merged at `66574269` (12 commits, #914 to #1167) with no change to any frame: `cc.sh` against
+     `dcf9580a` compared 2203 frames, the 940 profile renders included, 0 differ. Upstream's dual watch digit entry
+     (#1154) and volume bar (#1096) show only in states the snapshots don't reach.
+   - Two merge fixes: NET_WEBCTL in the version reply's features (`f9019890`) and the feature matrix's bring-up block
+     regenerated (`226ad2d4`).
+   - Full `tools/ci.sh`: host (Linux image, 187 suites), registry, bench, python, licenses, and firmware for dm1701,
+     md380, md9600, mduv380 (Mac) and the whole gd88 matrix (C-SKY image) passed, except two maximal builds that
+     already overflowed before the merge: DM-1701 1828 B over, MD-UV380 3140 B over (upstream adds about 170 B).
+     Not run: the other C-SKY boards' matrices (db25d, dm1801pro, dm32, gd88b, rt10), `reuse lint`, the
+     pytest/numpy checks, the similarity scan, `SANITIZE=1`, HIL, on air.
+   - GD-88 default build: flash 791,508 B (88.24%), RAM 205,792 B (95.02%), UI stack free 204 B, 0 warnings.
+7. Port to other display classes. The GD-88's frames stay as frozen: compare against a baseline rendered from
+   `226ad2d4`. It starts with the CI blockers (the two maximal overflows, the gallery, panels=n's shared bytes) and
+   step 5b's leftovers: the French 160 px hints, the native-speaker list, the zh manual's heading counts.
 
 ## Planned, not now
 

@@ -34,11 +34,11 @@ can go upstream as pull requests, so write every change as if it were one.
 
 1. **Finalize the GUI on the GD-88** (310 x 240 drawable, `320x240iR10` in the simulator): visual elements first,
    then QA. Changes stay generic code in `core/ui`, enabled by board capability, but are judged on the GD-88 only.
-2. **Freeze** the GD-88 version when the user says the layout and quality are ready.
-3. **Port** to other radios and display classes, then fix the CI blockers this leaves (maximal builds that overflow
+2. **Freeze** the GD-88 version: done Nov 27, 2026, at `226ad2d4` (gui-plan.md step 6).
+3. **Port** (current) to other radios and display classes, then fix the CI blockers this leaves (maximal builds that overflow
    on small panels, flash cost with `CONFIG_UI_THEME_PANELS` off, the gallery; the settings offset test passes since `83ec470d`).
 
-Until step 3, don't spend effort on other display classes beyond keeping them building and unchanged.
+The port keeps the GD-88's frames as frozen: compare them against a baseline rendered from `226ad2d4`.
 
 The approved design (theme framework boundary, menu tree, settings groups, naming, layout, Home, order of work) is in
 [fork-notes/gui-plan.md](fork-notes/gui-plan.md). Read it before any GUI work and keep it current when the user
@@ -127,7 +127,7 @@ copyright header, not a personal one.
   are the user's; ask for results, never claim them.
 - Say which checks ran and which didn't. If the full `tools/ci.sh` matrix stalls on macOS (see local-setup.md), the
   user's Linux VM runs it.
-- GD-88 budget (default build, Nov 2026): flash 87.9% (about 107 KB free), RAM 95.0% (about 10.5 KB free). RAM is
+- GD-88 budget (default build, Nov 2026): flash 88.2% (about 105 KB free), RAM 95.0% (about 10.8 KB free). RAM is
   the tight one: prefer `const` tables and drawing on the fly over buffers.
 - The UI preview loop: `make -C tests/host uiSim`, then `tests/host/uiSim --geom 320x240iR10 --scale 2 --script
   "<keys>" --out <png>` and show the PNG. `python3 tests/host/uiPrototypeTest.py` checks the profiles.
