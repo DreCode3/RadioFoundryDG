@@ -41,12 +41,12 @@
 | “信道忙” | 有人在时隙上通话。等呼叫结束 |
 | “中继台无应答” | 中继台未响应。检查频率、色码、时隙以及你与中继台的距离 |
 | FM 没有声音 | 静噪关闭，或信道需要亚音。按住**监听**打开静噪。用 **\***、**3** 检查亚音 |
-| 按键无作用且屏幕显示“按键已锁” | 长按 **\*** 解锁。检查**设置 > 加密 > 自动锁键** |
+| 按键无作用且屏幕显示“按键已锁” | 长按 **\*** 解锁。检查**设置 > 安全与键盘锁 > 自动锁键** |
 | “此处未使用” | 该键在此屏幕上没有功能 |
 | “……：此构建不含” | 该功能在此构建中关闭，或尚未构建 |
-| 电台卡在热点屏幕 | 某个主机打开了串口。按 **OK**，或停止主机程序。关闭**设置 > 连接 > 允许热点**可防止 |
+| 电台卡在热点屏幕 | 某个主机打开了串口。按 **OK**，或停止主机程序。关闭**菜单 > 连接 > 电脑与网络 > 允许热点**可防止 |
 | 区域或信道自行改变 | 扫描正在运行（状态行显示 SCAN）。在主屏幕按 **返回** |
-| qdmr、rfoundry 或热点主机找不到电台串口 | USB 处于网络模式。在**工具 > USB 网络**中切回，或关闭**设置 > 连接 > 启动时 USB 网络**并重启。调试链路和 MMDVM 也会在 UDP 端口 3334 上应答（[USB 网络](15-usb-network.md#serial-tools-in-network-mode)） |
+| qdmr、rfoundry 或热点主机找不到电台串口 | USB 处于网络模式。在**菜单 > 连接 > USB 网络**中切回，或关闭**菜单 > 连接 > 电脑与网络 > 启动时 USB 网络**并重启。调试链路和 MMDVM 也会在 UDP 端口 3334 上应答（[USB 网络](15-usb-network.md#serial-tools-in-network-mode)） |
 | 网络模式下电脑拿不到地址 | 电脑在 10 秒内未设置好网卡时，电台会回到串口。确认电脑出现新的网卡，然后重试切换 |
 
 ## 设置未保存
@@ -66,7 +66,7 @@ tools/rfoundry_debug.py storage claim --out ~/rfoundry-backup    # 保存该区�
 
 ## 诊断
 
-**OK**、**6**、**7**（工具 > 诊断）显示用于台架检查的原始读数：按键、接收机电平、DMR 调制解调器的状态和计数器、电池、板子自身的线路。**\*** 翻页。**返回** 离开。
+**设置 > 写频 > 诊断**（**OK**、**8**、**9**，然后选诊断行）显示用于台架检查的原始读数：按键、接收机电平、DMR 调制解调器的状态和计数器、电池、板子自身的线路。**\*** 翻页。**返回** 离开。
 
 <img src="../ux/screens/160x120i5/diagnostics.png" width="200" alt="诊断页面">
 
@@ -78,6 +78,6 @@ tools/rfoundry_debug.py storage claim --out ~/rfoundry-backup    # 保存该区�
 
 ## 报告问题
 
-请在[项目仓库](https://github.com/radiofoundry/radiofoundry/issues/new/choose)中提交 issue。请附上固件版本（**设置 > 我的电台 > 关于**）、电台型号、你做了什么、期望什么以及发生了什么。截图会有帮助：`tools/rfoundry_debug.py screenshot -o screen.png` 可通过 USB 保存一张。
+请在[项目仓库](https://github.com/radiofoundry/radiofoundry/issues/new/choose)中提交 issue。请附上固件版本（**设置 > 电台信息 > 关于**）、电台型号、你做了什么、期望什么以及发生了什么。截图会有帮助：`tools/rfoundry_debug.py screenshot -o screen.png` 可通过 USB 保存一张。
 
-如果电台自行重启，请查看**设置 > 高级 > 崩溃日志**（[设置](17-settings.md#crash-log)）并把其内容复制到 issue 中。开发者可用 `tools/rfoundry_debug.py crash` 获取完整记录。
+如果电台自行重启，请查看**设置 > 写频 > 崩溃日志**（[设置](17-settings.md#crash-log)）并把其内容复制到 issue 中。开发者可用 `tools/rfoundry_debug.py crash` 获取完整记录。

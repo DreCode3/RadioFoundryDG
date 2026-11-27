@@ -18,7 +18,7 @@ DMR 有许多低价电台很少实现的功能。它们对商业应用和业余�
 
 以任何力所能及的方式：
 
-- **测试并报告。** 在你的电台上运行 RadioFoundry 并[报告问题](https://github.com/radiofoundry/radiofoundry/issues/new?template=bug_report.yml)。如果电台重启过，请附上**设置 > 高级 > 崩溃日志**中的记录（[设置](17-settings.md#crash-log)）。
+- **测试并报告。** 在你的电台上运行 RadioFoundry 并[报告问题](https://github.com/radiofoundry/radiofoundry/issues/new?template=bug_report.yml)。如果电台重启过，请附上**设置 > 写频 > 崩溃日志**中的记录（[设置](17-settings.md#crash-log)）。
 - **帮助他人。** 在 Facebook 的[社区群组](https://www.facebook.com/groups/radiofoundry/)中回答问题、分享经验。
 - **提出需求。**[请求功能](https://github.com/radiofoundry/radiofoundry/issues/new?template=feature_request.yml)，或[请求支持某款电台](https://github.com/radiofoundry/radiofoundry/issues/new?template=radio_request.yml)。
 - **贡献。** 为代码或文档提交 pull request（[贡献指南](../dev/contributing.md)）。

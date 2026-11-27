@@ -75,7 +75,7 @@
 |---|---|
 | <a id="t-aprs"></a>APRS | 自动分组报告系统：业余台站之间共享的位置和短消息。[更多](13-aprs.md) |
 | <a id="t-brandmeister"></a>BrandMeister | 由互联服务器和通话组组成的全球业余 DMR 网络。 |
-| <a id="t-cw-id"></a>CW 标识 | 以摩尔斯码发送的台站呼号。独立 SFR 中继信道在有通话后每隔几分钟以 FM 发送一次（菜单 > 连接 > SFR > SFR CW 标识）。[更多](14-hotspot.md) |
+| <a id="t-cw-id"></a>CW 标识 | 以摩尔斯码发送的台站呼号。独立 SFR 中继信道在有通话后每隔几分钟以 FM 发送一次（菜单 > 连接 > SFR > 单频中继 CW ID）。[更多](14-hotspot.md) |
 | <a id="t-dmr-id"></a>DMR ID（RadioID、DMR IDs） | 在 DMR 上标识你电台的号码。业余 ID 来自 RadioID.net。 |
 | <a id="t-hotspot"></a>热点（Hotspot） | 通过互联网把附近电台接入 DMR 网络的小型 DMR 调制解调器。[更多](14-hotspot.md) |
 | <a id="t-igate"></a>iGate | 在空中的 APRS 分组与 APRS-IS 互联网网络之间转发的台站。 |
