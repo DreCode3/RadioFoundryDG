@@ -109,7 +109,9 @@ over 8), `GFX_MAX_ROWS` (the height) and `GFX_INDEXED=1` for a 16-color panel. W
 40 KB RGB565 default. `boards.py check` requires the buffer to hold the board's `hardware.gallery` class. A 16-color
 board short of RAM whose panel has insets may keep only the safe area: `GFX_FB_SAFE_AREA=1`, `GFX_FB_BYTES` for the
 safe area, and in its `hal_display_t` `fb_safe_area` and a `fill_insets` that paints the insets (the rows then go to
-that window of the panel); the check then sizes the buffer by the gallery class's insets.
+that window of the panel); the check then sizes the buffer by the gallery class's insets. A board whose panel is always the same size may
+set `GFX_MIN_ROWS` to its height too, so the build leaves out what only a shorter display draws (the panels theme's
+compact layout, under 200 rows); a board that finds its panel at start-up leaves it out.
 
 ## The drawing
 

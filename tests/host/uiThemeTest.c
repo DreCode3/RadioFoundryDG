@@ -859,13 +859,15 @@ static void test_pick(void)
 	CHECK(picks(170, 10, 240, 4, UI_THEME_ID_PANELS, panels));	// 160 across
 	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 159 across
 	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_PANELS, ref));
-	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_PANELS, panels));	// 160 x 128, the compact layout
-	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_DEFAULT, def));
-	CHECK(picks(220, 0, 176, 4, UI_THEME_ID_PANELS, panels));
+	// 160 x 128, the compact layout, where the build has it (a panel that may be under 200 rows: GFX_MIN_ROWS)
+	const ui_theme_t *compact = GFX_MIN_ROWS < UI_TALL_PX ? panels : ref;
+	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_PANELS, compact));
+	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_DEFAULT, GFX_MIN_ROWS < UI_TALL_PX ? def : ref));
+	CHECK(picks(220, 0, 176, 4, UI_THEME_ID_PANELS, compact));
 	CHECK(picks(160, 0, 127, 4, UI_THEME_ID_PANELS, ref));		// 127 high
 	CHECK(picks(161, 2, 128, 4, UI_THEME_ID_PANELS, ref));		// 159 across
 	CHECK(picks_on(inset_panel(160, 120, 5, 0, 4), UI_THEME_ID_PANELS, ref));	// 150 x 120
-	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, panels));	// any height from 128
+	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, panels));	// any height from 128 (200: the full layout)
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 1), UI_THEME_ID_PANELS, ref));
 	CHECK(picks(128, 0, 64, 1, UI_THEME_ID_PANELS, ref));
@@ -881,8 +883,9 @@ static void test_pick(void)
 	// reference theme, panels built in either way
 	bool starts = CONFIG_UI_THEME_DEFAULT != UI_THEME_ID_REFERENCE;
 	CHECK(name_first_on(320, 10, 240, 4) == starts && name_first_on(320, 0, 240, 4) == starts &&
-	      name_first_on(220, 0, 310, 4) == starts && name_first_on(220, 0, 176, 4) == starts &&
-	      name_first_on(160, 0, 128, 4) == starts);
+	      name_first_on(220, 0, 310, 4) == starts &&
+	      name_first_on(220, 0, 176, 4) == (starts && GFX_MIN_ROWS < UI_TALL_PX) &&
+	      name_first_on(160, 0, 128, 4) == (starts && GFX_MIN_ROWS < UI_TALL_PX));
 	CHECK(!name_first_on(159, 0, 240, 4) && !name_first_on(160, 0, 127, 4) && !name_first_on(320, 0, 240, 1));
 	CHECK(ui_theme_use(&ui_theme_panels) && !ui_theme_has(UI_THEME_OPT_PALETTE) &&
 	      ui_theme_has(UI_THEME_OPT_DAY_NIGHT));
@@ -1600,6 +1603,7 @@ static void test_panels_frames(void)
 	test_compact_call(false);
 #endif
 	test_compact_grids(false);
+#if GFX_MIN_ROWS < UI_TALL_PX
 	// The 160 x 128 panel: the compact layout
 	hal_display_t compact = { .width = 160, .height = 128, .bpp = 4, .init = d_init, .flush = d_flush,
 		.flush_indexed = d_flush_indexed, .set_backlight = d_backlight };
@@ -1625,6 +1629,7 @@ static void test_panels_frames(void)
 	ui_draw_home(&view, &state);
 	CHECK(find_text("FM") >= 0 && text_with("Nov") < 0);
 	base();
+#endif
 	ui_theme_use(&ui_theme_reference);
 	CHECK(gfx_init(&disp));
 	ui_layout_init();

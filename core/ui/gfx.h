@@ -23,6 +23,12 @@
 #ifndef GFX_MAX_ROWS
 #define GFX_MAX_ROWS	160u
 #endif
+// The fewest rows the build's panel can have: 0 where the board finds its panel at start-up and it may be any size up
+// to GFX_MAX_ROWS. A board with one panel size sets it, so code for shorter displays can be left out (the panels
+// theme's compact layout, under 200 rows)
+#ifndef GFX_MIN_ROWS
+#define GFX_MIN_ROWS	0u
+#endif
 // The 16-color frame buffer (bpp 4): only boards with such a panel build it (the palette and its code)
 #ifndef GFX_INDEXED
 #define GFX_INDEXED	0

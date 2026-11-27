@@ -45,10 +45,12 @@ static const panels_metrics_t panels_full = { 29, 2, 10, 12, 10, 4, 32, 2, 11, 3
 static const panels_metrics_t panels_compact = { 18, 1, 6, 8, 7, 2, 18, 1, 6, 1, 0, 6, 18, 1, 3, 8, 2 };
 
 // The compact layout: on a display under UI_TALL_PX high, and always in a build whose frame buffer has fewer rows
-// (GFX_MAX_ROWS), which then leaves the full layout's code and icons out
+// (GFX_MAX_ROWS), which then leaves the full layout's code and icons out; never in a build whose panel has at least
+// that many (GFX_MIN_ROWS), which leaves the compact one's out
+#define PANELS_COMPACT_BUILT	(GFX_MIN_ROWS < UI_TALL_PX)
 static bool panels_small(void)
 {
-	return GFX_MAX_ROWS < UI_TALL_PX || gfx_height() < UI_TALL_PX;
+	return GFX_MAX_ROWS < UI_TALL_PX || (PANELS_COMPACT_BUILT && gfx_height() < UI_TALL_PX);
 }
 
 static const panels_metrics_t *panels_m(void)
@@ -96,10 +98,11 @@ static void panels_colors(ui_colors_t *c, uint8_t palette)
 }
 
 // A color display (monochrome has no color for the panes) with a drawable area of at least 160 x 128: three list rows
-// under the strip, the title and the soft key bar in the compact layout
+// under the strip, the title and the soft key bar in the compact layout, where the build has it
 static bool panels_fits(void)
 {
-	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 160 && gfx_height() >= 128;
+	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 160 && gfx_height() >= 128 &&
+		(PANELS_COMPACT_BUILT || gfx_height() >= UI_TALL_PX);
 }
 
 typedef struct { int x, y, scale; } panels_mark_pos_t;
