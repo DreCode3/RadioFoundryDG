@@ -747,12 +747,13 @@ uiThemeTestPanels: uiThemeTest.c $(UI) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(COR
 	      -DGFX_MAX_ROWS=320u -DCONFIG_NET_WEBCTL=1 -DCONFIG_UI_THEME_PANELS=1 -DGFX_FIT_TRACE -o $@ uiThemeTest.c $(UI)
 # ... with the original theme as the build's default (CONFIG_UI_THEME_DEFAULT=1, a board whose display holds panels but
 # starts in the original look): the default picks it, and a radio starts with Talkgroup name first off. Its panel has
-# 320 rows at least (GFX_MIN_ROWS): no compact layout, so panels doesn't fit a display under 200 px high
+# 320 rows at least (GFX_MIN_ROWS): no compact layout, so panels doesn't fit a display under 200 px high. Its original
+# look keeps the bitmap fonts, the anti-aliased ones panels' only (FONT_AA_THEME_ONLY)
 TESTS   += uiThemeTestPanelsOriginal
 uiThemeTestPanelsOriginal: uiThemeTest.c $(UI) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(CORE)/ui/themes/*/*.h $(CORE)/ui/fonts/*.inc)
 	$(CC) $(CFLAGS) -fsanitize=address -fno-omit-frame-pointer -I$(ROOT)/hal -Iout/gen -Wshadow -DGFX_INDEXED=1 \
 	      -DGFX_MAX_ROWS=320u -DGFX_MIN_ROWS=320u -DCONFIG_NET_WEBCTL=1 -DCONFIG_UI_THEME_PANELS=1 \
-	      -DCONFIG_UI_THEME_DEFAULT=1 -DGFX_FIT_TRACE \
+	      -DCONFIG_UI_THEME_DEFAULT=1 -DFONT_AA_THEME_ONLY -DGFX_FIT_TRACE \
 	      -o $@ uiThemeTest.c $(UI)
 
 # The frame buffer's last bytes with a GFX_FB_BYTES that is not a multiple of 4 (the DM-32UV's, sized from its insets):

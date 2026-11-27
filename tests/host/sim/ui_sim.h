@@ -17,7 +17,8 @@ typedef struct {
 	uint8_t bpp;
 	uint8_t inset;		// left and right
 	uint8_t inset_tb;	// top and bottom
-	bool aa;		// anti-aliased fonts: the radio is built with CONFIG_FONT_AA
+	bool aa;		// anti-aliased fonts in the original look: the radio is built with CONFIG_FONT_AA for both looks
+				// (the panels theme draws them always)
 	bool big;		// lists and labels one size up: the radio is built with CONFIG_FONT_BIG
 	bool safe;		// the frame buffer holds the safe area only, as the radio builds it (hal_display_t fb_safe_area)
 	uint8_t inset_right;	// extra inset on the right only

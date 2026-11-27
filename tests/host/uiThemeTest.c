@@ -1836,6 +1836,22 @@ static void test_panels_frames(void)
 }
 #endif
 
+#if CONFIG_UI_THEME_PANELS && defined(FONT_AA_THEME_ONLY)
+// A board whose original look keeps the bitmap fonts while panels draws the anti-aliased ones (font.h
+// FONT_AA_THEME_ONLY, uiThemeTestPanelsOriginal): on one display, each theme's layout has its own set
+static void test_theme_fonts(void)
+{
+	CHECK(gfx_init(&panel));
+	CHECK(ui_theme_use(&ui_theme_reference));
+	CHECK(ui_layout.small->bpp == 1 && ui_layout.medium->bpp == 1 && ui_layout.large->bpp == 1);
+	CHECK(ui_theme_use(&ui_theme_panels));
+	CHECK(ui_layout.small->bpp == 2 && ui_layout.medium == &font_aa_12x24 && font_aa_12x24.bpp == 2);
+	ui_theme_use(&ui_theme_reference);
+	CHECK(gfx_init(&disp));
+	ui_layout_init();
+}
+#endif
+
 #if CONFIG_UI_THEME_PANELS	// ui_wrap_line is external only with a theme of its own (UI_THEME_SHARED)
 // Word wrap never starts a line with the ':', ';', '?' or '!' French writes after a space: the word before it moves down
 // too. Any other space still breaks, and a line still fills to its width
@@ -1883,6 +1899,9 @@ int main(void)
 #if CONFIG_UI_THEME_PANELS
 	test_panels_frames();
 	test_wrap_keeps_punctuation_on_its_word();
+#endif
+#if CONFIG_UI_THEME_PANELS && defined(FONT_AA_THEME_ONLY)
+	test_theme_fonts();
 #endif
 	ui_layout_init();
 

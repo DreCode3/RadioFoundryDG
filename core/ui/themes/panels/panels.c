@@ -2269,7 +2269,7 @@ static void panels_banner(const ui_state_t *s)
 // are smaller there
 static void panels_layout(ui_layout_t *L)
 {
-	ui_layout_fonts(L);
+	ui_layout_fonts(L, true);	// the anti-aliased glyphs, also where the original look keeps the bitmap ones
 	if (panels_small()) {
 		L->tiny = L->small = L->medium = &font_aa_8x16;
 		L->large = &font_aa_12x24;

@@ -25,7 +25,9 @@ FONT(font_5x8, spleen_5x8, SPLEEN_5X8, 1);
 #include "fonts/jbmono_16x32.inc"
 #endif
 #ifdef FONT_BOTH
+#ifndef FONT_AA_THEME_ONLY
 bool font_aa_on = true;
+#endif
 #if CONFIG_FONT_BIG
 bool font_big_on = true;
 #endif

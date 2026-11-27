@@ -154,7 +154,7 @@ extern const ui_theme_t ui_theme_panels;
 // reference theme alone they stay static there, so the compiler keeps inlining them where no LTO runs
 #if CONFIG_UI_THEME_PANELS
 #define UI_THEME_SHARED
-void ui_layout_fonts(ui_layout_t *L);			// the reference theme's fonts by display class
+void ui_layout_fonts(ui_layout_t *L, bool theme_aa);	// the reference theme's fonts by display class
 // Home's regions and the list rows under a strip strip_h high, above the bottom row at hint_y
 void ui_layout_regions(ui_layout_t *L, int strip_h, int hint_y);
 uint8_t ui_rssi_bars(int16_t dbm);			// signal bars, 0-4

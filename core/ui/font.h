@@ -55,9 +55,17 @@ extern const font_t font_16x32;
 #endif
 // CONFIG_FONT_AA: the sizes from 6x12 up are anti-aliased, for color panels. A firmware build links only those (the
 // font_NxM names are them); the host simulator (FONT_BOTH) keeps both sets for its mono display class and picks the
-// font_aa_ ones on color panels. Otherwise font_aa_ names the same font as font_
+// font_aa_ ones on color panels. Otherwise font_aa_ names the same font as font_. A board whose original look keeps
+// the bitmap fonts while a theme of its own draws the anti-aliased ones (FONT_AA_THEME_ONLY, with CONFIG_FONT_AA for
+// that theme) links both sets too, the original look's fixed on the bitmap ones (ui_layout_fonts)
+#if CONFIG_FONT_AA && defined(FONT_AA_THEME_ONLY) && !defined(FONT_BOTH)
+#define FONT_BOTH
+#define font_aa_on	false
+#endif
 #if CONFIG_FONT_AA && defined(FONT_BOTH)
-extern bool font_aa_on;		// the simulator's switch: a display class whose radio is built without FONT_AA
+#ifndef FONT_AA_THEME_ONLY
+extern bool font_aa_on;		// the simulator's switch: a display class whose original look is built without FONT_AA
+#endif
 extern const font_t font_aa_6x12, font_aa_8x16, font_aa_12x24;
 #if CONFIG_FONT_BIG
 extern bool font_big_on;	// the simulator's switch: a display class whose radio is built without FONT_BIG

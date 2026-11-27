@@ -187,8 +187,9 @@ UI_THEME_SHARED void ui_layout_regions(ui_layout_t *L, int strip_h, int hint_y)
 	L->row_h = L->small->h + (w >= 220 && tall ? 6 : tall ? 3 : h >= 100 ? 1 : 0);
 }
 
-// The reference theme's fonts by display class
-UI_THEME_SHARED void ui_layout_fonts(ui_layout_t *L)
+// The reference theme's fonts by display class. aa: the theme draws the anti-aliased fonts wherever the build has them,
+// also in a build whose original look keeps the bitmap ones (font.h FONT_AA_THEME_ONLY)
+UI_THEME_SHARED void ui_layout_fonts(ui_layout_t *L, bool theme_aa)
 {
 	int w = gfx_width(), h = gfx_height();
 
@@ -199,7 +200,9 @@ UI_THEME_SHARED void ui_layout_fonts(ui_layout_t *L)
 	// Anti-aliased fonts on color panels (CONFIG_FONT_AA, font.h); a mono panel keeps the bitmap ones
 	bool aa = gfx_bpp() != 1;
 #if CONFIG_FONT_AA && defined(FONT_BOTH)
-	aa = aa && font_aa_on;
+	aa = aa && (font_aa_on || theme_aa);
+#else
+	(void)theme_aa;
 #endif
 	const font_t *f6 = aa ? &font_aa_6x12 : &font_6x12, *f8 = aa ? &font_aa_8x16 : &font_8x16;
 	const font_t *f12 = aa ? &font_aa_12x24 : &font_12x24;
@@ -248,7 +251,7 @@ UI_THEME_SHARED void ui_layout_fonts(ui_layout_t *L)
 // ... and its regions: a pixel between the status strip and what is below it, the bottom row one line high
 static void reference_layout(ui_layout_t *L)
 {
-	ui_layout_fonts(L);
+	ui_layout_fonts(L, false);
 	ui_layout_regions(L, L->small->h + 1, gfx_height() - L->small->h);
 }
 
