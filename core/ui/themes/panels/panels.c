@@ -68,10 +68,11 @@ static void panels_colors(ui_colors_t *c, uint8_t palette)
 	panels_gutter = panels_extra_colors[palette].gutter;
 }
 
-// A color display 240 px high with room across for the status strip's marks and the caller line
+// A color display (monochrome has no color for the panes) with a drawable area of at least 160 x 128: three list rows
+// under the strip, the title and the soft key bar. The layout below 240 px high isn't written yet, so 240 px high too
 static bool panels_fits(void)
 {
-	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 310 && gfx_height() == 240;
+	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 160 && gfx_height() >= 128 && gfx_height() >= 240;
 }
 
 typedef struct { int x, y, scale; } panels_mark_pos_t;

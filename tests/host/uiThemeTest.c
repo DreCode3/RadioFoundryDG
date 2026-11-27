@@ -797,15 +797,32 @@ static void test_geometry_bounds(void)
 
 // The theme for a display: the one numbered where the build has it and it fits, else the build's default where that
 // fits, else the reference theme, which fits every display. The test's own themes are in no build's list
-static bool picks(int w, int inset_right, int h, uint8_t bpp, uint8_t id, const ui_theme_t *want)
+static bool picks_on(hal_display_t d, uint8_t id, const ui_theme_t *want)
 {
-	hal_display_t d = disp;
-	d.width = (uint16_t)w; d.height = (uint16_t)h; d.inset_right = (uint8_t)inset_right; d.bpp = bpp;
 	d.flush_indexed = d_flush_indexed;
 	bool ok = gfx_init(&d) && ui_theme_pick(id) == want;
 	CHECK(gfx_init(&disp));
 	return ok;
 }
+
+static bool picks(int w, int inset_right, int h, uint8_t bpp, uint8_t id, const ui_theme_t *want)
+{
+	hal_display_t d = disp;
+	d.width = (uint16_t)w; d.height = (uint16_t)h; d.inset_right = (uint8_t)inset_right; d.bpp = bpp;
+	return picks_on(d, id, want);
+}
+
+#if CONFIG_UI_THEME_PANELS
+// A panel behind a bezel that hides lr px left and right and tb px top and bottom
+static hal_display_t inset_panel(int w, int h, int lr, int tb, uint8_t bpp)
+{
+	hal_display_t d = disp;
+	d.width = (uint16_t)w; d.height = (uint16_t)h; d.bpp = bpp;
+	d.inset_left = d.inset_right = (uint8_t)lr;
+	d.inset_top = d.inset_bottom = (uint8_t)tb;
+	return d;
+}
+#endif
 
 #if CONFIG_UI_THEME_PANELS
 // Talkgroup name first's start on this display: the theme a reset radio starts in declares it or not
@@ -829,16 +846,24 @@ static void test_pick(void)
 	CHECK(picks(W, 0, H, 16, 200, ref));			// a number from a later build
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_REFERENCE, ref));
 #if CONFIG_UI_THEME_PANELS
-	// 310 drawable pixels across (the panel less its inset), 240 high, in color
+	// A color display with at least 160 x 128 to draw on (the panel less its insets), and 240 high while the layout below
+	// that isn't written
 	const ui_theme_t *panels = &ui_theme_panels;
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_DEFAULT, panels));	// the build's default
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_PANELS, panels));
 	CHECK(picks(320, 10, 240, 4, 200, panels));
 	CHECK(picks(320, 0, 240, 4, UI_THEME_ID_DEFAULT, panels));
-	CHECK(picks(320, 11, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 309 across
-	CHECK(picks(320, 11, 240, 4, UI_THEME_ID_PANELS, ref));
+	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_DEFAULT, panels));	// 220 x 310
+	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_PANELS, panels));
+	CHECK(picks(170, 10, 240, 4, UI_THEME_ID_PANELS, panels));	// 160 across
+	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 159 across
+	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_PANELS, ref));
+	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_PANELS, ref));		// 160 x 128: under 240 high, for now
+	CHECK(picks_on(inset_panel(160, 120, 5, 0, 4), UI_THEME_ID_PANELS, ref));	// 150 x 120
 	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, ref));		// not 240 high
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
+	CHECK(picks_on(inset_panel(240, 320, 10, 5, 1), UI_THEME_ID_PANELS, ref));
+	CHECK(picks(128, 0, 64, 1, UI_THEME_ID_PANELS, ref));
 	// Its palettes are Day and Night, with nothing past them: a palette out of range is Day
 	CHECK(ui_theme_panels.palette_count == 2 && ui_theme_panels.id == UI_THEME_ID_PANELS);
 	// Its appearance options: Day/Night, the Home layout and the GPS clock, none of the reference theme's; and the
@@ -849,8 +874,9 @@ static void test_pick(void)
 	CHECK(!(ui_theme_reference.options & UI_THEME_OPT_NAME_FIRST));
 	// So a radio starts with it on where its display picks panels for the build's default, off where it picks the
 	// reference theme, panels built in either way
-	CHECK(name_first_on(320, 10, 240, 4) && name_first_on(320, 0, 240, 4));
-	CHECK(!name_first_on(320, 11, 240, 4) && !name_first_on(220, 0, 176, 4) && !name_first_on(320, 0, 240, 1));
+	CHECK(name_first_on(320, 10, 240, 4) && name_first_on(320, 0, 240, 4) && name_first_on(220, 0, 310, 4));
+	CHECK(!name_first_on(159, 0, 240, 4) && !name_first_on(220, 0, 176, 4) && !name_first_on(320, 0, 240, 1) &&
+	      !name_first_on(160, 0, 128, 4));
 	CHECK(ui_theme_use(&ui_theme_panels) && !ui_theme_has(UI_THEME_OPT_PALETTE) &&
 	      ui_theme_has(UI_THEME_OPT_DAY_NIGHT));
 	ui_theme_use(&ui_theme_reference);
