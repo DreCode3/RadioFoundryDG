@@ -39,7 +39,11 @@ ARCH=$(uname -m)
 
 say "Base packages"
 export DEBIAN_FRONTEND=noninteractive
+# A container template can ship libraries from a phased update (zlib1g, libc6) that apt in the container then holds
+# back, so their -dev packages and every compiler fail with "unmet dependencies". Take phased updates as published.
+APT=(apt-get -o APT::Get::Always-Include-Phased-Updates=true)
 apt-get update -q
+"${APT[@]}" -y -q full-upgrade
 PKGS=(
 	build-essential make gcc g++ clang lld llvm gdb-multiarch pkg-config zlib1g-dev
 	git curl ca-certificates gnupg sudo xz-utils unzip jq ripgrep tmux
@@ -48,9 +52,9 @@ PKGS=(
 )
 # tools/build-csky-toolchain.sh's prerequisites (its header lists them)
 if [ "$WITH_CSKY" = 1 ]; then PKGS+=(libgmp-dev libmpfr-dev libmpc-dev libisl-dev texinfo bison flex); fi
-apt-get install -y -q "${PKGS[@]}"
+"${APT[@]}" install -y -q "${PKGS[@]}"
 # GitHub's CLI is in Ubuntu's universe component, which a minimal container image may lack
-apt-get install -y -q gh || warn "gh not installed: enable the universe component, or install it from cli.github.com"
+"${APT[@]}" install -y -q gh || warn "gh not installed: enable the universe component, or install it from cli.github.com"
 
 say "Node.js $NODE_MAJOR (for Codex)"
 if ! command -v node >/dev/null || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt "$NODE_MAJOR" ]; then
@@ -60,7 +64,7 @@ if ! command -v node >/dev/null || [ "$(node -p 'process.versions.node.split("."
 	echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR}.x nodistro main" \
 		> /etc/apt/sources.list.d/nodesource.list
 	apt-get update -q
-	apt-get install -y -q nodejs
+	"${APT[@]}" install -y -q nodejs
 fi
 node --version
 
