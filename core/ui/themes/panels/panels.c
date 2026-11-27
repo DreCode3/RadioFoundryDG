@@ -1456,8 +1456,8 @@ static void panels_home(const radio_view_t *v, const ui_state_t *s)
 // receiving indication only), a refused PTT's reason centered. Commercial names the talk target where the channel
 // number would be
 static const ui_dual_style_t panels_dual[] = {
-	{ .inset = 12, .deny_margin = 15, .target_label = true },	// Commercial
-	{ .inset = 12, .deny_margin = 15 },				// Amateur
+	{ .inset = 12, .deny_margin = 15, .target_label = true, .fallback = true },	// Commercial
+	{ .inset = 12, .deny_margin = 15, .fallback = true },				// Amateur
 };
 
 static void panels_home_dual(const radio_view_t *v, const ui_state_t *s)

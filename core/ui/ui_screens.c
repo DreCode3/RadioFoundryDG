@@ -2797,11 +2797,21 @@ static const ui_dual_style_t *dual_style = &dual_reference;
 #define DUAL_INSET()		dual_style->inset
 #define DUAL_TARGET_LABEL()	dual_style->target_label
 #define DUAL_CALLS()		dual_style->calls
+#define DUAL_FALLBACK()		dual_style->fallback
 #else
 #define DUAL_INSET()		0
 #define DUAL_TARGET_LABEL()	false
 #define DUAL_CALLS()		true
+#define DUAL_FALLBACK()		false
 #endif
+
+// The font for text in f within room: f, or 8x16 where the style falls back to it and only it holds the text whole
+static const font_t *dual_fit_font(const font_t *f, const char *text, int room)
+{
+	if (DUAL_FALLBACK() && gfx_text_width(f, text) > room && gfx_text_width(&font_aa_8x16, text) <= room)
+		return &font_aa_8x16;
+	return f;
+}
 
 static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, int h, int pad, const dual_fit_t *ft)
 {
@@ -2905,8 +2915,9 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 		sb_init(&b, buf, sizeof buf);
 		sb_freq(&b, v->ch.tx_hz);
 	}
-	gfx_text_fit(f, buf, rx_end - x, fit, sizeof fit);
-	x = gfx_text(f, x, base - f->ascent, fit, entry ? ui_col.warn : tx && p->vfo ? ui_col.tx : rx ? ui_col.rx : fg);
+	const font_t *nff = dual_fit_font(f, buf, rx_end - x);	// on the names' baseline
+	gfx_text_fit(nff, buf, rx_end - x, fit, sizeof fit);
+	x = gfx_text(nff, x, base - nff->ascent, fit, entry ? ui_col.warn : tx && p->vfo ? ui_col.tx : rx ? ui_col.rx : fg);
 	if (p->vfo && x + sm->w / 2 + gfx_text_width(sm, "MHz") <= rx_end) {
 		gfx_text(sm, x + sm->w / 2, base - sm->ascent, "MHz", ui_col.dim);
 		x += sm->w / 2 + gfx_text_width(sm, "MHz");
@@ -2996,8 +3007,9 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 		if (nx < w)
 			r2 = nx - sm->w;
 	}
-	gfx_text_fit(tf, buf, r2 - x0, fit, sizeof fit);
-	gfx_text(tf, x0, y2, fit, c2);
+	const font_t *tff = dual_fit_font(tf, buf, r2 - x0);	// on the row's baseline
+	gfx_text_fit(tff, buf, r2 - x0, fit, sizeof fit);
+	gfx_text(tff, x0, y2 + tf->ascent - tff->ascent, fit, c2);
 
 	// Row 3: the frequency and the chips, the zone at the right (B may be in another zone than A)
 	if (ft->detail != NULL) {

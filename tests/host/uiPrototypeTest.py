@@ -936,6 +936,9 @@ class PrototypeTest(unittest.TestCase):
         # Display profile's row takes its short form beside its value; the GD-88 keeps the long one
         self.run_script(panels + "ok 8 1 expect:shows=Profile expect:hides=Display_p expect:shows=Commercial "
                         "expect:layout=0", narrow)
+        # Dual watch: a pane's line that 12x24 would cut takes 8x16, whole
+        self.run_script(panels + "quick 7 wait:3000 expect:shows=County_fire expect:shows=Local_repeaters "
+                        "expect:layout=0", narrow)
 
     def test_gui_switch_keeps_channel_and_display_preferences(self):
         self.run_script(

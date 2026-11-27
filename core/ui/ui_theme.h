@@ -139,6 +139,7 @@ typedef struct {
 	uint8_t deny_margin;	// 0: a refused PTT is an activity line; else its reason centered, this far from the edges
 	bool target_label;	// row 2 is the talk target's label and row 1 has no channel number; a call shows its alias
 	bool calls;		// the calls heard, listed under the activity
+	bool fallback;		// a name or row 2 its font cuts takes 8x16 where that holds it whole (a narrow screen)
 } ui_dual_style_t;
 #endif
 #if CONFIG_UI_THEME_PANELS
