@@ -584,7 +584,10 @@ voltage, so nothing warns about it.
 
 ### DB25-D PRO display
 
-A 1.77" color screen, 160 x 128.
+A 1.77" color screen, 160 x 128, with smooth (anti-aliased) text. The radio starts in the Original look. The Panels
+look, with the [Commercial and Amateur display profiles](06-home-screen.md#commercial-and-amateur-home), is in
+[Settings > Display > Theme](17-settings.md#display-key-1); on this screen it shows 3 or 4 list rows, Menu tiles with
+their icon and number, and no GPS clock.
 
 There is no volume knob. Press **VOL/SQL**, turn the front knob (or press Up and Down) to set the volume from 0 (mute)
 to 16, and press OK or Back, or wait 3 seconds, to close it. The screen shows the step as a large number over a bar of

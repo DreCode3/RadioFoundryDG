@@ -68,6 +68,11 @@ CONFIG_AM_RX ?= n
 CONFIG_VOX ?= n
 # 160x128 like the other 160x128 radios, which build without the large font
 CONFIG_FONT_XL ?= n
+# The panels theme's compact layout fits the 160x128 panel: Settings > Display > Theme offers it, and the radio starts
+# in the original look. The anti-aliased fonts draw both looks (about 6 KB)
+CONFIG_UI_THEME_PANELS ?= $(CONFIG_UI_COLOR)
+CONFIG_UI_THEME_DEFAULT ?= 1
+CONFIG_FONT_AA ?= y
 # What the radio's hardware can't do, one switch per line with the reason (tools/boards.py checks there is one;
 # docs/build-config.md, "Unsupported, not written, unconfirmed"): ci's maximal configuration leaves these off. USB
 # and USB_NETWORK are in the platform's list.
