@@ -184,6 +184,18 @@ Testing is sized to the risk, not exhaustive (the user wants safe, not past dimi
 
 Only defects and real latent risks block approval. Test gaps and nits are logged and carried into the next step.
 
+Decided Nov 26, after step 4 took a review and four re-reviews (the user: ensure correctness, but no time or
+resources spent on diminishing returns):
+
+- **One QA review per step, and at most one re-review**, limited to the fixes and the lines they touched. Anything QA
+  finds outside them is logged, not blocking.
+- **A small fix after approval gets one check of that fix only**: it fixes the defect, its test fails without it, and
+  nothing nearby broke (reference renders 0 differ, builds clean). Claude may run that check itself.
+- **What doesn't block:** wording in languages that aren't a board's default (logged for native speakers), test gaps
+  for behavior the renders show working, and nits.
+- **Per-commit checks stay as in the table above.** The layout pass in four languages and four variants runs once, at
+  the end of a step, not on every commit.
+
 ## Order of work
 
 1. Discussion post (draft ready).
