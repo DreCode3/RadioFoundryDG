@@ -405,6 +405,11 @@ resources spent on diminishing returns):
    - QA review of step 7 at `6acb11a3` ([report](reports/theme-step7-review.md)): not approved. Blocking: B1, the
      compact trunked / SFR Home overlaps (it goes through the reference Home); B2, English cuts in the middle and
      overflow at the MD-380's real 158 x 127, which no sim class covered.
+   - QA fixes `edee0597..9fc4314a` (B1, B2, the fit rule from 220 x 200, the 210 x 176 class, the two decisions
+     below, `ui_list_bar`, four tests; the compact trunked call keeps WAITING / ADMITTED). **Step 7 QA-approved at
+     `9fc4314a`** on the one re-review ([report](reports/theme-step7-rereview.md)). Logged: at 158 x 127 the
+     shared last-heard line cuts a name in the middle after a call ("Q1AB…Joe"); the MD-380's 548-word UI stack
+     override may be more than panels needs (324 B free), for the storage pass.
    - Decided Nov 27 (user), after QA: on a narrow screen the Settings page's tiles put the icon above the label, as
      the Menu tiles do, so the label gets the tile's width on up to two lines (no new words; the GD-88 keeps its
      layout). On the MD-380 and DB25-D the original look keeps its bitmap fonts; only panels draws the `FONT_AA`
