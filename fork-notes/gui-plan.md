@@ -319,11 +319,12 @@ resources spent on diminishing returns):
      blocking findings. Cost against `d51930b7`: GD-88 -1832 B flash, RAM and UI stack unchanged; panels=n 0 B. Not
      run: `tools/ci.sh`, `reuse lint`, HIL, on air.
    - Logged, not blocking: no test reaches the clock's move into Home's mode bar any more (a crowd with
-     `rxonly:on pttdown` does); the 12x24 placement fix (`934d80c5`) has no test of its own; the key under the red
-     slash is drawn dim, not full ink; the Chinese locked sentence is left-aligned on the bar (older than step 5);
+     `rxonly:on pttdown` does); the 12x24 placement fix (`934d80c5`) has no test of its own; the Chinese locked sentence is left-aligned on the bar (older than step 5);
      `panels.c:383`'s comment is stale. Flash sizes on this toolchain change with the build path's length: compare
      sizes from paths of equal length.
      - Logged by the design pass for the build: two roaming animation frames reach the strip pane's outer rows.
+5b. Cleanup before the freeze (the user, Nov 26): fix the low-priority issues logged in steps 4 and 5 and fill their
+   test gaps, one round and one check. The key under the red slash drawn dim is accepted as built.
 6. Freeze on the GD-88, then port to other display classes.
 
 ## Planned, not now
