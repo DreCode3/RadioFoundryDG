@@ -292,7 +292,7 @@ resources spent on diminishing returns):
        decorative tints.
      - **Pictures:**
        - Scan: the zigzag with an arrowhead that the strip already draws (`docs/spec/ui.md`), also on the Menu tile.
-       - Audio: a speaker. Zones: a folder. Receive & VFO: a tuning dial (a knob with a pointer), not an antenna
+       - Audio: headphones (a speaker would look too much like the strip's monitor mark). Zones: a folder. Receive & VFO: a tuning dial (a knob with a pointer), not an antenna
          with arcs.
        - Call settings: a handset. Connections: two opposite arrows. Radio info: an "i" in a circle.
        - The rest as in the proposal: contacts, messages, call log clock, location pin, settings gear, display,
