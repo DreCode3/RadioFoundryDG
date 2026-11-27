@@ -2167,8 +2167,9 @@ static int call_line(const font_t *f, int y, const char *text, color_t c)
 	return y + f->h;
 }
 
-// Receiving and Transmitting: the call takes the screen below the status strip
-static void draw_dmr_call(const radio_view_t *v, const ui_state_t *s)
+// Receiving and Transmitting: the call takes the screen below the status strip. compact: in the panels theme's compact
+// frame, without the bottom row (the theme draws its bar) and with a talker alias too long cut at its end
+static void draw_dmr_call(const radio_view_t *v, const ui_state_t *s, bool compact)
 {
 	const ui_layout_t *L = &ui_layout;
 	const radio_dmr_view_t *d = &v->dmr;
@@ -2236,8 +2237,9 @@ static void draw_dmr_call(const radio_view_t *v, const ui_state_t *s)
 			sb_mmss(&b, v->tot_s);
 		}
 		call_line(L->small, y, buf, ui_col.fg);
-		draw_hint(d->state == RDMR_TX_ENDING ? TR(CALL_HINT_FINISHING, "Finishing the call") :
-			TR(CALL_HINT_RELEASE_PTT, "Release PTT to stop"), 0, ui_home_soft_key(s));
+		if (!compact)
+			draw_hint(d->state == RDMR_TX_ENDING ? TR(CALL_HINT_FINISHING, "Finishing the call") :
+				TR(CALL_HINT_RELEASE_PTT, "Release PTT to stop"), 0, ui_home_soft_key(s));
 		return;
 	}
 
@@ -2275,7 +2277,7 @@ static void draw_dmr_call(const radio_view_t *v, const ui_state_t *s)
 		sb_str(&b, d->alias);
 		sb_chr(&b, '"');
 		int room = (L->hint_y - y) / L->small->h - 2;	// the talkgroup and signal lines stay
-		int n = wrap_lines(L->small, buf, w, room >= 2 ? 2 : 1, lines, false);
+		int n = wrap_lines(L->small, buf, w, room >= 2 ? 2 : 1, lines, compact);
 		for (int i = 0; i < n; i++)
 			y = call_line(L->small, y, lines[i], ui_col.fg);
 	}
@@ -2311,9 +2313,17 @@ static void draw_dmr_call(const radio_view_t *v, const ui_state_t *s)
 		gfx_text(L->small, w - tw, y, buf, ui_col.fg);
 		draw_meter(0, y + L->small->h / 4, w - tw - L->small->w, L->small->h / 2, dbm);
 	}
-	draw_hint(d->state == RDMR_RX_OTHER ? TR(CALL_HINT_MON_DMON, "MON: digital monitor") :
-		TR(HINT_PTT_REPLIES, "PTT replies"), 0, ui_home_soft_key(s));
+	if (!compact)
+		draw_hint(d->state == RDMR_RX_OTHER ? TR(CALL_HINT_MON_DMON, "MON: digital monitor") :
+			TR(HINT_PTT_REPLIES, "PTT replies"), 0, ui_home_soft_key(s));
 }
+
+#if CONFIG_UI_THEME_PANELS
+UI_THEME_SHARED void ui_reference_call_body(const radio_view_t *v, const ui_state_t *s)
+{
+	draw_dmr_call(v, s, true);
+}
+#endif
 #endif
 
 #if CONFIG_AIR
@@ -2665,7 +2675,7 @@ UI_THEME_SHARED void ui_reference_home(const radio_view_t *v, const ui_state_t *
 #if CONFIG_DMR
 	ui_st_dmr_off = s->dmr_off;
 	if (ui_dmr_call_screen(v)) {
-		draw_dmr_call(v, s);
+		draw_dmr_call(v, s, false);
 		ui_draw_banner(s);
 		if (s->toast != NULL)
 			ui_draw_hint(s->toast, true);

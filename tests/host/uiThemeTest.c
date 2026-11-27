@@ -1605,7 +1605,7 @@ static bool texts_apart(void)
 
 // Home on a channel whose body is the reference theme's (an SFR repeater here; trunked and unbuilt kinds go the same
 // way): its lines apart, the activity line under them. The compact layout has no hint line there either, its bar
-// "Menu", and a zone name too long beside the position is cut at its end; a call has this theme's Home and its lines
+// "Menu", and a zone name too long beside the position is cut at its end; a call has the reference call screen there
 static void test_compact_operational_home(bool compact)
 {
 	base();
@@ -1632,6 +1632,15 @@ static void test_compact_operational_home(bool compact)
 	ui_draw_home(&view, &state);
 	CHECKT(texts_apart() && find_text("Joe") >= 0 && text_with("TG 91") >= 0 &&
 	       (compact ? find_text("Menu") >= 0 && text_with("PTT") < 0 : true));
+	// Keying it: the call screen's transmit states (waiting for the grant, admitted) stay, under the bar
+	view.state = RS_TX;
+	view.dmr.target_id = 3100;
+	for (int k = 0; k < 2; k++) {
+		view.dmr.state = k ? RDMR_TX_PERMIT : RDMR_TX_WAIT;
+		ui_draw_home(&view, &state);
+		CHECKT(texts_apart() && find_text(k ? "ADMITTED" : "WAITING") >= 0 && text_with("3100") >= 0 &&
+		       (compact ? find_text("Menu") >= 0 && text_with("Release") < 0 : text_with("Release") >= 0));
+	}
 	base();
 }
 #endif

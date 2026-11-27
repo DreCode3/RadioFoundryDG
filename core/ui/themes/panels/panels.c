@@ -1638,33 +1638,37 @@ static int panels_row_h(void)
 // --- The theme ---
 
 // The compact layout's Home for a channel whose Home body is the reference theme's: this theme's strip and soft key
-// bar, no hint line (as its own Home), the body's regions down to the bar, a zone name cut at its end. noinline: its
-// caller's frame stays small
+// bar, no hint line (as its own Home), the body's regions down to the bar, a zone name cut at its end. A DMR call there
+// is the reference theme's call screen (its transmit states: waiting for the grant, admitted) in the same frame.
+// noinline: its caller's frame stays small
 static void __attribute__((noinline)) panels_home_operational(const radio_view_t *v, const ui_state_t *s)
 {
 	const char *hint = ui_home_hint(v, s);
 	int bottom = panels_home_bottom(s, hint);
-	gfx_clear(ui_col.bg);
-	ui_draw_top(v, s, NULL, NULL);
 	ui_layout_regions(&ui_layout, ui_layout.strip_h, s->volbar >= 0 ? panels_hint_top() : panels_footer_top());
-	ui_reference_home_body(v, s, true);
+#if CONFIG_DMR
+	if (ui_dmr_call_screen(v)) {
+		ui_reference_call_body(v, s);
+	} else
+#endif
+	{
+		gfx_clear(ui_col.bg);
+		ui_draw_top(v, s, NULL, NULL);
+		ui_reference_home_body(v, s, true);
+	}
 	ui_layout_regions(&ui_layout, ui_layout.strip_h, panels_hint_top());	// as panels_layout left them
 	panels_home_footer(s, hint, bottom);
 }
 
 // Home. A trunked or single-frequency repeater channel, or one of a kind this build lacks, keeps the reference theme's
-// Home body, drawn in this theme's strip, regions and footer (its top and bottom ops). In the compact layout the body
-// takes the hint row's room, and a DMR call has this theme's Home, its lines at the foot of the channel pane
+// Home body and call screen, drawn in this theme's strip, regions and footer (its top and bottom ops). In the compact
+// layout they take the hint row's room, under this theme's Home bar
 static void panels_home(const radio_view_t *v, const ui_state_t *s)
 {
 	if (!panels_operational_home(v))
 		panels_draw_home(v, s);
 	else if (!panels_small())
 		ui_reference_home(v, s);
-#if CONFIG_DMR
-	else if (ui_dmr_call_screen(v))
-		panels_draw_home(v, s);
-#endif
 	else
 		panels_home_operational(v, s);
 }

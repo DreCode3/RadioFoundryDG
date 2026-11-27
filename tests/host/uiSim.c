@@ -269,6 +269,8 @@ static const struct { const char *name, *script; } audit_extra[] = {
 	// Home on a channel whose body is the reference theme's in the panels theme: trunked, and an SFR repeater
 	{ "home_trunked", "t3 dlpos:3 wait:3000" },
 	{ "home_sfr", "sfrrpt" },
+	{ "home_trunked_waiting", "t3 dlpos:3 wait:3000 pttdown txstate:wait" },
+	{ "home_trunked_admitted", "t3 dlpos:3 wait:3000 pttdown txstate:permit" },
 };
 
 // Worst-case screens for --layout (they run with sim_worst on, as the gallery screens do a second time)

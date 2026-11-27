@@ -49,6 +49,7 @@
 //   chhz:<n>,<hz>       stored channel n is an FM channel on hz (the air band with "am": received in AM)
 //   hotspot:on|off      the host link enters / leaves hotspot mode
 //   sfrrpt              the DMR channel on view runs its SFR repeater role (until the channel changes)
+//   txstate:wait|permit|ending  while PTT is held on DMR (pttdown): waiting for the channel or grant, admitted, ending
 //   gps:fix|searching|off    simulated board GPS state
 //   gui:<mode>         choose original or prototype presentation on the profile geometry
 //   prototype:<state>   preview a Bluetooth, recording, D-STAR, encryption, or talkaround mark
@@ -3728,6 +3729,14 @@ static bool run_token(char *t, char *err, size_t len)
 		return true;
 	}
 #endif
+	if (strcmp(t, "txstate") == 0 && arg != NULL && view.state == RS_TX && view.dmr.active) {
+		// While PTT is held on DMR: wait (for the channel or a trunked grant), permit (admitted), ending
+		view.dmr.state = strcmp(arg, "wait") == 0 ? RDMR_TX_WAIT : strcmp(arg, "permit") == 0 ? RDMR_TX_PERMIT :
+			strcmp(arg, "ending") == 0 ? RDMR_TX_ENDING : RDMR_TX;
+		serial++;
+		advance(100);
+		return true;
+	}
 	if (strcmp(t, "sfrrpt") == 0 && view.ch.mode == RADIO_MODE_DMR) {
 		// The channel's SFR repeater role runs in place of the call stack (radio.h sfr_rpt), until the channel changes
 		view.dmr.sfr_rpt = true;

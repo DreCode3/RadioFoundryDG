@@ -200,6 +200,8 @@ void ui_reference_home(const radio_view_t *v, const ui_state_t *s);
 void ui_reference_home_body(const radio_view_t *v, const ui_state_t *s, bool end_cut);
 #if CONFIG_DMR
 bool ui_dmr_call_screen(const radio_view_t *v);		// a DMR call has Home: the reference theme draws its call screen
+// ... that screen with its strip and lines in ui_layout's regions, without its bottom row
+void ui_reference_call_body(const radio_view_t *v, const ui_state_t *s);
 #endif
 // The banner, if one is up, its lower edge at bottom (ui_screens.c has the details)
 void ui_banner_box(const ui_state_t *s, int bottom, int x0, int right_inset, color_t bg);
