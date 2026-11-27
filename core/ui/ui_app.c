@@ -1953,16 +1953,18 @@ static void list_draw(const ui_scr_def_t *d)
 	l.top = &f->top;
 	l.item = d->item;
 	l.empty = tr(d->empty);
+#if CONFIG_UI_THEME_PANELS
 	bool ok_acts = (d->flags & SF_OK_ACTS) != 0;
 	l.hint = (d->flags & SF_HINT_FN) ? d->hint_fn(&ok_acts) : tr(d->hint);
+#else
+	l.hint = (d->flags & SF_HINT_FN) ? d->hint_fn(NULL) : tr(d->hint);	// nothing reads ok_acts (UI_HINT_OK_ACTS)
+#endif
 	l.body = d->body != NULL ? d->body() : NULL;
 #if CONFIG_UI_THEME_PANELS
 	l.kind = f->scr == SCR_HUB ? UI_LIST_HUB : f->scr == SCR_SETTINGS ? UI_LIST_MENU : UI_LIST_PLAIN;
 	l.numbered = (d->flags & SF_NUMBERED) && !(d->flags & SF_FILTER);
 	l.ok_acts = ok_acts;
 	l.back_acts = (d->flags & SF_BACK_ACTS) != 0;
-#else
-	(void)ok_acts;
 #endif
 	if ((d->flags & SF_FILTER) && filter_keys[0]) {
 		sbuf_t b;

@@ -145,8 +145,12 @@ static void hub_item(uint16_t i, ui_item_t *it)
 		sb_str(&b, TEXT_ALT_NEXT TEXT_ALT_CLOSE);
 	} else if (e == HUB_SCAN) {
 		sb_str(&b, TEXT_ALT_OPEN);
+#if CONFIG_UI_THEME_PANELS
 		// Off in a word short enough for a tile (French: Arrêt, where the rows' Off is Désactivé)
 		sb_str(&b, ui_st.scanning || scan_dual() ? scan_menu_value() : TR(HUB_VALUE_OFF, "Off"));
+#else
+		sb_str(&b, scan_menu_value());	// rows only: the rows' word
+#endif
 		if (ui_st.scanning && !scan_dual()) {
 			sb_str(&b, TEXT_ALT_NEXT);
 			sb_str(&b, TR(VALUE_ON, "On"));
@@ -8280,10 +8284,10 @@ static const char *group_hint(bool *ok_acts)
 	const set_item_t *s = set_item_at(ui_frame()->focus);
 	if (s == NULL)
 		return TR(HINT_BACK, "Back");
-	*ok_acts = true;	// change, save: more than the list's usual open and choose
+	UI_HINT_OK_ACTS(ok_acts, true);	// change, save: more than the list's usual open and choose
 	switch (s->type) {
 	case ST_LIST:
-		*ok_acts = false;
+		UI_HINT_OK_ACTS(ok_acts, false);
 		return TR(HINT_OK_CHOOSE_BACK, "OK choose  Back");
 	case ST_NUMBER:
 		return set_editing ? TR(HINT_OK_SAVE_BACK_CANCEL, "OK save  Back cancel") :
@@ -8295,7 +8299,7 @@ static const char *group_hint(bool *ok_acts)
 		case SA_SAVE_GPS_POS: return TR(HINT_OK_SAVE_BACK, "OK save  Back");
 #endif
 		default:
-			*ok_acts = false;
+			UI_HINT_OK_ACTS(ok_acts, false);
 			return TR(HINT_OK_OPEN_BACK, "OK open  Back");
 		}
 	default: return TR(HINT_OK_CHANGE_BACK, "OK change  Back");

@@ -72,6 +72,12 @@ typedef enum {
 // (ui_list_t.ok_acts, back_acts)
 #define SF_OK_ACTS	0x80u
 #define SF_BACK_ACTS	0x100u
+// A hint_fn sets *ok_acts with it: only the panels theme reads it (ui_list_t.ok_acts), so without it nothing is set
+#if CONFIG_UI_THEME_PANELS
+#define UI_HINT_OK_ACTS(p, v)	(*(p) = (v))
+#else
+#define UI_HINT_OK_ACTS(p, v)	((void)(p))
+#endif
 
 typedef struct {
 	uint8_t scr;
