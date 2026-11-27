@@ -40,8 +40,8 @@ over another: battery, TX or NO TX, signal, mode, lock, encryption key, scan, mo
 GPS, IP, power, receive-only, VOX, Dual Watch, roaming. The words (the mode, TX, IP, RX, VOX) move to a smaller size
 before anything gives way. On Home, a GPS clock the status bar has no room for is shown in the mode bar.
 
-On a display under 200 px high, Home has no mode bar: its status bar shows the mode, as on every other screen. The
-two lines at the bottom of the channel area take room only while they have something to show, and then replace the
+On a display under 200 px high, Home has no mode bar and no hint row: its status bar shows the mode, as on every
+other screen, and the bottom bar keeps its two labels. The two lines at the bottom of the channel area take room only while they have something to show, and then replace the
 talk target and details lines. Lists show one more row when the hint row is off or has nothing to show, and the
 Menu's tiles show their icon and number, with the selected tile's name above them.
 

@@ -1426,11 +1426,12 @@ static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bot
 }
 
 // The flags of Home's bar: Menu on the left where OK opens it (ui_home_ok_menu), and its idle hint (s->home_hint)
-// starts with the menu's group; Hint row off leaves out the hints
+// starts with the menu's group; Hint row off leaves out the hints, and so does the compact layout, whose Home has no
+// hint line (its pane keeps the room, so Commercial and Amateur fit whole)
 static unsigned panels_home_bar(const ui_state_t *s, const char *hint)
 {
 	return (ui_home_ok_menu(s) ? PANELS_BAR_MENU : 0u) | (hint != NULL && hint == s->home_hint ? PANELS_BAR_IDLE : 0u) |
-		(s->hints ? 0u : UI_BAR_NO_HINTS);
+		(s->hints && !panels_small() ? 0u : UI_BAR_NO_HINTS);
 }
 
 // Where Home's channel pane ends: above the hint row where the bar has one, or the knob's volume bar while it shows

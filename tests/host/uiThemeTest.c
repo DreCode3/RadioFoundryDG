@@ -1498,8 +1498,10 @@ static void test_compact_home(bool compact)
 static void test_compact_call(bool compact)
 {
 	base();
-	state.hints = false;
 	state.volbar = -1;	// no volume bar: the pane runs to the bar
+	// Hint row on: the compact Home has no hint line ("* Quick"), so the layouts keep their room; the full one has it
+	ui_draw_home(&view, &state);
+	CHECKT(compact ? find_text("* Quick") < 0 && find_text("Menu") >= 0 : find_text("* Quick") >= 0);
 	state.gui_profile = 1;
 	view.ch.mode = RADIO_MODE_DMR;
 	view.ch.timeslot = 1;

@@ -787,8 +787,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   target line, where it shows one, has the name alone with it on and "TG 91 · World" with it off.
   The compact layout (a display under 200 px high, chosen by its measured height, `panels_small`): the status strip is
   18 px, its marks at 0.8x (the icons from the 16 px set on a 20 px canvas, `panels_icons.h`) and its words in 8x16;
-  6 px margins; rows and the soft key bar 18 px; every list, title, bar and hint in 8x16. Home has no mode bar: its strip
-  has the mode word. Its lines at the foot take room only while they have something to say (a call, what needs
+  6 px margins; rows and the soft key bar 18 px; every list, title, bar and hint in 8x16. Home has no mode bar (its strip
+  has the mode word) and no hint line. Its lines at the foot take room only while they have something to say (a call, what needs
   attention), and then the target and details rows go. The Menu and Quick keep the 3x3 keypad grid (Settings' first
   level its two columns): a Menu or Settings tile has its icon and digit, a Quick tile its value (arrows round it while
   it edits, where they fit), and the title row names the focused tile, with a Menu tile's value. A hidden or empty hint
