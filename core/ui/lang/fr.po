@@ -2225,7 +2225,7 @@ msgstr "{Système non configuré|Sans système}"
 #: core/ui/ui_menus.c
 msgctxt "SHARE_HINT_PREVIEW"
 msgid "OK or Back returns"
-msgstr "OK ou Retour pour revenir"
+msgstr "OK ou Retour pour sortir"
 
 #: core/ui/ui_menus.c
 msgctxt "SHARE_EMPTY_NO_ZONE_OFFER"
@@ -5615,7 +5615,7 @@ msgstr "URGENCE"
 #: core/ui/ui_screens.c
 msgctxt "EMERG_HINT"
 msgid "OK acknowledge  Back hide"
-msgstr "OK valider  Retour masquer"
+msgstr "OK valider  Retour cacher"
 
 #: core/ui/ui_screens.c
 msgctxt "VOL_LABEL_SHORT"
