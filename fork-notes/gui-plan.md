@@ -414,6 +414,14 @@ resources spent on diminishing returns):
      row's room back, no GPS clock), "Hold * to unlock", the 160x128-panels and 220x176-panels gallery sets, DB25-D
      panels selectable with FONT_AA. Follow-up (`f8ad4b94`..`b51b466e`): no hint line on the compact Home, the 158 x 127
      fit (MD-380 selectable with a 548-word UI stack; MD-UV380 off and in `MAXIMAL_SKIP`), the sliding focused row.
+   - Part C (Nov 27, `a7ae3db2`, not yet QA'd): upstream `main` merged (#957..#1185). The DB25-D's #769 sits on the
+     shared superhet layer (`at1141_level0`), the GD-88 links `plugptt`. 0 frames differ against `d3c0eb7a` (2571), nor
+     the GD-88's against the freeze (840). Open for the user: the maximal overflows (DM-1701 2,984 B, MD-UV380
+     4,244 B over; the branch costs +7,092 B against upstream `main` there, about 5 KB of it shared UI spread over
+     the menu tree, settings rows, text alternates and fit helpers, the rest `feature/gd88_bringup`'s debug link),
+     with no shrink found that keeps every frame; and the English short forms for the 160 px hints
+     (`../rf-port-out/partC/hint-short-forms.md`). Still logged: the native-speaker list and the zh manual's 8 pages
+     with a different heading count (step 5b).
 
 ## Planned, not now
 
