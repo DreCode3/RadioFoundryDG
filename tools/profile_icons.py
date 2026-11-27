@@ -148,12 +148,12 @@ def display(c):
     c.line([(7.5, 20), (16.5, 20)])
 
 
-def bell(c):
-    c.poly([(6.5, 16.5), (6.5, 10.5), (17.5, 10.5), (17.5, 16.5)])
-    c.disk(12, 10.5, 5.5)
-    c.rrect(4, 15.5, 20, 18, 1.2)
-    c.disk(12, 20.3, 1.9)
-    c.disk(12, 3.8, 1.4)
+def bell(c, dy=-0.4):	# 0.4 px up: the clapper ends inside the live area (row 21)
+    c.poly([(6.5, 16.5 + dy), (6.5, 10.5 + dy), (17.5, 10.5 + dy), (17.5, 16.5 + dy)])
+    c.disk(12, 10.5 + dy, 5.5)
+    c.rrect(4, 15.5 + dy, 20, 18 + dy, 1.2)
+    c.disk(12, 20.3 + dy, 1.9)
+    c.disk(12, 3.8 + dy, 1.4)
 
 
 def headphones(c):
@@ -264,9 +264,10 @@ def packed(cov, x0, y0, w, h):
 
 def scan_steps(x0, y0, w, h, cov):
     """Each inked pixel's step: 0..SCAN_STROKE_STEPS-1 along the stroke, SCAN_STROKE_STEPS on the arrowhead."""
-    head = Canvas()
+    head, stroke = Canvas(), Canvas()
     head.poly(SCAN_HEAD)
-    head_cov = head.coverage()
+    stroke.line(SCAN_PATH)
+    head_cov, stroke_cov = head.coverage(), stroke.coverage()
     lens = [math.dist(a, b) for a, b in zip(SCAN_PATH, SCAN_PATH[1:])]
     total = sum(lens)
 
@@ -287,7 +288,8 @@ def scan_steps(x0, y0, w, h, cov):
         for x in range(x0, x0 + w):
             if not cov[y][x]:
                 row.append(15)
-            elif head_cov[y][x] >= 2 and x + 0.5 >= SCAN_HEAD[1][0]:
+            elif head_cov[y][x] and head_cov[y][x] >= stroke_cov[y][x] and x + 0.5 >= SCAN_HEAD[1][0]:
+                # As much arrowhead as stroke, its faint edge included: it goes out with the arrowhead, no speck left
                 row.append(SCAN_STROKE_STEPS)
             else:
                 row.append(min(SCAN_STROKE_STEPS - 1, int(along(x + 0.5, y + 0.5) * SCAN_STROKE_STEPS / total)))
