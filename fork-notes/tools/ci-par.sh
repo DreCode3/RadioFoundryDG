@@ -10,7 +10,9 @@
 # runs every other step once (registry, host, bench, python, licenses, similarity; --no-checks leaves them out): the
 # host tests with Homebrew LLVM's clang on macOS (host-cc.sh, or RF_HOST_CC), whose AddressSanitizer works there.
 # The Python steps use the venv $RF_VENV (default ../rf-venv beside this checkout) when it exists.
-# OUT_DIR (default ../rf-ci-<short HEAD>) gets each run's ci.sh output, the size reports, the logs of the
+# Everything goes in one folder, $RF_WORK (default ../rf-work.noindex): Spotlight skips a folder named *.noindex, and
+# one path is all the backup and antivirus exclusions need. The lanes' worktrees are $RF_WORK/par-<short HEAD>-<n>.
+# OUT_DIR (default $RF_WORK/ci-<short HEAD>) gets each run's ci.sh output, the size reports, the logs of the
 # configurations that failed and summary.txt. Then the worktrees and their build trees go, also on Ctrl-C.
 # Exits 1 when anything failed. Builds HEAD: commit first, uncommitted changes are not in the worktrees.
 set -u
@@ -29,7 +31,9 @@ done
 MAIN=$(cd "$(git rev-parse --git-common-dir)/.." && pwd) || exit 2
 cd "$MAIN" || exit 2
 SHA=$(git rev-parse --short HEAD)
-OUT=${OUT:-$MAIN/../rf-ci-$SHA}
+WORK=${RF_WORK:-$MAIN/../rf-work.noindex}
+mkdir -p "$WORK" && WORK=$(cd "$WORK" && pwd) || exit 2
+OUT=${OUT:-$WORK/ci-$SHA}
 mkdir -p "$OUT" && OUT=$(cd "$OUT" && pwd) || exit 2
 rm -rf "$OUT/logs" "$OUT/.status"; mkdir -p "$OUT/logs" "$OUT/.status"
 NCPU=$(sysctl -n hw.ncpu 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
@@ -125,9 +129,8 @@ if [ $CHECKS = 1 ]; then
 fi
 
 # The lanes: worktrees made one at a time (git config and the worktree list are shared), then run together
-PARENT=$(cd "$MAIN/.." && pwd)
 for ((i = 0; i < LANES; i++)); do
-	w=$PARENT/rf-par-$SHA-$i
+	w=$WORK/par-$SHA-$i
 	git worktree remove --force "$w" 2>/dev/null; rm -rf "$w"
 	WTS+=("$w")
 	tools/worktree.sh add "$w" --detach HEAD >"$OUT/logs/worktree-$i.log" 2>&1 || { echo "ci-par: worktree $w failed (see $OUT/logs/worktree-$i.log)"; cleanup; exit 2; }

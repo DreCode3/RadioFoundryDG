@@ -117,7 +117,7 @@ rf-venv/bin/python3 -m pip install pytest pyserial numpy reuse
 runs the whole gate with the boards in parallel:
 
 ```bash
-fork-notes/tools/ci-par.sh                      # every board, output in ../rf-ci-<short HEAD>
+fork-notes/tools/ci-par.sh                      # every board, output in ../rf-work.noindex/ci-<short HEAD>
 fork-notes/tools/ci-par.sh -p 6 ../rf-ci-out    # 6 lanes
 fork-notes/tools/ci-par.sh --board dm1701,md380 --no-checks   # some boards, firmware only
 ```
@@ -139,7 +139,7 @@ C-SKY), plus the other steps in 51 minutes: about 16 configurations a minute, ag
 ci.sh run earlier that day (the four Arm boards, 362 configurations, in 41 minutes). Each board took 20 to 28 minutes
 (gd88b 2, rt10 6). The only failures were the known DM-1701 and MD-UV380 maximal overflows (FLASH over by 3552 bytes
 on the DM-1701, 4812 on the MD-UV380). Spotlight (`mds_stores`), the backup and antivirus daemons took several cores
-while the new worktrees and build trees appeared; excluding `../rf-par-*` from them would help.
+while the new worktrees and build trees appeared. ci-par.sh now keeps its worktrees and output in `../rf-work.noindex`, which Spotlight skips by its name; exclude that folder (and `build/` in this checkout) in the backup and antivirus apps.
 
 ## Check the setup
 
