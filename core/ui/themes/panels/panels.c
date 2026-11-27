@@ -1797,12 +1797,13 @@ static const char *panels_quick_word(uint8_t kind, const char *name, int room, c
 	return out;
 }
 
-// The typed TX frequency, in the tile that edits it ("146.52_._"), as the hint row has it
-static void panels_quick_entry(const ui_state_t *s, char *out, size_t cap)
+// The typed TX frequency, in the tile that edits it: with the places still to type ("146.5____"), as the hint row
+// has it, or (places false) the typed digits alone ("146.5")
+static void panels_quick_entry(const ui_state_t *s, bool places, char *out, size_t cap)
 {
 	sbuf_t b;
 	sb_init(&b, out, cap);
-	for (uint8_t i = 0; i < UI_ENTRY_MAX; i++) {
+	for (uint8_t i = 0; i < (places ? UI_ENTRY_MAX : s->entry_len); i++) {
 		if (i == UI_ENTRY_MHZ)
 			sb_chr(&b, '.');
 		sb_chr(&b, i < s->entry_len ? s->entry_digits[i] : '_');
@@ -1835,8 +1836,15 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 		color_t fg = focus ? ui_col.focus_fg : ok ? ui_col.fg : ui_col.dim;
 		panels_cell_panel(x, y + PANELS_ROW_GAP, tw, th - 2 * PANELS_ROW_GAP, focus, edit);
 		bool typed = edit && kind == QT_SPLIT && s->entry_len > 0;
-		if (typed)
-			panels_quick_entry(s, value, sizeof value);	// the digits say it edits: no arrows, room for all
+		char key[2] = { label[0], 0 };
+		int right = x + tw - 4, vx = x + 7 + gfx_text_width(f, key) + 4;
+		if (typed) {
+			// The digits say it edits: no arrows. With the places to type where they fit, else the digits alone
+			// (the hint row has the places)
+			panels_quick_entry(s, true, value, sizeof value);
+			if (gfx_text_width(f, value) > right - vx)
+				panels_quick_entry(s, false, value, sizeof value);
+		}
 		if (edit && !typed) {
 			// Editing: arrows around the value say Up/Dn changes it
 			sbuf_t b;
@@ -1846,8 +1854,6 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 			sb_chr(&b, '>');
 			str_copy(value, sizeof value, fit);
 		}
-		char key[2] = { label[0], 0 };
-		int right = x + tw - 4, vx = x + 7 + gfx_text_width(f, key) + 4;
 		// A value too long for its place beside the digit goes on a third line, from the name's left edge, in a tile
 		// high enough for three lines (3 px clear of its top and bottom)
 		bool below = gfx_text_width(f, value) > right - vx && th - 2 * PANELS_ROW_GAP >= 3 * f->h + 6;

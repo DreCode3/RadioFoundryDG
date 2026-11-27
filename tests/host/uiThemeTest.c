@@ -1183,8 +1183,9 @@ static void test_panels_min_font(void)
 }
 
 // Quick's TX frequency tile shows the digits typed so far ("146.5" then the places left), not a word for them (the
-// first layout attempt showed "TX"); the hint row has them too
-static void test_panels_quick_entry(void)
+// first layout attempt showed "TX"); the hint row has them too. On the narrow screen, where the places don't fit
+// beside the digit, the tile has the typed digits alone
+static void test_panels_quick_entry(bool narrow)
 {
 	base();
 	view.vfo = true;
@@ -1193,11 +1194,12 @@ static void test_panels_quick_entry(void)
 	state.entry_len = 4;
 	memcpy(state.entry_digits, "1465", 5);
 	ui_draw_quick(&view, &state);
-	int tile = find_text("146.5____"), row = -1;
+	int tile = find_text(narrow ? "146.5" : "146.5____"), row = -1;
 	for (int i = 0; i < ntexts; i++)
 		if (strstr(texts[i].s, "TX 146.5") != NULL)
 			row = i;
 	CHECK(tile >= 0 && texts[tile].y < ui_layout.hint_y && texts[tile].h >= 16);
+	CHECK(!narrow || find_text("146.5____") < 0);
 	CHECK(row >= 0 && texts[row].y >= ui_layout.hint_y);
 	base();
 }
@@ -1354,7 +1356,7 @@ static void test_panels_frames(void)
 	test_panels_scroll_position();
 	test_panels_bar();
 	test_panels_min_font();
-	test_panels_quick_entry();
+	test_panels_quick_entry(false);
 	test_panels_geometry();
 	test_panels_tiles(false);
 	test_panels_narrow_text(false);
@@ -1368,6 +1370,7 @@ static void test_panels_frames(void)
 	CHECK(gfx_width() == 220 && gfx_height() == 310);
 	test_panels_tiles(true);
 	test_panels_narrow_text(true);
+	test_panels_quick_entry(true);
 	test_panels_badge_room();
 	ui_theme_use(&ui_theme_reference);
 	CHECK(gfx_init(&disp));
