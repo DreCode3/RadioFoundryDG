@@ -120,9 +120,10 @@ copyright header, not a personal one.
 
 - The work runs locally on the user's Apple silicon Mac (moved from a cloud session on Nov 26, 2026). Setup,
   toolchains and the pixel baseline: [fork-notes/local-setup.md](fork-notes/local-setup.md). Arm builds use the
-  native arm64 toolchain in `~/opt/`; GD-88 (C-SKY) builds go through `tools/docker/csky-toolchain/run.sh make
-  BOARD=gd88`. Use the Mac's cores: `make -j$(sysctl -n hw.ncpu)`, `JOBS=$(sysctl -n hw.ncpu) tools/ci.sh`, and run
-  independent builds and checks in parallel.
+  native arm64 toolchain in `~/opt/`; C-SKY builds (GD-88, DM-32, DB25-D...) use the native `~/toolchains/csky-elf`
+  (no Docker). Host tests, ASan included, build natively with Homebrew LLVM (`CC=fork-notes/tools/host-cc.sh`). The
+  full CI is `fork-notes/tools/ci-par.sh` (every board in parallel worktrees, about 50 minutes). Use the Mac's cores:
+  `make -j$(sysctl -n hw.ncpu)`, and run independent builds and checks in parallel.
 - Ask before touching a connected radio, the debug link or the SDR bench (AGENTS.md rule 8). HIL and on-air checks
   are the user's; ask for results, never claim them.
 - Say which checks ran and which didn't. If the full `tools/ci.sh` matrix stalls on macOS (see local-setup.md), the

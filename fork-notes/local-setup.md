@@ -24,7 +24,7 @@ git remote add upstream https://github.com/radiofoundry/radiofoundry
 | Python venv for CI (pytest, pyserial, numpy, reuse) | See "Python venv for CI" below | Outside the repository, at `../rf-venv` |
 | Arm GNU Toolchain 13.3.rel1 (pinned in `platform/stm32f4/platform.toml`) | Download and check it as below, then `mkdir -p ~/opt && tar -xJf <archive> -C ~/opt` | The Makefile finds `~/opt/arm-gnu-toolchain-*-arm-none-eabi/bin/` by itself. If macOS blocks the binaries: `xattr -dr com.apple.quarantine ~/opt/arm-gnu-toolchain-*` (not needed when downloaded with `curl`) |
 | Docker (C-SKY image, Linux host tests) | Docker Desktop, or Homebrew `docker` with `colima` (`colima start --arch aarch64`) | Either works; this Mac uses colima. Apple's `container` is untested |
-| C-SKY GCC 14.2.0 (GD-88) | `tools/docker/csky-toolchain/run.sh make -j$(sysctl -n hw.ncpu) BOARD=gd88` | The image is named in `platform/hrc7000/platform.toml` and pulled on first use. It is amd64 only, so it runs emulated on Apple silicon (a full build takes about 2 minutes) and Docker prints a platform `WARNING` line unless `DOCKER_DEFAULT_PLATFORM=linux/amd64` is set. Pass `-j` yourself: `run.sh`'s `JOBS` default uses `nproc`, which macOS lacks. A native build (`tools/build-csky-toolchain.sh`) is tested on Linux only |
+| C-SKY GCC 14.2.0 (GD-88, DM-32, DB25-D...) | Native: `~/toolchains/csky-elf`, built with `tools/build-csky-toolchain.sh` plus [patches/build-csky-toolchain-macos.patch](patches/build-csky-toolchain-macos.patch) (`MAKEINFO=true` on make's command line, `--with-system-zlib --without-zstd`, GCC's prerequisites built in its tree), about 6 minutes at `-j12` | `platform/hrc7000/platform.mk` finds it first, so plain `make BOARD=gd88` builds natively: about 7 s a configuration, against about 280 s in the amd64 image under Rosetta. Its output matches the image's except the order of newlib's string functions (the image's `libc.a` lists them differently), so hashes differ while sizes match. The image (`tools/docker/csky-toolchain/run.sh`) stays the cross-check |
 | Linux host-test image (Linux cross-check) | `docker build -t local/rf-host-tests -f fork-notes/tools/Dockerfile.host-tests fork-notes/tools` | See "AddressSanitizer on macOS" below. Native arm64 |
 | Claude Code | Start it in the clone (CLI `claude`, or open the folder as a local session in the desktop app) | `CLAUDE.md` loads by itself |
 
@@ -147,7 +147,7 @@ while the new worktrees and build trees appeared; excluding `../rf-par-*` from t
 make -C tests/host uiSim
 python3 tests/host/uiPrototypeTest.py
 make -j$(sysctl -n hw.ncpu) BOARD=dm1701
-tools/docker/csky-toolchain/run.sh make -j$(sysctl -n hw.ncpu) BOARD=gd88
+make -j$(sysctl -n hw.ncpu) BOARD=gd88
 ```
 
 ## The pixel baseline for refactors

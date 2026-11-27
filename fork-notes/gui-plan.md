@@ -410,6 +410,10 @@ resources spent on diminishing returns):
      `9fc4314a`** on the one re-review ([report](reports/theme-step7-rereview.md)). Logged: at 158 x 127 the
      shared last-heard line cuts a name in the middle after a call ("Q1AB…Joe"); the MD-380's 548-word UI stack
      override may be more than panels needs (324 B free), for the storage pass.
+   - **Milestone CI at `799fca27`** (`fork-notes/tools/ci-par.sh`, every board natively, 802 configurations, 51 min):
+     all passed except the two deferred maximal overflows (DM-1701 3,552 B, MD-UV380 4,812 B over). Host, python
+     (now with the HIL collection, the APRS self-test) and `reuse lint` pass. Step 7 is done apart from that deferred
+     storage work.
    - Decided Nov 27 (user), after QA: on a narrow screen the Settings page's tiles put the icon above the label, as
      the Menu tiles do, so the label gets the tile's width on up to two lines (no new words; the GD-88 keeps its
      layout). On the MD-380 and DB25-D the original look keeps its bitmap fonts; only panels draws the `FONT_AA`
