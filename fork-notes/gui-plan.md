@@ -372,6 +372,10 @@ resources spent on diminishing returns):
      Menu tile reads **"Links"** (a `{Connections|Links}` alternate; titles keep "Connections"); a tile's value (Scan
      "Off") on a third line; Quick tiles use their existing short names; the keys-locked sentence and Amateur's
      details row in 8x16 where 9x18 doesn't fit.
+   - Decided Nov 27 (user), after part A's build: on a screen narrower than the GD-88, panels lists use 8x16
+     (rows stay 26 px), since their 9x18 labels were cut in the middle; a label still cut goes to the user. Home's
+     bar shows only "Menu" on the DM-32 (its Back key isn't a Home soft key; "* Quick" stays in the hint row). The
+     focused Menu tile's label starts clear of the accent bar.
    - Decided Nov 27 (user), 160 x 128:
      - Strip 18 px with its marks at 0.8x and words in 8x16; margins 6 px; rows and the soft key bar 18 px; every
        list, title, bar and hint in 8x16. The hint row drops its last groups when it runs out of room.
