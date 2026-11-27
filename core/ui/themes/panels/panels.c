@@ -958,7 +958,7 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 }
 
 // The bar with one sentence in place of the two labels (Home while the keys are locked: what unlocks them), in the
-// largest font one of its forms fits (Chinese: the 8x16 font, its height), whether Hint row is on or off
+// largest font one of its forms fits (Chinese: the 8x16 font, its height), centered, whether Hint row is on or off
 static void panels_bar_sentence(const char *text)
 {
 	const ui_layout_t *L = &ui_layout;
@@ -989,7 +989,8 @@ static void panels_bar_sentence(const char *text)
 		line = ui_key_names(form, names, sizeof names, false);	// the shortest form, shortened
 	char fit[64];
 	gfx_text_fit(f, line, room, fit, sizeof fit);
-	gfx_text(f, inset + margin, top + (PANELS_FOOTER_H - f->h) / 2, fit, panels_bar_fg);
+	gfx_text(f, inset + margin + (room - gfx_text_width(f, fit)) / 2, top + (PANELS_FOOTER_H - f->h) / 2, fit,
+		 panels_bar_fg);
 }
 
 static void panels_center(const font_t *f, int y, const char *text, color_t c)
