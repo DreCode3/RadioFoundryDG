@@ -308,6 +308,9 @@ resources spent on diminishing returns):
        - The Settings tile icon sits left of the text.
        - Palette fixes: Day strip ink is the palette's fg, not black; Day amber is RGB(122,86,0); the key's grays
          come from the palette.
+     - The drawings approved as in `../rf-step5-out/icons_revised.png` (the tuning dial with its ticks outside, as
+       drawn). The strip's scan animation is a small gap moving along the stroke, then the arrowhead lit (it stays
+       visible with the new Day ink, where the old lighter highlight fades).
      - Logged by the design pass for the build: two roaming animation frames reach the strip pane's outer rows.
 6. Freeze on the GD-88, then port to other display classes.
 
