@@ -402,6 +402,13 @@ resources spent on diminishing returns):
    - Decided Nov 27 (user), after the hint short forms (`be8c30db`): the GD-88's one changed frame is kept. The
      reference theme's satellite list at 320 x 240 now reads "OK track  # TLE  Back" (it dropped "# TLE" before);
      every panels GD-88 frame is unchanged. zh got short forms too (the alternate count must match): native review.
+   - QA review of step 7 at `6acb11a3` ([report](reports/theme-step7-review.md)): not approved. Blocking: B1, the
+     compact trunked / SFR Home overlaps (it goes through the reference Home); B2, English cuts in the middle and
+     overflow at the MD-380's real 158 x 127, which no sim class covered.
+   - Decided Nov 27 (user), after QA: on a narrow screen the Settings page's tiles put the icon above the label, as
+     the Menu tiles do, so the label gets the tile's width on up to two lines (no new words; the GD-88 keeps its
+     layout). On the MD-380 and DB25-D the original look keeps its bitmap fonts; only panels draws the `FONT_AA`
+     glyphs.
    - Decided Nov 27 (user), after part B's build (`d04d9c40..e48913c5`):
      - **The focused row scrolls:** on this class a text cut at the end in the focused list row slides sideways to
        show it whole; other rows stay cut at the end. The GD-88 and DM-32 don't change.
