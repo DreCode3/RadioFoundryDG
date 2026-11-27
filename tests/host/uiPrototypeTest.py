@@ -721,6 +721,20 @@ class PrototypeTest(unittest.TestCase):
                              capture_output=True, text=True, errors="replace", timeout=15)
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
+    def test_narrow_hints_take_their_short_forms(self):
+        # A hint too wide for a 160 px row takes its short form ({long|short}) before its last groups go: the OK action
+        # stays where the long form would lose it (the reference row, 150 and 160 px; the compact panels row, 148 px)
+        cases = (
+            ("160x120i5", "ok 8 9 row:DMR_ID_and_name ok", ["OK_edit/save", "0-9_type"], []),
+            ("160x128", "ok 6 3 ok", ["OK_track", "#_TLE"], ["Up_Down"]),
+            ("160x128-panels", "quick", ["0_Settings"], ["All_settings"]),
+            ("220x176-panels", "quick", ["0_Settings", "Hold_OK_save"], ["All_settings"]),
+        )
+        for geometry, script, shown, hidden in cases:
+            with self.subTest(geometry=geometry, script=script):
+                self.run_script(script + "".join(" expect:shows=" + t for t in shown) +
+                                "".join(" expect:hides=" + t for t in hidden), geometry)
+
     def test_display_choices_are_native_and_survive_reboot(self):
         # Display profile and Day/Night open a pick list with the value in use checked; GPS clock flips on OK
         self.run_script(

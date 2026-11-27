@@ -239,8 +239,8 @@ msgstr "Rápido"
 
 #: core/ui/themes/panels/panels.c core/ui/ui_screens.c
 msgctxt "QUICK_HINT_ALL_SETTINGS"
-msgid "0 All settings  Hold OK save"
-msgstr "0 Ajustes  Mantén OK guardar"
+msgid "{0 All settings  Hold OK save|0 Settings  Hold OK save}"
+msgstr "{0 Ajustes  Mantén OK guardar|0 Ajustes  Mantén OK fijar}"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -454,8 +454,8 @@ msgstr "{Teclas bloqueadas: mantén * para desbloquear|Desbloquear: mantén *|Ma
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_HINT_HOLD_BACK"
-msgid "{Keys locked: hold Back to unlock|Locked: hold Back to unlock}"
-msgstr "{Teclas bloqueadas: mantén Atrás para desbloquear|Desbloquear: mantén Atrás}"
+msgid "{Keys locked: hold Back to unlock|Locked: hold Back to unlock|Hold Back to unlock}"
+msgstr "{Teclas bloqueadas: mantén Atrás para desbloquear|Desbloquear: mantén Atrás|Mantén Atrás pulsado}"
 
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_VFO_SAVES_ITSELF"
@@ -3234,8 +3234,8 @@ msgstr "ID DMR y nombre"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_TYPE_OK_EDIT_SAVE_BACK"
-msgid "0-9 type  OK edit/save  Back"
-msgstr "0-9  OK guardar  Atrás"
+msgid "{0-9 type  OK edit/save  Back|0-9 type  OK edit/save}"
+msgstr "{0-9  OK guardar  Atrás|0-9  OK guardar}"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_EDIT_BACK"
@@ -4864,13 +4864,13 @@ msgstr "Fuera del pronóstico"
 
 #: core/ui/ui_satellite.c
 msgctxt "UP_DOWN_SATELLITE_OK_TRACK"
-msgid "Up Down satellite  OK track  Hold OK arm  # TLE  Back"
-msgstr "Arriba Abajo satélite  OK seguir  Mantener OK armar  # TLE  Atrás"
+msgid "{Up Down satellite  OK track  Hold OK arm  # TLE  Back|OK track  Hold OK arm}"
+msgstr "{Arriba Abajo satélite  OK seguir  Mantener OK armar  # TLE  Atrás|OK seguir  Mantén OK armar}"
 
 #: core/ui/ui_satellite.c
 msgctxt "UP_DOWN_SATELLITE_OK_TRACK_2"
-msgid "Up Down satellite  OK track  # TLE  Back"
-msgstr "Arriba Abajo satélite  OK seguir  # TLE  Atrás"
+msgid "{Up Down satellite  OK track  # TLE  Back|OK track  # TLE  Back}"
+msgstr "{Arriba Abajo satélite  OK seguir  # TLE  Atrás|OK seguir  # TLE  Atrás}"
 
 #: core/ui/ui_satellite.c
 msgctxt "SO_50_ARM_REQUESTED"

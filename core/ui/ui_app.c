@@ -938,7 +938,8 @@ static inline const char *locked_text(bool star)
 			TEXT_ALT_NEXT "Locked: hold * to unlock"
 			TEXT_ALT_NEXT "Hold * to unlock" TEXT_ALT_CLOSE) :
 		TR(LOCK_HINT_HOLD_BACK, TEXT_ALT_OPEN "Keys locked: hold Back to unlock"
-			TEXT_ALT_NEXT "Locked: hold Back to unlock" TEXT_ALT_CLOSE);
+			TEXT_ALT_NEXT "Locked: hold Back to unlock"
+			TEXT_ALT_NEXT "Hold Back to unlock" TEXT_ALT_CLOSE);
 }
 
 static int8_t nav_dir(const input_event_t *ev)

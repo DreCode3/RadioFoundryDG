@@ -5196,7 +5196,8 @@ static void dmr_id_enter(void)
 static const ui_scr_def_t dmr_id_screen = {
 	.name = "dmr-id", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(SET_ROW_DMR_ID_AND_NAME, "DMR ID and name"),
 #if CONFIG_DMR
-	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, "0-9 type  OK edit/save  Back"),
+	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, TEXT_ALT_OPEN "0-9 type  OK edit/save  Back"
+		TEXT_ALT_NEXT "0-9 type  OK edit/save" TEXT_ALT_CLOSE),
 #else
 	.hint = TRN(HINT_OK_EDIT_BACK, "OK edit  Back"),
 #endif
@@ -5364,7 +5365,8 @@ static void ds_enter(void)
 
 static const ui_scr_def_t ds_screen = {
 	.name = "data-services", .flags = SF_LIST | SF_OK_ACTS, .prefix = TRN(SET_ROW_DATA_SERVICES, "Data services"),
-	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, "0-9 type  OK edit/save  Back"),
+	.hint = TRN(HINT_TYPE_OK_EDIT_SAVE_BACK, TEXT_ALT_OPEN "0-9 type  OK edit/save  Back"
+		TEXT_ALT_NEXT "0-9 type  OK edit/save" TEXT_ALT_CLOSE),
 	.count = ds_count, .item = ds_item, .select = ds_select, .key = ds_key, .enter = ds_enter, .body = ds_body,
 };
 #endif

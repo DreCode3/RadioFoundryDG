@@ -241,8 +241,8 @@ msgstr "快捷"
 
 #: core/ui/themes/panels/panels.c core/ui/ui_screens.c
 msgctxt "QUICK_HINT_ALL_SETTINGS"
-msgid "0 All settings  Hold OK save"
-msgstr "0 所有设置  长按 OK 保存"
+msgid "{0 All settings  Hold OK save|0 Settings  Hold OK save}"
+msgstr "{0 所有设置  长按 OK 保存|0 设置  长按 OK 保存}"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "HOME_HINT_MENU_QUICK"
@@ -456,8 +456,8 @@ msgstr "{按键已锁：长按 * 解锁|已锁：长按 * 解锁|长按 * 解锁
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_HINT_HOLD_BACK"
-msgid "{Keys locked: hold Back to unlock|Locked: hold Back to unlock}"
-msgstr "{按键已锁：长按返回解锁|已锁：长按返回解锁}"
+msgid "{Keys locked: hold Back to unlock|Locked: hold Back to unlock|Hold Back to unlock}"
+msgstr "{按键已锁：长按返回解锁|已锁：长按返回解锁|长按返回解锁}"
 
 #: core/ui/ui_app.c
 msgctxt "CHAN_TOAST_VFO_SAVES_ITSELF"
@@ -3236,8 +3236,8 @@ msgstr "DMR ID 和名称"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_TYPE_OK_EDIT_SAVE_BACK"
-msgid "0-9 type  OK edit/save  Back"
-msgstr "0-9 输入  OK 编辑/保存  返回"
+msgid "{0-9 type  OK edit/save  Back|0-9 type  OK edit/save}"
+msgstr "{0-9 输入  OK 编辑/保存  返回|0-9 输入  OK 编辑/保存}"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_EDIT_BACK"
@@ -4866,13 +4866,13 @@ msgstr "超出预报"
 
 #: core/ui/ui_satellite.c
 msgctxt "UP_DOWN_SATELLITE_OK_TRACK"
-msgid "Up Down satellite  OK track  Hold OK arm  # TLE  Back"
-msgstr "上下选择卫星  OK track  长按 OK 启动  # TLE  返回"
+msgid "{Up Down satellite  OK track  Hold OK arm  # TLE  Back|OK track  Hold OK arm}"
+msgstr "{上下选择卫星  OK track  长按 OK 启动  # TLE  返回|OK track  长按 OK 启动}"
 
 #: core/ui/ui_satellite.c
 msgctxt "UP_DOWN_SATELLITE_OK_TRACK_2"
-msgid "Up Down satellite  OK track  # TLE  Back"
-msgstr "返回 上下选择卫星  OK track  # TLE"
+msgid "{Up Down satellite  OK track  # TLE  Back|OK track  # TLE  Back}"
+msgstr "{返回 上下选择卫星  OK track  # TLE|OK track  # TLE  返回}"
 
 #: core/ui/ui_satellite.c
 msgctxt "SO_50_ARM_REQUESTED"

@@ -663,8 +663,10 @@ static void satellite_draw(void)
 	}
 	bool arm_active = have_record && (pass_record.flags & SATELLITE_RECORD_NEEDS_ARM) && satellite.tracking.tracking &&
 		satellite.tracking.index == selected;
-	ui_draw_bottom(&ui_st, arm_active ? TR(UP_DOWN_SATELLITE_OK_TRACK, "Up Down satellite  OK track  Hold OK arm  # TLE  Back") :
-		TR(UP_DOWN_SATELLITE_OK_TRACK_2, "Up Down satellite  OK track  # TLE  Back"));
+	ui_draw_bottom(&ui_st, arm_active ? TR(UP_DOWN_SATELLITE_OK_TRACK, TEXT_ALT_OPEN
+		"Up Down satellite  OK track  Hold OK arm  # TLE  Back" TEXT_ALT_NEXT "OK track  Hold OK arm" TEXT_ALT_CLOSE) :
+		TR(UP_DOWN_SATELLITE_OK_TRACK_2, TEXT_ALT_OPEN "Up Down satellite  OK track  # TLE  Back"
+			TEXT_ALT_NEXT "OK track  # TLE  Back" TEXT_ALT_CLOSE));
 	ui_draw_banner(&ui_st);
 }
 

@@ -4389,7 +4389,8 @@ static void __attribute__((noinline)) draw_quick_tiles(const radio_view_t *v, co
 	else if (split_hint != NULL)
 		ui_draw_hint(ui_quick_split_hint(v, s, label, sizeof label), false);	// the tiles used label
 	else if (h >= UI_TALL_PX)
-		ui_draw_hint(TR(QUICK_HINT_ALL_SETTINGS, "0 All settings  Hold OK save"), false);
+		ui_draw_hint(TR(QUICK_HINT_ALL_SETTINGS, TEXT_ALT_OPEN "0 All settings  Hold OK save"
+			TEXT_ALT_NEXT "0 Settings  Hold OK save" TEXT_ALT_CLOSE), false);
 }
 
 static void reference_quick(const radio_view_t *v, const ui_state_t *s)

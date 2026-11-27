@@ -2192,7 +2192,8 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 	else if ((split = ui_quick_split_hint(v, s, label, sizeof label)) != NULL)
 		panels_bottom(split, PANELS_BAR_KEYS | (s->hints ? 0 : UI_BAR_NO_HINTS), NULL);
 	else
-		panels_bottom(TR(QUICK_HINT_ALL_SETTINGS, "0 All settings  Hold OK save"),
+		panels_bottom(TR(QUICK_HINT_ALL_SETTINGS, TEXT_ALT_OPEN "0 All settings  Hold OK save"
+			TEXT_ALT_NEXT "0 Settings  Hold OK save" TEXT_ALT_CLOSE),
 			PANELS_BAR_KEYS | (s->hints ? 0 : UI_BAR_NO_HINTS), NULL);
 }
 
