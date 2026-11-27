@@ -11,6 +11,9 @@ trimmed to its ink, so the theme draws every icon, in the strip and in the menus
 The scan zigzag also gets the step of its animation for each pixel (a small gap moves along the stroke, then the
 arrowhead); roaming is a ring with a dot that steps round it.
 
+A second set draws the same pictures at 0.8x for a display under 200 px high (the compact layout): a 20 px canvas with
+a 16 px live area (2..18), every coordinate, radius and stroke of the 24 px drawing scaled about the live area's corner.
+
     python3 tools/profile_icons.py [OUT]
 """
 
@@ -24,18 +27,26 @@ OUT = Path(__file__).resolve().parents[1] / "core/ui/themes/panels/panels_icons.
 S = 8		# supersampling
 N = 24		# canvas
 SW = 2.0	# stroke
+# The sets: (name suffix, canvas, scale, offset). The drawings are in the 24 px canvas's coordinates; a set maps x to
+# x * scale + offset, so the live area's corner (2, 2) stays where it is
+SETS = [("", 24, 1.0, 0.0), ("_s", 20, 0.8, 0.4)]
 
 
 class Canvas:
-    def __init__(self):
-        self.im = Image.new("L", (N * S, N * S), 0)
+    def __init__(self, n=N, k=1.0, o=0.0):
+        self.n, self.k, self.o = n, k, o
+        self.im = Image.new("L", (n * S, n * S), 0)
         self.d = ImageDraw.Draw(self.im)
 
+    def _x(self, v):
+        return (v * self.k + self.o) * S
+
     def _p(self, pts):
-        return [(x * S, y * S) for x, y in pts]
+        return [(self._x(x), self._x(y)) for x, y in pts]
 
     def disk(self, x, y, r, ink=255):
-        self.d.ellipse(((x - r) * S, (y - r) * S, (x + r) * S, (y + r) * S), fill=ink)
+        r *= self.k
+        self.d.ellipse((self._x(x) - r * S, self._x(y) - r * S, self._x(x) + r * S, self._x(y) + r * S), fill=ink)
 
     def line(self, pts, w=SW, ink=255):
         for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
@@ -60,15 +71,16 @@ class Canvas:
         self.d.polygon(self._p(pts), fill=ink)
 
     def rrect(self, x0, y0, x1, y1, r, ink=255):
-        self.d.rounded_rectangle((x0 * S, y0 * S, x1 * S, y1 * S), r * S, fill=ink)
+        self.d.rounded_rectangle((self._x(x0), self._x(y0), self._x(x1), self._x(y1)), r * self.k * S, fill=ink)
 
     def rrect_stroke(self, x0, y0, x1, y1, r, w=SW):
         self.rrect(x0 - w / 2, y0 - w / 2, x1 + w / 2, y1 + w / 2, r + w / 2)
         self.rrect(x0 + w / 2, y0 + w / 2, x1 - w / 2, y1 - w / 2, max(0, r - w / 2), 0)
 
     def coverage(self):
-        small = self.im.resize((N, N), Image.Resampling.BOX)
-        return [[min(3, (small.getpixel((x, y)) * 3 + 127) // 255) for x in range(N)] for y in range(N)]
+        n = self.n
+        small = self.im.resize((n, n), Image.Resampling.BOX)
+        return [[min(3, (small.getpixel((x, y)) * 3 + 127) // 255) for x in range(n)] for y in range(n)]
 
 
 # --- The family ---
@@ -249,8 +261,9 @@ ICONS = [
 
 
 def trim(cov):
-    xs = [x for y in range(N) for x in range(N) if cov[y][x]]
-    ys = [y for y in range(N) for x in range(N) if cov[y][x]]
+    n = len(cov)
+    xs = [x for y in range(n) for x in range(n) if cov[y][x]]
+    ys = [y for y in range(n) for x in range(n) if cov[y][x]]
     return min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
 
 
@@ -262,18 +275,20 @@ def packed(cov, x0, y0, w, h):
     return out
 
 
-def scan_steps(x0, y0, w, h, cov):
+def scan_steps(x0, y0, w, h, cov, n=N, k=1.0, o=0.0):
     """Each inked pixel's step: 0..SCAN_STROKE_STEPS-1 along the stroke, SCAN_STROKE_STEPS on the arrowhead."""
-    head, stroke = Canvas(), Canvas()
+    head, stroke = Canvas(n, k, o), Canvas(n, k, o)
     head.poly(SCAN_HEAD)
     stroke.line(SCAN_PATH)
     head_cov, stroke_cov = head.coverage(), stroke.coverage()
-    lens = [math.dist(a, b) for a, b in zip(SCAN_PATH, SCAN_PATH[1:])]
+    path = [(x * k + o, y * k + o) for x, y in SCAN_PATH]
+    head_x = SCAN_HEAD[1][0] * k + o
+    lens = [math.dist(a, b) for a, b in zip(path, path[1:])]
     total = sum(lens)
 
     def along(px, py):
         best, best_t, t0 = None, 0, 0
-        for (a, b), ln in zip(zip(SCAN_PATH, SCAN_PATH[1:]), lens):
+        for (a, b), ln in zip(zip(path, path[1:]), lens):
             ux, uy = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
             u = max(0, min(ln, (px - a[0]) * ux + (py - a[1]) * uy))
             d = math.hypot(a[0] + ux * u - px, a[1] + uy * u - py)
@@ -288,7 +303,7 @@ def scan_steps(x0, y0, w, h, cov):
         for x in range(x0, x0 + w):
             if not cov[y][x]:
                 row.append(15)
-            elif head_cov[y][x] and head_cov[y][x] >= stroke_cov[y][x] and x + 0.5 >= SCAN_HEAD[1][0]:
+            elif head_cov[y][x] and head_cov[y][x] >= stroke_cov[y][x] and x + 0.5 >= head_x:
                 # As much arrowhead as stroke, its faint edge included: it goes out with the arrowhead, no speck left
                 row.append(SCAN_STROKE_STEPS)
             else:
@@ -302,6 +317,32 @@ def hexrows(rows):
     return "".join("\t" + ", ".join(f"0x{b:02X}" for b in r) + ",\n" for r in rows)
 
 
+def icon_set(suffix, n, k, o):
+    """One set's tables: the masks, the descriptors and the scan steps, as C text; and the bytes of its masks."""
+    blob, table = [], []
+    scan_rows = None
+    at = 0
+    for name, draw in ICONS:
+        c = Canvas(n, k, o)
+        draw(c)
+        cov = c.coverage()
+        x0, y0, w, h = trim(cov)
+        rows = packed(cov, x0, y0, w, h)
+        blob.append(f"\t// {name} ({draw.__name__}), {w} x {h}\n" + hexrows(rows))
+        table.append(f"\t[{name}] = {{ {w}, {h}, {x0}, {y0}, {at} }},\n")
+        at += sum(len(r) for r in rows)
+        if draw is scan:
+            scan_rows = scan_steps(x0, y0, w, h, cov, n, k, o)
+    return [f"static const uint8_t panels_icon_bits{suffix}[] = {{\n" + "".join(blob) + "};\n",
+            f"static const panels_icon_t panels_icons{suffix}[PANELS_ICON_COUNT] = {{\n" + "".join(table) + "};\n",
+            scan_rows], at
+
+
+def roam_dots(k):
+    r = ROAM_DOT_R * k
+    return [(round(r * math.cos(math.radians(i * 45))), round(r * math.sin(math.radians(i * 45)))) for i in range(8)]
+
+
 def main():
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else OUT
     lines = ["// SPDX-License-Identifier: MIT\n// Copyright (c) 2026 The RadioFoundry Authors\n"
@@ -311,32 +352,25 @@ def main():
     lines.append("enum { PANELS_ICON_MONITOR = UI_MENU_ICON_COUNT, PANELS_ICON_RING, PANELS_ICON_DOT, PANELS_ICON_HALO,\n"
                  "\tPANELS_ICON_COUNT };\n")
     lines.append("typedef struct { uint8_t w, h, dx, dy; uint16_t at; } panels_icon_t;\n")
-    blob, table, comments = [], [], []
-    scan_rows = None
-    at = 0
-    for name, draw in ICONS:
-        c = Canvas()
-        draw(c)
-        cov = c.coverage()
-        x0, y0, w, h = trim(cov)
-        rows = packed(cov, x0, y0, w, h)
-        blob.append(f"\t// {name} ({draw.__name__}), {w} x {h}\n" + hexrows(rows))
-        table.append(f"\t[{name}] = {{ {w}, {h}, {x0}, {y0}, {at} }},\n")
-        at += sum(len(r) for r in rows)
-        if draw is scan:
-            scan_rows = scan_steps(x0, y0, w, h, cov)
-    lines.append("static const uint8_t panels_icon_bits[] = {\n" + "".join(blob) + "};\n")
-    lines.append("static const panels_icon_t panels_icons[PANELS_ICON_COUNT] = {\n" + "".join(table) + "};\n")
+    (bits, table, scan_rows), at = icon_set(*SETS[0])
+    lines += [bits, table]
     lines.append(f"// The scan zigzag's pixels by step of its animation, two a byte, low nibble first (15: no ink)\n"
                  f"#define PANELS_SCAN_STEPS {SCAN_STROKE_STEPS + 1}\n"
                  "static const uint8_t panels_scan_steps[] = {\n" + hexrows(scan_rows) + "};\n")
-    dots = [(round(ROAM_DOT_R * math.cos(math.radians(k * 45))), round(ROAM_DOT_R * math.sin(math.radians(k * 45))))
-            for k in range(8)]
     lines.append("#if CONFIG_DMR_ROAMING\n// The roaming dot's 8 places on its ring, from the ring's center\n"
                  "static const int8_t panels_roam_dot[8][2] = {\n" +
-                 "".join(f"\t{{ {x}, {y} }},\n" for x, y in dots) + "};\n#endif")
+                 "".join(f"\t{{ {x}, {y} }},\n" for x, y in roam_dots(1.0)) + "};\n#endif")
+    suffix, n, k, o = SETS[1]
+    (bits, table, scan_rows), small_at = icon_set(suffix, n, k, o)
+    lines.append(f"// The same pictures at {k}x for the compact layout (a display under 200 px high): a {n} px canvas, its live\n"
+                 f"// area 2..{2 + round(20 * k)}, the same tables and order\n"
+                 f"#define PANELS_ICON_CANVAS{suffix.upper()} {n}\n" + bits)
+    lines.append(table)
+    lines.append(f"static const uint8_t panels_scan_steps{suffix}[] = {{\n" + hexrows(scan_rows) + "};\n")
+    lines.append(f"#if CONFIG_DMR_ROAMING\nstatic const int8_t panels_roam_dot{suffix}[8][2] = {{\n" +
+                 "".join(f"\t{{ {x}, {y} }},\n" for x, y in roam_dots(k)) + "};\n#endif")
     out.write_text("\n".join(lines) + "\n", encoding="ascii")
-    print(f"{out}: {len(ICONS)} icons, {at} bytes of masks")
+    print(f"{out}: {len(ICONS)} icons, {at} bytes of masks, {small_at} in the {n} px set")
 
 
 if __name__ == "__main__":

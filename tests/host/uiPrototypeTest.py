@@ -739,7 +739,9 @@ class PrototypeTest(unittest.TestCase):
                         "expect:shows=Colors expect:hides=Day/Night reboot expect:screen=home "
                         "ok 8 1 expect:shows=Original expect:shows=Colors ok row:Panels ok expect:shows=Day/Night "
                         "expect:hides=Colors")
-        self.run_script("ok 8 1 expect:hides=Theme expect:focus=Colors", "220x176")
+        # A display panels doesn't fit (150 x 120) has no Theme row; one it fits in its compact layout (220 x 176) has it
+        self.run_script("ok 8 1 expect:hides=Theme expect:focus=Colors", "160x120i5")
+        self.run_script("ok 8 1 expect:focus=Theme expect:shows=Original", "220x176")
 
     def test_new_radio_default_writes_nothing(self):
         # A start that finds no settings of its own (a new radio, or a read of the newest record that failed) turns
@@ -750,10 +752,10 @@ class PrototypeTest(unittest.TestCase):
     def test_talkgroup_order_key_and_setting_in_both_themes(self):
         # Talkgroup name first (the key and Settings > Display) works in every theme. A new radio that starts in the
         # panels theme starts with it on: Amateur Home's talk line reads "USA · TG 3100", then "TG 3100 · USA". One
-        # whose display picks the reference theme starts with it off, panels built in or not (220x176), as does the
+        # whose display picks the reference theme starts with it off, panels built in or not (160x120i5), as does the
         # simulator's reference class (320x240). The key's toast says the new order
         for geometry, toast in ((GEOMETRY, "Talkgroup_number_first"), ("320x240", "Talkgroup_name_first"),
-                                ("220x176", "Talkgroup_name_first")):
+                                ("160x120i5", "Talkgroup_name_first")):
             with self.subTest(geometry=geometry):
                 self.run_script("labelkey expect:toast=" + toast, geometry)
         # Only a new radio: after a restart the stored choice stays, off here
@@ -761,7 +763,7 @@ class PrototypeTest(unittest.TestCase):
         # A factory reset sets it as the theme the radio restarts in (the build's default where it fits) asks, whatever
         # theme is in use when it is reset
         for geometry, script, want in ((GEOMETRY, "", "1"), (GEOMETRY, "ok 8 1 ok row:Original ok long:back ", "1"),
-                                       ("220x176", "", "0")):
+                                       ("160x120i5", "", "0"), ("220x176", "", "1")):
             with self.subTest(geometry=geometry, script=script):
                 self.run_script(script + "ok 8 9 up ok down ok expect:resetnamefirst=" + want, geometry)
         self.run_script(AMATEUR + "expect:shows=USA_ expect:hides=3100_ "
@@ -933,7 +935,7 @@ class PrototypeTest(unittest.TestCase):
         self.run_script(panels + "quick expect:shows=Slot expect:shows=TG expect:hides=Timeslot expect:layout=0",
                         narrow)
         self.run_script(panels + "down quick expect:shows=T100.0 expect:layout=0", narrow)
-        # Display profile's row takes its short form beside its value; the GD-88 keeps the long one
+        # Display profile's row takes its short form beside its value; the full width keeps the long one
         self.run_script(panels + "ok 8 1 expect:shows=Profile expect:hides=Display_p expect:shows=Commercial "
                         "expect:layout=0", narrow)
         # Dual watch: a pane's line that 12x24 would cut takes 8x16, whole

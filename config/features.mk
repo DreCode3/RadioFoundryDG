@@ -590,15 +590,14 @@ CONFIG_DISPLAY_INSET_TOP ?= $(CONFIG_DISPLAY_INSET)
 CONFIG_DISPLAY_INSET_BOTTOM ?= $(CONFIG_DISPLAY_INSET)
 CONFIG_DISPLAY_INSET_LEFT ?= $(CONFIG_DISPLAY_INSET)
 CONFIG_DISPLAY_INSET_RIGHT ?= $(CONFIG_DISPLAY_INSET)
-# The panels theme draws only on a color panel with a drawable area of at least 160 x 128 inside its insets, and until
-# its layout below 240 px high is written, 240 px high (fits() in core/ui/themes/panels/panels.c). On any other panel
-# it is unsupported, as FONT_BIG above: ci's maximal configuration leaves it off and the feature matrix says why
-# (tools/boards.py reads this reason)
+# The panels theme draws only on a color panel with a drawable area of at least 160 x 128 inside its insets (fits() in
+# core/ui/themes/panels/panels.c). On any other panel it is unsupported, as FONT_BIG above: ci's maximal configuration
+# leaves it off and the feature matrix says why (tools/boards.py reads this reason)
 PANEL_H := $(shell sed -n 's/^gallery = "[0-9][0-9]*x\([0-9][0-9]*\).*/\1/p' boards/$(BOARD)/board.toml 2>/dev/null)
 PANELS_FIT := $(shell test "0$(PANEL_W)" -ge $$((160 + $(CONFIG_DISPLAY_INSET_LEFT) + $(CONFIG_DISPLAY_INSET_RIGHT))) && \
-	test "0$(PANEL_H)" -ge $$((240 + $(CONFIG_DISPLAY_INSET_TOP) + $(CONFIG_DISPLAY_INSET_BOTTOM))) && echo y)
+	test "0$(PANEL_H)" -ge $$((128 + $(CONFIG_DISPLAY_INSET_TOP) + $(CONFIG_DISPLAY_INSET_BOTTOM))) && echo y)
 ifneq ($(PANELS_FIT)$(filter UI_COLOR,$(BOARD_UNSUPPORTED)),y)
-BOARD_UNSUPPORTED += UI_THEME_PANELS	# the panels theme draws only on color panels 240 px high and 160 px across
+BOARD_UNSUPPORTED += UI_THEME_PANELS	# the panels theme draws only on color panels of at least 160 x 128
 endif
 # The air queue's buffer in octets (IP gateway and zone sharing, docs/spec/dmr-data.md 12): queued packets take
 # their own length plus a 36-octet header. 2048 holds two longest packets (612) with room to spare, a zone's four
@@ -608,6 +607,9 @@ CONFIG_DMR_AIR_QUEUE_BYTES ?= 2048
 # docs/spec/dmr-data.md 12.6). A workaround: receivers lost a packet that came in a new transmission right after
 # ours ended, cause not yet known; packets to the same destination go in one transmission instead, with no gap
 CONFIG_DMR_DATA_TX_GUARD_MS ?= 250
+# The theme a new radio starts in (core/config.h): 0 the build's own (panels where it is built), 1 the original look, 2
+# panels. A board whose panel holds panels but keeps the original look by default sets 1
+CONFIG_UI_THEME_DEFAULT ?= 0
 VALUES := DISPLAY_INSET_TOP DISPLAY_INSET_BOTTOM DISPLAY_INSET_LEFT DISPLAY_INSET_RIGHT DMR_AIR_QUEUE_BYTES \
-	  DMR_DATA_TX_GUARD_MS
+	  DMR_DATA_TX_GUARD_MS UI_THEME_DEFAULT
 FEATURE_DEFS += $(foreach v,$(VALUES),-DCONFIG_$(v)=$(strip $(CONFIG_$(v))))

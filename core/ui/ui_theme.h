@@ -27,6 +27,9 @@ enum { UI_THEME_ID_DEFAULT, UI_THEME_ID_REFERENCE, UI_THEME_ID_PANELS };
 #define UI_BAR_BACK_ACTS	0x20u
 #define UI_BAR_NO_HINTS	0x10u	// Hint row is off: a theme with UI_THEME_OPT_SOFT_KEYS draws the soft keys' labels only
 // Bits from 0x100 are a theme's own
+// The flags of the bottom row of the list being drawn (ui_draw_list), set before its head and its cells, for a theme
+// whose rows take the hint row's room where it would be empty
+extern unsigned ui_list_bar;
 #endif
 
 // Where a list's cells go (ops->list_geom). The shared list code (ui_draw_list) picks the cells on screen from it and
@@ -185,7 +188,7 @@ void ui_secondary_hint_split(char *left, char *right, size_t cap, bool quick_onl
 // A row's label from x and its value right-aligned at w, the label kept whole where it can be
 // A row with its value editor open: the value between markers in the color mark (the theme's accent)
 void ui_row_edit(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
-	color_t mark);
+	color_t mark, bool at_end);
 void ui_row_text(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
 	color_t vfg, bool preview);
 // Quick settings' hint while the TX frequency tile edits, NULL while it doesn't (into buf)

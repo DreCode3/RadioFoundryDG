@@ -16,18 +16,45 @@
 #include "codeplug/codeplug_modes.h"
 #include "panels_icons.h"
 
-#define PANELS_BAND_H 29	// the status strip, the same on every screen
-#define PANELS_SCALE 6		// its marks, in quarters of their drawn size
-#define PANELS_BATTERY_SCALE 5	// the battery's: its 18 units high fit 22 px, inside the strip's pane
-#define PANELS_HOME_GAP 3
-#define PANELS_HOME_INSET 4
-#define PANELS_FOOTER_H 32	// the soft key bar
-#define PANELS_BAR_GAP 2	// between the hint row and the bar
-#define PANELS_TITLE_PAD 3	// above and below a title, in its row of the medium font's height
-#define PANELS_ROW_GAP 2	// between a row's panel and the next one's
 #define PANELS_ACCENT_W 4	// the focus's accent bar
-#define PANELS_TEXT_X 10	// a row's text from its left edge: clear of the accent bar
 #define PANELS_MODE_H 24	// Home's mode bar
+
+// The metrics of the two layouts. The full one is the 310 x 240 display's. The compact one is for a display under
+// UI_TALL_PX high (160 x 128, 220 x 176), where the full one leaves no list rows: an 18 px strip with its marks at 0.8x
+// (the 16 px icons, panels_icons.h) and its words in 8x16, every list, title, bar and hint in 8x16, rows and the bar
+// 18 px, 6 px margins, no mode bar on Home (its mode in the strip) and no GPS clock
+typedef struct {
+	uint8_t band_h;		// the status strip, the same on every screen
+	uint8_t pane_y;		// ... its pane's top
+	uint8_t strip_x;	// its marks from the screen's edges: inside its pane's rounded ends
+	uint8_t scale;		// its marks, in eighths of their drawn size
+	uint8_t battery_scale;	// the battery's: its 18 units high fit inside the strip's pane
+	uint8_t inset;		// the panes from the screen's edges
+	uint8_t footer_h;	// the soft key bar
+	uint8_t bar_gap;	// between the hint row and the bar
+	uint8_t bar_margin;	// the bar's labels from its ends
+	uint8_t title_pad, title_pad_below;	// above and below a title, in its row of the medium font's height
+	uint8_t margin;		// text from the screen's edges: titles, the hint row, Home's lines
+	uint8_t row_h;		// one row height for every list
+	uint8_t row_gap;	// between a row's panel and the next one's
+	uint8_t list_x;		// a list's rows from the screen's edges
+	uint8_t text_x;		// a row's text from its left edge: clear of the accent bar
+	uint8_t home_gap;	// Home's channel pane above the bar
+} panels_metrics_t;
+static const panels_metrics_t panels_full = { 29, 2, 10, 12, 10, 4, 32, 2, 11, 3, 3, 15, 26, 2, 7, 10, 3 };
+static const panels_metrics_t panels_compact = { 18, 1, 6, 8, 7, 2, 18, 1, 6, 1, 0, 6, 18, 1, 3, 8, 2 };
+
+// The compact layout: on a display under UI_TALL_PX high, and always in a build whose frame buffer has fewer rows
+// (GFX_MAX_ROWS), which then leaves the full layout's code and icons out
+static bool panels_small(void)
+{
+	return GFX_MAX_ROWS < UI_TALL_PX || gfx_height() < UI_TALL_PX;
+}
+
+static const panels_metrics_t *panels_m(void)
+{
+	return panels_small() ? &panels_compact : &panels_full;
+}
 
 static color_t panels_bar_fg;	// the bottom row's text
 static color_t panels_row_bg, panels_row_focus, panels_accent;
@@ -69,10 +96,10 @@ static void panels_colors(ui_colors_t *c, uint8_t palette)
 }
 
 // A color display (monochrome has no color for the panes) with a drawable area of at least 160 x 128: three list rows
-// under the strip, the title and the soft key bar. The layout below 240 px high isn't written yet, so 240 px high too
+// under the strip, the title and the soft key bar in the compact layout
 static bool panels_fits(void)
 {
-	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 160 && gfx_height() >= 128 && gfx_height() >= 240;
+	return CONFIG_UI_COLOR && gfx_bpp() > 1 && gfx_width() >= 160 && gfx_height() >= 128;
 }
 
 typedef struct { int x, y, scale; } panels_mark_pos_t;
@@ -93,26 +120,54 @@ static void panels_mask(int x, int y, const uint8_t *mask, int w, int h, color_t
 		}
 }
 
-// One icon of the family (panels_icons.h, from tools/profile_icons.py): the strip's marks and the menus' icons, in one
-// ink. Its 24 px canvas at x, y
+// The icon family (panels_icons.h, from tools/profile_icons.py) in the layout's size: the 24 px set, or the 16 px one
+// (on a 20 px canvas) in the compact layout. Each a separate constant, so a build with one layout keeps one set
+typedef struct {
+	const uint8_t *bits;
+	const panels_icon_t *icons;
+	const uint8_t *scan_steps;
+#if CONFIG_DMR_ROAMING
+	const int8_t (*roam_dot)[2];
+#endif
+	uint8_t canvas;
+} panels_icon_set_t;
+static const panels_icon_set_t panels_icons_full = { panels_icon_bits, panels_icons, panels_scan_steps,
+#if CONFIG_DMR_ROAMING
+	panels_roam_dot,
+#endif
+	PANELS_ICON_CANVAS };
+static const panels_icon_set_t panels_icons_compact = { panels_icon_bits_s, panels_icons_s, panels_scan_steps_s,
+#if CONFIG_DMR_ROAMING
+	panels_roam_dot_s,
+#endif
+	PANELS_ICON_CANVAS_S };
+
+static const panels_icon_set_t *panels_set(void)
+{
+	return panels_small() ? &panels_icons_compact : &panels_icons_full;
+}
+
+// One icon of the family: the strip's marks and the menus' icons, in one ink. Its canvas at x, y
 static void panels_icon(int id, int x, int y, color_t ink)
 {
-	const panels_icon_t *ic = &panels_icons[id];
-	panels_mask(x + ic->dx, y + ic->dy, panels_icon_bits + ic->at, ic->w, ic->h, ink);
+	const panels_icon_set_t *set = panels_set();
+	const panels_icon_t *ic = &set->icons[id];
+	panels_mask(x + ic->dx, y + ic->dy, set->bits + ic->at, ic->w, ic->h, ink);
 }
 
 // ... in the status strip: its ink from x, the item's left edge, its canvas centered on the pane's center cy
 static void panels_strip_icon(int id, int x, int cy, color_t ink)
 {
-	panels_icon(id, x - panels_icons[id].dx, cy - PANELS_ICON_CANVAS / 2, ink);
+	const panels_icon_set_t *set = panels_set();
+	panels_icon(id, x - set->icons[id].dx, cy - set->canvas / 2, ink);
 }
 
 static int panels_icon_w(int id)
 {
-	return panels_icons[id].w;
+	return panels_set()->icons[id].w;
 }
 
-static int panels_px(int n, int scale) { return n * scale / 4; }
+static int panels_px(int n, int scale) { return n * scale / 8; }
 
 static void panels_block(panels_mark_pos_t at, int x, int y, int w, int h, color_t ink)
 {
@@ -134,7 +189,7 @@ static void panels_round_fill(int x, int y, int w, int h, color_t ink)
 static void panels_pane(int y, int h, color_t ink)
 {
 	static const uint8_t corner[] = { 5, 3, 2, 1, 1 };
-	const int x = PANELS_HOME_INSET, w = gfx_width() - 2 * x;
+	const int x = panels_m()->inset, w = gfx_width() - 2 * x;
 	const int r = sizeof corner;
 	gfx_fill(x, y + r, w, h - 2 * r, ink);
 	for (int i = 0; i < r; i++) {
@@ -150,7 +205,8 @@ static void panels_pane(int y, int h, color_t ink)
 
 static int panels_footer_top(void)
 {
-	return gfx_height() - PANELS_HOME_INSET - PANELS_FOOTER_H;
+	const panels_metrics_t *m = panels_m();
+	return gfx_height() - m->inset - m->footer_h;
 }
 
 static void panels_round_block(panels_mark_pos_t at, int x, int y, int w, int h, color_t ink)
@@ -212,22 +268,29 @@ static void panels_bitmap(int x, int y, const uint32_t *rows, int w, int h, int 
 
 enum {
 	PANELS_DIRECT_W = 19, PANELS_BT_W = 24,
-	PANELS_ORBIT_W = 20,	// the roaming ring with its dot at any of its places: the canvas's live width
 	PANELS_DUAL_W = 26,	// dual watch's two boxes
 };
+
+// The roaming ring with its dot at any of its places: the canvas's live width
+static int panels_orbit_w(void)
+{
+	return panels_set()->canvas - 4;
+}
 
 static void panels_native_caps(const font_t *font, int x, int cy, const char *label, color_t ink);
 
 #if CONFIG_DUAL_WATCH
-// Dual watch: A and B in 8x16 capitals, each in a rounded box 20 px high, the selected pane's filled
+// Dual watch: A and B in 8x16 capitals, each in a rounded box 20 px high (16 in the compact strip), the selected pane's
+// filled
 static void panels_dual_mark(int x, int cy, const ui_state_t *s, color_t ink)
 {
+	int h = panels_small() ? 16 : 20;
 	for (int i = 0; i < 2; i++) {
 		int bx = x + i * 14;
 		bool sel = i == s->dual.sel;
-		panels_round_fill(bx, cy - 10, 12, 20, ink);
+		panels_round_fill(bx, cy - h / 2, 12, h, ink);
 		if (!sel)
-			panels_round_fill(bx + 2, cy - 8, 8, 16, ui_col.strip_bg);
+			panels_round_fill(bx + 2, cy - h / 2 + 2, 8, h - 4, ui_col.strip_bg);
 		panels_native_caps(&font_aa_8x16, bx + 2, cy, i ? "B" : "A", sel ? ui_col.strip_bg : ink);
 	}
 }
@@ -281,13 +344,14 @@ static void panels_bluetooth(int x, int cy, int height, const ui_state_t *s)
 // PANELS_SCAN_STEPS - 1, panels_scan_steps) left out. Its ink from x, centered on cy
 static void panels_scan(int x, int cy, unsigned step, color_t ink)
 {
-	const panels_icon_t *ic = &panels_icons[UI_MENU_ICON_SCAN];
-	const uint8_t *bits = panels_icon_bits + ic->at;
-	int stride = (ic->w + 3) / 4, pairs = (ic->w + 1) / 2, y = cy - PANELS_ICON_CANVAS / 2 + ic->dy;
+	const panels_icon_set_t *set = panels_set();
+	const panels_icon_t *ic = &set->icons[UI_MENU_ICON_SCAN];
+	const uint8_t *bits = set->bits + ic->at;
+	int stride = (ic->w + 3) / 4, pairs = (ic->w + 1) / 2, y = cy - set->canvas / 2 + ic->dy;
 	for (int dy = 0; dy < ic->h; dy++)
 		for (int dx = 0; dx < ic->w; dx++) {
 			unsigned coverage = panels_mask_coverage(bits, stride, dx, dy);
-			if (coverage && (panels_scan_steps[dy * pairs + dx / 2] >> (4 * (dx % 2)) & 15u) != step)
+			if (coverage && (set->scan_steps[dy * pairs + dx / 2] >> (4 * (dx % 2)) & 15u) != step)
 				gfx_coverage_pixel(x + dx, y + dy, ink, coverage);
 		}
 }
@@ -297,8 +361,9 @@ static void panels_scan(int x, int cy, unsigned step, color_t ink)
 // or surveys. Its ink from x, centered on cy
 static void panels_roaming(int x, int cy, unsigned step, color_t ink)
 {
-	int ox = x - 2, oy = cy - PANELS_ICON_CANVAS / 2;	// the canvas: its live area from x
-	int dx = panels_roam_dot[step % 8u][0], dy = panels_roam_dot[step % 8u][1];
+	const panels_icon_set_t *set = panels_set();
+	int ox = x - 2, oy = cy - set->canvas / 2;	// the canvas: its live area from x
+	int dx = set->roam_dot[step % 8u][0], dy = set->roam_dot[step % 8u][1];
 	panels_icon(PANELS_ICON_RING, ox, oy, ink);
 	panels_icon(PANELS_ICON_HALO, ox + dx, oy + dy, ui_col.strip_bg);	// the ring parted around the dot
 	panels_icon(PANELS_ICON_DOT, ox + dx, oy + dy, ink);
@@ -316,7 +381,8 @@ static bool panels_clock(const ui_state_t *s, char *out, size_t cap)
 {
 	uint32_t date = s->gps_utc_ymd, time = s->gps_utc_hms;
 	uint32_t month = date / 100u % 100u, day = date % 100u;
-	if (!s->gps_clock || !s->gps_fix || date == 0 || month == 0 || month > 12 || day == 0 || day > 31 ||
+	// Never in the compact layout: the strip has no room for it, and Home no mode bar
+	if (panels_small() || !s->gps_clock || !s->gps_fix || date == 0 || month == 0 || month > 12 || day == 0 || day > 31 ||
 	    time / 10000u > 23 || time / 100u % 100u > 59 || time % 100u > 60)
 		return false;
 	static const tr_id_t months[] = {
@@ -369,13 +435,13 @@ enum {
 #endif
 	PANELS_SI_COUNT
 };
-#define PANELS_STRIP_X 10	// the strip's marks from the screen's edges: inside its pane's rounded ends
 
 // What the strip shows at a frame: its states, worked out once for the measure and the draw
 typedef struct {
 	const char *mode, *activity, *algorithm;
 	color_t activity_ink;
-	const font_t *word_font;	// the words' (the mode, TX, IP, RX, VOX): 12x24 where everything fits, else 8x16
+	const font_t *word_font;	// the words' (the mode, TX, IP, RX, VOX): 12x24 where everything fits, else 8x16; the
+					// power letter's in the compact strip
 	char clock[24];
 	uint8_t strength;
 	bool encrypted, warning;
@@ -469,10 +535,12 @@ static bool panels_scanning(const ui_state_t *s)
 // The width an item's mark or text takes in the strip, 0 where it has nothing to show
 static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t *s, const panels_strip_t *t)
 {
-	const int scale = PANELS_SCALE;
+	const panels_metrics_t *m = panels_m();
+	const int scale = m->scale;
 	const font_t *f = &font_aa_8x16;
+	bool small = panels_small();
 	switch (item) {
-	case PANELS_SI_BATTERY: return s->no_battery ? 0 : panels_px(11, PANELS_BATTERY_SCALE);
+	case PANELS_SI_BATTERY: return s->no_battery ? 0 : panels_px(11, m->battery_scale);
 	case PANELS_SI_ACTIVITY: return t->activity ? gfx_text_width(t->word_font, t->activity) : 0;
 	case PANELS_SI_SIGNAL: return t->strength ? panels_px(18, scale) : 0;
 	case PANELS_SI_MODE: return t->mode != NULL ? gfx_text_width(t->word_font, t->mode) : 0;
@@ -480,13 +548,14 @@ static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t
 	case PANELS_SI_KEY:
 		if (!t->encrypted && !t->warning)
 			return 0;
-		return t->algorithm ? gfx_text_width(f, t->algorithm) : panels_icon_w(UI_MENU_ICON_PRIVACY);
+		return t->algorithm && !(small && t->warning) ? gfx_text_width(f, t->algorithm) :
+			panels_icon_w(UI_MENU_ICON_PRIVACY);
 	case PANELS_SI_SCAN: return panels_scanning(s) ? panels_icon_w(UI_MENU_ICON_SCAN) : 0;
 	case PANELS_SI_MONITOR: return (v->monitor || s->hear_all) && !v->aprs_tx ? panels_icon_w(PANELS_ICON_MONITOR) : 0;
 	case PANELS_SI_UNREAD: return s->unread ? panels_icon_w(UI_MENU_ICON_MESSAGES) : 0;
 	case PANELS_SI_GPS: return s->gps_fix || s->gps == UI_GPS_SEARCH ? panels_icon_w(UI_MENU_ICON_LOCATION) : 0;
 	case PANELS_SI_IP: return s->usb_net != UI_USB_NET_OFF ? gfx_text_width(t->word_font, "IP") : 0;
-	case PANELS_SI_POWER: return board.power_count ? font_aa_12x24.w : 0;
+	case PANELS_SI_POWER: return board.power_count ? (small ? t->word_font : &font_aa_12x24)->w : 0;
 	case PANELS_SI_RX_ONLY: return v->ch.rx_only || v->am || v->bcast ? gfx_text_width(t->word_font, "RX") : 0;
 	case PANELS_SI_VOX: return v->vox_on ? gfx_text_width(t->word_font, "VOX") : 0;
 	case PANELS_SI_CLOCK: return t->clock[0] ? gfx_text_width(f, t->clock) + 8 : 0;	// kept apart from both sides
@@ -494,11 +563,11 @@ static int panels_strip_mark_w(int item, const radio_view_t *v, const ui_state_t
 	case PANELS_SI_DUAL: return s->dual.on ? PANELS_DUAL_W : 0;
 #endif
 #if CONFIG_DMR_ROAMING
-	case PANELS_SI_ROAM: return v->roam.state != RROAM_STATE_OFF && !v->aprs_tx ? PANELS_ORBIT_W : 0;
+	case PANELS_SI_ROAM: return v->roam.state != RROAM_STATE_OFF && !v->aprs_tx ? panels_orbit_w() : 0;
 #endif
 #ifdef GFX_FIT_TRACE
-	case PANELS_SI_RECORDING: return s->gui_sim_recording ? 17 : 0;
-	case PANELS_SI_TALKAROUND: return s->gui_sim_talkaround ? PANELS_DIRECT_W : 0;
+	case PANELS_SI_RECORDING: return s->gui_sim_recording ? (small ? 13 : 17) : 0;
+	case PANELS_SI_TALKAROUND: return s->gui_sim_talkaround ? (small ? 15 : PANELS_DIRECT_W) : 0;
 	case PANELS_SI_BT: return s->gui_sim_bt ? PANELS_BT_W : 0;
 #endif
 	default: return 0;
@@ -527,24 +596,25 @@ static uint32_t panels_strip_fit(const radio_view_t *v, const ui_state_t *s, con
 }
 
 // A word in the strip, centered on cy, its font's cell inside the pane: a 12x24 cell ends above the text of Home's mode
-// bar, which starts in the strip's last rows
+// bar, which starts in the strip's last rows (the compact layout has no mode bar)
 static void panels_strip_word(const font_t *f, int x, int cy, const char *text, color_t c)
 {
-	int y = cy - f->h / 2, bottom = PANELS_BAND_H - 3;
-	gfx_text(f, x, y + f->h > bottom ? bottom - f->h : y, text, c);
+	int y = cy - f->h / 2, bottom = panels_m()->band_h - 3;
+	gfx_text(f, x, y + f->h > bottom && !panels_small() ? bottom - f->h : y, text, c);
 }
 
 // One item at x (its left edge), the strip's marks centered on cy
 static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, const ui_state_t *s,
 	const panels_strip_t *t, color_t ink)
 {
-	const int scale = PANELS_SCALE;
+	const panels_metrics_t *m = panels_m();
+	const int scale = m->scale;
+	bool small = panels_small();
 	int y = cy - panels_px(9, scale) / 2;	// the top of a mark drawn at the strip's scale
 	switch (item) {
 	case PANELS_SI_BATTERY:
 		// Its cap's top to its body's bottom is -5 to 13 of its units: centered on cy
-		panels_battery(v, s,
-			(panels_mark_pos_t){ x, cy - panels_px(4, PANELS_BATTERY_SCALE), PANELS_BATTERY_SCALE }, ink);
+		panels_battery(v, s, (panels_mark_pos_t){ x, cy - panels_px(4, m->battery_scale), m->battery_scale }, ink);
 		break;
 	case PANELS_SI_ACTIVITY:
 		panels_strip_word(t->word_font, x, cy, t->activity, t->activity_ink);
@@ -565,16 +635,23 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		break;
 	case PANELS_SI_KEY: {
 		// The key in the ink, over its algorithm's name (8x16, the strip's smallest text) where it has one; on encrypted
-		// receive activity without a usable key, dimmed under a red slash
+		// receive activity without a usable key, dimmed under a red slash. The compact strip has room for one of them:
+		// the name where there is one, else the key
 		const font_t *f = &font_aa_8x16;
-		const panels_icon_t *key = &panels_icons[UI_MENU_ICON_PRIVACY];
-		int key_w = t->algorithm ? gfx_text_width(f, t->algorithm) : key->w;
-		int kx = x + (key_w - key->w) / 2, ky = t->algorithm ? cy - 11 : cy - key->h / 2;
-		panels_mask(kx, ky, panels_icon_bits + key->at, key->w, key->h, t->warning ? ui_col.dim : ink);
-		if (t->algorithm)
-			gfx_text(f, x + (key_w - gfx_text_width(f, t->algorithm)) / 2, cy - 2, t->algorithm, ink);
+		const panels_icon_set_t *set = panels_set();
+		const panels_icon_t *key = &set->icons[UI_MENU_ICON_PRIVACY];
+		if (small && t->algorithm && !t->warning) {
+			gfx_text(f, x, cy - f->h / 2, t->algorithm, ink);
+			break;
+		}
+		const char *algorithm = small ? NULL : t->algorithm;
+		int key_w = algorithm ? gfx_text_width(f, algorithm) : key->w, over = small ? 1 : 3;
+		int kx = x + (key_w - key->w) / 2, ky = algorithm ? cy - 11 : cy - key->h / 2;
+		panels_mask(kx, ky, set->bits + key->at, key->w, key->h, t->warning ? ui_col.dim : ink);
+		if (algorithm)
+			gfx_text(f, x + (key_w - gfx_text_width(f, algorithm)) / 2, cy - 2, algorithm, ink);
 		if (t->warning)
-			panels_slash(kx, ky - 3, key->w, key->h + 6, ui_col.tx);
+			panels_slash(kx, ky - over, key->w, key->h + 2 * over, ui_col.tx);
 		break;
 	}
 	case PANELS_SI_SCAN:
@@ -594,7 +671,7 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 		break;
 	case PANELS_SI_POWER: {
 		char level[] = { "LMH"[panels_power_level(v)], 0 };
-		panels_strip_word(&font_aa_12x24, x, cy, level, ink);
+		panels_strip_word(small ? t->word_font : &font_aa_12x24, x, cy, level, ink);
 		break;
 	}
 	case PANELS_SI_RX_ONLY:
@@ -620,13 +697,16 @@ static void panels_strip_item(int item, int x, int cy, const radio_view_t *v, co
 #endif
 #ifdef GFX_FIT_TRACE
 	case PANELS_SI_RECORDING:
-		panels_recording(x, cy, 17, s);
+		panels_recording(x, cy, small ? 13 : 17, s);
 		break;
 	case PANELS_SI_TALKAROUND:
-		PANELS_PIXELS(x, cy - 10, panels_direct_art, PANELS_DIRECT_W, ink);
+		if (small)
+			PANELS_SCALED_PIXELS(x, cy - 7, panels_direct_art, PANELS_DIRECT_W, 15, 15, ink);
+		else
+			PANELS_PIXELS(x, cy - 10, panels_direct_art, PANELS_DIRECT_W, ink);
 		break;
 	case PANELS_SI_BT:
-		panels_bluetooth(x, cy, 21, s);
+		panels_bluetooth(x, cy, small ? 15 : 21, s);
 		break;
 #endif
 	default:
@@ -660,33 +740,35 @@ static const uint8_t panels_strip_right[] = {
 // GPS, the USB network and the operating marks (unread mail, the privacy key, a receive-only channel, scanning) from
 // the right; the GPS clock in the room between. Home has no mode word in it: its mode bar has the mode. Nothing
 // overlaps: a crowded strip gives up items in the reverse of their order (PANELS_SI_*), and the words take the 8x16
-// font before anything else goes. under: the screen's color around the pane. Returns whether the GPS clock is due but
-// had no room (Home then has it in its mode bar)
+// font before anything else goes (the compact strip's are always in it). under: the screen's color around the pane.
+// home: Home's strip, which has no mode word where Home has a mode bar (not in the compact layout). Returns whether the
+// GPS clock is due but had no room (Home then has it in its mode bar)
 static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui_state_t *s, color_t under, bool home)
 {
 	ui_strip_draws++;
+	const panels_metrics_t *m = panels_m();
 	int w = gfx_width(), h = ui_layout.strip_h;
 	color_t ink = ui_col.fg;	// the marks in the palette's ink, Day and Night (Day's were black: an entry of their own)
 	gfx_fill(0, 0, w, h, under);
-	panels_pane(2, h - 2, ui_col.strip_bg);
+	panels_pane(m->pane_y, h - m->pane_y, ui_col.strip_bg);
 	panels_strip_t t = { 0 };
-	t.mode = home ? NULL : panels_status_mode(v, s);
+	t.mode = home && !panels_small() ? NULL : panels_status_mode(v, s);
 	t.activity = panels_status_activity(v, st, &t.activity_ink);
 	t.strength = panels_signal_bars(v, s);
 	panels_strip_key(v, s, &t);
-	int room = w - 2 * PANELS_STRIP_X;
+	int room = w - 2 * m->strip_x;
 	if (!panels_clock(s, t.clock, sizeof t.clock))
 		t.clock[0] = 0;
 	// The words in the large font where every item, the clock included, fits beside them
-	t.word_font = &font_aa_12x24;
+	t.word_font = panels_small() ? &font_aa_8x16 : &font_aa_12x24;
 	int need = 0;
 	for (int i = 0; i < PANELS_SI_COUNT; i++)
 		need += panels_strip_w(i, v, s, &t);
 	if (need > room)
 		t.word_font = &font_aa_8x16;
 	uint32_t shown = panels_strip_fit(v, s, &t, room);
-	int cy = 2 + (h - 2) / 2;	// the pane's center: every mark inside it with 2 px clear above and below
-	int left = PANELS_STRIP_X, right = w - PANELS_STRIP_X;
+	int cy = m->pane_y + (h - m->pane_y) / 2;	// the pane's center: every mark inside it, clear above and below
+	int left = m->strip_x, right = w - m->strip_x;
 	for (unsigned i = 0; i < sizeof panels_strip_left; i++) {
 		int item = panels_strip_left[i];
 		if (shown & (1u << item)) {
@@ -708,13 +790,27 @@ static bool panels_draw_status(const radio_view_t *v, radio_state_t st, const ui
 	return t.clock[0] && !(shown & (1u << PANELS_SI_CLOCK));
 }
 
+// Into line the longest of text's alternates that fits room whole (true), else its first (to be shortened)
+static bool panels_alt(const font_t *f, const char *text, int room, char *line, size_t cap)
+{
+	bool more = true, whole = false;
+	for (int level = 0; more && !whole; level++) {
+		gfx_text_alt(text, level, line, cap, &more);
+		whole = line[0] && gfx_text_width(f, line) <= room;
+	}
+	if (!whole)
+		gfx_text_alt(text, 0, line, cap, &more);
+	return whole;
+}
+
 // A screen's title below the strip, in the medium font (8x16 where it is too long), left-aligned, reserve pixels left
 // free at its right for the scroll position. Returns the y below its row, the same whichever font it took. The strip
 // is drawn before, by the caller: under this function's buffers it would deepen the UI task's deepest path
 static int panels_title(const char *prefix, const char *name, int reserve, bool draw)
 {
 	const ui_layout_t *L = &ui_layout;
-	int y = L->strip_h + PANELS_TITLE_PAD;
+	const panels_metrics_t *m = panels_m();
+	int y = L->strip_h + m->title_pad;
 	if (draw) {
 		char title[48], fit[40];	// on the UI task's deepest path (make stack-check): no larger
 		sbuf_t b;
@@ -725,12 +821,19 @@ static int panels_title(const char *prefix, const char *name, int reserve, bool 
 			sb_chr(&b, ' ');
 		if (name)
 			sb_str(&b, name);
-		int room = gfx_width() - 30 - reserve;
+		int room = gfx_width() - 2 * m->margin - reserve;
 		const font_t *f = gfx_text_width(L->medium, title) <= room ? L->medium : &font_aa_8x16;
-		gfx_text_fit(f, title, room, fit, sizeof fit);
-		gfx_text(f, 15, y + (L->medium->h - f->h) / 2, fit, ui_col.fg);
+		const char *line = fit;
+		if (!panels_small()) {
+			gfx_text_fit(f, title, room, fit, sizeof fit);
+		} else if (!panels_alt(f, title, room, fit, sizeof fit)) {
+			// The compact layout shortens a title at its end
+			ui_fit_end(f, fit, room, title, sizeof title);
+			line = title;
+		}
+		gfx_text(f, m->margin, y + (L->medium->h - f->h) / 2, line, ui_col.fg);
 	}
-	return y + L->medium->h + PANELS_TITLE_PAD;
+	return y + L->medium->h + m->title_pad_below;
 }
 
 // Its strip, and a title as a list's. Measuring returns before the strip's drawing and its buffers
@@ -743,7 +846,9 @@ static int panels_top(const radio_view_t *v, radio_state_t st, const ui_state_t 
 		return ui_layout.strip_h;
 	if (draw) {
 		// The title row in the screen's background: a screen drawn without clearing it first (a page over a page)
-		gfx_fill(0, ui_layout.strip_h, gfx_width(), ui_layout.medium->h + 2 * PANELS_TITLE_PAD, ui_col.bg);
+		const panels_metrics_t *m = panels_m();
+		gfx_fill(0, ui_layout.strip_h, gfx_width(), ui_layout.medium->h + m->title_pad + m->title_pad_below,
+			 ui_col.bg);
 	}
 	return panels_title(prefix, name, 0, draw);
 }
@@ -814,7 +919,7 @@ static unsigned panels_hint_parts(const char *form, unsigned flags, char *row, s
 
 static int panels_hint_top(void)
 {
-	return panels_footer_top() - PANELS_BAR_GAP - font_aa_8x16.h;
+	return panels_footer_top() - panels_m()->bar_gap - font_aa_8x16.h;
 }
 
 // Text with Chinese in it: the CJK face's glyphs fill their 16 px cell, the 8x16 font's height
@@ -839,17 +944,19 @@ static bool panels_hint_has_row(const char *text, unsigned flags)
 	return (panels_hint_parts(ui_key_names(form, names, sizeof names, true), flags, NULL, 0) & 4u) != 0;
 }
 
-// The bar's text in the largest font that fits both labels, left at the left soft key, right at the right one. Where
-// either is Chinese, both at the Chinese text's height (the 8x16 font), centered on the bar
+// The bar's text in the largest font that fits both labels (the compact bar's in the small one, 8x16), left at the left
+// soft key, right at the right one. Where either is Chinese, both at the Chinese text's height (the 8x16 font),
+// centered on the bar
 static void panels_bar_labels(const char *left, const char *right, int top, color_t fg)
 {
 	const ui_layout_t *L = &ui_layout;
-	const int inset = PANELS_HOME_INSET, h = PANELS_FOOTER_H, margin = 15 - inset;
+	const panels_metrics_t *m = panels_m();
+	const int inset = m->inset, h = m->footer_h, margin = m->bar_margin;
 	int w = gfx_width() - 2 * inset;
 	const font_t *fonts[] = { FONT_AA_LARGEST, &font_aa_12x24, L->small };
 	bool wide = panels_wide(left) || panels_wide(right);
 	const font_t *f = wide ? &font_aa_8x16 : L->small;
-	for (unsigned i = 0; !wide && i < sizeof fonts / sizeof fonts[0]; i++) {
+	for (unsigned i = panels_small() ? 2 : 0; !wide && i < sizeof fonts / sizeof fonts[0]; i++) {
 		int lw = left != NULL ? gfx_text_width(fonts[i], left) : 0, rw = right != NULL ? gfx_text_width(fonts[i], right) : 0;
 		if (lw + rw + fonts[i]->w <= w - 2 * margin) {
 			f = fonts[i];
@@ -879,9 +986,10 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 #endif
 	bool toast = flags & UI_BAR_TOAST;
 	const ui_layout_t *L = &ui_layout;
-	const int inset = PANELS_HOME_INSET;
+	const panels_metrics_t *m = panels_m();
+	const int inset = m->inset;
 	int top = panels_footer_top();
-	const int h = PANELS_FOOTER_H;
+	const int h = m->footer_h;
 	const font_t *f = L->small;
 	char fit[64];
 	int w = gfx_width() - 2 * inset;
@@ -915,7 +1023,7 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 			y -= f->h;
 			top = ui_overlay_top(y, inset + 5, inset + 5);
 		}
-		panels_pane(top, gfx_height() - PANELS_HOME_INSET - top, ui_col.fg);
+		panels_pane(top, gfx_height() - inset - top, ui_col.fg);
 		gfx_text(f, inset + (w - gfx_text_width(f, fit)) / 2, y, fit, ui_col.bg);
 		if (second[0]) {
 			gfx_text_fit(f, second, w - 2, fit, sizeof fit);
@@ -948,8 +1056,12 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 		*cut = 0;
 	}
 	if (row[0]) {
-		gfx_text_fit(rf, row, room, fit, sizeof fit);
-		gfx_text(rf, gfx_text_width(rf, fit) <= gfx_width() - 30 ? 15 : 6, panels_hint_top(), fit, ui_col.dim);
+		if (panels_small())
+			ui_fit_end(rf, row, room, fit, sizeof fit);	// a group the compact row can't hold, at its end
+		else
+			gfx_text_fit(rf, row, room, fit, sizeof fit);
+		gfx_text(rf, gfx_text_width(rf, fit) <= gfx_width() - 2 * m->margin ? m->margin : 6, panels_hint_top(), fit,
+			 ui_col.dim);
 	}
 	const char *left = (flags & (PANELS_BAR_MENU | PANELS_BAR_IDLE)) ? TR(FIND_CHIP_MENU, "Menu") :
 		(keys & 1u) || (flags & PANELS_BAR_KEYS) || ((flags & UI_BAR_LIST) && (flags & UI_BAR_NUMBERED)) ? "OK" : NULL;
@@ -959,22 +1071,23 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 }
 
 // The bar with one sentence in place of the two labels (Home while the keys are locked: what unlocks them), in the
-// largest font one of its forms fits, 8x16 last on a narrow screen (Chinese: the 8x16 font, its height), centered,
-// whether Hint row is on or off
+// largest font one of its forms fits, 8x16 last on a narrow screen (Chinese, and the compact bar: the 8x16 font),
+// centered, whether Hint row is on or off
 static void panels_bar_sentence(const char *text)
 {
 	const ui_layout_t *L = &ui_layout;
-	const int inset = PANELS_HOME_INSET, margin = 4;	// a sentence spans the bar: "Locked: hold * to unlock" in 12x24
+	const panels_metrics_t *m = panels_m();
+	const int inset = m->inset, margin = 4;	// a sentence spans the bar: "Locked: hold * to unlock" in 12x24
 	int top = panels_footer_top(), room = gfx_width() - 2 * inset - 2 * margin;
 	char form[64], names[64];
-	bool wide = panels_wide(text);
+	bool wide = panels_wide(text) || panels_small();
 	const font_t *fonts[] = { wide ? &font_aa_8x16 : FONT_AA_LARGEST, &font_aa_12x24, L->small, &font_aa_8x16 };
 	const char *line = NULL;
 	const font_t *f = wide ? fonts[0] : L->small;
 #if CONFIG_VOLUME_BAR
 	ui_hint_draws++;
 #endif
-	panels_pane(top, PANELS_FOOTER_H, ui_col.hint_bg);
+	panels_pane(top, m->footer_h, ui_col.hint_bg);
 	for (unsigned i = 0; i < (wide ? 1u : sizeof fonts / sizeof fonts[0]) && line == NULL; i++) {
 		bool more = true;
 		for (int level = 0; more; level++) {
@@ -991,7 +1104,7 @@ static void panels_bar_sentence(const char *text)
 		line = ui_key_names(form, names, sizeof names, false);	// the shortest form, shortened
 	char fit[64];
 	gfx_text_fit(f, line, room, fit, sizeof fit);
-	gfx_text(f, inset + margin + (room - gfx_text_width(f, fit)) / 2, top + (PANELS_FOOTER_H - f->h) / 2, fit,
+	gfx_text(f, inset + margin + (room - gfx_text_width(f, fit)) / 2, top + (m->footer_h - f->h) / 2, fit,
 		 panels_bar_fg);
 }
 
@@ -999,7 +1112,7 @@ static void panels_center(const font_t *f, int y, const char *text, color_t c)
 {
 	char fit[64];
 	int w = gfx_width();
-	ui_fit_end(f, text, w - 30, fit, sizeof fit);
+	ui_fit_end(f, text, w - 2 * panels_m()->margin, fit, sizeof fit);
 	gfx_text(f, (w - gfx_text_width(f, fit)) / 2, y, fit, c);
 }
 
@@ -1138,7 +1251,8 @@ static void panels_home_details(const radio_view_t *v, const ui_state_t *s, int 
 		sb_str(&b, " " GLYPH_DOT " TX ");
 		sb_freq(&b, v->ch.tx_hz);
 	}
-	if (gfx_text_width(f, buf) > gfx_width() - 30 && gfx_text_width(&font_aa_8x16, buf) <= gfx_width() - 30)
+	int room = gfx_width() - 2 * panels_m()->margin;
+	if (gfx_text_width(f, buf) > room && gfx_text_width(&font_aa_8x16, buf) <= room)
 		f = &font_aa_8x16;
 	if (buf[0])
 		panels_center(f, y, buf, ui_col.dim);
@@ -1161,8 +1275,9 @@ static int panels_home_lines_top(int bottom, const font_t *f)
 // the contact's name or the ID) and to which talkgroup, while transmitting where PTT talks to and the time left;
 // otherwise one line of what needs attention (a refused PTT, a timed transmission, a missing frequency or target, ...).
 // The signal is the strip's bars. The lines keep their place, so nothing above them
-// moves when a call comes in
-static void panels_home_lines(const radio_view_t *v, const ui_state_t *s, int bottom, const font_t *f)
+// moves when a call comes in (the compact layout gives them room only while they have something to say). draw false:
+// only whether they have. Returns whether they have
+static bool panels_home_lines(const radio_view_t *v, const ui_state_t *s, int bottom, const font_t *f, bool draw)
 {
 	const ui_layout_t *L = &ui_layout;
 	const font_t *f2 = L->small;
@@ -1230,22 +1345,25 @@ static void panels_home_lines(const radio_view_t *v, const ui_state_t *s, int bo
 		text = TR(HOME_STATE_NO_TARGET, "No talk target");
 #endif
 	}
-	int y2 = bottom - 1 - f2->h, y = y2 - panels_pitch(f);
+	if (!draw)
+		return text != NULL || text2 != NULL;
+	int y2 = bottom - 1 - f2->h, y = y2 - panels_pitch(f), margin = panels_m()->margin;
 	if (text != NULL) {
-		gfx_hline(15, y - 2, gfx_width() - 30, ui_col.line);
+		gfx_hline(margin, y - 2, gfx_width() - 2 * margin, ui_col.line);
 		panels_center(f, y, text, c);
 	}
 	if (text2 != NULL)
 		panels_center(f2, y2, text2, c2);
+	return text != NULL || text2 != NULL;
 }
 
 // A line in the larger fonts, enlarged by quarters where it fits (gfx_text_title), else in the medium font
 static void panels_home_title(const font_t *f, int top, int quarters, const char *text, color_t c)
 {
 	const ui_layout_t *L = &ui_layout;
-	int w = gfx_width();
-	if (!gfx_text_title(f, w / 2, top + f->ascent * quarters / 4, w - 30, text, c, quarters) &&
-	    !gfx_text_title(L->medium, w / 2, top + L->medium->ascent * quarters / 4, w - 30, text, c, quarters))
+	int w = gfx_width(), room = w - 2 * panels_m()->margin;
+	if (!gfx_text_title(f, w / 2, top + f->ascent * quarters / 4, room, text, c, quarters) &&
+	    !gfx_text_title(L->medium, w / 2, top + L->medium->ascent * quarters / 4, room, text, c, quarters))
 		panels_center(L->medium, top, text, c);
 }
 
@@ -1259,7 +1377,8 @@ static void panels_native_caps(const font_t *font, int x, int cy, const char *la
 }
 
 // Home's frame on the gutter: the strip (no mode word), the mode bar under it (the mode in the largest font, and the
-// GPS clock where the strip had no room for it) and the channel pane down to bottom. Returns the pane's top
+// GPS clock where the strip had no room for it) and the channel pane down to bottom. The compact layout has no mode
+// bar: its strip has the mode word. Returns the pane's top
 static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bottom)
 {
 	// The panes' and the bar's colors first: on a display with a 16-color palette the text's shades take what is left
@@ -1269,6 +1388,10 @@ static int panels_home_frame(const radio_view_t *v, const ui_state_t *s, int bot
 	gfx_reserve_colors(colors, sizeof colors / sizeof colors[0]);
 	bool clock = panels_draw_status(v, v->state, s, panels_gutter, true);
 	int y = ui_layout.strip_h + 1;
+	if (panels_small()) {
+		panels_pane(y, bottom - y, ui_col.bg);
+		return y;
+	}
 	panels_pane(y, PANELS_MODE_H, panels_row_bg);
 	panels_native_caps(FONT_AA_LARGEST, 15, y + PANELS_MODE_H / 2, panels_status_mode(v, s), ui_col.fg);
 	char time[24];
@@ -1296,13 +1419,14 @@ static int panels_home_bottom(const ui_state_t *s, const char *hint)
 {
 	bool row = s->volbar >= 0 || (s->toast == NULL && s->hints && !s->locked && hint != NULL &&
 		panels_hint_has_row(hint, panels_home_bar(s, hint)));
-	return row ? panels_hint_top() - 2 : panels_footer_top() - PANELS_HOME_GAP;
+	return row ? panels_hint_top() - 2 : panels_footer_top() - panels_m()->home_gap;
 }
 
 static void panels_home_footer(const ui_state_t *s, const char *hint, int bottom)
 {
 	// Above the pane's lower edge; what it reads of the screen under it stays clear of the panes' rounded corners
-	ui_banner_box(s, bottom, PANELS_HOME_INSET + 5, PANELS_HOME_INSET + 5, ui_col.strip_bg);
+	int inset = panels_m()->inset;
+	ui_banner_box(s, bottom, inset + 5, inset + 5, ui_col.strip_bg);
 	if (s->toast != NULL)
 		ui_draw_hint(s->toast, true);
 	else if (s->locked && hint != NULL)
@@ -1316,7 +1440,9 @@ static void panels_home_footer(const ui_state_t *s, const char *hint, int bottom
 // Amateur's details, with the two lines of a call or of what needs attention at the pane's foot. Large text keeps the
 // zone, the main line and the target, larger, without the details. Where the pane is short (the hint row above the bar)
 // the main line takes fewer quarters of enlargement, then the details row and the zone line go, before anything
-// overlaps. noinline: inlined in panels_home, its buffers would be in the frame the reference Home is drawn from
+// overlaps. In the compact layout the lines at the foot take room only while they have something to say, and then
+// over the target and the details, which go. noinline: inlined in panels_home, its buffers would be in the frame the
+// reference Home is drawn from
 static void __attribute__((noinline)) panels_draw_home(const radio_view_t *v, const ui_state_t *s)
 {
 	const ui_layout_t *L = &ui_layout;
@@ -1347,18 +1473,24 @@ static void __attribute__((noinline)) panels_draw_home(const radio_view_t *v, co
 	const font_t *tf = large ? L->large : L->medium, *zf = L->medium, *lf = L->medium;
 	bool zone = true, details = !commercial && !large && !s->entry;
 	int quarters = commercial || large ? 6 : 4;
+	bool lines = !panels_small() || panels_home_lines(v, s, bottom, lf, false);
+	if (panels_small() && lines) {
+		details = false;
+		target[0] = 0;
+	}
 	for (;;) {
 		int need = (zone ? panels_pitch(zf) : 0) + L->large->h * quarters / 4 +
 			(target[0] ? panels_pitch(tf) : 0) + (details ? L->small->h : 0);
-		if (need <= panels_home_lines_top(bottom, lf) - 1 - top)
+		if (need <= (lines ? panels_home_lines_top(bottom, lf) : bottom - 2) - 1 - top)
 			break;
+		bool smaller = L->small != L->medium;	// the compact layout's are both 8x16
 		if (quarters > 4)
 			quarters--;
-		else if (target[0] && tf == L->medium)
+		else if (target[0] && tf == L->medium && smaller)
 			tf = L->small;
-		else if (zone && zf == L->medium)
+		else if (zone && zf == L->medium && smaller)
 			zf = L->small;
-		else if (lf == L->medium)
+		else if (lf == L->medium && smaller)
 			lf = L->small;
 		else if (details)
 			details = false;
@@ -1384,7 +1516,7 @@ static void __attribute__((noinline)) panels_draw_home(const radio_view_t *v, co
 	if (details)
 		panels_home_details(v, s, y);
 
-	panels_home_lines(v, s, bottom, lf);
+	panels_home_lines(v, s, bottom, lf, true);
 	panels_home_footer(s, hint, bottom);
 }
 
@@ -1433,10 +1565,10 @@ static void panels_cell_panel(int x, int y, int w, int h, bool focus, bool edit)
 }
 
 // One row height for every list: five rows between the title and the bar on 310 x 240, the small font (9x18 where the
-// build has it) with its padding
+// build has it) with its padding; in the compact layout 18 px, the 8x16 font in a 16 px panel
 static int panels_row_h(void)
 {
-	return 26;
+	return panels_m()->row_h;
 }
 
 // --- The theme ---
@@ -1455,9 +1587,14 @@ static void panels_home(const radio_view_t *v, const ui_state_t *s)
 // Dual watch's Home in Home's frame: its panes inset in the channel pane, no list of calls (the alias is a live
 // receiving indication only), a refused PTT's reason centered. Commercial names the talk target where the channel
 // number would be
-static const ui_dual_style_t panels_dual[] = {
-	{ .inset = 12, .deny_margin = 15, .target_label = true, .fallback = true },	// Commercial
-	{ .inset = 12, .deny_margin = 15, .fallback = true },				// Amateur
+static const ui_dual_style_t panels_dual[][2] = {
+	{
+		{ .inset = 12, .deny_margin = 15, .target_label = true, .fallback = true },	// Commercial
+		{ .inset = 12, .deny_margin = 15, .fallback = true },				// Amateur
+	}, {	// the compact layout's narrower margins
+		{ .inset = 6, .deny_margin = 6, .target_label = true, .fallback = true },
+		{ .inset = 6, .deny_margin = 6, .fallback = true },
+	},
 };
 
 static void panels_home_dual(const radio_view_t *v, const ui_state_t *s)
@@ -1465,7 +1602,8 @@ static void panels_home_dual(const radio_view_t *v, const ui_state_t *s)
 	const char *hint = ui_dual_hint(v, s);
 	int bottom = panels_home_bottom(s, hint);
 	int top = panels_home_frame(v, s, bottom);
-	ui_home_dual_body(v, s, top + 4, bottom - 4, &panels_dual[s->gui_profile != 0]);
+	int pad = panels_small() ? 2 : 4;
+	ui_home_dual_body(v, s, top + pad, bottom - pad, &panels_dual[panels_small()][s->gui_profile != 0]);
 	panels_home_footer(s, hint, bottom);
 }
 #endif
@@ -1527,24 +1665,35 @@ static panels_grid_t panels_grid(void)
 	return tile - full.label - 3 >= PANELS_TILE_CHARS * font_aa_8x16.w ? full : narrow;
 }
 
-#define PANELS_LIST_X 7		// a list's rows from the screen's edges
 #define PANELS_ROW_CHARS 31	// a row's room for text in the small font at the full width, in characters
 
 // A list's font: the small one (9x18 where the build has it) where a row holds PANELS_ROW_CHARS characters of it, else
 // 8x16 for the whole list, labels and values (a narrow screen; the rows keep their height)
 static const font_t *panels_list_font(void)
 {
+	const panels_metrics_t *m = panels_m();
 	const font_t *f = ui_layout.small;
-	int room = gfx_width() - 2 * PANELS_LIST_X - PANELS_TEXT_X - 5;
+	int room = gfx_width() - 2 * m->list_x - m->text_x - 5;
 	return room / f->w >= PANELS_ROW_CHARS ? f : &font_aa_8x16;
 }
 
+// In the compact layout a list takes the hint row's room where the row has nothing to show: Hint row off, or a hint
+// whose every group the bar says (ui_list_bar: the flags ui_draw_list draws the list's bottom row with). The full
+// layout keeps the row's room either way
+static bool panels_rows_free(const ui_list_t *l)
+{
+	return panels_small() && (l->hint == NULL || !panels_hint_has_row(l->hint, ui_list_bar));
+}
+
 // Where a list's cells end: a row's panel may run under the hint row's text where the row's text ends above it; a
-// grid's tiles end above the hint row. Without the bar (Hint row off) at y_end
+// grid's tiles end above the hint row. Without the bar (Hint row off) at y_end. In the compact layout, where the hint
+// row is empty, they run to the bar
 static int panels_list_end(const ui_list_t *l, int y_end)
 {
 	if (y_end != ui_layout.hint_y)
 		return y_end;
+	if (panels_rows_free(l))
+		return panels_footer_top() - (l->kind == UI_LIST_PLAIN ? panels_m()->bar_gap : 2);
 	// The last row's text ends above the hint row's; its panel may reach under the row's blank top
 	int row_text_end = panels_hint_top() + (panels_row_h() - panels_list_font()->h) / 2;
 	return l->kind == UI_LIST_PLAIN ? row_text_end : panels_hint_top() - 2;
@@ -1578,7 +1727,9 @@ static int panels_list_head(const radio_view_t *v, const ui_state_t *s, const ui
 	// A header or a body takes rows from the page, so with one the position may show for any list of two or more
 	bool over = l->count > panels_list_page(l, y) || ((l->header != NULL || l->body != NULL) && l->count > 1);
 	int reserve = over ? panels_badge(l, l->count, badge, sizeof badge) + 8 : 0;
-	return panels_title(l->prefix, l->name, reserve, draw);
+	// The compact layout's grids name their focused tile in the title row (panels_focus_title)
+	bool tiles = panels_small() && l->kind != UI_LIST_PLAIN;
+	return panels_title(tiles ? NULL : l->prefix, tiles ? NULL : l->name, reserve, draw);
 }
 
 // Rows of one height, inset from the edges, as many as fit. The main menu as a grid of three columns in the keypad's
@@ -1590,7 +1741,7 @@ static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_
 	y_end = panels_list_end(l, y_end);
 	int cols = l->kind == UI_LIST_HUB ? 3 : l->kind == UI_LIST_MENU ? 2 : 1;
 	panels_grid_t grid = panels_grid();
-	g->x = cols == 3 ? grid.x0 : PANELS_LIST_X;
+	g->x = cols == 3 ? grid.x0 : panels_m()->list_x;
 	g->cols = (uint8_t)cols;
 	g->col_gap = (int8_t)(cols == 3 ? grid.gap : cols == 2 ? 8 : 0);
 	g->paged = cols > 1;
@@ -1604,17 +1755,21 @@ static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_
 		g->col_w[i] = (int16_t)(i < cols - 1 ? col_w : i == cols - 1 ? inner_w - (cols - 1) * (col_w + g->col_gap) : 0);
 }
 
-// Into line the longest of text's alternates that fits room whole (true), else its first (to be shortened)
-static bool panels_alt(const font_t *f, const char *text, int room, char *line, size_t cap)
+// The compact layout's title row over a grid: the focused tile's label, the longest of its alternates that fits, and its
+// value after it where that fits too, in the medium font; reserve pixels kept free at its right for the scroll
+// position. line and fit: the caller's buffers of cap bytes
+static void panels_focus_title(const char *label, const char *value, int reserve, char *line, char *fit, size_t cap)
 {
-	bool more = true, whole = false;
-	for (int level = 0; more && !whole; level++) {
-		gfx_text_alt(text, level, line, cap, &more);
-		whole = line[0] && gfx_text_width(f, line) <= room;
+	const panels_metrics_t *m = panels_m();
+	const font_t *f = ui_layout.medium;
+	int room = gfx_width() - 2 * m->margin - reserve, y = ui_layout.strip_h + m->title_pad;
+	if (!panels_alt(f, label, room, line, cap)) {
+		ui_fit_end(f, line, room, fit, cap);
+		str_copy(line, cap, fit);
 	}
-	if (!whole)
-		gfx_text_alt(text, 0, line, cap, &more);
-	return whole;
+	int x = gfx_text(f, m->margin, y, line, ui_col.fg) + 2 * f->w;
+	if (value != NULL && value[0] && panels_alt(f, value, m->margin + room - x, fit, cap))
+		gfx_text(f, x, y, fit, ui_col.dim);
 }
 
 // A grid tile: its icon (in the ink, the accent on focus) and two lines of the 8x16 font. The main menu's: its icon
@@ -1629,7 +1784,26 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 	char line[40], fit[40];
 	bool hub = l->kind == UI_LIST_HUB, icon = it->icon != UI_MENU_ICON_NONE;
 	color_t icon_ink = c->focus ? panels_accent : ui_col.fg;
-	int x = c->x + (hub ? panels_grid().label : PANELS_TEXT_X), right = c->x + c->w - 3;
+	if (panels_small()) {
+		// The compact layout's tiles: the icon and its digit, centered in the tile; the title row names the focused
+		// one, with its value (not the zone's name on Zones' tile: Home shows the zone)
+		const panels_icon_set_t *set = panels_set();
+		int live = set->canvas - 4, iw = icon ? live + 2 : 0, cy = c->y + c->h / 2;
+		int gx = c->x + (c->w - iw - (it->num ? f->w : 0)) / 2;
+		if (icon)
+			panels_icon(it->icon, gx - 2, cy - set->canvas / 2, icon_ink);
+		if (it->num) {
+			char n[2] = { it->num, 0 };
+			gfx_text(f, gx + iw, cy - f->h / 2, n, num_ink);
+		}
+		if (c->focus) {
+			int reserve = l->count > panels_list_page(l, 0) ? panels_badge(l, l->count, fit, sizeof fit) + 8 : 0;
+			panels_focus_title(it->label, it->icon != UI_MENU_ICON_ZONES ? it->value : NULL, reserve, line, fit,
+					   sizeof line);
+		}
+		return;
+	}
+	int x = c->x + (hub ? panels_grid().label : panels_m()->text_x), right = c->x + c->w - 3;
 	if (!hub && icon)
 		x = c->x + 30;	// right of the icon's canvas, centered in the tile at its left
 	int label_x = x, text_x = x + (it->num ? 2 * f->w : 0);
@@ -1714,7 +1888,7 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 	if (flags & UI_ITEM_TEMP)
 		vfg = ui_col.warn;
 	// The 3x3 main menu's tiles 2 px apart (39 px high on 310 x 240), room for an icon over a line of text
-	int gap = l->kind == UI_LIST_HUB ? 1 : PANELS_ROW_GAP;
+	int gap = l->kind == UI_LIST_HUB ? 1 : panels_m()->row_gap;
 	if (!(flags & UI_ITEM_INFO) || focus)
 		panels_cell_panel(c->x, c->y + gap, c->w, c->h - 2 * gap, focus, (flags & UI_ITEM_EDIT) != 0);
 	if (focus) {
@@ -1726,7 +1900,7 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 		return;
 	}
 	// One column: a plain list (panels_list_geom gives the Menu and Settings, the lists with icons, grids)
-	int x = c->x + PANELS_TEXT_X;
+	int x = c->x + panels_m()->text_x;
 	int right = c->x + c->w - 5;
 	const font_t *f = g->font;
 	int ty = c->y + (c->h - f->h) / 2;
@@ -1735,10 +1909,12 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 		x = gfx_text(f, x, ty, n, focus ? fg : ui_col.dim);
 	}
 	if (focus && (flags & UI_ITEM_EDIT)) {
-		ui_row_edit(f, x, ty, right, it->label, value, fg, panels_accent);
+		ui_row_edit(f, x, ty, right, it->label, value, fg, panels_accent, panels_small());
 		return;
 	}
-	ui_row_text(f, x, ty, right, it->label, value, fg, vfg, (flags & UI_ITEM_PREVIEW) != 0);
+	// A label too long for the compact layout's row is shortened at its end, as a preview's (a label with shorter
+	// forms takes the longest that fits first)
+	ui_row_text(f, x, ty, right, it->label, value, fg, vfg, (flags & UI_ITEM_PREVIEW) || panels_small());
 }
 
 // The scroll position in the title's row, "n/N" for the focused entry, where the list has more entries than its screen
@@ -1750,8 +1926,9 @@ static void panels_scroll(const ui_list_t *l, const ui_list_geom_t *g, uint16_t 
 		return;
 	char badge[16];
 	const font_t *f = &font_aa_8x16;
+	const panels_metrics_t *m = panels_m();
 	int w = panels_badge(l, l->focus < count ? l->focus + 1u : count, badge, sizeof badge);
-	gfx_text(f, gfx_width() - 15 - w, ui_layout.strip_h + PANELS_TITLE_PAD + (ui_layout.medium->h - f->h) / 2, badge,
+	gfx_text(f, gfx_width() - m->margin - w, ui_layout.strip_h + m->title_pad + (ui_layout.medium->h - f->h) / 2, badge,
 		ui_col.dim);
 }
 
@@ -1813,17 +1990,23 @@ static void panels_quick_entry(const ui_state_t *s, bool places, char *out, size
 // Quick settings: the tiles 1-9 as rounded panels in three rows of three under the title, the focus as a list's. Each
 // has two lines of the 8x16 font: its name in whole words (panels_quick_word), then its key's digit and its value,
 // between arrows while it edits (the TX frequency's typed digits); a value too long for that line takes a third where
-// the tile has the height. The bottom row as the reference theme's Quick has it
+// the tile has the height. The bottom row as the reference theme's Quick has it. In the compact layout a tile has one
+// line, its value (the tile's place is its key), and the title row names the focused tile; with Hint row off the
+// tiles take the hint row's room
 static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 {
 	const font_t *f = &font_aa_8x16;
 	char label[24], word[24], value[16], fit[24];
 	const char *split;
+	bool small = panels_small();
+	const panels_metrics_t *m = panels_m();
 	gfx_clear(ui_col.bg);
 	panels_list_colors();
 	panels_draw_status(v, v->state, s, ui_col.bg, false);
-	int top = panels_title(TR(QUICK_TITLE, "Quick"), v->vfo ? "VFO" : v->ch.name, 0, true);
-	int bottom = panels_hint_top() - 2;	// Quick always has its bottom row, as the reference theme's
+	int top = panels_title(small ? NULL : TR(QUICK_TITLE, "Quick"), small ? NULL : v->vfo ? "VFO" : v->ch.name, 0,
+			       true);
+	// Quick always has its bottom row, as the reference theme's
+	int bottom = (small && !s->hints ? panels_footer_top() : panels_hint_top()) - 2;
 	const panels_grid_t grid = panels_grid();
 	const int x0 = grid.x0, gap = grid.gap;
 	int tw = (gfx_width() - 2 * x0 - 2 * gap) / 3, th = (bottom - top) / 3;
@@ -1834,10 +2017,13 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 		uint8_t kind = ui_quick_kind(i, v);
 		bool focus = i == s->quick_focus, edit = focus && s->quick_edit;
 		color_t fg = focus ? ui_col.focus_fg : ok ? ui_col.fg : ui_col.dim;
-		panels_cell_panel(x, y + PANELS_ROW_GAP, tw, th - 2 * PANELS_ROW_GAP, focus, edit);
+		panels_cell_panel(x, y + m->row_gap, tw, th - 2 * m->row_gap, focus, edit);
 		bool typed = edit && kind == QT_SPLIT && s->entry_len > 0;
 		char key[2] = { label[0], 0 };
 		int right = x + tw - 4, vx = x + 7 + gfx_text_width(f, key) + 4;
+		// The compact tile's value: clear of the focus's accent bar, from 1 px inside the tile's edges
+		if (small)
+			right = x + tw - 1, vx = x + (focus ? PANELS_ACCENT_W + 1 : 1);
 		if (typed) {
 			// The digits say it edits: no arrows. With the places to type where they fit, else the digits alone
 			// (the hint row has the places)
@@ -1845,8 +2031,9 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 			if (gfx_text_width(f, value) > right - vx)
 				panels_quick_entry(s, false, value, sizeof value);
 		}
-		if (edit && !typed) {
-			// Editing: arrows around the value say Up/Dn changes it
+		if (edit && !typed && (!small || gfx_text_width(f, value) + 2 * f->w <= right - vx)) {
+			// Editing: arrows around the value say Up/Dn changes it (the compact tile's where they fit; its accent
+			// color says it too)
 			sbuf_t b;
 			sb_init(&b, fit, sizeof fit);
 			sb_chr(&b, '<');
@@ -1854,15 +2041,28 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 			sb_chr(&b, '>');
 			str_copy(value, sizeof value, fit);
 		}
+		color_t vc = edit ? panels_accent : fg;
+		if (small) {
+			// The value alone, centered; the focused tile's whole name in the title row
+			if (focus) {
+				const char *name = panels_quick_word(kind, label + 1, gfx_width() - 2 * m->margin, word,
+								     sizeof word);
+				gfx_text_fit(f, name, gfx_width() - 2 * m->margin, fit, sizeof fit);
+				gfx_text(f, m->margin, ui_layout.strip_h + m->title_pad, fit, ui_col.fg);
+			}
+			gfx_text_fit(f, value, right - vx, fit, sizeof fit);
+			int fw = gfx_text_width(f, fit), cx = x + (tw - fw) / 2;
+			gfx_text(f, cx < vx ? vx : cx + fw > right ? right - fw : cx, y + (th - f->h) / 2, fit, vc);
+			continue;
+		}
 		// A value too long for its place beside the digit goes on a third line, from the name's left edge, in a tile
 		// high enough for three lines (3 px clear of its top and bottom)
-		bool below = gfx_text_width(f, value) > right - vx && th - 2 * PANELS_ROW_GAP >= 3 * f->h + 6;
+		bool below = gfx_text_width(f, value) > right - vx && th - 2 * m->row_gap >= 3 * f->h + 6;
 		int y1 = y + th / 2 - f->h - (below ? f->h / 2 : 0), y2 = y1 + f->h;
 		const char *name = panels_quick_word(kind, label + 1, room, word, sizeof word);
 		gfx_text_fit(f, name, room, fit, sizeof fit);
 		gfx_text(f, x + 7, y1, fit, focus ? fg : ui_col.dim);
 		gfx_text(f, x + 7, y2, key, focus ? fg : ui_col.dim);
-		color_t vc = edit ? panels_accent : fg;
 		if (below) {
 			gfx_text_fit(f, value, right - (x + 7), fit, sizeof fit);
 			gfx_text(f, x + 7, y2 + f->h, fit, vc);
@@ -1895,13 +2095,19 @@ static void panels_banner(const ui_state_t *s)
 }
 
 // The reference theme's fonts, none smaller than 8x16 (the screens the shared code draws use tiny for their smallest
-// text), its own strip, and the bottom row from the hint row's top: what a screen lays out stays clear of both
+// text), its own strip, and the bottom row from the hint row's top: what a screen lays out stays clear of both. The
+// compact layout's text is all 8x16 but Home's channel name (12x24): the reference theme's fonts for the display class
+// are smaller there
 static void panels_layout(ui_layout_t *L)
 {
 	ui_layout_fonts(L);
+	if (panels_small()) {
+		L->tiny = L->small = L->medium = &font_aa_8x16;
+		L->large = &font_aa_12x24;
+	}
 	if (L->tiny->h < L->small->h)
 		L->tiny = L->small;
-	ui_layout_regions(L, PANELS_BAND_H, panels_hint_top());
+	ui_layout_regions(L, panels_m()->band_h, panels_hint_top());
 }
 
 // The ops left NULL are the reference theme's

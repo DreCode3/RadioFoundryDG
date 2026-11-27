@@ -3682,14 +3682,14 @@ UI_THEME_SHARED void ui_row_text(const font_t *f, int x, int y, int w, const cha
 // A row whose value editor is open: the label from x, the value right-aligned at w between a left and a right marker in
 // the color mark (the theme's accent), the label shortened where they need its room
 UI_THEME_SHARED void ui_row_edit(const font_t *f, int x, int y, int w, const char *label, const char *value, color_t fg,
-	color_t mark)
+	color_t mark, bool at_end)
 {
 	int mw = gfx_text_width(f, "<"), vw = gfx_text_width(f, value);
 	int vx = w - mw - vw;
 	gfx_text(f, w - mw, y, ">", mark);
 	gfx_text(f, vx - mw, y, "<", mark);
 	gfx_text(f, vx, y, value, fg);
-	ui_row_text(f, x, y, vx - mw - (f->w / 2 + 1), label, "", fg, fg, false);
+	ui_row_text(f, x, y, vx - mw - (f->w / 2 + 1), label, "", fg, fg, at_end);
 }
 
 // Where a list's body ends: half the room below y (a message keeps its replies in view), all of it without rows
@@ -3776,7 +3776,7 @@ static void reference_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui
 		x = gfx_text(f, x, ty, n, num_ink);
 	}
 	if (edit) {
-		ui_row_edit(f, x, ty, right - 1, it->label, it->value, fg, ui_col.focus);
+		ui_row_edit(f, x, ty, right - 1, it->label, it->value, fg, ui_col.focus, false);
 		return;
 	}
 	if (it->flags & UI_ITEM_EDIT) {
@@ -3853,9 +3853,29 @@ static void __attribute__((noinline)) focus_drawn(const char *label)
 	ui_crit_exit();
 }
 
+#if CONFIG_UI_THEME_PANELS
+unsigned ui_list_bar;
+#endif
+
 void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l)
 {
+	ui_item_t it;
 	gfx_clear(ui_col.bg);
+#if CONFIG_UI_THEME_PANELS
+	// The bottom row's flags before anything is drawn: whether the focused row's value editor is open (UI_BAR_OK_ACTS)
+	// is in its item
+	bool editing = false;
+	if (l->focus < l->count) {
+		it.label[0] = it.value[0] = 0;
+		it.num = 0;
+		it.flags = 0;
+		it.icon = UI_MENU_ICON_NONE;
+		l->item(l->focus, &it);
+		editing = (it.flags & UI_ITEM_EDIT) && !(it.flags & UI_ITEM_INFO);
+	}
+	ui_list_bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0u) | (editing || l->ok_acts ? UI_BAR_OK_ACTS : 0u) |
+		(editing || l->back_acts ? UI_BAR_BACK_ACTS : 0u) | (s->hints ? 0u : UI_BAR_NO_HINTS);
+#endif
 	int y = list_top(v, s, l, true);
 	int y_end = list_bottom(s);
 	if (l->body != NULL) {
@@ -3884,12 +3904,8 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	if (l->count == 0 && l->empty != NULL)
 		wrap_text(g.font, l->empty, y + 1, y_end, true, ui_col.dim);
 	list_scroll(l, &g, top, l->count, false);
-#if CONFIG_UI_THEME_PANELS
-	bool editing = false;	// the focused row's value editor is open (UI_BAR_OK_ACTS)
-#endif
 	for (int r = 0; r < visible && top + r < l->count; r++) {
 		uint16_t i = (uint16_t)(top + r);
-		ui_item_t it;
 		it.label[0] = it.value[0] = 0;
 		it.num = 0;
 		it.flags = 0;
@@ -3907,12 +3923,8 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 			.focus = i == l->focus && !(it.flags & UI_ITEM_INFO) };
 		for (int k = 0; k < col; k++)
 			c.x += g.col_w[k] + g.col_gap;
-		if (c.focus) {
+		if (c.focus)
 			focus_drawn(it.label);
-#if CONFIG_UI_THEME_PANELS
-			editing = (it.flags & UI_ITEM_EDIT) != 0;
-#endif
-		}
 		list_cell(l, &g, &c, &it);
 	}
 	list_scroll(l, &g, top, l->count, true);
@@ -3922,8 +3934,7 @@ void ui_draw_list(const radio_view_t *v, const ui_state_t *s, const ui_list_t *l
 	else if ((s->hints || ui_theme_soft_keys()) && l->hint) {
 		unsigned bar = 0;
 #if CONFIG_UI_THEME_PANELS
-		bar = UI_BAR_LIST | (l->numbered ? UI_BAR_NUMBERED : 0u) | (editing || l->ok_acts ? UI_BAR_OK_ACTS : 0u) |
-			(editing || l->back_acts ? UI_BAR_BACK_ACTS : 0u) | (s->hints ? 0u : UI_BAR_NO_HINTS);
+		bar = ui_list_bar;
 #endif
 		draw_hint(l->hint, bar, NULL);
 	}
@@ -4504,7 +4515,9 @@ static const ui_theme_t *const ui_themes[] = {
 	&ui_theme_panels,
 #endif
 };
-#define UI_THEME_ID_BUILD	(CONFIG_UI_THEME_PANELS ? UI_THEME_ID_PANELS : UI_THEME_ID_REFERENCE)
+// The build's default (CONFIG_UI_THEME_DEFAULT): its own theme where it has one, unless the board starts in another
+#define UI_THEME_ID_BUILD	(CONFIG_UI_THEME_DEFAULT ? CONFIG_UI_THEME_DEFAULT : \
+				 CONFIG_UI_THEME_PANELS ? UI_THEME_ID_PANELS : UI_THEME_ID_REFERENCE)
 
 static const ui_theme_t *theme_fitting(uint8_t id)
 {

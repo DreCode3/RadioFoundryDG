@@ -846,21 +846,26 @@ static void test_pick(void)
 	CHECK(picks(W, 0, H, 16, 200, ref));			// a number from a later build
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_REFERENCE, ref));
 #if CONFIG_UI_THEME_PANELS
-	// A color display with at least 160 x 128 to draw on (the panel less its insets), and 240 high while the layout below
-	// that isn't written
+	// A color display with at least 160 x 128 to draw on (the panel less its insets). The build's default: panels, or
+	// the original theme where the build starts in it (CONFIG_UI_THEME_DEFAULT, uiThemeTestPanelsOriginal)
 	const ui_theme_t *panels = &ui_theme_panels;
-	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_DEFAULT, panels));	// the build's default
+	const ui_theme_t *def = CONFIG_UI_THEME_DEFAULT == UI_THEME_ID_REFERENCE ? ref : panels;
+	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_DEFAULT, def));	// the build's default
 	CHECK(picks(320, 10, 240, 4, UI_THEME_ID_PANELS, panels));
-	CHECK(picks(320, 10, 240, 4, 200, panels));
-	CHECK(picks(320, 0, 240, 4, UI_THEME_ID_DEFAULT, panels));
-	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_DEFAULT, panels));	// 220 x 310
+	CHECK(picks(320, 10, 240, 4, 200, def));
+	CHECK(picks(320, 0, 240, 4, UI_THEME_ID_DEFAULT, def));
+	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_DEFAULT, def));	// 220 x 310
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 4), UI_THEME_ID_PANELS, panels));
 	CHECK(picks(170, 10, 240, 4, UI_THEME_ID_PANELS, panels));	// 160 across
 	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_DEFAULT, ref));	// 159 across
 	CHECK(picks(170, 11, 240, 4, UI_THEME_ID_PANELS, ref));
-	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_PANELS, ref));		// 160 x 128: under 240 high, for now
+	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_PANELS, panels));	// 160 x 128, the compact layout
+	CHECK(picks(160, 0, 128, 4, UI_THEME_ID_DEFAULT, def));
+	CHECK(picks(220, 0, 176, 4, UI_THEME_ID_PANELS, panels));
+	CHECK(picks(160, 0, 127, 4, UI_THEME_ID_PANELS, ref));		// 127 high
+	CHECK(picks(161, 2, 128, 4, UI_THEME_ID_PANELS, ref));		// 159 across
 	CHECK(picks_on(inset_panel(160, 120, 5, 0, 4), UI_THEME_ID_PANELS, ref));	// 150 x 120
-	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, ref));		// not 240 high
+	CHECK(picks(320, 0, 200, 4, UI_THEME_ID_PANELS, panels));	// any height from 128
 	CHECK(picks(320, 0, 240, 1, UI_THEME_ID_PANELS, ref));		// monochrome
 	CHECK(picks_on(inset_panel(240, 320, 10, 5, 1), UI_THEME_ID_PANELS, ref));
 	CHECK(picks(128, 0, 64, 1, UI_THEME_ID_PANELS, ref));
@@ -874,9 +879,11 @@ static void test_pick(void)
 	CHECK(!(ui_theme_reference.options & UI_THEME_OPT_NAME_FIRST));
 	// So a radio starts with it on where its display picks panels for the build's default, off where it picks the
 	// reference theme, panels built in either way
-	CHECK(name_first_on(320, 10, 240, 4) && name_first_on(320, 0, 240, 4) && name_first_on(220, 0, 310, 4));
-	CHECK(!name_first_on(159, 0, 240, 4) && !name_first_on(220, 0, 176, 4) && !name_first_on(320, 0, 240, 1) &&
-	      !name_first_on(160, 0, 128, 4));
+	bool starts = CONFIG_UI_THEME_DEFAULT != UI_THEME_ID_REFERENCE;
+	CHECK(name_first_on(320, 10, 240, 4) == starts && name_first_on(320, 0, 240, 4) == starts &&
+	      name_first_on(220, 0, 310, 4) == starts && name_first_on(220, 0, 176, 4) == starts &&
+	      name_first_on(160, 0, 128, 4) == starts);
+	CHECK(!name_first_on(159, 0, 240, 4) && !name_first_on(160, 0, 127, 4) && !name_first_on(320, 0, 240, 1));
 	CHECK(ui_theme_use(&ui_theme_panels) && !ui_theme_has(UI_THEME_OPT_PALETTE) &&
 	      ui_theme_has(UI_THEME_OPT_DAY_NIGHT));
 	ui_theme_use(&ui_theme_reference);
@@ -1117,6 +1124,12 @@ static void test_panels_min_font(void)
 	ui_list_t l = list(14, 3, &top);
 	for (int frame = 0; frame < 8; frame++) {
 		base();
+		if (gfx_height() < UI_TALL_PX) {
+			// A name the compact Home's channel font holds enlarged (its 12x24 capitals are 14 px of ink at 1x),
+			// with the room for it: no volume bar
+			strcpy(view.ch.name, "2M CALL");
+			state.volbar = -1;
+		}
 		if (frame == 3 || frame == 4) {	// a crowded strip: TX, monitor, VOX, unread, lock, USB, GPS, scan, AES
 			view.state = RS_TX;
 			view.monitor = view.vox_on = true;
@@ -1348,6 +1361,199 @@ static void test_panels_badge_room(void)
 	base();
 }
 
+// --- the compact layout (a display under 200 px high: 160 x 128) against the full one (310 x 240)
+
+// The rows a plain list of 30 shows under the bottom row's flags (ui_list_bar, as ui_draw_list sets them)
+static int list_rows(const char *hint, unsigned flags)
+{
+	uint16_t top = 0;
+	ui_list_t l = list(30, 0, &top);
+	l.hint = hint;
+	ui_list_bar = flags;
+	const ui_theme_ops_t *o = ui_theme_panels.ops;
+	ui_list_geom_t g;
+	o->list_geom(&l, o->list_head(NULL, NULL, &l, false), ui_layout.hint_y, &g);
+	ui_list_bar = 0;
+	return g.rows;
+}
+
+static bool edit_focus;
+static void edit_item(uint16_t i, ui_item_t *it)
+{
+	item(i, it);
+	if (edit_focus && i == 0)
+		it->flags |= UI_ITEM_EDIT;
+}
+
+// The rows ui_draw_list draws: i0, i1, ... on screen
+static int drawn_rows(const char *hint)
+{
+	uint16_t top = 0;
+	ui_list_t l = list(30, 0, &top);
+	l.hint = hint;
+	l.item = edit_item;
+	ui_draw_list(&view, &state, &l);
+	int n = 0;
+	char name[8];
+	for (int i = 0; i < 30; i++) {
+		snprintf(name, sizeof name, "i%d", i);
+		n += find_text(name) >= 0;
+	}
+	return n;
+}
+
+// The texts of the last frame, for a failed check
+static void dump_texts(int line)
+{
+	printf("  texts at line %d (%d x %d):", line, gfx_width(), gfx_height());
+	for (int i = 0; i < ntexts; i++)
+		printf(" \"%s\" %d,%d+%d", texts[i].s, texts[i].x, texts[i].y, texts[i].h);
+	printf("\n");
+}
+#define CHECKT(c) do { if (!(c)) { CHECK(c); dump_texts(__LINE__); } } while (0)
+
+static int text_with(const char *part)
+{
+	for (int i = 0; i < ntexts; i++)
+		if (strstr(texts[i].s, part) != NULL)
+			return i;
+	return -1;
+}
+
+// A hidden or empty hint row gives the compact layout's list its room: 4 rows instead of 3. The full layout keeps 5
+// rows either way, as frozen
+static void test_compact_rows(bool compact)
+{
+	base();
+	int few = compact ? 3 : 5, more = compact ? 4 : 5;
+	CHECKT(list_rows("OK change  Hold OK save  Back", UI_BAR_LIST) == few);	// the row has "Hold OK save"
+	CHECKT(list_rows("OK choose  Back", UI_BAR_LIST) == more);		// the bar says both groups: empty
+	CHECKT(list_rows("OK change  Hold OK save  Back", UI_BAR_LIST | UI_BAR_NO_HINTS) == more);	// Hint row off
+	CHECKT(list_rows(NULL, UI_BAR_LIST) == more);
+	CHECKT(list_rows("OK save  Back cancel", UI_BAR_LIST | UI_BAR_OK_ACTS | UI_BAR_BACK_ACTS) == few);	// an editor
+	// ui_draw_list sets the flags before the head and the rows: Hint row off, and the focused row's open value editor,
+	// whose hint has a row
+	CHECKT(drawn_rows("OK choose  Back") == more);
+	state.hints = false;
+	CHECKT(drawn_rows("OK change  Hold OK save  Back") == more);
+	state.hints = true;
+	edit_focus = true;
+	CHECKT(drawn_rows("OK save  Back cancel") == few);
+	edit_focus = false;
+	base();
+}
+
+// The compact layout: Home's mode word in the strip (no mode bar), its strip's marks inside the strip (the 16 px
+// icons), no GPS clock; the keys-locked bar's short form; a list label and a title shortened at their end. The full
+// layout: the mode in its mode bar, the clock in the strip
+static void test_compact_home(bool compact)
+{
+	base();
+	state.hints = false;
+	state.locked = true;
+	state.gps_fix = state.gps_clock = true;
+	state.gps_utc_ymd = 20261127;
+	state.gps_utc_hms = 140500;
+	ui_draw_home(&view, &state);
+	int fm = find_text("FM"), clock = text_with("Nov"), k = text_with("unlock");
+	CHECKT(fm >= 0 && (compact ? texts[fm].y + texts[fm].h <= ui_layout.strip_h :
+			   texts[fm].y + texts[fm].h / 2 > ui_layout.strip_h));
+	CHECKT(compact ? clock < 0 : clock >= 0);
+	CHECKT(k >= 0 && (compact || strcmp(texts[k].s, "Locked: hold * to unlock") == 0));
+	if (compact) {
+		// The row under the strip is Home's gutter only: no mark (the lock) reaches past the strip's pane
+		color_t gutter = gfx_get_pixel(0, ui_layout.strip_h);
+		bool clear = true;
+		for (int x = 0; x < gfx_width(); x++)
+			clear = clear && gfx_get_pixel(x, ui_layout.strip_h) == gutter;
+		CHECKT(clear && ui_layout.strip_h == 18);
+	}
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(5, 0, &top);
+	l.prefix = "Incoming private call to";
+	l.name = NULL;
+	ui_draw_list(&view, &state, &l);
+	int t = text_with("Incoming");
+	CHECKT(t >= 0 && (compact ? strcmp(texts[t].s + strlen(texts[t].s) - 1, GLYPH_ELLIPSIS) == 0 :
+			 strcmp(texts[t].s, "Incoming private call to") == 0));
+	// A body's last line, shortened over a line break, has a space there, not a missing glyph
+	l = list(5, 0, &top);
+	l.body = "Site 1 of 3: COUNTY DMR\nSignal -92 dBm\nBeacons: learning, more of them here\nThe rest";
+	ui_draw_list(&view, &state, &l);
+	bool breaks = false;
+	for (int i = 0; i < ntexts; i++)
+		breaks = breaks || strchr(texts[i].s, '\n') != NULL;
+	CHECKT(!breaks && text_with("Site 1") >= 0);
+	base();
+}
+
+#if CONFIG_DMR
+// Amateur Home on DMR: the zone, the channel, the target and the details row while idle; during a call the compact
+// layout's call lines take the room of the target and details rows, which go, and the zone and the channel stay. The
+// full layout keeps the lines' room always, and its target during a call
+static void test_compact_call(bool compact)
+{
+	base();
+	state.hints = false;
+	state.volbar = -1;	// no volume bar: the pane runs to the bar
+	state.gui_profile = 1;
+	view.ch.mode = RADIO_MODE_DMR;
+	view.ch.timeslot = 1;
+	view.ch.color_code = 1;
+	view.dmr.active = true;
+	view.dmr.target_id = 3100;
+	strcpy(view.dmr.target_name, "USA");
+	ui_draw_home(&view, &state);
+	CHECKT(find_text("Simplex") >= 0 && text_with("3100") >= 0 && text_with("146.520 MHz") >= 0);
+	view.state = RS_RX;
+	view.dmr.state = RDMR_RX;
+	view.dmr.call.group = true;
+	view.dmr.call.dst = 91;
+	strcpy(view.dmr.call.src_name, "Joe");
+	ui_draw_home(&view, &state);
+	int joe = find_text("Joe"), zone = find_text("Simplex"), target = text_with("3100");
+	CHECKT(joe >= 0 && zone >= 0 && text_with("TG 91") >= 0);
+	CHECKT(compact ? target < 0 && text_with("146.520 MHz") < 0 : target >= 0);
+	if (joe >= 0 && zone >= 0)
+		CHECKT(texts[zone].y + texts[zone].h <= texts[joe].y);
+	base();
+}
+#endif
+
+// The compact grids: the Menu's tiles have the icon and digit, the title row the focused tile's label and value; Quick's
+// tiles their value, the title row the focused tile's name, the hint row without its last group. The full ones have
+// the labels and names in the tiles
+static void test_compact_grids(bool compact)
+{
+	base();
+	uint16_t top = 0;
+	ui_list_t l = list(9, 1, &top);
+	l.kind = UI_LIST_HUB;
+	l.numbered = true;
+	l.item = hub_tile_item;
+	l.prefix = "Menu";
+	l.name = NULL;
+	ui_draw_list(&view, &state, &l);
+	int scan = find_text("Scan"), off = find_text("Off"), entry = find_text("Entry 2"), menu = find_text("Menu");
+	CHECKT(scan >= 0 && off >= 0);
+	if (scan >= 0 && off >= 0) {
+		int title_y = ui_layout.strip_h;
+		CHECKT(compact ? texts[scan].y < title_y + 17 && texts[off].y == texts[scan].y && entry < 0 &&
+		      (menu < 0 || texts[menu].y >= ui_layout.hint_y) : texts[scan].y > title_y + 30 && entry >= 0);
+	}
+	base();
+	ui_draw_quick(&view, &state);
+	int power = text_with("Power");
+	CHECKT(power >= 0 && (compact ? texts[power].y < ui_layout.strip_h + 17 : texts[power].y > ui_layout.strip_h + 30));
+	// The hint row drops its last groups, whole, where it runs out of room
+	gfx_clear(ui_col.bg);
+	ntexts = 0;
+	ui_theme_panels.ops->bottom("# reply  PTT talk  Hold OK save", 0, NULL);
+	CHECKT(find_text(compact ? "# reply  PTT talk" : "# reply  PTT talk  Hold OK save") >= 0);
+	base();
+}
+
 static void test_panels_frames(void)
 {
 	CHECK(gfx_init(&panel));
@@ -1372,6 +1578,41 @@ static void test_panels_frames(void)
 	test_panels_narrow_text(true);
 	test_panels_quick_entry(true);
 	test_panels_badge_room();
+	// The full layout where the compact one differs
+	CHECK(gfx_init(&panel));
+	CHECK(ui_theme_use(&ui_theme_panels));
+	ui_theme_set(UI_PALETTE_DAY);
+	test_compact_rows(false);
+	test_compact_home(false);
+#if CONFIG_DMR
+	test_compact_call(false);
+#endif
+	test_compact_grids(false);
+	// The 160 x 128 panel: the compact layout
+	hal_display_t compact = { .width = 160, .height = 128, .bpp = 4, .init = d_init, .flush = d_flush,
+		.flush_indexed = d_flush_indexed, .set_backlight = d_backlight };
+	CHECK(gfx_init(&compact));
+	CHECK(ui_theme_use(&ui_theme_panels));
+	ui_theme_set(UI_PALETTE_DAY);
+	test_compact_rows(true);
+	test_compact_home(true);
+#if CONFIG_DMR
+	test_compact_call(true);
+#endif
+	test_compact_grids(true);
+	test_panels_min_font();
+	// No GPS clock in the compact layout, even where a quiet strip would have room for it (220 x 176)
+	compact.width = 220;
+	compact.height = 176;
+	CHECK(gfx_init(&compact));
+	CHECK(ui_theme_use(&ui_theme_panels));
+	base();
+	state.gps_fix = state.gps_clock = true;
+	state.gps_utc_ymd = 20261127;
+	state.gps_utc_hms = 140500;
+	ui_draw_home(&view, &state);
+	CHECK(find_text("FM") >= 0 && text_with("Nov") < 0);
+	base();
 	ui_theme_use(&ui_theme_reference);
 	CHECK(gfx_init(&disp));
 	ui_layout_init();

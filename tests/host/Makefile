@@ -734,6 +734,13 @@ TESTS   += uiThemeTestPanels
 uiThemeTestPanels: uiThemeTest.c $(UI) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(CORE)/ui/themes/*/*.h $(CORE)/ui/fonts/*.inc)
 	$(CC) $(CFLAGS) -fsanitize=address -fno-omit-frame-pointer -I$(ROOT)/hal -Iout/gen -Wshadow -DGFX_INDEXED=1 \
 	      -DGFX_MAX_ROWS=320u -DCONFIG_NET_WEBCTL=1 -DCONFIG_UI_THEME_PANELS=1 -DGFX_FIT_TRACE -o $@ uiThemeTest.c $(UI)
+# ... with the original theme as the build's default (CONFIG_UI_THEME_DEFAULT=1, a board whose display holds panels but
+# starts in the original look): the default picks it, and a radio starts with Talkgroup name first off
+TESTS   += uiThemeTestPanelsOriginal
+uiThemeTestPanelsOriginal: uiThemeTest.c $(UI) $(LANG_H) $(wildcard $(CORE)/ui/*.h $(CORE)/ui/themes/*/*.h $(CORE)/ui/fonts/*.inc)
+	$(CC) $(CFLAGS) -fsanitize=address -fno-omit-frame-pointer -I$(ROOT)/hal -Iout/gen -Wshadow -DGFX_INDEXED=1 \
+	      -DGFX_MAX_ROWS=320u -DCONFIG_NET_WEBCTL=1 -DCONFIG_UI_THEME_PANELS=1 -DCONFIG_UI_THEME_DEFAULT=1 -DGFX_FIT_TRACE \
+	      -o $@ uiThemeTest.c $(UI)
 
 # The frame buffer's last bytes with a GFX_FB_BYTES that is not a multiple of 4 (the DM-32UV's, sized from its insets):
 # a safe area of exactly that size, drawn to its bottom right corner. Always under AddressSanitizer, which is what sees
@@ -844,11 +851,12 @@ ui-sheets: uiSim
 	UI_GALLERY_COLORS="$(UI_GALLERY_COLORS)" ./uiSim --sheets out/sheets $(GEOM)
 
 run: run-ui
-run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim uiSimNoSettings uiSimFr uiSimZh beepReel
+run-ui: gfxTest gfxTestZh uiThemeTest uiThemeTestPanels uiThemeTestPanelsOriginal gfxFbEdgeTest i18nTest i18nTestNoLang i18nTestDefault uiFlowTest uiFlowTestNoColor uiFlowTestSatellite uiSim uiSimNoSettings uiSimFr uiSimZh beepReel
 	./gfxTest
 	./gfxTestZh
 	./uiThemeTest
 	./uiThemeTestPanels
+	./uiThemeTestPanelsOriginal
 	./gfxFbEdgeTest
 	./i18nTest
 	./i18nTestNoLang

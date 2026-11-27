@@ -251,6 +251,12 @@
 #ifndef UI_THEME_SELECT
 #define UI_THEME_SELECT			CONFIG_UI_THEME_PANELS
 #endif
+// The theme a radio starts in (a new radio, a factory reset), by its number (UI_THEME_ID_*, core/ui/ui_theme.h): 1 the
+// original (reference) theme, 2 panels. 0: the build's theme of its own where it has one (panels), else the original.
+// A theme that isn't built or doesn't fit the display falls back to the original (ui_theme_pick)
+#ifndef CONFIG_UI_THEME_DEFAULT
+#define CONFIG_UI_THEME_DEFAULT		0
+#endif
 #ifndef CONFIG_SCAN
 #define CONFIG_SCAN			1
 #endif
