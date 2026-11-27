@@ -1546,6 +1546,18 @@ static void test_compact_grids(bool compact)
 	ui_draw_quick(&view, &state);
 	int power = text_with("Power");
 	CHECKT(power >= 0 && (compact ? texts[power].y < ui_layout.strip_h + 17 : texts[power].y > ui_layout.strip_h + 30));
+#if CONFIG_SUBTONE
+	// A focused tile's value too long for it beside the accent bar (a TX-only tone, "T100.0"): shortened at its end
+	// in the compact tile, whole after the name in the title row
+	view.ch.tx_tone.type = TONE_CTCSS;
+	view.ch.tx_tone.value = 1000;
+	state.quick_focus = 2;
+	ui_draw_quick(&view, &state);
+	int whole = find_text("T100.0");
+	CHECKT(whole >= 0 && (compact ? texts[whole].y < ui_layout.strip_h + 17 && text_with("T100" GLYPH_ELLIPSIS) >= 0 :
+			      texts[whole].y > ui_layout.strip_h + 30));
+	state.quick_focus = 0;
+#endif
 	// The hint row drops its last groups, whole, where it runs out of room
 	gfx_clear(ui_col.bg);
 	ntexts = 0;

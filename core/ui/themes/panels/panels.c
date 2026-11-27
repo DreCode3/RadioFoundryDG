@@ -2060,14 +2060,21 @@ static void panels_quick(const radio_view_t *v, const ui_state_t *s)
 		}
 		color_t vc = edit ? panels_accent : fg;
 		if (small) {
-			// The value alone, centered; the focused tile's whole name in the title row
+			// The value alone, centered; the focused tile's whole name in the title row, and its whole value after
+			// it where the tile, beside the accent bar, shortens it at its end ("T100.0")
+			bool whole = gfx_text_width(f, value) <= right - vx;
 			if (focus) {
-				const char *name = panels_quick_word(kind, label + 1, gfx_width() - 2 * m->margin, word,
-								     sizeof word);
-				gfx_text_fit(f, name, gfx_width() - 2 * m->margin, fit, sizeof fit);
-				gfx_text(f, m->margin, ui_layout.strip_h + m->title_pad, fit, ui_col.fg);
+				int title_w = gfx_width() - 2 * m->margin;
+				const char *name = panels_quick_word(kind, label + 1, title_w, word, sizeof word);
+				gfx_text_fit(f, name, title_w, fit, sizeof fit);
+				int nx = gfx_text(f, m->margin, ui_layout.strip_h + m->title_pad, fit, ui_col.fg) + 2 * f->w;
+				if (!whole && nx + gfx_text_width(f, value) <= m->margin + title_w)
+					gfx_text(f, nx, ui_layout.strip_h + m->title_pad, value, ui_col.dim);
 			}
-			gfx_text_fit(f, value, right - vx, fit, sizeof fit);
+			if (whole)
+				str_copy(fit, sizeof fit, value);
+			else
+				ui_fit_end(f, value, right - vx, fit, sizeof fit);
 			int fw = gfx_text_width(f, fit), cx = x + (tw - fw) / 2;
 			gfx_text(f, cx < vx ? vx : cx + fw > right ? right - fw : cx, y + (th - f->h) / 2, fit, vc);
 			continue;
