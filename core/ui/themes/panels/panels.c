@@ -1527,6 +1527,18 @@ static panels_grid_t panels_grid(void)
 	return tile - full.label - 3 >= PANELS_TILE_CHARS * font_aa_8x16.w ? full : narrow;
 }
 
+#define PANELS_LIST_X 7		// a list's rows from the screen's edges
+#define PANELS_ROW_CHARS 31	// a row's room for text in the small font at the full width, in characters
+
+// A list's font: the small one (9x18 where the build has it) where a row holds PANELS_ROW_CHARS characters of it, else
+// 8x16 for the whole list, labels and values (a narrow screen; the rows keep their height)
+static const font_t *panels_list_font(void)
+{
+	const font_t *f = ui_layout.small;
+	int room = gfx_width() - 2 * PANELS_LIST_X - PANELS_TEXT_X - 5;
+	return room / f->w >= PANELS_ROW_CHARS ? f : &font_aa_8x16;
+}
+
 // Where a list's cells end: a row's panel may run under the hint row's text where the row's text ends above it; a
 // grid's tiles end above the hint row. Without the bar (Hint row off) at y_end
 static int panels_list_end(const ui_list_t *l, int y_end)
@@ -1534,7 +1546,7 @@ static int panels_list_end(const ui_list_t *l, int y_end)
 	if (y_end != ui_layout.hint_y)
 		return y_end;
 	// The last row's text ends above the hint row's; its panel may reach under the row's blank top
-	int row_text_end = panels_hint_top() + (panels_row_h() - ui_layout.small->h) / 2;
+	int row_text_end = panels_hint_top() + (panels_row_h() - panels_list_font()->h) / 2;
 	return l->kind == UI_LIST_PLAIN ? row_text_end : panels_hint_top() - 2;
 }
 
@@ -1578,12 +1590,12 @@ static void panels_list_geom(const ui_list_t *l, int y, int y_end, ui_list_geom_
 	y_end = panels_list_end(l, y_end);
 	int cols = l->kind == UI_LIST_HUB ? 3 : l->kind == UI_LIST_MENU ? 2 : 1;
 	panels_grid_t grid = panels_grid();
-	g->x = cols == 3 ? grid.x0 : 7;
+	g->x = cols == 3 ? grid.x0 : PANELS_LIST_X;
 	g->cols = (uint8_t)cols;
 	g->col_gap = (int8_t)(cols == 3 ? grid.gap : cols == 2 ? 8 : 0);
 	g->paged = cols > 1;
 	g->across = cols == 3;
-	g->font = cols > 1 ? &font_aa_8x16 : ui_layout.small;
+	g->font = cols > 1 ? &font_aa_8x16 : panels_list_font();
 	int rows = cols > 1 ? PANELS_GRID_ROWS : (y_end - y) / panels_row_h();
 	g->rows = (uint8_t)(rows < 1 ? 1 : rows);
 	g->pitch = (int16_t)(cols > 1 ? (y_end - y) / PANELS_GRID_ROWS : panels_row_h());
@@ -1652,12 +1664,20 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 		x = gfx_text(f, x, y1, n, num_ink);
 	}
 	if (hub) {
+		// The focused tile's label (and a value under it) 1 px clear of the accent bar, its room kept: the line may
+		// reach the tile's last pixel
+		int lright = right;
+		if (c->focus && label_x < c->x + PANELS_ACCENT_W + 1) {
+			lright += c->x + PANELS_ACCENT_W + 1 - label_x;
+			lright = lright < c->x + c->w - 1 ? lright : c->x + c->w - 1;
+			label_x = c->x + PANELS_ACCENT_W + 1;
+		}
 		// Not the zone's name on Zones' tile: Home shows the zone (gui-plan.md, decided Nov 26)
 		if (it->value[0] && it->icon != UI_MENU_ICON_ZONES) {
 			int room = right - x - f->w;
 			bool beside = panels_alt(f, it->value, room, line, sizeof line) || !three;
 			if (!beside) {
-				room = right - label_x;
+				room = lright - label_x;
 				panels_alt(f, it->value, room, line, sizeof line);
 			}
 			if (line[0]) {
@@ -1666,8 +1686,8 @@ static void panels_tile_text(const ui_list_t *l, const ui_cell_t *c, const ui_it
 					 vfg);
 			}
 		}
-		panels_alt(f, it->label, right - label_x, line, sizeof line);
-		ui_fit_end(f, line, right - label_x, fit, sizeof fit);
+		panels_alt(f, it->label, lright - label_x, line, sizeof line);
+		ui_fit_end(f, line, lright - label_x, fit, sizeof fit);
 		gfx_text(f, label_x, y2, fit, fg);
 		return;
 	}

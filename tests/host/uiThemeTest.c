@@ -1277,9 +1277,21 @@ static void test_panels_tiles(bool narrow)
 		CHECK(g.x == 2 && g.col_gap == 2 && g.col_w[0] == 70 && g.pitch == 65);
 	else
 		CHECK(g.x == 5 && g.col_gap == 3 && g.col_w[0] == 98);
+	// The focused tile's label starts 1 px clear of the accent bar (4 px), its room kept; the others' where they were
+	int col1 = g.x + g.col_w[0] + g.col_gap;
+	l.focus = 0;
+	nshortened = 0;
+	ui_draw_list(&view, &state, &l);
+	links = find_text(narrow ? "Links" : "Connections");
+	scan = find_text("Scan");
+	CHECK(links >= 0 && scan >= 0 && nshortened == 0);
+	if (links >= 0 && scan >= 0)
+		CHECK(texts[links].x == g.x + (narrow ? 5 : 7) && texts[scan].x == col1 + (narrow ? 3 : 7));
+	// Lists: rows of 26 px, seven on the narrow screen in 8x16 (its rows hold too few characters of the small font),
+	// five on the wide one in the small font
 	l = list(30, 0, &top);
 	o->list_geom(&l, o->list_head(NULL, NULL, &l, false), ui_layout.hint_y, &g);
-	CHECK(g.rows == (narrow ? 7 : 5) && g.pitch == 26);
+	CHECK(g.rows == (narrow ? 7 : 5) && g.pitch == 26 && g.font->h == (narrow ? 16 : ui_layout.small->h));
 }
 
 // Text that falls back to 8x16 on the narrow screen where its larger font doesn't hold it whole: the keys-locked
