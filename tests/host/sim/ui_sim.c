@@ -358,15 +358,15 @@ void gfx_draw_trace(gfx_trace_kind_t kind, int x, int y, int w, int h, const int
 }
 
 const sim_geom_t sim_geoms[] = {
-	{ "160x120i5", 160, 120, 4, 5, 0, false, false, false, 0, false },	// DM-1701: the lens hides 5 px left and right (boards/dm1701/config.mk)
-	{ "160x128", 160, 128, 4, 0, 0, false, false, false, 0, false },	// MD-380 / MD-UV380 / MD-9600 class
-	{ "128x64", 128, 64, 1, 0, 0, false, false, false, 0, false },	// GD-77 class, mono
+	{ "160x120i5", 160, 120, 4, 5, 0, false, false, false, 0, false, false },	// DM-1701: the lens hides 5 px left and right (boards/dm1701/config.mk)
+	{ "160x128", 160, 128, 4, 0, 0, false, false, false, 0, false, false },	// MD-380 / MD-UV380 / MD-9600 class
+	{ "128x64", 128, 64, 1, 0, 0, false, false, false, 0, false, false },	// GD-77 class, mono
 	// DM-32UV: 16 colors, the bezel hides 10 px left and right, 5 top and bottom; FONT_BIG; a frame buffer of the
-	// safe area only (boards/dm32/board.mk GFX_FB_SAFE_AREA)
-	{ "240x320i10x5", 240, 320, 4, 10, 5, true, true, true, 0, false },
-	{ "240x320", 240, 320, 16, 0, 0, true, false, false, 0, false },	// 240x320 class at full resolution, standard text size
-	{ "320x240", 320, 240, 4, 0, 0, true, true, false, 0, false },	// GD-88: landscape, 16 colors, the larger text as its build
-	{ "220x176", 220, 176, 4, 0, 0, true, true, false, 0, false },	// GD-88 with the 220x176 panel: the same build, found at start-up
+	// safe area only (boards/dm32/board.mk GFX_FB_SAFE_AREA); the panels theme, as the radio starts in it
+	{ "240x320i10x5", 240, 320, 4, 10, 5, true, true, true, 0, false, true },
+	{ "240x320", 240, 320, 16, 0, 0, true, false, false, 0, false, false },	// 240x320 class at full resolution, standard text size
+	{ "320x240", 320, 240, 4, 0, 0, true, true, false, 0, false, false },	// GD-88: landscape, 16 colors, the larger text as its build
+	{ "220x176", 220, 176, 4, 0, 0, true, true, false, 0, false, false },	// GD-88 with the 220x176 panel: the same build, found at start-up
 };
 const int sim_geom_count = sizeof sim_geoms / sizeof sim_geoms[0];
 static const sim_geom_t profile_geom = {
@@ -2957,11 +2957,11 @@ void sim_reset(const sim_geom_t *g, sim_map_t map)
 	ui_svc_setting_set(UI_SET_GUI_PROFILE, 0);
 	ui_svc_setting_set(UI_SET_GUI_NIGHT, 0);
 	ui_svc_setting_set(UI_SET_GPS_CLOCK, 0);
-	// The panels theme (the build's default) on the profile geometry only, so every other gallery class keeps the
-	// reference theme. Where panels doesn't fit (220x176) the build's default is stored, as on a radio: the display
-	// picks the reference theme
-	ui_svc_setting_set(UI_SET_GUI_THEME, gui_profiles || !ui_theme_fits(UI_THEME_ID_PANELS) ? UI_THEME_ID_DEFAULT :
-			   UI_THEME_ID_REFERENCE);
+	// The panels theme (the build's default) on the profile geometry and on a class whose radio starts in it
+	// (sim_geom_t panels), so every other gallery class keeps the reference theme. Where panels doesn't fit (220x176)
+	// the build's default is stored, as on a radio: the display picks the reference theme
+	ui_svc_setting_set(UI_SET_GUI_THEME, gui_profiles || g->panels || !ui_theme_fits(UI_THEME_ID_PANELS) ?
+			   UI_THEME_ID_DEFAULT : UI_THEME_ID_REFERENCE);
 #endif
 	ui_svc_setting_set(UI_SET_ACCENT, 0);
 	ui_svc_setting_set(UI_SET_STRIP, 1);
