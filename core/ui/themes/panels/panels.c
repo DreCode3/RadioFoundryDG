@@ -1668,11 +1668,8 @@ static void panels_cell(const ui_list_t *l, const ui_list_geom_t *g, const ui_ce
 		panels_tile_text(l, c, it, fg, vfg, focus ? fg : ui_col.dim);
 		return;
 	}
+	// One column: a plain list (panels_list_geom gives the Menu and Settings, the lists with icons, grids)
 	int x = c->x + PANELS_TEXT_X;
-	if (l->kind != UI_LIST_PLAIN && it->icon != UI_MENU_ICON_NONE) {
-		panels_icon(it->icon, x - 2, c->y + (c->h - PANELS_ICON_CANVAS) / 2, focus ? panels_accent : ui_col.fg);
-		x += 24;
-	}
 	int right = c->x + c->w - 5;
 	const font_t *f = g->font;
 	int ty = c->y + (c->h - f->h) / 2;
