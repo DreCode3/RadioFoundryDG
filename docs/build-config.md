@@ -200,7 +200,7 @@ below are for an STM32F4 radio.
 | `CONFIG_LANG_DEFAULT_ZH` | n | The radio starts in Chinese, as `CONFIG_LANG_DEFAULT_ES`. Needs `CONFIG_LANG_ZH` |
 | `CONFIG_CJK_GLYPHS` | `CONFIG_LANG_ZH` | The CJK glyph table (`core/ui/cjk_font_data.c`, built by `tools/cjkfont.py`; the face's ~128 KB rodata). Off while `CONFIG_LANG_ZH` stays on keeps the translated Chinese menus but drops the glyphs, for a board too small to show Chinese (it draws boxes for any Chinese). Needs `CONFIG_LANG_ZH` |
 | `CONFIG_UI_COLOR` | y (n on a monochrome radio) | color screen settings: Theme, Highlight color and Filled status bar in Settings > Display (`docs/spec/ui.md` 5, 8). Off: no such rows, the dark theme's colors. About 600 B; off for radios whose only screen is monochrome |
-| `CONFIG_UI_THEME_PANELS` | n | The panels theme: rounded panels, Day/Night palettes, the Commercial and Amateur Home layouts and a GPS clock, on color displays with a drawable area of at least 160 x 128 px, and for now 240 px high (unsupported on other panels). Needs `CONFIG_UI_COLOR`. The GPS clock needs a board GPS |
+| `CONFIG_UI_THEME_PANELS` | n | The panels theme: rounded panels, Day/Night palettes, the Commercial and Amateur Home layouts and a GPS clock, on color displays with a drawable area of at least 160 x 128 px (unsupported on other panels); a display under 200 px high gets its compact layout (18 px rows, 8x16 text, 16 px icons, no GPS clock). Needs `CONFIG_UI_COLOR`. The GPS clock needs a board GPS |
 | `CONFIG_AUDIO_PROBE` | n | diagnostics: debug link command 0x10 reads / writes the audio chip's registers and measures the PCM stream, for the USB audio bench tests (`docs/spec/debuglink.md` 3.14); needs DEBUGLINK and DMR; about 2 KB RAM and 2.2 KB flash. Never for a release; CI builds it in one board's `audio-probe` configuration (with `LTO=1`: the default image has no room for it without), not in maximal. A bench image without LTO: add `CONFIG_SNMP=n` |
 | `CONFIG_UI_SETTINGS` | y | the Settings menu on the radio; off: settings keep their stored values and are set with qdmr (`docs/spec/ui.md` 5) |
 
@@ -221,6 +221,7 @@ Derived (not set by hand): `CONFIG_DMR_DATA_CORE`, the shared packet data / CSBK
 | `CONFIG_DMR_DATA_TX_GUARD_MS` | 250 | the gap the data service leaves after our own transmission before it starts another that isn't a reply. A workaround for receivers that lose a packet sent right after ours ended; the cause is open (`docs/spec/dmr-data.md` 12.6.3). 0 turns it off |
 | `CONFIG_DISPLAY_INSET` | 0 (a board sets its own) | pixels hidden by the bezel or lens at each edge; the UI draws inside them. A board may set the top and bottom to 0 when only the sides are covered |
 | `CONFIG_DISPLAY_INSET_TOP` / `_BOTTOM` / `_LEFT` / `_RIGHT` | = `CONFIG_DISPLAY_INSET` | one edge |
+| `CONFIG_UI_THEME_DEFAULT` | 0 (a board may set its own) | the look a new radio (or a factory reset) starts in: 0 the build's own theme (panels where `CONFIG_UI_THEME_PANELS` is on), 1 the original look, 2 panels. A look that isn't built or doesn't fit the display falls back to the original. A board whose display fits panels but keeps the original look by default sets 1 |
 
 ### Board build variables
 

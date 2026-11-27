@@ -52,10 +52,10 @@ clock**.
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
-| Theme | Original, Panels | Panels where the firmware has the panels look and the display fits it, else Original | The look of every screen. Only on a radio whose firmware has more than one look that fits its display | Works |
+| Theme | Original, Panels | Panels where the firmware has the panels look, the display fits it and the radio starts in it ([radios](23-radios.md)), else Original | The look of every screen. Only on a radio whose firmware has more than one look that fits its display | Works |
 | Display profile | Commercial, Amateur | Commercial | Home's layout. Both show the zone and the channel name, with a call's caller and talkgroup below. Commercial uses a larger channel name and shows the talk target only when it isn't the channel's own. Amateur always shows the talk target and the frequency, timeslot and color code | Works |
 | Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
-| GPS clock | Off, On | Off | Shows the date and UTC time in the status bar of every screen, where it has room, when a valid GPS fix supplies both | Works |
+| GPS clock | Off, On | Off | Shows the date and UTC time in the status bar of every screen, where it has room, when a valid GPS fix supplies both. Not on a display under 200 px high, which has no room for it | Works |
 | Colors | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
 | Highlight color | Default, Red, Orange, Yellow, Teal, Light blue, Purple, Pink | Default | The color of the selected row or tile and of the channel number on Home. Not in the Night theme, which is always red. Not on radios with a monochrome screen | Works |
 | Filled status bar | On, Off | On | Fills the top status line with the highlight color (light gray with Default, white in the high-contrast theme, bright red in Night) and draws its text black. Not on radios with a monochrome screen | Works |
