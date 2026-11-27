@@ -2611,7 +2611,7 @@ msgstr "空信道"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
-msgid "{OK change  hold OK save  Back|OK change  hold OK save}"
+msgid "{OK change  Hold OK save  Back|OK change  Hold OK save}"
 msgstr "{OK 改  长按 OK 保存  返回|OK 改  长按 OK 保存}"
 
 #: core/ui/ui_menus.c

@@ -2609,8 +2609,8 @@ msgstr "Canal vide"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
-msgid "{OK change  hold OK save  Back|OK change  hold OK save}"
-msgstr "{OK modifier  tenir OK enregistrer  Retour|OK modifier  tenir OK enregistrer}"
+msgid "{OK change  Hold OK save  Back|OK change  Hold OK save}"
+msgstr "{OK modifier  Tenir OK enregistrer  Retour|OK modifier  Tenir OK enregistrer}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_TUNE"

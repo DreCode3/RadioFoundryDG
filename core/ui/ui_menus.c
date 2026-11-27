@@ -3926,8 +3926,8 @@ static void chinfo_select(uint16_t i, bool hold)
 static const ui_scr_def_t chinfo_screen = {
 	.name = "channel", .flags = SF_LIST | SF_OK_ACTS, .empty = TRN(CHAN_EMPTY_CHANNEL, "Empty channel"),
 #if CONFIG_CHANNEL_EDIT
-	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  hold OK save  Back"
-		TEXT_ALT_NEXT "OK change  hold OK save" TEXT_ALT_CLOSE),
+	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  Hold OK save  Back"
+		TEXT_ALT_NEXT "OK change  Hold OK save" TEXT_ALT_CLOSE),
 	.key = chinfo_key,
 #else
 	.hint = TRN(CHAN_HINT_TUNE, "OK tunes to it  Back"),
@@ -4229,8 +4229,8 @@ static bool ct_key(const input_event_t *ev)
 
 static const ui_scr_def_t contact_edit_screen = {
 	.name = "contactedit", .flags = SF_LIST | SF_FIELD | SF_OK_ACTS, .prefix = TRN(CONTACT_TITLE_NEW, "New contact"),
-	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  hold OK save  Back"
-		TEXT_ALT_NEXT "OK change  hold OK save" TEXT_ALT_CLOSE),
+	.hint = TRN(HINT_OK_CHANGE_HOLD_OK_SAVE, TEXT_ALT_OPEN "OK change  Hold OK save  Back"
+		TEXT_ALT_NEXT "OK change  Hold OK save" TEXT_ALT_CLOSE),
 	.count = ct_count, .item = ct_item, .select = ct_select, .key = ct_key,
 };
 #endif

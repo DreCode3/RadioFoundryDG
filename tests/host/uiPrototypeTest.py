@@ -574,7 +574,7 @@ class PrototypeTest(unittest.TestCase):
     def test_soft_key_bar_has_two_labels(self):
         # Exactly two labels, one per soft key, OK and Back, wherever the hint declares them by its structure; the
         # groups for other keys (#, 0-9, PTT, hold OK) are in the hint row above the bar
-        for script, row in (("ok 1", "#_more"), ("ok 8 9 ok ok", "hold_OK_save"), ("ok 4", "#_channels"),
+        for script, row in (("ok 1", "#_more"), ("ok 8 9 ok ok", "Hold_OK_save"), ("ok 4", "#_channels"),
                             ("ok 8 9 ok", "0-9_find"), ("msg:9991234,Hello wait:9000 ok 2", "#_reply")):
             with self.subTest(screen=script):
                 self.run_script(f"{script} expect:shows=OK expect:shows=Back expect:shows={row} expect:layout=0")

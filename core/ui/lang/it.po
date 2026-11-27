@@ -2609,8 +2609,8 @@ msgstr "Canale vuoto"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
-msgid "{OK change  hold OK save  Back|OK change  hold OK save}"
-msgstr "{OK cambia  tieni OK salva  Indietro|OK cambia  tieni OK salva}"
+msgid "{OK change  Hold OK save  Back|OK change  Hold OK save}"
+msgstr "{OK cambia  Tieni OK salva  Indietro|OK cambia  Tieni OK salva}"
 
 #: core/ui/ui_menus.c
 msgctxt "CHAN_HINT_TUNE"

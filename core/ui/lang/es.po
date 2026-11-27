@@ -2609,7 +2609,7 @@ msgstr "Canal vacío"
 
 #: core/ui/ui_menus.c
 msgctxt "HINT_OK_CHANGE_HOLD_OK_SAVE"
-msgid "{OK change  hold OK save  Back|OK change  hold OK save}"
+msgid "{OK change  Hold OK save  Back|OK change  Hold OK save}"
 msgstr "{OK cambiar  mant OK guardar  Atrás|OK cambiar  mant OK guardar}"
 
 #: core/ui/ui_menus.c

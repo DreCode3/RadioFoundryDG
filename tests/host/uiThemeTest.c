@@ -1005,7 +1005,7 @@ static void test_panels_bar(void)
 	base();
 	// In a list OK opens or picks the row and Back leaves: those groups say nothing more, only the other keys' do
 	BAR("OK open  # reply  Back", UI_BAR_LIST, NULL, "OK", "Back", "# reply");
-	BAR("OK change  hold OK save  Back", UI_BAR_LIST, NULL, "OK", "Back", "hold OK save");
+	BAR("OK change  Hold OK save  Back", UI_BAR_LIST, NULL, "OK", "Back", "Hold OK save");
 	BAR("0-9 find  OK talk  # more", UI_BAR_LIST, NULL, "OK", "Back", "# more");	// Back leaves every list
 	BAR("OK choose  Back", UI_BAR_LIST, NULL, "OK", "Back", NULL);			// nothing left: the row is empty
 	// ... unless the focused row's value editor is open: OK and Back do its jobs then
