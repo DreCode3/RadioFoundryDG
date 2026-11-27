@@ -449,8 +449,8 @@ msgstr "Moniteur num. coupé"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "LOCK_HINT_HOLD_STAR"
-msgid "{Keys locked: hold * to unlock|Locked: hold * to unlock}"
-msgstr "{Verrouillé : tenir * pour déverrouiller|Déverrouiller : tenir *}"
+msgid "{Keys locked: hold * to unlock|Locked: hold * to unlock|Hold * to unlock}"
+msgstr "{Verrouillé : tenir * pour déverrouiller|Déverrouiller : tenir *|Maintenir * appuyé}"
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_HINT_HOLD_BACK"

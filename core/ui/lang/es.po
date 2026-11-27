@@ -449,8 +449,8 @@ msgstr "Monitor digital off"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "LOCK_HINT_HOLD_STAR"
-msgid "{Keys locked: hold * to unlock|Locked: hold * to unlock}"
-msgstr "{Teclas bloqueadas: mantén * para desbloquear|Desbloquear: mantén *}"
+msgid "{Keys locked: hold * to unlock|Locked: hold * to unlock|Hold * to unlock}"
+msgstr "{Teclas bloqueadas: mantén * para desbloquear|Desbloquear: mantén *|Mantén * pulsado}"
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_HINT_HOLD_BACK"

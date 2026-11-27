@@ -997,8 +997,14 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 		char first[64], second[64];	// second holds the raw alternate until the key names are in first
 		const char *line = first;	// the alternate with the key names: first, or second when there were none
 		bool more = true;
-		// One line in the longest alternate that fits it, else two lines of the first
-		for (int level = 0; more; level++) {
+		// One line in the longest alternate that fits it, else two lines of the first. A text of three forms or more
+		// keeps its shortest (the compact bar's, "Hold * to unlock") for where two lines of the first can't hold it
+		gfx_text_alt(text, 0, second, sizeof second, &more);
+		int forms = 1;
+		while (more)
+			gfx_text_alt(text, forms++, second, sizeof second, &more);
+		int shortest = forms >= 3 ? forms - 1 : forms;
+		for (int level = 0; level < shortest; level++) {
 			gfx_text_alt(text, level, second, sizeof second, &more);
 			line = ui_key_names(second, first, sizeof first, false);
 			if (gfx_text_width(f, line) <= w - 2)
@@ -1007,6 +1013,10 @@ static void panels_bottom(const char *text, unsigned flags, const char *soft_key
 		if (gfx_text_width(f, line) > w - 2) {
 			gfx_text_alt(text, 0, second, sizeof second, &more);
 			line = ui_key_names(second, first, sizeof first, false);
+			if (shortest < forms && gfx_text_width(f, ui_wrap_line(f, line, w - 2, fit, sizeof fit)) > w - 2) {
+				gfx_text_alt(text, shortest, second, sizeof second, &more);
+				line = ui_key_names(second, first, sizeof first, false);
+			}
 		}
 		if (line != first) {
 			memcpy(first, second, sizeof first);	// the rest below may point into it, and second is reused
@@ -1088,9 +1098,16 @@ static void panels_bar_sentence(const char *text)
 	ui_hint_draws++;
 #endif
 	panels_pane(top, m->footer_h, ui_col.hint_bg);
+	// Every form but the shortest in the largest font one fits, then the shortest ("Hold * to unlock", the compact
+	// bar's): a sentence keeps its words in a smaller font before it takes its shortest form
+	bool more;
+	gfx_text_alt(text, 0, form, sizeof form, &more);
+	int forms = 1;
+	while (more)
+		gfx_text_alt(text, forms++, form, sizeof form, &more);
+	for (int pass = 0; pass < 2 && line == NULL; pass++)
 	for (unsigned i = 0; i < (wide ? 1u : sizeof fonts / sizeof fonts[0]) && line == NULL; i++) {
-		bool more = true;
-		for (int level = 0; more; level++) {
+		for (int level = pass ? forms - 1 : 0; level < (pass || forms == 1 ? forms : forms - 1); level++) {
 			gfx_text_alt(text, level, form, sizeof form, &more);
 			const char *named = ui_key_names(form, names, sizeof names, false);
 			if (gfx_text_width(fonts[i], named) <= room) {

@@ -2527,7 +2527,8 @@ UI_THEME_SHARED const char *ui_home_hint(const radio_view_t *v, const ui_state_t
 		return TR(FREQ_HINT_ENTRY, "OK tune  Back delete");
 	if (s->locked)
 		return TR(LOCK_HINT_HOLD_STAR, TEXT_ALT_OPEN "Keys locked: hold * to unlock"
-			TEXT_ALT_NEXT "Locked: hold * to unlock" TEXT_ALT_CLOSE);
+			TEXT_ALT_NEXT "Locked: hold * to unlock"
+			TEXT_ALT_NEXT "Hold * to unlock" TEXT_ALT_CLOSE);
 	if (s->scanning)
 		return TR(HOME_HINT_SCANNING, "# skip  Back stop scan");
 	if (board_hwopt_pending() != NULL)
@@ -3197,7 +3198,8 @@ UI_THEME_SHARED const char *ui_dual_hint(const radio_view_t *v, const ui_state_t
 		return TR(FREQ_HINT_ENTRY, "OK tune  Back delete");
 	if (s->locked)
 		return TR(LOCK_HINT_HOLD_STAR, TEXT_ALT_OPEN "Keys locked: hold * to unlock"
-			TEXT_ALT_NEXT "Locked: hold * to unlock" TEXT_ALT_CLOSE);
+			TEXT_ALT_NEXT "Locked: hold * to unlock"
+			TEXT_ALT_NEXT "Hold * to unlock" TEXT_ALT_CLOSE);
 	// Talk back on the channel a call came in on: the way back now
 	if (d->back_to != UI_DUAL_NONE)
 		return d->back_to ?

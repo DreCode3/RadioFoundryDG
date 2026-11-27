@@ -1459,7 +1459,7 @@ static void test_compact_home(bool compact)
 	CHECKT(fm >= 0 && (compact ? texts[fm].y + texts[fm].h <= ui_layout.strip_h :
 			   texts[fm].y + texts[fm].h / 2 > ui_layout.strip_h));
 	CHECKT(compact ? clock < 0 : clock >= 0);
-	CHECKT(k >= 0 && (compact || strcmp(texts[k].s, "Locked: hold * to unlock") == 0));
+	CHECKT(k >= 0 && strcmp(texts[k].s, compact ? "Hold * to unlock" : "Locked: hold * to unlock") == 0);
 	if (compact) {
 		// The row under the strip is Home's gutter only: no mark (the lock) reaches past the strip's pane
 		color_t gutter = gfx_get_pixel(0, ui_layout.strip_h);

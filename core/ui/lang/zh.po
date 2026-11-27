@@ -451,8 +451,8 @@ msgstr "数字监听关"
 
 #: core/ui/ui_app.c core/ui/ui_screens.c
 msgctxt "LOCK_HINT_HOLD_STAR"
-msgid "{Keys locked: hold * to unlock|Locked: hold * to unlock}"
-msgstr "{按键已锁：长按 * 解锁|已锁：长按 * 解锁}"
+msgid "{Keys locked: hold * to unlock|Locked: hold * to unlock|Hold * to unlock}"
+msgstr "{按键已锁：长按 * 解锁|已锁：长按 * 解锁|长按 * 解锁}"
 
 #: core/ui/ui_app.c
 msgctxt "LOCK_HINT_HOLD_BACK"
