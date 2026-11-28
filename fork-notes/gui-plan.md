@@ -450,6 +450,13 @@ resources spent on diminishing returns):
    - QA fixes (Nov 27, `edee0597`..`44f4beb3`, for the re-review): B1, B2 (new class `160x128iL2T1-panels`), the
      220 px full-layout edge, `220x176iR10-panels`, the narrow Settings tiles, the 160x128 original look's bitmap
      fonts, `ui_list_bar`, the mutation tests. GD-88 and profile frames 0 differ; DM-32 only `settings.png`.
+   - **The two maximal overflows fixed** (Nov 27, `487576a5..cee9bbcd`; measurement in
+     `../rf-port-out/storage/measure.md`): `LTO_3P=1` in both boards' `MAXIMAL_VARS` (3,720 / 3,692 B), language tables
+     with an offset every 16 strings (448 B), Settings row descriptors at 20 bytes (400 B), and FONT_AA in the
+     MD-UV380's `MAXIMAL_SKIP` (6,080 B; its default image draws no anti-aliased font). Maximal now 1,016 B free on the
+     DM-1701 and 5,816 B on the MD-UV380; default images 384 to 720 B smaller (gd88b and rt10 the same). Full CI
+     (`ci-par.sh`, every board, at `e5104c5e`, then the registry step again after a comment fix) passed; 2755 frames, 0
+     differ.
 
 ## Planned, not now
 
