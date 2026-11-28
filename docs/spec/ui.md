@@ -852,7 +852,7 @@ function a theme stores in that field ([stack-check.md](../dev/stack-check.md)).
 | `bottom` | The bottom row: key hints or a toast, with the flags of 9.10 and Home's soft key label | `reference_bottom` | the hint row and the soft key bar |
 | `banner` | A banner over the lower part of the screen | `reference_banner` | on the strip's color |
 | `home` | Home, the whole frame | `ui_reference_home` | 9.11 |
-| `home_dual` | Home while dual watch runs (`CONFIG_DUAL_WATCH`) | `reference_home_dual` | the shared panes in Home's frame |
+| `home_dual` | Home while dual watch runs (`CONFIG_DUAL_WATCH`) | `reference_home_dual` | the shared panes and the calls heard in Home's frame |
 | `quick` | Quick settings, the whole frame | `reference_quick` | 9.13 |
 | `list_head` | A list's strip and title; returns the y below. Called first after the screen is cleared, so a theme reserves its palette entries here on a 16-color display (`gfx_reserve_colors`) | `reference_list_head` | with the scroll position's room |
 | `list_geom` | Where the cells go: font, corner, pitch, up to 3 columns, rows, paged, across (`ui_list_geom_t`). `ui_draw_list` brings a value out of range back into range | `reference_list_geom` (one column) | rows, the 3x3 Menu, Settings' 2 columns (9.12) |
@@ -1068,11 +1068,20 @@ above the hint row where the bar has one, and above the knob's volume bar while 
 The compact layout has no mode bar (the strip has the mode word) and no hint line on Home. Its foot lines take room
 only while they have something to say, and then over the target and details, which go, so both profiles fit whole.
 
-Dual watch uses the shared two-pane view (`ui_home_dual_body`) in Home's frame: the panes inset, no list of calls,
-a refused PTT's reason centered; Commercial names the talk target where the channel number would be; a pane line its
-font cuts takes 8x16 where that holds it whole. Trunked, single-frequency repeater and unbuilt-kind channels keep the
-reference theme's Home body and call screen (`ui_reference_home`, `ui_reference_call_body`), drawn under this theme's
-strip and bar; the compact layout gives them the hint row's room and cuts a long zone name at its end.
+Dual watch uses the shared two-pane view (`ui_home_dual_body`) in Home's frame: the panes inset, a refused PTT's
+reason centered; Commercial names the talk target where the channel number would be, and a caller coming in as Amateur
+does (the talker alias where Show talker alias has one); a pane line its font cuts takes 8x16 where that holds it
+whole. Under the panes, the state line and the calls heard (`ui_dual_t.hist`, newest first), each a row of the pane's
+letter in an outline tag, the caller and how long ago; the caller's shortest form keeps its room before the age's
+long form, and a form still too long is cut at its end. The style asks for room for lines under the panes
+(`ui_dual_style_t.list_rows`: 2 in the full layout, 1 in the compact one): measured in 8x16 rows, the panes' padding,
+then the gap between them, then the 2 px above the lines give way until that many fit. The lines are in the small font
+where it fits as many, else 8x16. So 310 x 240 lists 2 calls (padding 0, gap 2), 220 x 310 3 in Commercial and 2 in
+Amateur (its padding 0), 210 x 176 2, and the 160 px classes 1 (padding 0, nothing above the line). While a call comes
+in or PTT is held, the state line takes the first of them. Trunked, single-frequency repeater and unbuilt-kind
+channels keep the reference theme's Home body and call screen (`ui_reference_home`, `ui_reference_call_body`), drawn
+under this theme's strip and bar; the compact layout gives them the hint row's room and cuts a long zone name at its
+end.
 
 ### 9.12 Panels lists and grids
 
@@ -1129,8 +1138,8 @@ board whose original look keeps the bitmap fonts, the anti-aliased fonts panels 
 | Test | Checks |
 |---|---|
 | `uiThemeTest` (`UI_THEME_SELECT` with themes of the test's own) | A theme with no op draws every frame as the reference theme does; a palette without a colors op stays as it is; a theme's own ops are the ones called; a strip of its own is measured where it is drawn; `ui_draw_list` scrolls and places a two-column geometry, also one out of bounds (under AddressSanitizer); a theme without a palette is refused; the theme picked for each display and its fallbacks; Talkgroup name first by the theme a radio starts in |
-| `uiThemeTestPanels` (with `CONFIG_UI_THEME_PANELS`, `GFX_FIT_TRACE`) | The same, plus the panels theme's frames by structure (every text drawn and shortened is seen): the scroll position before the cells, the soft key bar's two labels whole inside the pane, no text under 8x16, a crowded strip without overlaps, Quick's typed TX frequency, the rows and grids at 310 x 240 and 220 px wide, the compact layout against the full one (rows with and without the hint row, Home, a call, the reference Home body, grids, the sliding row), and the bottom row's flags of a measured list |
+| `uiThemeTestPanels` (with `CONFIG_UI_THEME_PANELS`, `GFX_FIT_TRACE`) | The same, plus the panels theme's frames by structure (every text drawn and shortened is seen): the scroll position before the cells, the soft key bar's two labels whole inside the pane, no text under 8x16, a crowded strip without overlaps, Quick's typed TX frequency, the rows and grids at 310 x 240 and 220 px wide, the compact layout against the full one (rows with and without the hint row, Home, a call, the reference Home body, grids, the sliding row), dual watch's calls heard on each display (2, 3 or 2, 2, 1 and 1 rows, the panes' offsets at 310 x 240) and Commercial naming a caller, and the bottom row's flags of a measured list |
 | `uiThemeTestPanelsOriginal` (`CONFIG_UI_THEME_DEFAULT=1`, `GFX_MIN_ROWS=320`, `FONT_AA_THEME_ONLY`) | The original theme as the build's default, name first off, no compact layout, each theme's own font set |
-| `uiPrototypeTest.py` | The panels theme at 310 x 240 (`320x240iR10`) through `uiSim`: both profiles and palettes, the strip's marks, icons inside their tiles in the ink, the hint row's rule, every catalog keeping each hint's groups and keys, Chinese bar labels at their height (`uiSimZh`), Hint row off, the clock's ranking and its move to the mode bar, the settings rows across a restart, each frame with `expect:layout=0`. `run-ui` also runs `uiSimFr` scripts for French words the panels theme picks by key |
+| `uiPrototypeTest.py` | The panels theme at 310 x 240 (`320x240iR10`) through `uiSim`: both profiles and palettes, the strip's marks, icons inside their tiles in the ink, the hint row's rule, every catalog keeping each hint's groups and keys, Chinese bar labels at their height (`uiSimZh`), Hint row off, the clock's ranking and its move to the mode bar, the settings rows across a restart, dual watch's calls heard in every panels class, each frame with `expect:layout=0`. `run-ui` also runs `uiSimFr` scripts for French words the panels theme picks by key |
 | `uiSim --layout` (the layout check, section 7) | Every gallery class in the theme the class is set to (`sim_geom_t.panels`): `240x320i10x5` and the `-panels` classes in panels, the others in the reference theme |
 | The gallery | `docs/ux/screens/<class>/`: `240x320i10x5` (the full layout, 220 x 310), `160x128-panels`, `160x128iL2T1-panels` (158 x 127), `220x176iR10-panels` (210 x 176, compact) and `320x240iR10-panels` (the full layout, 310 x 240, the frames of `docs/ux/profile-samples/`). The gallery's palette pages (`__light`, `__high_contrast`) are the reference theme's palettes, so in a panels class they show the Day palette; `__night` also sets Day/Night, so there it shows the Night palette |

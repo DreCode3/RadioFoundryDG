@@ -99,7 +99,10 @@ first two with two large lines and keeps the rest in fixed places.
   talker alias, the contact's name or the ID) and the talkgroup during a call, where PTT talks to and the time left
   while transmitting, or what needs attention when idle (a refused PTT's reason, No TX frequency). They keep their
   place, so nothing above them moves when a call comes in: the main line stays where the eye left it.
-- **Dual watch** keeps its two-pane view inside Home's frame. Trunked and single-frequency repeater channels keep
+- **Dual watch** keeps its two-pane view inside Home's frame, with the calls heard under the panes as the original look
+  lists them: the newest two where the full layout has room (three in Commercial on the 220 x 310 screen), the newest
+  one in the compact layout. The panes' padding and the gap between them give way for those lines. A caller coming in
+  is named in their pane in both profiles. Trunked and single-frequency repeater channels keep
   their own operating views under the same strip and bar, since they show states (the control channel, the grant) a
   channel Home has no place for.
 

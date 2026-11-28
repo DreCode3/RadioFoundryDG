@@ -126,6 +126,12 @@ and both names in one font (the largest both fit, never smaller than row 2; a lo
 | 160x120i5 (DM-1701) | name, target (small) | one line |
 | 128x64 (GD-77) | name, target (small) | none: the last call's age is in its pane |
 
+The panels theme ([panels-theme.md](panels-theme.md), the classes ending in `-panels`, 240x320i10x5 and the GD-88's
+320x240) draws the same panes and calls in its own frame: the calls as many as its measured room gives, 2 on 320x240
+and 220x176 (Commercial and Amateur), 3 in Commercial and 2 in Amateur on 240x320i10x5, 1 on 160x128 (the panes'
+padding and gap give way for them), each a row of the pane's letter, the caller and how long ago. Commercial names a
+caller coming in, as Amateur does.
+
 Every screen in every class is in the gallery (`docs/ux/screens/*/home_dual*.png`, `dual_*.png`).
 
 ## 4. Keys while it runs

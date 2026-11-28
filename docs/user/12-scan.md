@@ -120,6 +120,9 @@ its zone. The selected channel has an arrow under its letter.
 | "# 1 talk on B" | A call came in on B in the last 10 s. **#**, **1** talks back there |
 | "# 1 back to A" | Talk back is on and **PTT** is on B (see below) |
 
+In the Panels look ([Settings > Display > Theme](17-settings.md#display-key-1)) the last calls are under the two
+channels too: as many as fit, two on most screens and the newest call only on a small screen.
+
 By default a call on the other channel never moves **PTT**. You choose.
 
 ### The wait after a call
