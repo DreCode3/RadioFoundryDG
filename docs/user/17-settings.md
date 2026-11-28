@@ -43,26 +43,25 @@ Connections > PC and network** (below).
 
 ### Display (key 1)
 
-**Theme** comes first on a radio with more than one look (theme) for its display: Original, the standard look, and
-Panels. Picking one switches the look at once and keeps it. The next rows are the look's own: each look has its own
-appearance settings, and Display shows those of the one in use. The standard look has **Colors**, **Highlight color**
-and **Filled status bar**. The panels look has **Display profile**, **Day/Night** and, on a radio with a GPS, **GPS
-clock**.
-[Commercial and Amateur Home](06-home-screen.md#commercial-and-amateur-home) shows what changes on Home.
+**Theme** comes first on a radio that offers more than one look for its display: **Original**, the standard look, and
+**Panels**. Picking one switches the look at once and keeps it. The rows after it belong to the look in use: the
+Original look has **Colors**, **Highlight color** and **Filled status bar**, and the Panels look has **Display
+profile**, **Day/Night** and, on a radio with GPS, **GPS clock**. [Home in the Panels
+look](06-home-screen.md#home-in-the-panels-look) shows what they change on Home.
 
 | Setting | Values | Default | What it does | Status |
 |---|---|---|---|---|
-| Theme | Original, Panels | Panels where the firmware has the panels look, the display fits it and the radio starts in it ([radios](23-radios.md)), else Original | The look of every screen. Only on a radio whose firmware has more than one look that fits its display | Works |
-| Display profile | Commercial, Amateur | Commercial | Home's layout. Both show the zone and the channel name, with a call's caller and talkgroup below. Commercial uses a larger channel name and shows the talk target only when it isn't the channel's own. Amateur always shows the talk target and the frequency, timeslot and color code | Works |
-| Day/Night | Day, Night | Day | Switches the palette on Home and in menus | Works |
-| GPS clock | Off, On | Off | Shows the date and UTC time in the status bar of every screen, where it has room, when a valid GPS fix supplies both. Not on a display under 200 px high, which has no room for it | Works |
+| Theme | Original, Panels | The look the radio starts in, which depends on the radio ([Radio Reference](23-radios.md)) | The look of every screen. Shown only on a radio that offers both looks for its display | Works |
+| Display profile | Commercial, Amateur | Commercial | Home's layout in the Panels look. Both show the zone and the channel name, with a call's caller and talkgroup below. Commercial uses a larger channel name and shows the talk target only when **PTT** would go somewhere other than the channel's own talkgroup. Amateur always shows the talk target, with the frequency, timeslot and color code. On a narrow screen the row reads **Profile** | Works |
+| Day/Night | Day, Night | Day | The Panels look's colors. Day uses dark text on a light background, for daylight. Night uses light text on a dark background, for dark surroundings | Works |
+| GPS clock | Off, On | Off | Shows the date and UTC time in the status bar of every screen, where it has room, while the GPS has a fix that supplies both. Small screens (under 220 x 200 pixels) have no room for it | Works |
 | Colors | Dark, Light, High contrast, Night (red) | Dark | The screen colors. Night (red) uses only shades of red on black, so your eyes stay adapted to the dark; RX, TX and warnings differ by brightness and their word, not color. The power-on screen keeps its own colors. Not on radios with a monochrome screen | Works |
 | Highlight color | Default, Red, Orange, Yellow, Teal, Light blue, Purple, Pink | Default | The color of the selected row or tile and of the channel number on Home. Not in the Night theme, which is always red. Not on radios with a monochrome screen | Works |
 | Filled status bar | On, Off | On | Fills the top status line with the highlight color (light gray with Default, white in the high-contrast theme, bright red in Night) and draws its text black. Not on radios with a monochrome screen | Works |
 | Brightness | 10 to 100 %, steps of 10 | 100 % | Backlight brightness. Also in quick settings, tile 9 | Works |
 | Backlight | 5s/20s, 10s/40s, 30s/2m, 1m/4m, 2m/8m, 10s/dim, 30s/dim, 1m/dim, 2m/dim, Never | 30s/2m | Without a key press, the backlight dims to a fifth after the first time and goes off after the second. The "dim" choices dim and never go off | Works |
-| Large text | On, Off | Off | On standard Home, shows just the status line, channel, and talk target in large text. On Commercial and Amateur Home, shows the channel name and the talk target larger and hides the zone and the details | Works |
-| Hint row | On, Off | On | The bottom line with key hints. In the Panels look the bar with the two soft keys' labels always shows, and this setting shows or hides the line above it with the other keys' hints | Works |
+| Large text | On, Off | Off | In the Original look, Home shows just the status line, the channel and the talk target in large text. In the Panels look, Home shows the zone, the channel name and the talk target larger and leaves out the details line | Works |
+| Hint row | On, Off | On | Shows the line of key hints at the bottom of the screen. In the Panels look the bar with the labels of the two soft keys always stays, and this setting shows or hides the line above it, which lists the other keys | Works |
 | Talkgroup name first | On, Off | On when the radio starts in the Panels look (a new radio or after a factory reset), else Off | Home's talk line leads with the talkgroup's name ("World TG 91") instead of its number ("TG 91 World"): on a small screen the name is what fits. In every look. A side key set to **TG name / number** switches it too. On radios with DMR | Works |
 | Language | English, Español, Italiano, 中文 | English, or the Radio language picked in the web installer | The language of the menus and messages. A factory reset goes back to that default. The list shows every language RadioFoundry has; one that isn't in your firmware is dimmed. Pick it when you install with the web flasher to get it ([Installing](02-installing.md)). Chinese is off by default and needs a 16 px line ([Radio Reference](23-radios.md)). Names, callsigns and the standard radio abbreviations (TG, CC, VFO) stay as they are | Works |
 | Battery saver | On, Off | Off | On an idle FM channel the receiver sleeps between short listening windows ([Battery and power](16-battery-and-power.md)) | Works |

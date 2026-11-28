@@ -89,19 +89,21 @@ In numbered lists (Menu, Scan, Location, Connections, Settings, actions, quick s
 with that number directly. For example, **OK**, **7** opens Connections. An entry a radio doesn't have is left out, and
 the others keep their numbers.
 
-On displays with profiles, every list shows five rows of the same height, and Menu and the first level of Settings
-show them in two columns of five rows per page. **Up** and **Down** follow shortcut order down the left column, then
-the right, then move between pages. Where a list has more entries than fit, the title shows the highlighted entry's
-position, for example **3/12**. All eight Menu entries fit on one page, and **8** opens Settings directly.
-**OK** opens the highlighted item. **Back** returns to the previous screen.
+In the Panels look, list rows are rounded panels of one height, and the highlighted row is filled, with a bar in the
+accent color at its left end. Menu is a 3 x 3 grid of tiles laid out like the number keys, and the first level of
+Settings shows two columns of three tiles. **Up** and **Down** follow the numbers, then move to the next page. Where a
+list has more entries than fit, the title shows the highlighted entry's position, for example **3/12**. All eight Menu
+entries fit on one page, and **8** opens Settings directly. **OK** opens the highlighted item, and **Back** returns to
+the previous screen.
 
-<img src="../ux/profile-samples/menu.png" width="310" alt="Menu with eight numbered entries in two columns">
+<img src="../ux/profile-samples/menu.png" width="310" alt="Menu as a 3 x 3 grid of tiles in the order of the number keys">
 <img src="../ux/profile-samples/settings-night.png" width="310" alt="First page of Settings in the Night palette">
 
-Colored category icons appear on Menu and on the first level of Settings. The highlighted row is filled, with a bar
-in the accent color at its left end. The status bar at the top is the same as on Home, and the bottom bar shows the
-labels of the two soft keys: **OK** on the left and **Back** on the right. Open **Zones** to see the current zone and
-the other zones.
+Each Menu and Settings tile has an icon. The status bar at the top is the same as on Home, and the bottom bar shows the
+labels of the two soft keys: **OK** on the left and **Back** on the right. On a small screen (under 220 x 200 pixels),
+the tiles show their icon and number, and the title names the highlighted tile. A list there can show one more row when
+the hint line is off or has nothing to show, and the highlighted row slides sideways to show a name that is too long
+for it.
 
 In long lists (Contacts, Channels, a zone's channels) the number keys filter the list by name, the way a phone
 keypad spells words. **2** is ABC, **3** is DEF, and so on to **9** (WXYZ). Each key narrows the list to names with a

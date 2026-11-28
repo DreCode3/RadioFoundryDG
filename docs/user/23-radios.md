@@ -217,7 +217,8 @@ can't, the radio comes back after 2 s and shows "Couldn't switch off / Turn the 
 ### DM-1701 display
 
 A 160 x 128 color screen with the top 8 rows hidden: 160 x 120 visible. The screenshots in this
-manual are this size.
+manual are this size. With 5 pixels hidden at each side by the lens, the screen is too small for the Panels look, so
+the radio has the Original look only.
 
 ### DM-1701 languages
 
@@ -334,7 +335,7 @@ turn off. When RadioFoundry switches itself off (auto power off), it drops its p
 
 A 160 x 128 color screen, every row visible, with smooth (anti-aliased) text. The controller type is unconfirmed. The
 radio starts in the Original look. The Panels look, with the [Commercial and Amateur display
-profiles](06-home-screen.md#commercial-and-amateur-home), is in [Settings > Display > Theme](17-settings.md#display-key-1);
+profiles](06-home-screen.md#home-in-the-panels-look), is in [Settings > Display > Theme](17-settings.md#display-key-1);
 on this screen it shows 3 list rows, Menu tiles with their icon and number, and no GPS clock.
 
 ### What the MD-380 lacks
@@ -403,8 +404,9 @@ As on the DM-1701: the switch is on the volume knob, and RadioFoundry sees it tu
 
 ### MD-UV380 display
 
-A 160 x 128 color screen, every row visible. The standard image has only the Original look: the Panels look doesn't fit
-beside the rest of its features.
+A 160 x 128 color screen, every row visible. The standard image has only the Original look, because the Panels look
+doesn't fit in its flash beside the rest of the features. A custom build can turn it on in place of other features;
+the radio then still starts in the Original look.
 
 ### What the MD-UV380 lacks
 
@@ -469,7 +471,7 @@ The volume control works on the audio amplifier directly. RadioFoundry doesn't r
 ### DM-32UV display
 
 A 240 x 320 color screen. RadioFoundry uses its full resolution, with smooth (anti-aliased) bold text one size larger than on other 240 x 320 radios.
-The radio starts in the Panels look, with the [Commercial and Amateur display profiles](06-home-screen.md#commercial-and-amateur-home).
+The radio starts in the Panels look, with the [Commercial and Amateur display profiles](06-home-screen.md#home-in-the-panels-look).
 To use the Original look, select it in [Settings > Display > Theme](17-settings.md#display-key-1). On this narrower
 screen the Menu's Connections tile reads **Links**, and lists show 7 rows.
 
@@ -588,7 +590,7 @@ voltage, so nothing warns about it.
 ### DB25-D PRO display
 
 A 1.77" color screen, 160 x 128, with smooth (anti-aliased) text. The radio starts in the Original look. The Panels
-look, with the [Commercial and Amateur display profiles](06-home-screen.md#commercial-and-amateur-home), is in
+look, with the [Commercial and Amateur display profiles](06-home-screen.md#home-in-the-panels-look), is in
 [Settings > Display > Theme](17-settings.md#display-key-1); on this screen it shows 3 or 4 list rows, Menu tiles with
 their icon and number, and no GPS clock.
 
@@ -690,7 +692,8 @@ installation) or from a codec the browser kept. Untested on a DM-1801 Pro from t
 Five power levels: L--, L-, L, M, H. L, M and H are the factory calibration's Low, Middle and High; the two under L are
 set from L and haven't been measured. A channel without a power in the codeplug uses L. The radio refuses to transmit
 until RadioFoundry can read its factory calibration. The battery
-reading is scaled from a measurement on one radio. The screen is monochrome; the backlight is on or off.
+reading is scaled from a measurement on one radio. The screen is monochrome, so the radio has the Original look only;
+the backlight is on or off.
 The radio vibrates for messages, call alerts and emergencies (**Settings > Tones & alerts > Vibrate**).
 
 ### What the DM-1801 Pro lacks today
@@ -811,7 +814,7 @@ instead of a battery level and never warns about a low battery. The voltage's sc
 
 ### MD-9600 display
 
-A 128 x 64 monochrome screen.
+A 128 x 64 monochrome screen, with the Original look only.
 
 ### What the MD-9600 lacks today
 
@@ -828,9 +831,10 @@ runs the display, keys, PTT, transmitter, GPS and FM broadcast receiver. The sec
 listens at the same time as the first, so both VFOs can receive at once. **In development:** there is no release for
 this radio yet.
 
-On the 320 × 240 panel, the default right inset is 10 pixels, giving the UI a 310 × 240 area.
-This panel supports the [Commercial and Amateur display profiles](06-home-screen.md#commercial-and-amateur-home).
-Units with the 220 × 176 register-style panel use the standard layout.
+On the 320 × 240 panel, the default right inset is 10 pixels, giving the UI a 310 × 240 area. The radio starts in the
+Panels look, with the [Commercial and Amateur display profiles](06-home-screen.md#home-in-the-panels-look); the
+Original look is in [Settings > Display > Theme](17-settings.md#display-key-1). Units with the 220 × 176 register-style
+panel also start in the Panels look, in its layout for small screens, with 210 × 176 to draw on.
 
 GD-88 units differ in their RF chips: some have BK4819 chips, others FD6818 and WX4818N chips or an AT1141 synthesizer.
 RadioFoundry reads the chips at start-up and drives whichever the radio has. So far only a unit with a BK4819 and an

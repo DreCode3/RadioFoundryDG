@@ -8,50 +8,51 @@ is OK.
 <img src="../ux/screens/160x120i5/home_dmr.png" width="200" alt="Home on a DMR channel">
 <img src="../ux/screens/160x120i5/home_fm.png" width="200" alt="Home on an FM channel">
 
-## Commercial and Amateur Home
+## Home in the Panels look
 
-On supported color displays, **Settings > Display > Display profile** selects **Commercial** or **Amateur**.
-Both show the zone and, as the main line, the channel's name from the codeplug. In the VFO the main line is the
-frequency.
+On a radio with the Panels look ([Settings > Display > Theme](17-settings.md#display-key-1)), Home is made of rounded
+panels on a darker background: the status bar at the top, the mode bar with the channel's mode in large letters, the
+channel panel, and the bottom bar with the labels of the two soft keys.
 
 <img src="../ux/profile-samples/home-commercial.png" width="310" alt="Commercial Home receiving a DMR call">
 <img src="../ux/profile-samples/home-amateur.png" width="310" alt="Amateur Home receiving the same DMR call">
 
-Home's panes sit on a darker background: the status bar at the top, the mode bar (the channel's mode in large
-type), the channel pane and the bottom bar.
+The channel panel shows the zone and, as the main line, the channel's name from the codeplug. In the VFO the main line
+is the frequency. **Settings > Display > Display profile** chooses what else it shows:
 
 | Profile | What you see |
 |---|---|
-| Commercial (default) | The zone and a larger channel name. The talk target appears below it only when it isn't the channel's own: a target chosen for now, the reply window's, or a one-shot call's. In the VFO, where the main line is a frequency, the talk target always shows |
+| Commercial (default) | The zone and a larger channel name. The talk target appears below it only when **PTT** would go somewhere other than the channel's own talkgroup: a target chosen for now, the reply window's, or a one-shot call's. In the VFO, where the main line is a frequency, the talk target always shows |
 | Amateur | The zone, the channel name, the talk target (its talkgroup or ID and its name, the name first with **Talkgroup name first**) and a details line with the receive frequency and, on DMR, the timeslot and color code. A dot at the start of the details line marks a temporary change |
 
 With **Large text** on, both profiles show the zone, the channel name and the talk target in larger type, and leave
 out the details.
 
-During a DMR call, two lines at the bottom of the channel area show who is calling (the talker alias when the radio
+During a DMR call, two lines at the bottom of the channel panel show who is calling (the talker alias when the radio
 has it and **Settings > Call settings > Show talker alias** is on, else the contact's name or the ID) and the
 talkgroup. While you transmit, they show where **PTT** talks to and, if a transmit timeout is set, the time remaining.
 The same place shows what needs attention when the radio is idle, such as **No TX frequency**. The text above these
 lines stays where it is.
 
-The status bar at the top is the same on every screen, except that Home's has no mode: Home's mode bar shows it.
-When the status bar has more to show than fits, the items at the end of this list give way first, and none is drawn
-over another: battery, TX or NO TX, signal, mode, lock, encryption key, scan, monitor, unread message, the GPS clock,
-GPS, IP, power, receive-only, VOX, Dual Watch, roaming. The words (the mode, TX, IP, RX, VOX) move to a smaller size
-before anything gives way. On Home, a GPS clock the status bar has no room for is shown in the mode bar.
+The status bar at the top is the same on every screen, except that Home's leaves out the mode, which the mode bar
+shows. When the status bar has more to show than fits, the items at the end of this list give way first, and none is
+drawn over another: battery, TX or NO TX, signal, mode, lock, encryption key, scan, monitor, unread message, the GPS
+clock, GPS, IP, power, receive-only, VOX, Dual Watch, roaming. The words (the mode, TX, IP, RX, VOX) move to a smaller
+size before anything gives way. On Home, a GPS clock that the status bar has no room for moves to the mode bar.
 
-On a display under 200 px high, Home has no mode bar and no hint row: its status bar shows the mode, as on every
-other screen, and the bottom bar keeps its two labels. The two lines at the bottom of the channel area take room only while they have something to show, and then replace the
-talk target and details lines. Lists show one more row when the hint row is off or has nothing to show, a selected
-row whose name is too long for it slides sideways to show it whole, and the Menu's tiles show their icon and number,
-with the selected tile's name above them.
-
-The bottom bar has two labels, one over each soft key: **OK** and **Back** (on Home, **Menu** and the right soft
-key's function) where they do something. While the keys are locked, Home's bar says how to unlock them instead. With
+The bottom bar has two labels, one over each soft key: **OK** and **Back** where they do something (on Home, **Menu**
+and the function of the right soft key). While the keys are locked, Home's bar says how to unlock them instead. With
 **Settings > Display > Hint row** on, the line above the bar shows what the bar can't: the other keys (**#**, **\***,
 the number keys, **PTT**, a key you hold) and what **OK** and **Back** do when it isn't their usual job, such as
 "OK save  Back cancel" while you change a value or "Back stop scan". With Hint row off, the bar stays and only that
 line goes.
+
+On a small screen (under 220 x 200 pixels), Home has no mode bar and no hint line. The status bar shows the mode, as
+on every other screen, and the bottom bar keeps its two labels. The two lines at the bottom of the channel panel appear
+only while they have something to show, and then take the place of the talk target and details lines, so the channel
+name never moves.
+
+The marks in the status bar:
 
 | Place | Indicator | Meaning |
 |---|---|---|
@@ -75,12 +76,12 @@ line goes.
 
 With **Settings > Display > GPS clock** on, the status bar shows the date and UTC time on every screen, where it has
 room (on Home, in the mode bar when the status bar is full). The clock appears once a valid fix supplies date and
-time, and goes when the fix is lost.
-**Day/Night** changes the palette on Home and in menus. See [Display settings](17-settings.md#display-key-1) for
-defaults.
+time, and goes when the fix is lost. Small screens have no room for it.
+**Day/Night** switches every screen between dark text on a light background for daylight and light text on a dark
+background for dark surroundings. See [Display settings](17-settings.md#display-key-1) for the defaults.
 
-The screenshots above show the channel view. Dual Watch has its own two-channel view, and trunked channels have their
-own operating display. The tables below describe the standard Home layout also used on displays without profile support.
+Dual Watch has its own two-channel view, and trunked channels keep their own operating display, under the same status
+bar and bottom bar. The rest of this page describes Home in the Original look.
 
 ## Regions, top to bottom
 
@@ -106,8 +107,8 @@ The battery percentage turns to the warning color at the low battery warning lev
 The hint row changes with the situation. When the right soft key can be assigned on Home, the left label is
 **Menu** and the right label shows its short-press function from **Settings > Buttons**. **Nothing** leaves the
 right label blank. While entering a frequency or when the keys are locked, the row shows the controls for that state.
-On displays with Commercial and Amateur Home, the bottom bar shows only the labels for the two soft keys, and the
-hints below for other keys (**#**, **\***, the number keys) are on the line above it.
+In the Panels look, the bottom bar shows only the labels of the two soft keys, and the hints below for the other keys
+(**#**, **\***, the number keys) are on the line above it.
 
 The most common hints:
 
