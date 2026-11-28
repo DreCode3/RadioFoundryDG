@@ -123,13 +123,15 @@ copyright header, not a personal one.
   native arm64 toolchain in `~/opt/`; C-SKY builds (GD-88, DM-32, DB25-D...) use the native `~/toolchains/csky-elf`
   (no Docker). Host tests, ASan included, build natively with Homebrew LLVM (`CC=fork-notes/tools/host-cc.sh`). The
   full CI is `fork-notes/tools/ci-par.sh` (every board in parallel worktrees, about 50 minutes). Use the Mac's cores:
-  `make -j$(sysctl -n hw.ncpu)`, and run independent builds and checks in parallel.
+  `gmake -j$(sysctl -n hw.ncpu)`, and run independent builds and checks in parallel. Use `gmake` (Homebrew's GNU make
+  4.4, as on upstream's Linux CI) for every build in this project; macOS's `make` is 3.81. `cc.sh` and `ci-par.sh` put
+  it first on their PATH themselves.
 - Ask before touching a connected radio, the debug link or the SDR bench (AGENTS.md rule 8). HIL and on-air checks
   are the user's; ask for results, never claim them.
 - Say which checks ran and which didn't. If the full `tools/ci.sh` matrix stalls on macOS (see local-setup.md), the
   user's Linux VM runs it.
 - GD-88 budget (default build, Nov 2026): flash 88.2% (about 105 KB free), RAM 95.0% (about 10.8 KB free). RAM is
   the tight one: prefer `const` tables and drawing on the fly over buffers.
-- The UI preview loop: `make -C tests/host uiSim`, then `tests/host/uiSim --geom 320x240iR10 --scale 2 --script
+- The UI preview loop: `gmake -C tests/host uiSim`, then `tests/host/uiSim --geom 320x240iR10 --scale 2 --script
   "<keys>" --out <png>` and show the PNG. `python3 tests/host/uiPrototypeTest.py` checks the profiles.
 - Use `tools/worktree.sh` for worktrees, and remove worktrees and `build/` trees when done.

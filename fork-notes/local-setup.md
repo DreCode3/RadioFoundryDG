@@ -20,6 +20,7 @@ git remote add upstream https://github.com/radiofoundry/radiofoundry
 |---|---|---|
 | Host compiler, make, zlib | `xcode-select --install` | Host tests and the UI simulator (Apple clang 17, GNU make 3.81) |
 | Homebrew LLVM clang (AddressSanitizer tests) | `brew install llvm` (23.1.6 on this Mac) | Not on PATH: name it with `CC`. See "AddressSanitizer on macOS" below |
+| GNU make 4.4 | `brew install make` (installed as `gmake`; nothing replaces the system `make`) | The project's default (Nov 27): upstream's Linux CI runs GNU make 4.x, macOS ships 3.81. Its job server reaches `-flto=auto`, so an LTO link keeps to its `-j` slots (a `-j4` DM-1701 LTO build peaks at 12 LTO processes instead of 36), with byte-identical output. `cc.sh` and `ci-par.sh` put it first on their PATH (`RF_GNU_MAKE=0` keeps the system make); type `gmake` by hand |
 | Python 3 and Pillow | `python3 -m pip install --user --break-system-packages pillow` (or `brew install pillow`) | Pillow is for `fork-notes/tools/` only. Homebrew's Python refuses a plain `pip install` (PEP 668, "externally-managed-environment") |
 | Python venv for CI (pytest, pyserial, numpy, reuse) | See "Python venv for CI" below | Outside the repository, at `../rf-venv` |
 | Arm GNU Toolchain 13.3.rel1 (pinned in `platform/stm32f4/platform.toml`) | Download and check it as below, then `mkdir -p ~/opt && tar -xJf <archive> -C ~/opt` | The Makefile finds `~/opt/arm-gnu-toolchain-*-arm-none-eabi/bin/` by itself. If macOS blocks the binaries: `xattr -dr com.apple.quarantine ~/opt/arm-gnu-toolchain-*` (not needed when downloaded with `curl`) |
@@ -144,10 +145,10 @@ while the new worktrees and build trees appeared. ci-par.sh now keeps its worktr
 ## Check the setup
 
 ```bash
-make -C tests/host uiSim
+gmake -C tests/host uiSim
 python3 tests/host/uiPrototypeTest.py
-make -j$(sysctl -n hw.ncpu) BOARD=dm1701
-make -j$(sysctl -n hw.ncpu) BOARD=gd88
+gmake -j$(sysctl -n hw.ncpu) BOARD=dm1701
+gmake -j$(sysctl -n hw.ncpu) BOARD=gd88
 ```
 
 ## The pixel baseline for refactors

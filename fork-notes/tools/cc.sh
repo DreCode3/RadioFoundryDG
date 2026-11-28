@@ -18,6 +18,12 @@ BASE=${1:?baseline dir}; OUT=${2:?work dir}; FW=${3:-fw}
 ROOT=$(git rev-parse --show-toplevel); cd "$ROOT" || exit 2
 HERE=fork-notes/tools; mkdir -p "$OUT"
 NCPU=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)
+# GNU make 4.4 (Homebrew's `make`, installed as gmake) for every build this script starts, as on upstream's Linux CI:
+# its job server reaches -flto=auto, so a link-time-optimized link keeps to its JOBS slots (macOS's make 3.81 starts
+# one process per core). Same output either way. RF_GNU_MAKE=0 keeps the system make.
+if [ "${RF_GNU_MAKE:-1}" = 1 ] && command -v brew >/dev/null && [ -x "$(brew --prefix make 2>/dev/null)/libexec/gnubin/make" ]; then
+	PATH="$(brew --prefix make)/libexec/gnubin:$PATH"; export PATH
+fi
 if command -v csky-elf-gcc >/dev/null || [ -x "$HOME/toolchains/csky-elf/bin/csky-elf-gcc" ]; then MK=(make); else MK=(tools/docker/csky-toolchain/run.sh make); fi
 # The C-SKY image is amd64 only: name its platform, or Docker prints a WARNING line on arm64 hosts
 export DOCKER_DEFAULT_PLATFORM=${DOCKER_DEFAULT_PLATFORM:-linux/amd64}
