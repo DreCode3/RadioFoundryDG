@@ -80,8 +80,9 @@ time, and goes when the fix is lost. Small screens have no room for it.
 **Day/Night** switches every screen between dark text on a light background for daylight and light text on a dark
 background for dark surroundings. See [Display settings](17-settings.md#display-key-1) for the defaults.
 
-Dual Watch has its own two-channel view, and trunked channels keep their own operating display, under the same status
-bar and bottom bar. The rest of this page describes Home in the Original look.
+Dual Watch has its own two-channel view, with the last calls heard listed under the two channels
+([Dual watch](12-scan.md#read-home)), and trunked channels keep their own operating display, under the same status bar
+and bottom bar. The rest of this page describes Home in the Original look.
 
 ## Regions, top to bottom
 

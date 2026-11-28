@@ -816,8 +816,8 @@ The rules that keep the boundary:
 What both themes show the same way, whatever they draw: during a DMR call Home shows the caller (name or ID) and the
 destination talkgroup, the signal is shown while receiving, the status strip carries the same set of states (TX/RX,
 signal, battery, lock, scan, monitor, unread messages, GPS, USB network, privacy; icon or word is the theme's choice),
-Large text works in every layout, and Talkgroup name first (the setting and the TG name / number key) orders the talk
-target in every theme.
+Large text works in every layout, Talkgroup name first (the setting and the TG name / number key) orders the talk
+target in every theme, and dual watch's Home lists the calls heard under its panes and names a caller coming in.
 
 ### 9.2 The descriptor
 
