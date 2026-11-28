@@ -12,6 +12,7 @@ the code is laid out, who owns the data behind each screen, and how the UI is te
 | 3 | Key meanings and key assignment |
 | 4, 5, 6 | Data other packages own, build switches, debug link |
 | 7, 8 | Host simulator and tests, decisions and open points |
+| 9 | Themes: the framework and the panels theme |
 
 ## 1. Layout
 
@@ -19,8 +20,8 @@ the code is laid out, who owns the data behind each screen, and how the UI is te
 |---|---|
 | `gfx.c`, `fonts.c`, `fmt.c` | drawing in a viewport inside the display's safe-area insets, fonts, number / text formatting |
 | `ui_screens.c` | drawing only: status strip, title, hint row, lists, Home, call screens, Quick tiles, banners, emergency |
-| `ui_theme.h` | a look as a `const` descriptor (`ui_theme_t`): its palettes, its number (`UI_THEME_ID_*`, what settings store), the appearance options it honors (`UI_THEME_OPT_*`: Settings > Display shows their rows), whether it fits the display (`fits`), and the drawing ops `ui_screens.c` calls for the layout, the colors, the status strip, the bottom row, banners, Home, dual watch's Home, Quick, a list's heading, cells and scroll marks (`ui_draw_list` keeps the list's frame and its scrolling) and the marks that move (`animate`). An op a theme leaves NULL is the reference theme's. Shared code tests a theme's options, never which theme is in use. With the reference theme alone (`ui_theme_reference`, in `ui_screens.c`) every op call resolves at build time; with another theme built (`UI_THEME_SELECT`, from its switch) `ui_app_init` picks the stored theme where it fits (`ui_theme_pick`), after the splash |
-| `themes/panels/panels.c` | the panels theme (`CONFIG_UI_THEME_PANELS`): its palettes, ops and icon masks (`panels_icons.h`, from `tools/profile_icons.py`) |
+| `ui_theme.h` | a look as a `const` descriptor (`ui_theme_t`): its palettes, its number, the appearance options it honors, whether it fits the display, and the drawing ops the shared entry points in `ui_screens.c` call; an op a theme leaves NULL is the reference theme's (`ui_theme_reference`, in `ui_screens.c`). Section 9 |
+| `themes/panels/panels.c` | the panels theme (`CONFIG_UI_THEME_PANELS`, 9.6 to 9.13): its palettes, metrics, ops and icon masks (`panels_icons.h`, from `tools/profile_icons.py`) |
 | `ui_app.c` | behavior without the RTOS: the navigation stack (9 deep), global keys, Home and Quick keys, filters, the call log, events, banners |
 | `ui_menus.c` | every list screen and the screen table `ui_scr[]`: Menu (`hub`), Actions, Compose, Contacts, Messages, the call log, Zones, Zone, the zone editor's (2.2), Channels, Channel, Scan, Location, Connections, Settings, a setting's pick list, Picker, Info, Confirm, Scan, Roaming |
 | `ui_find.c` | type-to-find (T9 word starts, numbers, channel positions) |
@@ -619,7 +620,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 | `CONFIG_GPS_SKY` | = GPS and APRS | Menu > Location > GPS status is a page of text instead of the GPS screen (2.3) and the satellite sentences aren't read (about 5.2 KB, 176 B of RAM) |
 | `CONFIG_LANG_ES` | y | Spanish is listed dimmed in Settings > Display > Language (2.5); without any language the lookup and the fonts' Latin-1 glyphs are left out |
 | `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Colors, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 600 B). For radios whose only screen is monochrome |
-| `CONFIG_UI_THEME_PANELS` | n | Off keeps the existing Home layout, status strip and color settings. On builds the panels theme (the profile layout), which the radio starts with when the stored theme asks for it (`gui_theme`, [settings store](settings-store.md); 0, the default, is the build's default theme: panels, unless `CONFIG_UI_THEME_DEFAULT` names the original) and the color display has a drawable area of at least 158 x 127 |
+| `CONFIG_UI_THEME_PANELS` | n (a board whose panel fits it sets its own, 9.6) | the reference theme only, and none of the panels theme's code or the shared code only it reads. On, the panels theme (section 9); Settings > Display > Theme offers it where it fits the display, and a new radio starts in the build's default theme (`CONFIG_UI_THEME_DEFAULT`). Needs `CONFIG_UI_COLOR` |
 
 Screens for features that are off (`CONFIG_DMR`, `CONFIG_HOTSPOT`, `CONFIG_VFO_FM`, `CONFIG_VFO_DMR`, `CONFIG_SCAN`, data features) are
 left out or dimmed with the feature. Some radios' default images have only a few KB free (`docs/feature-matrix.md`); the UI was about 50 KB when last measured (`gfx` + fonts about 11 KB, screens and behavior the rest). The frame buffer (40 KB by default) bounds the display: 240x320 at
@@ -638,7 +639,8 @@ reads rows only between frames (`gfx_frame_idle`).
 Without `CONFIG_FONT_AA` a screen uses at most 9 colors (the gallery, all 93 screens), so 4 bpp renders it exactly as
 16 bpp does. With `CONFIG_FONT_AA` the edge grays add up to 20 colors on the busiest screen (Messages); on 14 of the
 93 screens some edge grays and colors are replaced by the nearest palette entry, and some font sizes or colors can be
-slightly harder to read. The 160 px boards leave `FONT_AA` off for that reason.
+slightly harder to read. For that reason the 160 px boards' original look keeps the bitmap fonts; where such a board
+builds the panels theme, `FONT_AA` comes with it for that theme's text only (`FONT_AA_THEME_ONLY`, 9.14).
 
 ## 6. Debug link
 
@@ -670,7 +672,9 @@ themes, as `<screen>__light.png`, `<screen>__high_contrast.png` and `<screen>__n
 
 Geometries: `160x120i5` (160x120 visible, 5 px inset left and right), `160x128` (both 160 px classes render through the 4 bpp frame buffer, as the boards do),
 `240x320i10x5` (16 colors, insets 10 px left and right, 5 px top and bottom), `128x64` (mono), `240x320`, `320x240` (landscape, 16 colors),
-`220x176` (16 colors, the 160 px class's fonts), or any
+`220x176` (16 colors, the 160 px class's fonts), the panels classes `160x128-panels`, `160x128iL2T1-panels` (158 x 127
+to draw on) and `220x176iR10-panels` (210 x 176), drawn in the panels theme as `240x320i10x5` is (section 9), and
+`320x240iR10` (310 x 240 in the panels theme, outside the gallery: `uiPrototypeTest.py`), or any
 `WxH`, `WxHiN` (inset N all round), `WxHiNxM` (N left and right, M top and bottom), `WxHm` (mono). The 240 px classes
 draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240` the larger text too
 (`CONFIG_FONT_BIG`); the others the bitmap ones. Script tokens:
@@ -692,14 +696,9 @@ draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240`
 | `power:<n>` | the radio's power level index |
 | `expect:<key>=<value>` | check: `screen focus depth count zone pos vfo freq mode tx txid txpriv talk locked query banner toast power sq ts cc temporary writes checks sent text scanning privacy hearall monitor hotspot beeps radio_tot radio_backlight beep pttblock poweroff wake usbnet set<id>` (`wake` 1 when a banner or the emergency screen asked for the backlight since the last check, `beep` the last beep kind, `set<id>` a setting's stored value; `_` = space, `*` = anything) |
 
-`uiThemeTest` puts themes of its own in use (`ui_theme.h`, built with `UI_THEME_SELECT`): a theme with no op draws
-every frame as the reference theme does, a palette without a colors op stays as it is, a theme's ops are the ones
-called, and `ui_draw_list` scrolls and places the cells of a two-column geometry, also one out of bounds. It checks
-the theme picked for a display and the themes' appearance options; `uiThemeTestPanels` builds it with the panels
-theme, which it picks where the display fits it, and checks that theme's moving marks and, by their structure (every
-text drawn and shortened, `GFX_FIT_TRACE`), its frames: the scroll position drawn before the cells in the title's row,
-and the soft key bar's two labels inside its pane, never shortened. The layout check (`uiSim --layout`) draws the
-reference theme; the panels theme's frames are checked with `expect:layout=0` in `uiPrototypeTest.py`.
+`uiThemeTest`, `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` test the theme framework and the panels theme
+(9.15). The layout check (`uiSim --layout`) draws each class in the theme its radio starts in; the panels theme at
+310 x 240 is checked with `expect:layout=0` in `uiPrototypeTest.py`.
 
 `uiFlowTest` runs every task flow of `task-flows.md` with the press budgets of `usability-tests.md` on four display
 and key map pairs (K at 160x120i5, M at 128x64, V at 128x64, K at 240x320) plus the few-key fallbacks and the
@@ -745,7 +744,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
 - Freq trim (Advanced, the last row: Up from the top) is shown only on a radio whose board has `hal_radio_t.ref_trim`
   (`UI_FEAT_REF_TRIM`). The row shows the trim in ppm and opens the Freq Trim page (`freq-trim`, section 2).
 - Voice prompts are dimmed ("Voice prompts aren't built yet: no recorded speech").
-- Theme switches the color palette (dark, light, high contrast, night). Night is four shades of pure red on black
+- Colors (the reference theme's palette row, `UI_SET_THEME`) switches the color palette (dark, light, high contrast,
+  night). Night is four shades of pure red on black
   (red 255, 176, 112, 56; green and blue 0), for eyes adapted to the dark: the meanings other themes give hues take
   brightness and their word instead (P5). Text, TX, warnings, the focus and the filled strip are the brightest red,
   with black text on them; RX, privacy and secondary text the next; separators and dimmed rows the third; the darkest
@@ -768,121 +768,7 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   least 5:1 on its strip after RGB565 rounding. The shades are light so black
   text reads on them (at least 7.5:1 after RGB565 rounding); the red is lighter and pinker than TX's red, and there is
   no green, which would hide the RX pill. Gallery: `home_dmr*`, `home_plain`, `channels*` (section 7).
-- `CONFIG_UI_THEME_PANELS` builds the panels theme: Commercial (default) and Amateur on color displays with a drawable
-  area of at least 158 x 127 after insets. Other geometries use the standard layout. A display under 200 px high
-  (`UI_TALL_PX`) or narrower than 220 px gets the compact layout, below; the build's default theme is panels unless the
-  board starts in the original look (`CONFIG_UI_THEME_DEFAULT` 1). The
-  radio picks the theme at start, after the splash, from the stored theme (`gui_theme` in [the settings
-  store](settings-store.md); 0, the default, is the build's default theme). Settings > Display's first row, Theme
-  (Original, Panels), is there when more than one theme fits the display (`ui_theme_fits`): the pick list checks the
-  theme in use, and a pick stores `gui_theme` and puts the theme in use at once (`ui_theme_use`), then applies the
-  appearance settings again, as at start. Day/Night switches the palette across Home and menus. Day is the default. The
-  profile menus use these palettes in place of Colors, Highlight color and Filled status bar. With a board GPS, GPS
-  clock (default Off) shows the UTC date and minute in the status strip of every screen, where it has room, while a
-  recent GPS fix has both date and time. The three choices are saved in [the settings store](settings-store.md).
-  Talkgroup name first (the setting and the TG name / number key) orders the talk line as in the reference theme: "TG 91
-  · World" with it off, "World · TG 91" with it on, the default of a radio that starts in this theme
-  (`UI_THEME_OPT_NAME_FIRST`: a new radio or one installed over another firmware's settings area, `ui_app_init`, kept in
-  RAM until the next save; a factory reset, `ui_svc_factory_reset`), not of a build that only has it; Commercial's
-  target line, where it shows one, has the name alone with it on and "TG 91 · World" with it off.
-  The compact layout (a display under 200 px high or 220 px wide, chosen by its measured size, `panels_small`): the
-  status strip is
-  18 px, its marks at 0.8x (the icons from the 16 px set on a 20 px canvas, `panels_icons.h`) and its words in 8x16;
-  6 px margins; rows and the soft key bar 18 px; every list, title, bar and hint in 8x16. Home has no mode bar (its strip
-  has the mode word) and no hint line. Its lines at the foot take room only while they have something to say (a call, what needs
-  attention), and then the target and details rows go. The Menu and Quick keep the 3x3 keypad grid (Settings' first
-  level its two columns): a Menu or Settings tile has its icon and digit, a Quick tile its value (arrows round it while
-  it edits, where they fit), and the title row names the focused tile, with a Menu tile's value. A hidden or empty hint
-  row (Hint row off, or a hint whose groups the bar says) gives its height to a list: 4 rows instead of 3 on 160 x 128 (158 x 127 keeps 3);
-  the full layout keeps the row's room. There is no GPS clock. A title, a list label and a hint group too long for
-  their room are shortened at their end; the focused list row's label, where it is (one form, beside the value in its
-  shortest form), rests so for 1 s, then slides left 2 px every 100 ms until its end shows, rests 1 s and starts again
-  (`panels_animate` asks for the frames; only the changed lines go to the panel). The simulator holds it at its start
-  unless a script says `slide`. The keys-locked bar takes the hint's shortest form ("Hold * to unlock").
-  Layout on the 310 x 240 drawable area (`core/ui/themes/panels/panels.c`). Rounded panes on every screen are the look;
-  no text is smaller than 8x16 (the theme's tiny font is its small one, so the screens the shared code draws follow),
-  and a label too long for its room is shortened, never drawn smaller:
-  - **Status strip**, 29 px, a rounded pane at the top of every screen, Home included, the same items at the same size
-    on each, except that Home's has no mode word (its mode bar shows the mode): signal bars (only while receiving, from
-    the audible pane during Dual Watch) and the mode on the left, then roaming (a ring with a dot on it, the dot
-    stepping round while it searches or surveys), TX, TX APRS or NO TX, the monitor (a speaker with one wave), Dual
-    Watch (A and B in 8x16 capitals, each in a rounded box, the selected pane's filled) and VOX. On the right, from the
-    edge: battery (an upright outline with three segments), power (L, M, H), lock, GPS (a pin, dimmed while it
-    searches), IP while USB is a network adapter (dimmed until the computer connects), then the operating marks: the
-    privacy key (in the ink when DMR privacy is configured, with an AES label in 8x16 under it on AES channels; dimmed
-    under a red slash on encrypted receive activity without a usable key; no key on a clear channel), unread mail, RX
-    for a receive-only channel and the scan zigzag, a small gap moving along its stroke and then over the arrowhead.
-    The GPS clock is centered in the room between. Nothing overlaps: items get room in a fixed order, and a crowded
-    strip gives up the last first: battery, TX/NO TX, signal, mode, lock, privacy key, scan, monitor, unread, the GPS
-    clock, GPS, IP, power, RX, VOX, Dual Watch, roaming. The words (the mode, TX, IP, RX, VOX) are in 12x24 where
-    everything fits, the clock counted, else in 8x16, before anything goes. Where Home's strip has no room for the
-    clock, it is at the right end of Home's mode bar; another screen drops it in the worst crowd. Status marks are in
-    the palette's ink, Day and Night; color only means something (TX red, NO TX amber, the slash red, a low battery
-    red).
-  - **Icons**: one family for the strip's marks and the Menu and Settings tiles, drawn by `tools/profile_icons.py`
-    from first principles into `core/ui/themes/panels/panels_icons.h`: a 24 px canvas with 20 px of ink, 2 px strokes,
-    each a 2-bit coverage mask trimmed to its ink in one const table, drawn by one blitter (`panels_icon`). Contacts a
-    person, Messages and unread mail an envelope, Call log a clock, Zones a folder, Scan the zigzag, Location and GPS a
-    pin, Connections two opposite arrows, Settings a gear, Display a monitor, Tones & alerts a bell, Audio headphones,
-    Call settings a handset, Receive & VFO a tuning dial, Privacy a key, Security & keypad lock a padlock, Buttons a
-    keypad, Programming sliders, Radio info an "i" in a circle. In the theme's ink, the focused tile's in its accent;
-    no decorative tints. Bluetooth, recording, the TA arrow and the D-STAR label are host simulator examples.
-  - **Home**, on a darker gutter: the strip, the mode bar (a pane with the mode in the largest font, and the GPS clock
-    where the strip has no room for it), the channel pane and the soft key bar. In the channel pane: the zone, then the
-    channel's codeplug name as the main line (the frequency in the VFO, the digits while one is typed), enlarged in
-    Commercial. Commercial shows the talk target only where it isn't the channel's own: a target for now, the reply
-    window's, a one-shot call's, and the VFO's (its main line names no target). Amateur always shows it (name, then TG
-    or ID) and a details row: receive frequency, timeslot and color code, a VFO's TX frequency, a dot for a temporary
-    change. Two lines under a rule at the foot of the pane keep their place: during a DMR call the caller (talker alias
-    with Show talker alias, else the contact name or the ID, in the privacy blue) and the talkgroup; while transmitting
-    the talk target and the time left; otherwise what needs attention (a refused PTT's reason, a pending hardware
-    option, No TX frequency, DMR modem off, Commercial's No talk target). The pane ends above the hint row where the bar
-    has one, and above the knob's volume bar while it shows. Where the pane is short, in this order, the main line takes
-    fewer quarters of enlargement, the target, the zone and the foot's first line take the small font, then the details
-    row and the zone line go, before anything overlaps. Large text keeps the zone, the main line and the target, larger,
-    without the details. Dual Watch uses its two-pane view in the same frame. The palette entries of the panes and the
-    bar are taken first (16-color display). Trunked, single-frequency repeater and unsupported channels keep their
-    operating views under this strip and bar.
-  - **Lists**: the title in the medium font (8x16 where it doesn't fit), left-aligned under the strip; one row height,
-    26 px, 5 rows above the hint row on 310 x 240; rows as rounded tinted panels inset from the edges; the focus a
-    filled highlight with an accent bar at its rounded left end. Where a list has more entries than its screen, the
-    title's row shows the focused entry's position, "n/N" in 8x16, drawn before the cells so its shades get their
-    palette entries first on a 16-color display; the title keeps room for it only then. The main menu is a grid of three
-    columns in the keypad's order (1 2 3 across, `ui_list_geom_t.across`; slot 9 empty) and the first level of Settings
-    one of two columns (1 2 3 down), each three tiles high a page, one split of the columns for the whole list; Up and
-    Down follow the numbers, then turn the page. The menu's tiles are 39 px high and 2 px apart: the icon (20 px of
-    ink) with its digit and value (unread, scan) beside it, the label under it in the 8x16 font. Settings' tiles keep
-    two lines of the 8x16 font right of the icon, centered at the tile's left: the digit and the label, which goes on to
-    the second line at a space ("Security &" / "keypad lock"), a first word too long for the first line's room going
-    whole to the second. On a narrower screen whose lists take 8x16 (220 x 310), a Settings tile has the menu's
-    order instead: the icon and digit above, the label under them across the tile on up to two lines. Zones' tile has
-    no value (Home shows the zone); the Scan tile's Off is `HUB_VALUE_OFF`, so a
-    translation can give a word short enough for a tile.
-  - **Soft key bar**: a rounded pane 32 px high on every screen, 2 px under the hint row, with two labels, one per soft
-    key, in the largest native font that fits them (where either is Chinese, both in the 8x16 font, the CJK glyphs'
-    height, centered): OK on the left and Back on the right where the hint declares those keys (a list: Back
-    always, and OK in a numbered one; Quick: both; Home: Menu wherever OK opens the menu, `ui_home_ok_menu`, and its
-    assigned soft key on the right). While the keys are locked Home's bar has the unlock sentence instead, in the
-    largest font one of its forms fits. The bar stays with Hint row off (`UI_THEME_OPT_SOFT_KEYS`: the shared code calls
-    the bottom op then too, with `UI_BAR_NO_HINTS`); only the hint row goes. A hint declares a key by structure: one of
-    its groups (ui_hint_split's, two spaces apart) starts with the key's name ("OK", which no catalog translates; Back
-    as `HINT_BACK`), never by the words a translation chose; every catalog keeps each hint's groups and keys
-    (`uiPrototypeTest`). With Hint row on, the line above the bar (8x16, the hint row) has only what the bar can't say:
-    the other keys' groups (#, \*, the digits, PTT, Up and Down, a key held), sentences, and OK and Back groups where
-    they aren't the usual jobs. In a list OK opens or picks the row and Back leaves, so each of its OK and Back groups
-    is left out (a plain "OK open", "OK choose", "OK details", "Back cancel") unless that key does more there, which
-    goes by key, never by text: the screen flags its OK (`SF_OK_ACTS`: "OK send", "OK go", "OK add", "OK in/out", "OK
-    use", "OK talk", "OK change", "OK next") or its Back (`SF_BACK_ACTS`: "Back keep editing"), carried as
-    `ui_list_t.ok_acts` and `back_acts` and the bar's `UI_BAR_OK_ACTS` and `UI_BAR_BACK_ACTS`; a built hint says it for
-    its focused row (`hint_fn`'s `ok_acts`: Settings' change and save); an open value editor sets both ("OK save  Back
-    cancel"); elsewhere they stay ("Back undo", "Back stop scan"). In the longest form that fits, from the title's edge
-    or across the panes' width where it needs that, the last groups going whole before it is shortened; empty when
-    nothing is left, the layout the same. Toasts are centered on the bar, on two lines where needed.
-  - **Quick settings**: three rows of three rounded tiles in the list style, each two lines of the 8x16 font: its name
-    in whole words (Brightness, Color code, Bandwidth, TX frequency where the shared tile names are short), else the
-    theme's shorter form ("TG/Contact", the decided name without its spaces; "DMR monitor" before the tile's DMon), else
-    the tile's shorter word where the whole one doesn't fit a third of the screen (TX freq), then its digit and its
-    value; the typed TX frequency shows in its tile and in the hint row.
+- The panels theme (`CONFIG_UI_THEME_PANELS`) and the theme choice in Settings > Display are in section 9.
 - The VFO has a mode of its own (`dmr-voice.md` 2.1). The Mode tile (tile 4 in the VFO only) switches it FM / DMR ("VFO: DMR", no "for now": it is kept), and in a build with only one VFO kind the tile is dimmed ("VFO: one mode in this build"). On a channel tile 4 is "To VFO" (`dmr-voice.md` 2.2): it copies what is in effect on the channel to the VFO and opens it on Home ("Copied to VFO"); a channel the VFO can't hold is refused with a toast. A channel has no temporary mode change any more. In DMR the quick menu is the DMR one: Timeslot, Color code and TG / Contact change the VFO's own settings, with no dot on Home. The talk target picker lists the VFO's current target first ("Current"); both OK and hold OK keep the target for the VFO.
 - The privacy key types are named by key size with the key's range, "8-bit (1-255)" and "16-bit (0-65535)". The key
   is typed in decimal. Number rows take typed digits; a value outside the range or between steps is refused with the
@@ -898,3 +784,348 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
   PTT then talks to it once, and the radio follows it for a reply window (the reply time setting, else the
   codeplug's hang time) before going back to the channel's talk target. A channel change, the call ending outside
   the window, Reply cancel or a new manual target end it.
+
+## 9. Themes
+
+A theme is how the screens look. The shared code owns what a screen holds and how it behaves; the theme in use draws
+it. A build has the reference theme ("Original" in Settings, `ui_theme_reference` in `ui_screens.c`) and any theme its
+switches add; today that is the panels theme (`CONFIG_UI_THEME_PANELS`, `core/ui/themes/panels/`).
+
+### 9.1 What is shared and what a theme draws
+
+| Shared by every theme (one stack) | A theme provides |
+|---|---|
+| The menu tree, settings, key meanings, navigation and the back stack, Find, Quick's tiles and their values, the text and its translations, the hints' words, the debug link's view keys, what each screen shows | Palettes, fonts, metrics, icons, and how the status strip, titles, the bottom row (hints, soft keys, toasts), banners, list rows and grid tiles, Quick, Home and dual watch's Home are drawn |
+
+The rules that keep the boundary:
+
+- A theme never adds, removes or reorders a menu entry, never changes what a key does and never hides a feature. The
+  task flows and press budgets (`uiFlowTest`) hold for every theme.
+- Shared code never tests which theme is in use. It tests an option the theme declares (`ui_theme_has`, 9.4).
+- A theme calls back into shared helpers for what both themes draw alike: the text of Home's hint
+  (`ui_home_hint`), the frequency being typed, the dual watch panes (`ui_home_dual_body`, styled by a
+  `ui_dual_style_t`), the banner's box (`ui_banner_box`), a row's label and value (`ui_row_text`, `ui_row_edit`),
+  wrapping and shortening (`ui_wrap_line`, `ui_fit_end`). These are `UI_THEME_SHARED` in `ui_theme.h`: exported in a
+  build with a second theme, `static` (and inlined) in a build with the reference theme alone.
+
+What both themes show the same way, whatever they draw: during a DMR call Home shows the caller (name or ID) and the
+destination talkgroup, the signal is shown while receiving, the status strip carries the same set of states (TX/RX,
+signal, battery, lock, scan, monitor, unread messages, GPS, USB network, privacy; icon or word is the theme's choice),
+Large text works in every layout, and Talkgroup name first (the setting and the TG name / number key) orders the talk
+target in every theme.
+
+### 9.2 The descriptor
+
+A theme is a `const ui_theme_t` (`ui_theme.h`). It owns no RAM: the colors and fonts in use stay in `ui_col` and
+`ui_layout`.
+
+| Field | What |
+|---|---|
+| `palettes`, `palette_count` | Its palettes, an array of `ui_colors_t` (the shared color tokens). At least one: `ui_theme_use` refuses a theme without any. A palette number out of range is the first |
+| `id` | Its number, `UI_THEME_ID_*`: 0 the build's default, 1 the reference theme, 2 panels. Stored in the settings (9.5), so a number never changes and a new theme takes the next one |
+| `options` | The appearance options it honors, `UI_THEME_OPT_*` (9.4) |
+| `ops` | Its drawing ops, `ui_theme_ops_t` (9.3) |
+| `fits` | Whether it can draw on this display, after `gfx_init`. NULL: every display |
+
+With one theme built (`UI_THEME_SELECT` 0) `ui_theme_cur()` is the constant `&ui_theme_reference`: the compiler
+resolves every op call, and neither the descriptor nor a pointer to it is in the image. With more than one
+(`UI_THEME_SELECT` 1, set by the theme switches in `core/config.h`) `ui_theme_selected` points at the theme in use.
+
+### 9.3 The ops
+
+An op left NULL is the reference theme's, so a theme gives only what it draws differently. Only the shared entry
+points in `ui_screens.c` (`ui_draw_top`, `ui_draw_hint`, `ui_draw_home`, `ui_draw_list`, ...) and `ui_app_tick`
+(`animate`) call an op. Each call is written through a local pointer to the ops table with the reference function as
+the fallback (`theme_layout` in `ui_screens.c` shows the form), so `tools/stack_check.py` can follow it to every
+function a theme stores in that field ([stack-check.md](../dev/stack-check.md)).
+
+| Op | Draws | Reference theme | Panels |
+|---|---|---|---|
+| `layout` | Fonts for the display and the regions, into `ui_layout` | `reference_layout` | the reference fonts (anti-aliased), 8x16 at least; its strip and bottom row heights (9.7) |
+| `colors` | The theme's appearance options over the palette just copied (NULL: the palette as it is) | `reference_colors`: the highlight color | its colors outside the shared tokens, per palette |
+| `top` | The status strip and a title; returns where content starts. `draw` false only measures and must return the same y | `reference_top` | `panels_top` |
+| `bottom` | The bottom row: key hints or a toast, with the flags of 9.10 and Home's soft key label | `reference_bottom` | the hint row and the soft key bar |
+| `banner` | A banner over the lower part of the screen | `reference_banner` | on the strip's color |
+| `home` | Home, the whole frame | `ui_reference_home` | 9.11 |
+| `home_dual` | Home while dual watch runs (`CONFIG_DUAL_WATCH`) | `reference_home_dual` | the shared panes in Home's frame |
+| `quick` | Quick settings, the whole frame | `reference_quick` | 9.13 |
+| `list_head` | A list's strip and title; returns the y below. Called first after the screen is cleared, so a theme reserves its palette entries here on a 16-color display (`gfx_reserve_colors`) | `reference_list_head` | with the scroll position's room |
+| `list_geom` | Where the cells go: font, corner, pitch, up to 3 columns, rows, paged, across (`ui_list_geom_t`). `ui_draw_list` brings a value out of range back into range | `reference_list_geom` (one column) | rows, the 3x3 Menu, Settings' 2 columns (9.12) |
+| `cell` | One cell: background, focus, digit, label, value, an open value editor | `reference_cell` | rounded panels and tiles |
+| `scroll` | That the list has more, or the focus's position; called before the cells and after them | `reference_scroll` | "n/N" in the title row, before the cells |
+| `animate` | Whether marks that move need a new frame now (NULL: nothing moves) | none | the scan mark, roaming, the sliding focused row (9.12) |
+
+`ui_draw_list` owns a list screen's frame for every theme: the body text, which cells are on screen and the scrolling
+(only it moves `*l->top`), the banner and the bottom row. There are no separate ops for grids, pick lists or value
+editors. A grid is a list whose geometry has more than one column; with `CONFIG_UI_THEME_PANELS` a list says what it
+is (`ui_list_t.kind`: `UI_LIST_PLAIN`, `UI_LIST_MENU` for Settings' first level, `UI_LIST_HUB` for Menu), so a theme
+lays those out its own way, and the reference theme draws them all as rows. A pick list is a plain list with
+`GLYPH_CHECK` on the value in use. The value editor is the focused row with `UI_ITEM_EDIT`, which the cell op draws
+with the shared `ui_row_edit` in the theme's accent color.
+
+### 9.4 Data: palettes, fonts, metrics, icons, options
+
+| Data | Where it lives |
+|---|---|
+| Palettes | `ui_theme_t.palettes`: `ui_colors_t` tokens (background, ink, dim, line, TX, RX, warning, focus, strip, hint, privacy, ...). A color the tokens lack is the theme's own, set by its `colors` op for the palette in use |
+| Fonts | The `layout` op sets `ui_layout`'s fonts (tiny, small, medium, large). `ui_layout_fonts(L, true)` gives the reference theme's fonts for the display class, anti-aliased where the build has them |
+| Metrics | The theme's own constants, read by its ops. The shared regions (`ui_layout_t`: strip height, Home's regions, the hint row's top) are set by `ui_layout_regions(L, strip_h, hint_y)` from the `layout` op |
+| Icons | The shared code names what an entry shows: `ui_item_t.icon`, a `UI_MENU_ICON_*` on each Menu entry and Settings group (`CONFIG_UI_THEME_PANELS`). The pictures are the theme's. Panels' are 2-bit coverage masks generated by `tools/profile_icons.py` into `panels_icons.h` and drawn by one blitter |
+
+There is no shared metrics or icon-set type in the descriptor: a theme that wants its own metrics or icons draws with
+its own ops.
+
+The appearance options a theme declares (`ui_theme_t.options`). Settings > Display shows the rows of the theme in
+use's options only (`set_hidden` in `ui_menus.c`), and only those settings reach the theme (`ui_apply_setting`). A
+setting the theme doesn't honor keeps its stored value and has no effect. Options are not features: every screen and
+function is there in every theme.
+
+| Option | Row or effect | Reference | Panels |
+|---|---|---|---|
+| `UI_THEME_OPT_PALETTE` | Colors (`UI_SET_THEME`): Dark, Light, High contrast, Night (red) | yes | |
+| `UI_THEME_OPT_ACCENT` | Highlight color (`UI_SET_ACCENT`) | yes | |
+| `UI_THEME_OPT_STRIP` | Filled status bar (`UI_SET_STRIP`) | yes | |
+| `UI_THEME_OPT_DAY_NIGHT` | Day/Night (`UI_SET_GUI_NIGHT`): palette `UI_PALETTE_DAY` or `UI_PALETTE_NIGHT` | | yes |
+| `UI_THEME_OPT_LAYOUT` | Display profile (`UI_SET_GUI_PROFILE`): Commercial or Amateur Home | | yes |
+| `UI_THEME_OPT_GPS_CLOCK` | GPS clock (`UI_SET_GPS_CLOCK`; the row only with a board GPS, `UI_FEAT_GPS`). The UI then keeps the fix, UTC date and time in `ui_state_t` | | yes |
+| `UI_THEME_OPT_NAME_FIRST` | Not a row: a radio that starts in this theme starts with Talkgroup name first on (9.5) | | yes |
+| `UI_THEME_OPT_SOFT_KEYS` | Not a row: the bottom row names the soft keys, so it stays with Hint row off; the shared code calls the `bottom` op then too, with `UI_BAR_NO_HINTS` | | yes |
+
+The names in the code are older than the Settings names: the palette row Colors is `UI_SET_THEME` with the palettes
+`UI_THEME_DARK` .. `UI_THEME_NIGHT` (the reference theme's only), and the theme choice is `UI_SET_GUI_THEME`.
+
+### 9.5 Picking and storing the theme
+
+The theme is stored in `settings_t.gui_theme`, page 1 offset 407 ([settings-store.md](settings-store.md)), as its
+`UI_THEME_ID_*`. 0, also what an older record reads, is the build's default theme: `CONFIG_UI_THEME_DEFAULT` where
+the board sets it (1 the reference theme, 2 panels), else the build's own theme where it has one (panels), else the
+reference theme.
+
+- **Start.** The splash is always the reference theme's. Then `ui_app_init` reads `gui_theme` and `ui_theme_pick`
+  returns the theme with that number where the build has it and it fits the display, else the build's default where
+  that fits, else the reference theme, which fits every display. `ui_theme_use` puts it in use with its layout and
+  palette.
+- **Settings > Display > Theme** (`UI_SET_GUI_THEME`, the first row) is shown only when at least two of the build's
+  themes fit the display (`ui_theme_fits`). Its pick list offers only the themes that fit, with the one in use
+  checked. A pick stores the number and puts the theme in use at once, then applies Colors, Highlight color, Filled
+  status bar and Day/Night again, since the new theme honors other options.
+- **Talkgroup name first.** A radio that starts in a theme with `UI_THEME_OPT_NAME_FIRST` starts with the setting on:
+  a new radio, or one installed over another firmware's settings area (`ui_svc_settings_new`), gets it as a default
+  kept in RAM until something else saves (`ui_svc_setting_default`), so a failed read of the newest record writes
+  nothing over it. A factory reset sets it as it saves (`ui_svc_factory_reset(ui_theme_starts_name_first())`). A
+  stored record keeps its bit. It follows the theme the radio starts in, not whether the build has panels.
+
+### 9.6 The fit rule and the two layouts
+
+The panels theme fits a color display (`CONFIG_UI_COLOR`, more than 1 bpp) whose drawable area, inside the safe-area
+insets, is at least 158 x 127: three list rows, the title and the soft key bar in its compact layout. Monochrome has
+no colors for the panes.
+
+| Drawable area | Layout | Built when |
+|---|---|---|
+| At least 220 x 200 (`PANELS_FULL_W`, `UI_TALL_PX`) | Full | the panel can be that tall: `GFX_MAX_ROWS` 200 or more |
+| From 158 x 127, under 200 high or under 220 wide | Compact | the panel can be that short: `GFX_MIN_ROWS` under 200 |
+
+`panels_small` picks the layout from the measured size, so a board that finds its panel at start-up
+(`hal_display_t.width` and `height` set in its `init`) gets the right one. A board whose frame buffer has fewer than
+200 rows builds only the compact layout and its icons; a board that sets `GFX_MIN_ROWS` to 200 or more builds only the
+full one, and the theme then doesn't fit a shorter display. `config/features.mk` applies the same size rule to the
+board's `hardware.gallery` class and its insets: on a board whose panel the theme can't fit, `UI_THEME_PANELS` is
+`BOARD_UNSUPPORTED`, so ci's maximal build leaves it off and the feature matrix says why.
+
+### 9.7 Panels metrics
+
+`panels_full` and `panels_compact` in `panels.c`, in pixels:
+
+| Metric | Full | Compact |
+|---|---|---|
+| Status strip (the same on every screen); its pane's top | 29; 2 | 18; 1 |
+| The strip's marks from the screen's edges | 10 | 6 |
+| Drawn marks (signal bars, battery), in eighths of their drawing | 12 (battery 10) | 8 (battery 7) |
+| Icons | 24 px canvas, 20 px of ink | 20 px canvas, 16 px of ink (0.8x) |
+| Panes from the screen's edges | 4 | 2 |
+| Soft key bar; gap above it; labels from its ends | 32; 2; 11 | 18; 1; 6 |
+| Text from the screen's edges (titles, hint row, Home's lines) | 15 | 6 |
+| Title padding above, below | 3, 3 | 1, 0 |
+| Row height (one for every list); gap between row panels | 26; 2 | 18; 1 |
+| Rows from the screen's edges; text from a row's left edge | 7; 10 | 3; 8 |
+| Home's channel pane above the bar | 3 | 2 |
+| Home's mode bar | 24 | none |
+| Focus accent bar | 4 wide | 4 wide |
+
+On a 310 x 240 drawable area the full layout shows 5 list rows above the hint row; on 220 x 310, 7. The compact
+layout shows 3 on 158 x 127 and on 160 x 128, and 4 on 160 x 128 when the hint row has nothing to show (9.10).
+
+### 9.8 Text
+
+- **No text smaller than 8x16** in the panels theme. Its `layout` op raises the tiny font to the small one, so the
+  screens the shared code draws follow. The compact layout's fonts are all 8x16 but Home's channel name (12x24). A
+  label too long for its room takes a shorter alternate or is shortened, never drawn in a smaller font.
+- **List font.** Rows use the small font (9x18 where the build has `CONFIG_FONT_BIG`) where a row holds 31 of its
+  characters, else 8x16 for the whole list, labels and values, with the row height unchanged (a 220 px wide screen).
+  Grid tiles, the hint row and the "n/N" badge are always 8x16.
+- **Text alternates.** A string may offer the same text at falling lengths, `TEXT_ALT_OPEN` "long" `TEXT_ALT_NEXT`
+  "short" ... `TEXT_ALT_CLOSE` (`font.h`), written `{long|short}` in the catalogs. Drawing and measuring use the
+  first; `gfx_text_fit` uses the longest that fits. A theme that needs another choice walks the forms with
+  `gfx_text_alt(text, level, ...)` (panels: `panels_alt`, the longest that fits whole, else the first, shortened). An
+  empty last form leaves a value out where it doesn't fit (Menu's zone name). Examples the panels theme relies on:
+  `{Connections|Links}` (a narrow Menu tile; titles keep Connections), `{Display profile|Profile}` (a narrow row),
+  Quick's `{0 All settings  Hold OK save|0 Settings  Hold OK save}`, and the keys-locked hint in three forms,
+  `{Keys locked: hold * to unlock|Locked: hold * to unlock|Hold * to unlock}`. A toast or sentence of three forms or
+  more keeps its shortest for where two lines of the first don't fit (the compact bar). `tools/i18n.py` checks that a
+  translation has as many `{...}` groups as the English; the number of forms in a group is not checked.
+- **Shortening.** The full layout shortens with `gfx_text_fit` (a middle ellipsis for names, as elsewhere). The
+  compact layout shortens a title, a list label and a hint group at its end (`ui_fit_end`).
+
+### 9.9 Panels status strip
+
+A rounded pane at the top of every screen, the same items at the same size on each. On the full layout Home's strip
+has no mode word, because Home's mode bar shows the mode; this is the one difference between screens.
+
+- **Left, from the edge:** signal bars (only while receiving; from the audible pane in dual watch), the mode, roaming
+  (a ring with a dot that steps round while it searches or surveys), TX, TX APRS or NO TX, the monitor (a speaker with
+  one wave), dual watch (A and B in boxes, the selected one filled) and VOX.
+- **Right, from the edge:** battery (an upright outline with three segments, red at the low battery level), power
+  (L, M, H), lock, GPS (a pin, dimmed while it searches), IP while USB is a network adapter (dimmed until the
+  computer connects), unread mail (an envelope), the privacy key, RX for a receive-only channel, and the scan zigzag.
+- **The privacy key** is in the ink while DMR privacy is configured, with "AES" in 8x16 under it on an AES channel;
+  dimmed under a red slash on encrypted receive activity without a usable key; absent on a clear channel. The compact
+  strip has room for one of them: the algorithm's name where there is one, else the key.
+- **The GPS clock** ("27 Nov 14:05Z", `panels_clock`) is centered in the room between, while the GPS clock setting is
+  on and a fix supplies a valid UTC date and time. Never in the compact layout.
+- **Ranking.** Items get room in a fixed order, each while what is taken leaves room for it, never over another:
+  battery, TX / NO TX, signal, mode, lock, privacy key, scan, monitor, unread, the GPS clock, GPS, IP, power, RX, VOX,
+  dual watch, roaming. A crowded strip gives up the last first. The words (the mode, TX, IP, RX, VOX) are in 12x24
+  where every item fits, the clock counted, else in 8x16 before anything goes; the compact strip's words are always
+  8x16. Where Home's strip has no room for the clock, the clock goes to the right end of Home's mode bar; another
+  screen drops it in the worst crowd.
+- **Color** means something only: marks are in the palette's ink, Day and Night; TX red, NO TX amber, the slash red, a
+  low battery red, a dimmed mark for a state not yet reached (searching GPS, IP without a computer).
+
+### 9.10 Panels bottom row: the soft key bar and the hint row
+
+- **The soft key bar** is a rounded pane on every screen with exactly two labels, one over each soft key, in the
+  largest font that fits both (the compact bar's in 8x16; where either label is Chinese, both in 8x16, the CJK
+  glyphs' height). Left: OK where the hint declares OK, in a numbered list, and on Quick; Menu on Home wherever OK
+  opens the menu (`ui_home_ok_menu`). Right: Back where the hint declares it, under any list and on Quick; on Home,
+  the right soft key's assigned function where the board's Back key is a Home soft key (`board_t.home_keys`,
+  Settings > Buttons; blank for Nothing), else Back where Home's hint declares it.
+- **A hint declares its keys by structure.** A hint is groups two spaces apart (`ui_hint_split`); a group that starts
+  with "OK" (which no catalog translates) is the OK key's, one that starts with `HINT_BACK` the Back key's. Nothing
+  compares text a translation chose, so the bar and the hint row are the same in every language; `uiPrototypeTest`
+  checks that every catalog keeps each hint's groups and keys.
+- **The hint row** (8x16, above the bar, with Settings > Display > Hint row on) shows only what the bar can't: the
+  other keys' groups (#, \*, the digits, PTT, Up and Down, a key held), sentences, and OK and Back groups where they
+  aren't the usual jobs. In a list OK opens or picks the focused row and Back leaves, so a plain "OK open", "OK
+  choose", "OK details" or "Back cancel" is left out. The rule goes a key at a time, by flags, never by text:
+  - `SF_OK_ACTS` on a screen (carried as `ui_list_t.ok_acts`, the bar's `UI_BAR_OK_ACTS`): OK does more ("OK send",
+    "OK go", "OK add", "OK in/out", "OK use", "OK talk", "OK change", "OK next"). A hint built for the focused row
+    (`SF_HINT_FN`) sets it for that row (Settings' change and save).
+  - `SF_BACK_ACTS` (`ui_list_t.back_acts`, `UI_BAR_BACK_ACTS`): Back does more ("Back keep editing").
+  - An open value editor sets both: "OK save  Back cancel".
+  - Outside a list both keys' groups stay ("Back undo", "Back stop scan").
+  - `UI_BAR_NO_HINTS`: Hint row off. The bar stays with its two labels and only the hint row goes.
+- The row takes the longest form that fits, from the title's left edge or across the panes' width where it needs that;
+  its last groups go whole before it is shortened. A screen that draws its hint itself (text entry, emergency, the
+  hotspot screen) keeps it with Hint row off. In the compact layout a list takes the hint row's height for one more row
+  when the row has nothing to show (Hint row off, or a hint the bar says whole); the full layout keeps the row's room
+  either way. The flags of the list being drawn or measured are in `ui_list_bar`, set by `ui_draw_list` and
+  `ui_list_body_fits` before the head and the cells.
+- **Keys locked.** Home's bar shows the unlock sentence instead of two labels, centered, in the largest font one of
+  its forms fits, Hint row on or off. Every form but the shortest is tried first; the compact bar ends at "Hold \* to
+  unlock".
+- **Toasts** are centered on the bar's pane, on two lines where one doesn't hold them.
+
+The `UI_BAR_*` list flags, `ui_list_t.kind`, `numbered`, `ok_acts`, `back_acts` and `ui_item_t.icon` exist only in a
+build with `CONFIG_UI_THEME_PANELS`, the only theme that reads them; a build without it neither sets nor tests them.
+
+### 9.11 Panels Home
+
+On the full layout Home is on a darker gutter: the strip, the mode bar (a pane with the mode in the largest font,
+and the GPS clock where the strip had no room), the channel pane and the soft key bar. In the channel pane:
+
+| Line | Commercial (Display profile 0, the default) | Amateur |
+|---|---|---|
+| Zone (VFO in the VFO) | yes | yes |
+| Main line: the channel's codeplug name (its frequency without one; the frequency in the VFO, red while it transmits; the digits while one is typed) | the large font at 1.5 times its size | the large font |
+| Talk target | only where it isn't the channel's own: a target for now, the reply window's, a one-shot call's, and the VFO's (whose main line names no target). Its name alone with Talkgroup name first, else "TG 91 · World" | always: "World · TG 91" with Talkgroup name first (the name alone with Large text), else "TG 91 · World"; "No talk target" where a DMR channel has none |
+| Details: RX frequency, timeslot, color code, a VFO's TX frequency, a dot for a temporary change | no | yes, in the small font (8x16 where only that holds it whole) |
+
+Two lines under a rule at the foot of the pane keep their place, so nothing above moves when a call comes in: during a
+DMR call the caller (the talker alias with Show talker alias, else the contact's name or the ID, in the privacy blue)
+and the talkgroup or "Private call"; while transmitting the talk target and the time left; otherwise what needs
+attention (a refused PTT's reason, a pending hardware option, No TX frequency, DMR modem off, Commercial's No talk
+target). Large text keeps the zone, the main line and the target, larger, without the details. Where the pane is
+short (the hint row above the bar) the main line loses quarters of enlargement first, then the target, the zone and
+the foot's first line take the small font, then the details and the zone go, before anything overlaps. The pane ends
+above the hint row where the bar has one, and above the knob's volume bar while it shows.
+
+The compact layout has no mode bar (the strip has the mode word) and no hint line on Home. Its foot lines take room
+only while they have something to say, and then over the target and details, which go, so both profiles fit whole.
+
+Dual watch uses the shared two-pane view (`ui_home_dual_body`) in Home's frame: the panes inset, no list of calls,
+a refused PTT's reason centered; Commercial names the talk target where the channel number would be; a pane line its
+font cuts takes 8x16 where that holds it whole. Trunked, single-frequency repeater and unbuilt-kind channels keep the
+reference theme's Home body and call screen (`ui_reference_home`, `ui_reference_call_body`), drawn under this theme's
+strip and bar; the compact layout gives them the hint row's room and cuts a long zone name at its end.
+
+### 9.12 Panels lists and grids
+
+- **Rows** are rounded tinted panes of one height, inset from the edges; the focus is a filled highlight with a 4 px
+  accent bar at its rounded left end. The title is left-aligned under the strip in the medium font (8x16 where it
+  doesn't fit). Where a list has more entries than its screen (or a header or body takes rows), the title's row
+  shows the focused entry's position, "n/N", drawn before the cells so its colors get their palette entries first on
+  a 16-color display.
+- **Menu** (`UI_LIST_HUB`) is a 3x3 grid in the keypad's order (1 2 3 across, `ui_list_geom_t.across`; slot 9 empty),
+  **Settings' first level** (`UI_LIST_MENU`) two columns of three (1 2 3 down). Each is three tiles high a page, with
+  one column split for the whole list; Up and Down follow the numbers, then turn the page. Full layout: a Menu tile has
+  its icon with its digit and value beside it and its label under it; a Settings tile has two lines right of its icon
+  (the digit and the label, which wraps at a space). A tile that keeps room for 11 characters of 8x16 keeps the full
+  margins (5 px from the edges, 3 px apart); a narrower screen takes 2 px margins, a Menu value that doesn't fit beside
+  the digit goes on a third line, and a Settings tile puts the icon and digit above a label of up to two lines. Zones'
+  tile shows no value, since Home shows the zone.
+- **Compact grids:** a Menu or Settings tile has its icon and digit, a Quick tile its value; the title row names the
+  focused tile, with a Menu tile's value or a Quick value its tile cut.
+- **The focused row slides** in the compact layout: where its label, in its shortest form, doesn't fit beside the
+  value (in its shortest form), it rests shortened for 1 s, slides left 2 px every 100 ms until its end shows, rests
+  1 s and starts again. The other rows stay shortened. The `animate` op asks for each step's frame; only the changed
+  lines go to the panel. The simulator holds the label at its start unless a script says `slide`. Home never scrolls
+  text ([principles.md](../ux/principles.md) 5).
+
+### 9.13 Panels Quick settings
+
+Three rows of three rounded tiles in the list style. Full layout: each tile has its name in whole words (Brightness,
+Color code, Bandwidth, TX frequency where the shared tile names are short; else the theme's shorter form,
+"TG/Contact" and "DMR monitor"; else the tile's own shorter word) and then its digit and value, between arrows while it
+edits; a value too long for that line takes a third line where the tile has the height. A typed TX frequency shows in
+its tile ("146.5____", or only the typed digits where the places don't fit) and in the hint row. Compact layout: the
+value alone, the focused tile's name in the title row.
+
+### 9.14 Build switches and costs
+
+| Switch | Effect |
+|---|---|
+| `CONFIG_UI_THEME_PANELS` | The panels theme (`core/ui/themes/panels/`, added to `CORE_DIRS` by the Makefile) and the shared code only it reads. Needs `CONFIG_UI_COLOR`. Unsupported where the board's panel can't fit it (9.6) |
+| `UI_THEME_SELECT` | Derived in `core/config.h` from the theme switches: the build has more than one theme |
+| `CONFIG_UI_THEME_DEFAULT` | A value: the theme a new radio starts in (0 the build's own, 1 the reference theme, 2 panels) |
+| `FONT_AA_THEME_ONLY` | A board define (`MCU_DEFS`): its original look keeps the bitmap fonts while a theme of its own draws the anti-aliased ones, so the build links both sets (`font.h`) |
+
+With `CONFIG_UI_THEME_PANELS` off none of the panels theme's code is built: every definition only it uses is guarded by
+the same condition as its callers. Shared behavior written alongside it (the menu tree, the settings rows, the text
+alternates, the fit helpers) is in every build and is not part of its cost. With the reference theme alone the ops table
+is folded away (the same image byte for byte as direct calls); what the framework's split still costs is its structure,
+about 200 B against the code it replaced (measured on a maximal build). The panels theme costs about 17.4 to 18.9 KB of
+flash with one layout and its icon set, and about 23.4 KB on a board that builds both layouts; on a board whose original
+look keeps the bitmap fonts, the anti-aliased fonts panels draws add about 17.4 KB. Figures from `tools/ci.sh` image
+sizes; the cost on each radio is in [feature-matrix.md](../feature-matrix.md).
+
+### 9.15 Tests
+
+| Test | Checks |
+|---|---|
+| `uiThemeTest` (`UI_THEME_SELECT` with themes of the test's own) | A theme with no op draws every frame as the reference theme does; a palette without a colors op stays as it is; a theme's own ops are the ones called; a strip of its own is measured where it is drawn; `ui_draw_list` scrolls and places a two-column geometry, also one out of bounds (under AddressSanitizer); a theme without a palette is refused; the theme picked for each display and its fallbacks; Talkgroup name first by the theme a radio starts in |
+| `uiThemeTestPanels` (with `CONFIG_UI_THEME_PANELS`, `GFX_FIT_TRACE`) | The same, plus the panels theme's frames by structure (every text drawn and shortened is seen): the scroll position before the cells, the soft key bar's two labels whole inside the pane, no text under 8x16, a crowded strip without overlaps, Quick's typed TX frequency, the rows and grids at 310 x 240 and 220 px wide, the compact layout against the full one (rows with and without the hint row, Home, a call, the reference Home body, grids, the sliding row), and the bottom row's flags of a measured list |
+| `uiThemeTestPanelsOriginal` (`CONFIG_UI_THEME_DEFAULT=1`, `GFX_MIN_ROWS=320`, `FONT_AA_THEME_ONLY`) | The original theme as the build's default, name first off, no compact layout, each theme's own font set |
+| `uiPrototypeTest.py` | The panels theme at 310 x 240 (`320x240iR10`) through `uiSim`: both profiles and palettes, the strip's marks, icons inside their tiles in the ink, the hint row's rule, every catalog keeping each hint's groups and keys, Chinese bar labels at their height (`uiSimZh`), Hint row off, the clock's ranking and its move to the mode bar, the settings rows across a restart, each frame with `expect:layout=0` |
+| `uiSim --layout` (the layout check, section 7) | Every gallery class in the theme its radio starts in: the `-panels` classes and `240x320i10x5` in panels, the rest in the reference theme |
+| The gallery | `docs/ux/screens/<class>/`: `240x320i10x5` (the full layout, 220 x 310), `160x128-panels`, `160x128iL2T1-panels` (158 x 127) and `220x176iR10-panels` (210 x 176, compact). The 310 x 240 full layout is in `docs/ux/profile-samples/` ([testing.md](../dev/testing.md)). The gallery's palette pages (`__light`, `__night`, ...) are the reference theme's palettes, so in a panels class they show the Day palette |
