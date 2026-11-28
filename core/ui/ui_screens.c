@@ -3208,6 +3208,19 @@ static const font_t * __attribute__((noinline)) dual_make_room(int top, int bott
 	return room / sm->h >= room / f8->h ? sm : f8;
 }
 
+// The two-receivers line's longest form that fits room in f, into out (cap bytes); false when none does
+static bool dual_both(const font_t *f, int room, char *out, size_t cap)
+{
+	bool more = true;
+	for (int level = 0; more; level++) {
+		gfx_text_alt(TR(DUAL_STATE_RECEIVING_ON_BOTH, TEXT_ALT_OPEN "Receiving on A and B"
+			TEXT_ALT_NEXT "A and B receiving" TEXT_ALT_CLOSE), level, out, cap, &more);
+		if (gfx_text_width(f, out) <= room)
+			return true;
+	}
+	return false;
+}
+
 // A refused PTT's reason centered across the screen, shortened at its end margin from either edge. noinline: its
 // buffer stays out of dual_activity's frame
 static void __attribute__((noinline)) dual_deny(const font_t *f, int y, const char *text, int margin)
@@ -3254,13 +3267,18 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 		lines--;
 	} else if (d->pane[0].rx && d->pane[1].rx && lines == 1
 #if CONFIG_UI_THEME_PANELS
-		   // only a compact panels screen is too narrow for it: the reference theme's line always fits, so a build
-		   // without panels doesn't pay for the check
-		   && gfx_text_width(lf, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B")) <= w - inset
+		   // only a compact panels screen is too narrow for the long form: the reference theme's line always holds
+		   // it, so a build without panels doesn't pay for the pick
+		   && dual_both(lf, w - inset, buf, sizeof buf)
 #endif
 		   ) {
-		// two receivers, a call on each (where it doesn't fit, the line of the one heard: the other's pane says RX)
-		gfx_text(lf, inset, y, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B"), ui_col.rx);
+		// two receivers, a call on each (where no form fits, the line of the one heard: the other's pane says RX)
+#if CONFIG_UI_THEME_PANELS
+		gfx_text(lf, inset, y, buf, ui_col.rx);
+#else
+		gfx_text(lf, inset, y, TR(DUAL_STATE_RECEIVING_ON_BOTH, TEXT_ALT_OPEN "Receiving on A and B"
+			TEXT_ALT_NEXT "A and B receiving" TEXT_ALT_CLOSE), ui_col.rx);
+#endif
 		y += lf->h;
 		lines--;
 	} else if (d->rx != UI_DUAL_NONE) {

@@ -5545,6 +5545,11 @@ msgid "Busy"
 msgstr "忙"
 
 #: core/ui/ui_screens.c
+msgctxt "DUAL_STATE_RECEIVING_ON_BOTH"
+msgid "{Receiving on A and B|A and B receiving}"
+msgstr "{正在接收 A 和 B|A 和 B 接收中}"
+
+#: core/ui/ui_screens.c
 msgctxt "DUAL_STATE_SENDING_ON"
 msgid "SENDING on "
 msgstr "正在发送于 "
@@ -5553,11 +5558,6 @@ msgstr "正在发送于 "
 msgctxt "DUAL_STATE_TALKING_ON"
 msgid "TALKING on "
 msgstr "正在通话于 "
-
-#: core/ui/ui_screens.c
-msgctxt "DUAL_STATE_RECEIVING_ON_BOTH"
-msgid "Receiving on A and B"
-msgstr "正在接收 A 和 B"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_STATE_RECEIVING_ON"

@@ -623,6 +623,16 @@ class PrototypeTest(unittest.TestCase):
                     self.run_script(profile + calls + "tune:b rx:9991234,91,g wait:2500 expect:shows=Q1ABC_Joe "
                                     "expect:shows=Receiving_on_B expect:layout=0", geometry)
 
+    def test_dual_watch_two_receivers_short_form(self):
+        # Two receivers, a call on each, on the compact layout's one line under the panes: "Receiving on A and B" is
+        # too wide for its 148 px, so the line takes its short form, B kept, not the heard pane's line alone
+        for geometry in ("160x128-panels", "160x128iL2T1-panels"):
+            for profile in ("", AMATEUR):
+                with self.subTest(geometry=geometry, profile="Amateur" if profile else "Commercial"):
+                    self.run_script(profile + "receivers:2 quick 7 ctx 3 5 ok wait:3000 rxa:9991234,3100,g "
+                                    "rxb:9997777,91,g wait:1000 expect:shows=A_and_B_receiving "
+                                    "expect:hides=Receiving_on_A expect:layout=0", geometry)
+
     def test_quick_words_fit_a_third_of_the_screen(self):
         # Tile 8 is the decided name without the spaces (TG/Contact, 80 px); tile 5 on DMR "DMR monitor" before the
         # tile's abbreviation (DMon)

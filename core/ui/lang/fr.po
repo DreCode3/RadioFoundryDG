@@ -5543,6 +5543,11 @@ msgid "Busy"
 msgstr "Occupé"
 
 #: core/ui/ui_screens.c
+msgctxt "DUAL_STATE_RECEIVING_ON_BOTH"
+msgid "{Receiving on A and B|A and B receiving}"
+msgstr "{Réception sur A et B|Réception A et B}"
+
+#: core/ui/ui_screens.c
 msgctxt "DUAL_STATE_SENDING_ON"
 msgid "SENDING on "
 msgstr "ÉMISSION sur "
@@ -5551,11 +5556,6 @@ msgstr "ÉMISSION sur "
 msgctxt "DUAL_STATE_TALKING_ON"
 msgid "TALKING on "
 msgstr "PARLE sur "
-
-#: core/ui/ui_screens.c
-msgctxt "DUAL_STATE_RECEIVING_ON_BOTH"
-msgid "Receiving on A and B"
-msgstr "Réception sur A et B"
 
 #: core/ui/ui_screens.c
 msgctxt "DUAL_STATE_RECEIVING_ON"
