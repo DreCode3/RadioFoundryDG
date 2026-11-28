@@ -117,7 +117,7 @@ into logical actions (`hal_input.h`).
 
 ## 2. Screens and the stack
 
-The stack holds up to 6 frames; Home is frame 0. Each screen is a `ui_scr_def_t` (`ui_nav.h`): a name (the debug
+The stack holds up to 9 frames (`UI_STACK_MAX`); Home is frame 0. Each screen is a `ui_scr_def_t` (`ui_nav.h`): a name (the debug
 link's `ui.screen`), flags, and callbacks for list rows, SELECT, CONTEXT, the talk target of the focused row, a title,
 a body, raw keys, drawing and entry. List screens need only `count` and `item`; the generic list code does focus,
 scrolling, numbered shortcuts (`SF_NUMBERED`: 1-9, then 0 for the 10th row; later rows have none), T9 filtering (`SF_FILTER`), and the long-press target.
@@ -610,7 +610,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 
 | Switch | Default | Off |
 |---|---|---|
-| `CONFIG_UI_SETTINGS` | y | the Settings menu is left out (about 5.3 KB, `docs/feature-matrix.md`); settings keep their stored values and are set with qdmr; Menu's Settings entry says so above Programming's pages (Channels, Zones, VFO, Diagnostics), so they stay reachable, and Find finds no settings |
+| `CONFIG_UI_SETTINGS` | y | the Settings menu is left out (about 15 KB, `docs/feature-matrix.md`); settings keep their stored values and are set with qdmr; Menu's Settings entry says so above Programming's pages (Channels, Zones, VFO, Diagnostics), so they stay reachable, and Find finds no settings |
 | `CONFIG_DIAG` | y | no diagnostics page (Programming's Diagnostics row says so) |
 | `CONFIG_FONT_XL` | n | the 16x32 font for 240 px and wider displays |
 | `CONFIG_FONT_AA` | n | the bitmap fonts (Spleen) on color panels; on, the sizes from 6x12 up are anti-aliased (JetBrains Mono Bold, coverage 0..3 a pixel, blended with what is under them; `gfx.c`). Mono radios leave it off. On a 4 bpp panel (every color board) the edge grays share the 16 palette entries with the screen's own colors; a screen that already uses many colors loses some of them, and some font sizes or colors can then be slightly harder to read |
@@ -619,7 +619,7 @@ A zone share offer's banner has no timer (`ui_banner_t.hold`): it stays over eve
 | `CONFIG_CONTACT_EDIT` | = `CHANNEL_EDIT` and `DMR` | no contact editor (2.4): Contacts has no New contact row, Find has no Create contact row and Save as contact stays dimmed. Needs `CONFIG_CHANNEL_EDIT` and `CONFIG_DMR` |
 | `CONFIG_GPS_SKY` | = GPS and APRS | Menu > Location > GPS status is a page of text instead of the GPS screen (2.3) and the satellite sentences aren't read (about 5.2 KB, 176 B of RAM) |
 | `CONFIG_LANG_ES` | y | Spanish is listed dimmed in Settings > Display > Language (2.5); without any language the lookup and the fonts' Latin-1 glyphs are left out |
-| `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Colors, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 600 B). For radios whose only screen is monochrome |
+| `CONFIG_UI_COLOR` | y (n on a board with a monochrome panel) | Settings > Display has no Colors, Highlight color or Filled status bar row and the screen keeps the dark theme's colors (about 1 KB). For radios whose only screen is monochrome. On a board whose panels theme (and anti-aliased fonts) follow it, off removes those too ([feature-matrix.md](../feature-matrix.md)) |
 | `CONFIG_UI_THEME_PANELS` | n (a board whose panel fits it sets its own, 9.6) | the reference theme only, and none of the panels theme's code or the shared code only it reads. On, the panels theme (section 9); Settings > Display > Theme offers it where it fits the display, and a new radio starts in the build's default theme (`CONFIG_UI_THEME_DEFAULT`). Needs `CONFIG_UI_COLOR` |
 
 Screens for features that are off (`CONFIG_DMR`, `CONFIG_HOTSPOT`, `CONFIG_VFO_FM`, `CONFIG_VFO_DMR`, `CONFIG_SCAN`, data features) are
@@ -698,9 +698,10 @@ draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240`
 | `power:<n>` | the radio's power level index |
 | `expect:<key>=<value>` | check: `screen focus depth count zone pos vfo freq mode tx txid txpriv talk locked query banner toast power sq ts cc temporary writes checks sent text scanning privacy hearall monitor hotspot beeps radio_tot radio_backlight beep pttblock poweroff wake usbnet set<id>` (`wake` 1 when a banner or the emergency screen asked for the backlight since the last check, `beep` the last beep kind, `set<id>` a setting's stored value; `_` = space, `*` = anything) |
 
-`uiThemeTest`, `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` test the theme framework and the panels theme
-(9.15). The layout check (`uiSim --layout`) draws each class in the theme its radio starts in; the panels theme at
-310 x 240 is checked with `expect:layout=0` in `uiPrototypeTest.py`.
+`uiThemeTest`, `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` test the theme framework and the panels theme (9.15).
+The layout check (`uiSim --layout`) draws each class in the theme the class is set to (`sim_geom_t.panels`):
+`240x320i10x5` and the `-panels` classes in the panels theme, the others in the reference theme. The panels theme at
+310 x 240 is also checked with `expect:layout=0` in `uiPrototypeTest.py`.
 
 `uiFlowTest` runs every task flow of `task-flows.md` with the press budgets of `usability-tests.md` on four display
 and key map pairs (K at 160x120i5, M at 128x64, V at 128x64, K at 240x320) plus the few-key fallbacks and the
@@ -806,11 +807,11 @@ The rules that keep the boundary:
 - A theme never adds, removes or reorders a menu entry, never changes what a key does and never hides a feature. The
   task flows and press budgets (`uiFlowTest`) hold for every theme.
 - Shared code never tests which theme is in use. It tests an option the theme declares (`ui_theme_has`, 9.4).
-- A theme calls back into shared helpers for what both themes draw alike: the text of Home's hint
-  (`ui_home_hint`), the frequency being typed, the dual watch panes (`ui_home_dual_body`, styled by a
-  `ui_dual_style_t`), the banner's box (`ui_banner_box`), a row's label and value (`ui_row_text`, `ui_row_edit`),
-  wrapping and shortening (`ui_wrap_line`, `ui_fit_end`). These are `UI_THEME_SHARED` in `ui_theme.h`: exported in a
-  build with a second theme, `static` (and inlined) in a build with the reference theme alone.
+- A theme calls back into shared helpers for what both themes draw alike: the text of Home's hint (`ui_home_hint`), the
+  frequency being typed, the dual watch panes (`ui_home_dual_body`, styled by a `ui_dual_style_t`), the banner's box
+  (`ui_banner_box`), a row's label and value (`ui_row_text`, `ui_row_edit`), wrapping and shortening (`ui_wrap_line`,
+  `ui_fit_end`). These are `UI_THEME_SHARED` in `ui_theme.h`: exported in a build with `CONFIG_UI_THEME_PANELS`,
+  `static` (and inlined) without it, even with `UI_THEME_SELECT` on for other themes (`uiThemeTest`'s).
 
 What both themes show the same way, whatever they draw: during a DMR call Home shows the caller (name or ID) and the
 destination talkgroup, the signal is shown while receiving, the status strip carries the same set of states (TX/RX,
@@ -1117,11 +1118,11 @@ value alone, the focused tile's name in the title row.
 With `CONFIG_UI_THEME_PANELS` off none of the panels theme's code is built: every definition only it uses is guarded by
 the same condition as its callers. Shared behavior written alongside it (the menu tree, the settings rows, the text
 alternates, the fit helpers) is in every build and is not part of its cost. With the reference theme alone the ops table
-is folded away (the same image byte for byte as direct calls); what the framework's split still costs is its structure,
-about 200 B against the code it replaced (measured on a maximal build). The panels theme costs about 17.4 to 18.9 KB of
-flash with one layout and its icon set, and about 23.4 KB on a board that builds both layouts; on a board whose original
-look keeps the bitmap fonts, the anti-aliased fonts panels draws add about 17.4 KB. Figures from `tools/ci.sh` image
-sizes; the cost on each radio is in [feature-matrix.md](../feature-matrix.md).
+is folded away (direct calls in its place gave an image of byte-identical size); what the framework's split still costs
+is its structure, about 200 B against the code it replaced (measured on a maximal build). The panels theme costs about
+17.4 to 18.9 KB of flash with one layout and its icon set, and about 23.4 KB on a board that builds both layouts; on a
+board whose original look keeps the bitmap fonts, the anti-aliased fonts panels draws add about 17.4 KB. Figures from
+`tools/ci.sh` image sizes; the cost on each radio is in [feature-matrix.md](../feature-matrix.md).
 
 ### 9.15 Tests
 
@@ -1131,5 +1132,5 @@ sizes; the cost on each radio is in [feature-matrix.md](../feature-matrix.md).
 | `uiThemeTestPanels` (with `CONFIG_UI_THEME_PANELS`, `GFX_FIT_TRACE`) | The same, plus the panels theme's frames by structure (every text drawn and shortened is seen): the scroll position before the cells, the soft key bar's two labels whole inside the pane, no text under 8x16, a crowded strip without overlaps, Quick's typed TX frequency, the rows and grids at 310 x 240 and 220 px wide, the compact layout against the full one (rows with and without the hint row, Home, a call, the reference Home body, grids, the sliding row), and the bottom row's flags of a measured list |
 | `uiThemeTestPanelsOriginal` (`CONFIG_UI_THEME_DEFAULT=1`, `GFX_MIN_ROWS=320`, `FONT_AA_THEME_ONLY`) | The original theme as the build's default, name first off, no compact layout, each theme's own font set |
 | `uiPrototypeTest.py` | The panels theme at 310 x 240 (`320x240iR10`) through `uiSim`: both profiles and palettes, the strip's marks, icons inside their tiles in the ink, the hint row's rule, every catalog keeping each hint's groups and keys, Chinese bar labels at their height (`uiSimZh`), Hint row off, the clock's ranking and its move to the mode bar, the settings rows across a restart, each frame with `expect:layout=0`. `run-ui` also runs `uiSimFr` scripts for French words the panels theme picks by key |
-| `uiSim --layout` (the layout check, section 7) | Every gallery class in the theme its radio starts in: the `-panels` classes and `240x320i10x5` in panels, the rest in the reference theme |
+| `uiSim --layout` (the layout check, section 7) | Every gallery class in the theme the class is set to (`sim_geom_t.panels`): `240x320i10x5` and the `-panels` classes in panels, the others in the reference theme |
 | The gallery | `docs/ux/screens/<class>/`: `240x320i10x5` (the full layout, 220 x 310), `160x128-panels`, `160x128iL2T1-panels` (158 x 127), `220x176iR10-panels` (210 x 176, compact) and `320x240iR10-panels` (the full layout, 310 x 240, the frames of `docs/ux/profile-samples/`). The gallery's palette pages (`__light`, `__high_contrast`) are the reference theme's palettes, so in a panels class they show the Day palette; `__night` also sets Day/Night, so there it shows the Night palette |
