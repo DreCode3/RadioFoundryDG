@@ -472,8 +472,20 @@ resources spent on diminishing returns):
        and the night page also sets Day/Night (`daynight:` token). The sim's reset now ticks once at 0 first, so
        ui_app_tick's GPS check (a function static) no longer leaks from the previous gallery screen.
 
+   - Decided Nov 28 (user), dual watch call history in panels (design pass: `../rf-port-out/dualwatch/`, option A, the list
+     below the two panes, as the reference theme does):
+     - **310 x 240:** 2 rows of 8x16 when idle (the state line plus 1 call while receiving). The panes move up 2 to 6 px
+       for it (pane padding 2 to 0 px, the gap between panes 6 to 2 px): an accepted change to the frozen look, on dual
+       watch Home only.
+     - **220 x 310:** Commercial 3 rows, Amateur 2 (Amateur's pane padding 4 to 0 px). **210 x 176:** 2 rows.
+     - **160 x 128 and 158 x 127:** 1 row, the newest call (pane padding 1 to 0 px).
+     - **Commercial names the caller** in a receiving pane in place of "Receiving" (shared behavior 6).
+     - The newest call's age shows in its pane and its list row, as in the reference theme.
+     - `#` `4` listing all 4 calls with OK to call back (option C) is a future shared feature for both themes, not now.
+
 ## Planned, not now
 
 - A user-chosen favorite in main Menu slot 9.
+- Dual watch: `#` `4` lists all recent calls, and OK calls one back (both themes).
 - A PIN for Programming and settings.
 - Menu scope (restricted menus) only if a purely commercial radio is supported.
