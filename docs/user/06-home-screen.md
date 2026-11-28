@@ -47,7 +47,7 @@ the number keys, **PTT**, a key you hold) and what **OK** and **Back** do when i
 "OK save  Back cancel" while you change a value or "Back stop scan". With Hint row off, the bar stays and only that
 line goes.
 
-On a small screen (under 220 x 200 pixels), Home has no mode bar and no hint line. The status bar shows the mode, as
+On a small screen (under 220 pixels wide or under 200 pixels high), Home has no mode bar and no hint row. The status bar shows the mode, as
 on every other screen, and the bottom bar keeps its two labels. The two lines at the bottom of the channel panel appear
 only while they have something to show, and then take the place of the talk target and details lines, so the channel
 name never moves.
@@ -107,8 +107,8 @@ The battery percentage turns to the warning color at the low battery warning lev
 The hint row changes with the situation. When the right soft key can be assigned on Home, the left label is
 **Menu** and the right label shows its short-press function from **Settings > Buttons**. **Nothing** leaves the
 right label blank. While entering a frequency or when the keys are locked, the row shows the controls for that state.
-In the Panels look, the bottom bar shows only the labels of the two soft keys, and the hints below for the other keys
-(**#**, **\***, the number keys) are on the line above it.
+In the Panels look, the bottom bar shows only the labels of the two soft keys, and the line above it shows the hints for
+the other keys (**#**, **\***, the number keys), listed below.
 
 The most common hints:
 

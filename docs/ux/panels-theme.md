@@ -139,8 +139,10 @@ carries over. Up and Down follow the numbers.
 
 ## 7. The icon family and what color means
 
-- **One family.** Every mark in the strip and every icon on a tile is drawn on one grid (a 24 px canvas, 20 px of ink,
-  2 px strokes) in one ink. Icons that share a stroke and a size read as a set and don't compete with the text.
+- **One family.** Every icon on a tile and the strip's pictured marks (lock, GPS, unread mail, monitor, scan,
+  roaming, the privacy key) are drawn on one grid (a 24 px canvas, 20 px of ink, 2 px strokes) in one ink. The signal
+  bars and the battery are drawn in code at the strip's scale, in the same ink. Icons that share a stroke and a size
+  read as a set and don't compete with the text.
 - **Pictures for meaning, drawn for this radio.** A person for Contacts, an envelope for Messages and unread mail, a
   clock for the call log, a folder for Zones, the zigzag for Scan (the same mark as in the strip), a pin for Location
   and GPS, two opposite arrows for Connections, a gear for Settings; in Settings a monitor, a bell, headphones (not a
@@ -177,7 +179,7 @@ losing anything the look already made legible elsewhere.
 <img src="screens/160x128iL2T1-panels/hub.png" width="160" alt="Compact Menu: icon and digit tiles, the focused tile named in the title row">
 <img src="screens/160x128iL2T1-panels/quick_dmr.png" width="160" alt="Compact Quick: values in the tiles, the focused tile's name in the title row">
 
-On a display under 220 x 200 (down to 158 x 127) the panels look keeps its rules and gives up room, not legibility:
+On a display under 220 pixels wide or under 200 high (down to 158 x 127) the panels look keeps its rules and gives up room, not legibility:
 
 - **Text stays 8x16.** Every list, title, bar and hint is in 8x16, Home's channel name in 12x24. The strip is 18 px,
   rows and the bar 18 px, the icons a 0.8x set drawn from the same pictures.

@@ -89,18 +89,18 @@ belong to the ops that draw them; panels keeps its own tables.
 
 A theme switch that is off costs nothing: every definition only a theme uses is guarded like its callers. With the
 reference theme alone `ui_theme_cur()` is a constant, so every op call resolves at build time; a prototype with direct
-calls instead gave a byte-identical image. The split itself costs about 200 B against the code it replaced.
+calls instead gave an image of byte-identical size. The split itself costs about 200 B against the code it replaced.
 
 ## What is built and tested
 
 | Piece | State |
 |---|---|
-| Reference theme behind the descriptor | Done with no visual change: every gallery frame identical |
+| Reference theme behind the descriptor | Done with no visual change: every frame identical, compared with the fork's pixel-baseline scripts. Upstream's tools show the same: `make -C tests/host ui-gallery` leaves `docs/ux/screens` unchanged |
 | Menu tree, settings groups, naming | Done: 3x3 Menu (Contacts, Messages, Call log, Zones, Scan, Location, Connections, Settings, 9 free), nine Settings groups plus Radio info, a page's title is the row that opens it. Task flows, press budgets, information architecture, HIL tests and translations updated |
 | Panels theme | Done: full layout (310 x 240 and 220 x 310), compact layout (158 x 127 to 210 x 176), 23 icons drawn from first principles by a generator script, Day and Night |
 | Text that fits | Text alternates (`{long|short}`) for narrow screens, whole-word short forms in English, Spanish, Italian, French and Chinese, never a font under 8x16 in panels |
-| Host tests | `uiThemeTest` (the framework with test themes), `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` (panels frames checked by structure), `uiPrototypeTest.py` (panels at 310 x 240), the layout check over every gallery class including the panels ones, `uiFlowTest` unchanged |
-| CI | `tools/ci.sh` on every board: 802 configurations, zero warnings, all passed (Nov 27, at `e5104c5e`, then the checks again at `43ffb323`); 2,755 rendered frames compared, 0 unintended changes |
+| Host tests | `uiThemeTest` (the framework with test themes), `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` (panels frames checked by structure), `uiPrototypeTest.py` (panels at 310 x 240), the layout check (`uiSim --layout`) over every gallery class including the panels ones, `uiFlowTest` (every task flow and press budget on four display and key map pairs, and the crawler, updated for the new menu tree; it runs the reference theme) |
+| CI | `tools/ci.sh` on every board at `e5104c5e` (Nov 27): all 802 firmware configurations built with zero warnings. The board registry check failed on a comment that named radios; `cee9bbcd` fixed it, and the checks step re-run at `43ffb323` passed. The fork's pixel-baseline scripts (not in upstream) compared 2,755 rendered frames with 0 unintended changes; upstream's equivalent is the gallery diff and `uiSim --layout` |
 | Not done | HIL and on-air checks of the new UI; native-speaker review of the French, Italian, Spanish and Chinese wording |
 
 Docs on the branch: a Themes section in `docs/spec/ui.md`, `docs/dev/ui-themes.md` (how to add a theme),
@@ -140,8 +140,10 @@ DM-1701 and MD-UV380 maximal builds (LTO, at `fa8e74cd`): about +7.6 KB, of whic
 rest the menu tree, settings rows, text alternates, fit helpers and translations; none of it is panels code. Three
 changes then recovered space without changing a frame: language tables with an offset every 16 strings (448 B),
 20-byte Settings rows (400 B), and LTO for the third-party code in those two boards' maximal builds (about 3.7 KB).
-Default images came out 384 to 720 B smaller than before them. Both maximal builds fit again (1,016 B and 5,816 B
-free).
+Default images came out 384 to 720 B smaller than before them. That was enough for the DM-1701 (1,016 B free in its
+maximal build) but left the MD-UV380's 272 B short, so its maximal build also leaves `FONT_AA` out (6,080 B; its
+default image draws no anti-aliased font): 5,816 B free. The cost is that the maximal build no longer covers `FONT_AA`
+on that board; the MD-380, DB25-D, DM-32UV and GD-88 builds still do.
 
 ## Dependency on `feature/gd88_bringup`
 
@@ -155,7 +157,8 @@ with the GD-88 change after the bring-up merges.
 Each one topic, each with its host tests, its gallery PNGs before and after, and its translations:
 
 1. **Space first:** the three size changes above, one small PR each, so later PRs don't fail the 720 KB boards'
-   maximal builds.
+   maximal builds. The MD-UV380's `FONT_AA` skip goes with the PR that needs it, not here: on `main` its maximal build
+   fits with `FONT_AA`.
 2. **UI: the reference look behind a theme descriptor.** No visual change; `uiThemeTest`.
 3. **UI: the menu tree, Settings groups and names.** Changes every radio's menus; updates the task flows, press
    budgets, HIL tests, information architecture and translations.

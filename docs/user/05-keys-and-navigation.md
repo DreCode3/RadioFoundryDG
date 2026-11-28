@@ -100,9 +100,9 @@ the previous screen.
 <img src="../ux/profile-samples/settings-night.png" width="310" alt="First page of Settings in the Night palette">
 
 Each Menu and Settings tile has an icon. The status bar at the top is the same as on Home, and the bottom bar shows the
-labels of the two soft keys: **OK** on the left and **Back** on the right. On a small screen (under 220 x 200 pixels),
+labels of the two soft keys: **OK** on the left and **Back** on the right. On a small screen (under 220 pixels wide or under 200 pixels high),
 the tiles show their icon and number, and the title names the highlighted tile. A list there can show one more row when
-the hint line is off or has nothing to show, and the highlighted row slides sideways to show a name that is too long
+the hint row is off or has nothing to show, and the highlighted row slides sideways to show a name that is too long
 for it.
 
 In long lists (Contacts, Channels, a zone's channels) the number keys filter the list by name, the way a phone

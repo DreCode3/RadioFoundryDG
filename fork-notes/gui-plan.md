@@ -446,7 +446,8 @@ resources spent on diminishing returns):
      the menu tree, settings rows, text alternates and fit helpers, the rest `feature/gd88_bringup`'s debug link),
      with no shrink found that keeps every frame; and the English short forms for the 160 px hints
      (`../rf-port-out/partC/hint-short-forms.md`). Still logged: the native-speaker list and the zh manual's 8 pages
-     with a different heading count (step 5b).
+     with a different heading count (step 5b). Also for the native-speaker list: the zh `17-settings.md` Theme default,
+     Day/Night and Large text rows no longer match the English after the Nov 27 docs pass (only its anchor was updated).
    - QA fixes (Nov 27, `edee0597`..`44f4beb3`, for the re-review): B1, B2 (new class `160x128iL2T1-panels`), the
      220 px full-layout edge, `220x176iR10-panels`, the narrow Settings tiles, the 160x128 original look's bitmap
      fonts, `ui_list_bar`, the mutation tests. GD-88 and profile frames 0 differ; DM-32 only `settings.png`.

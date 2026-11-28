@@ -78,9 +78,11 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
 
 ### 1. Build: maximal builds with LTO for the third-party code
 
-- **Scope:** `487576a5` (`MAXIMAL_VARS := LTO=1 LTO_3P=1` in `boards/dm1701/config.mk` and `boards/mduv380/config.mk`),
-  and `e5104c5e`/`cee9bbcd` (`FONT_AA` in the MD-UV380's `MAXIMAL_SKIP`: its default image draws no anti-aliased font).
-- **Why:** 3,720 / 3,692 B and 6,080 B in those maximal builds, no change to any default image.
+- **Scope:** `487576a5` (`MAXIMAL_VARS := LTO=1 LTO_3P=1` in `boards/dm1701/config.mk` and `boards/mduv380/config.mk`).
+- **Why:** 3,720 / 3,692 B in those maximal builds, no change to any default image.
+- **Not here:** the MD-UV380's `FONT_AA` skip (`e5104c5e`/`cee9bbcd`) moves to PR 9c. On upstream `main` that board has
+  no panels theme and its maximal build fits with `FONT_AA`, so the skip's reason ("only panels would draw these") would
+  be false and it would only drop `FONT_AA` from a maximal build that covers it today.
 - **Tests:** none (build configuration); `tools/ci.sh --board dm1701,mduv380 --steps firmware`, `make stack-check`.
 - **Gallery:** none. **Translations:** none.
 
@@ -196,7 +198,9 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
   `af02fcd9` (`FONT_AA_THEME_ONLY`), `b9938edf`, `44f4beb3`, `9fc4314a`, the 158 x 127 fit from `aeb73816`; the 16 px
   icon set in `panels_icons.h`; the gallery classes `160x128-panels`, `160x128iL2T1-panels`, `220x176iR10-panels`; the
   compact parts of ui.md 9.6 to 9.12 and the manual.
-- **Cost:** about 4.4 KB more on a board that builds both layouts; a compact-only board about 17.4 KB for the theme.
+- **Cost:** the GD-88's panels cost (both layouts, 23,392 B) less the DM-32UV's (full layout, 18,864 B) is 4,528 B (CI at
+  `e5104c5e`). That compares two boards, so it bounds the compact layout's share rather than measuring it alone. A
+  compact-only board pays about 17.4 KB for the theme.
 - **Tests:** `uiThemeTestPanels`' compact cases (rows with and without the hint row, Home, a call, the reference Home
   body, the grids, the sliding row, the list flags of a measured list), `uiThemeTestPanelsOriginal`, the layout check
   over the three new classes.
@@ -211,7 +215,7 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
 |---|---|---|---|
 | 9a MD-380 | `boards/md380/config.mk`: panels on, original look by default (`CONFIG_UI_THEME_DEFAULT ?= 1`), `FONT_AA` with it and `FONT_AA_THEME_ONLY`, UI stack 548 words; `docs/user/23-radios.md`; part of `aeb73816` | MD-380 default and `no-UI_THEME_PANELS` builds, `make stack-check` (about 200 B free) | none (the class exists from PR 8) |
 | 9b DB25-D PRO | `boards/db25d/config.mk` as the MD-380's, `7e6aa89e`; `23-radios.md` | DB25-D builds (C-SKY), stack check | none |
-| 9c MD-UV380 | `boards/mduv380/config.mk`: panels off by default, in `MAXIMAL_SKIP`, the UI stack for a custom build that turns it on; `23-radios.md` | MD-UV380 default and maximal | none |
+| 9c MD-UV380 | `boards/mduv380/config.mk`: panels off by default, `UI_THEME_PANELS` and `FONT_AA` in `MAXIMAL_SKIP` (`e5104c5e`/`cee9bbcd`: its default image draws no anti-aliased font; 6,080 B, without which the maximal build was 272 B short after PRs 1 to 3), the UI stack for a custom build that turns panels on; `23-radios.md`. The PR says the maximal build stops covering `FONT_AA` on this board (the MD-380, DB25-D, DM-32UV and GD-88 builds still do). If the maximal build overflows earlier in the series, this skip moves to the PR that overflows it, with that reason | MD-UV380 default and maximal | none |
 | 9d GD-88 | `boards/gd88/config.mk` (`CONFIG_UI_THEME_PANELS ?= $(CONFIG_UI_COLOR)`), `23-radios.md`; the `320x240` gallery class to panels (it still draws the reference theme on the branch) | GD-88 default, maximal and switch-off builds, stack check | the `320x240` class (189 PNGs) |
 
 Translations: none in 9a to 9c; 9d none.

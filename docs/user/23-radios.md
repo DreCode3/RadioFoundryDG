@@ -333,8 +333,9 @@ turn off. When RadioFoundry switches itself off (auto power off), it drops its p
 
 ### MD-380 display
 
-A 160 x 128 color screen, every row visible, with smooth (anti-aliased) text. The controller type is unconfirmed. The
-radio starts in the Original look. The Panels look, with the [Commercial and Amateur display
+A 160 x 128 color screen. The case hides the top row and the two left columns, which leaves 158 x 127. The controller
+type is unconfirmed. The radio starts in the Original look, with plain text. The Panels look, with smooth
+(anti-aliased) text and the [Commercial and Amateur display
 profiles](06-home-screen.md#home-in-the-panels-look), is in [Settings > Display > Theme](17-settings.md#display-key-1);
 on this screen it shows 3 list rows, Menu tiles with their icon and number, and no GPS clock.
 
@@ -404,7 +405,8 @@ As on the DM-1701: the switch is on the volume knob, and RadioFoundry sees it tu
 
 ### MD-UV380 display
 
-A 160 x 128 color screen, every row visible. The standard image has only the Original look, because the Panels look
+A 160 x 128 color screen. The case hides the top row and the two left columns, which leaves 158 x 127. The standard
+image has only the Original look, because the Panels look
 doesn't fit in its flash beside the rest of the features. A custom build can turn it on in place of other features;
 the radio then still starts in the Original look.
 
@@ -589,8 +591,8 @@ voltage, so nothing warns about it.
 
 ### DB25-D PRO display
 
-A 1.77" color screen, 160 x 128, with smooth (anti-aliased) text. The radio starts in the Original look. The Panels
-look, with the [Commercial and Amateur display profiles](06-home-screen.md#home-in-the-panels-look), is in
+A 1.77" color screen, 160 x 128. The radio starts in the Original look, with plain text. The Panels look, with
+smooth (anti-aliased) text and the [Commercial and Amateur display profiles](06-home-screen.md#home-in-the-panels-look), is in
 [Settings > Display > Theme](17-settings.md#display-key-1); on this screen it shows 3 or 4 list rows, Menu tiles with
 their icon and number, and no GPS clock.
 

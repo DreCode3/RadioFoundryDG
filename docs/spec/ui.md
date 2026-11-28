@@ -673,8 +673,9 @@ themes, as `<screen>__light.png`, `<screen>__high_contrast.png` and `<screen>__n
 Geometries: `160x120i5` (160x120 visible, 5 px inset left and right), `160x128` (both 160 px classes render through the 4 bpp frame buffer, as the boards do),
 `240x320i10x5` (16 colors, insets 10 px left and right, 5 px top and bottom), `128x64` (mono), `240x320`, `320x240` (landscape, 16 colors),
 `220x176` (16 colors, the 160 px class's fonts), the panels classes `160x128-panels`, `160x128iL2T1-panels` (158 x 127
-to draw on) and `220x176iR10-panels` (210 x 176), drawn in the panels theme as `240x320i10x5` is (section 9), and
-`320x240iR10` (310 x 240 in the panels theme, outside the gallery: `uiPrototypeTest.py`), or any
+to draw on), `220x176iR10-panels` (210 x 176) and `320x240iR10-panels` (310 x 240), drawn in the panels theme as
+`240x320i10x5` is (section 9), and `320x240iR10` (310 x 240 in the panels theme, outside the gallery:
+`uiPrototypeTest.py`; `320x240iR10-panels` is the same panel in the gallery), or any
 `WxH`, `WxHiN` (inset N all round), `WxHiNxM` (N left and right, M top and bottom), `WxHm` (mono). The 240 px classes
 draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240` the larger text too
 (`CONFIG_FONT_BIG`); the others the bitmap ones. Script tokens:
@@ -687,6 +688,7 @@ draw the anti-aliased fonts (`CONFIG_FONT_AA`), and `240x320i10x5` and `320x240`
 | `ptt`, `ptt:<ms>`, `pttdown`, `pttup` | PTT (counted) |
 | `mondown`, `monup` | the monitor key held, then released (FM: the squelch held open) |
 | `color:<name>`, `strip:on\|off` | Settings > Display > Highlight color (`red orange yellow teal light_blue purple pink default`) and Filled status bar, set directly |
+| `daynight:day\|night` | Settings > Display > Day/Night, set directly: the palette of a theme with Day and Night palettes (the panels theme); other themes ignore it |
 | `wait:<ms>` | time passes |
 | `rx:<src>,<dst>,g\|p[,name]`, `rxend`, `call:<src>,<dst>,g\|p` | a DMR call heard |
 | `msg:<src>,<text>`, `alert:<src>`, `emergency:<src>`, `privcall:<src>`, `hotspot:on\|off`, `battery:<pct>` | events |
@@ -1130,4 +1132,4 @@ sizes; the cost on each radio is in [feature-matrix.md](../feature-matrix.md).
 | `uiThemeTestPanelsOriginal` (`CONFIG_UI_THEME_DEFAULT=1`, `GFX_MIN_ROWS=320`, `FONT_AA_THEME_ONLY`) | The original theme as the build's default, name first off, no compact layout, each theme's own font set |
 | `uiPrototypeTest.py` | The panels theme at 310 x 240 (`320x240iR10`) through `uiSim`: both profiles and palettes, the strip's marks, icons inside their tiles in the ink, the hint row's rule, every catalog keeping each hint's groups and keys, Chinese bar labels at their height (`uiSimZh`), Hint row off, the clock's ranking and its move to the mode bar, the settings rows across a restart, each frame with `expect:layout=0`. `run-ui` also runs `uiSimFr` scripts for French words the panels theme picks by key |
 | `uiSim --layout` (the layout check, section 7) | Every gallery class in the theme its radio starts in: the `-panels` classes and `240x320i10x5` in panels, the rest in the reference theme |
-| The gallery | `docs/ux/screens/<class>/`: `240x320i10x5` (the full layout, 220 x 310), `160x128-panels`, `160x128iL2T1-panels` (158 x 127) and `220x176iR10-panels` (210 x 176, compact). The 310 x 240 full layout is in `docs/ux/profile-samples/` ([testing.md](../dev/testing.md)). The gallery's palette pages (`__light`, `__night`, ...) are the reference theme's palettes, so in a panels class they show the Day palette |
+| The gallery | `docs/ux/screens/<class>/`: `240x320i10x5` (the full layout, 220 x 310), `160x128-panels`, `160x128iL2T1-panels` (158 x 127), `220x176iR10-panels` (210 x 176, compact) and `320x240iR10-panels` (the full layout, 310 x 240, the frames of `docs/ux/profile-samples/`). The gallery's palette pages (`__light`, `__high_contrast`) are the reference theme's palettes, so in a panels class they show the Day palette; `__night` also sets Day/Night, so there it shows the Night palette |
