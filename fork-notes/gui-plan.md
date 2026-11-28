@@ -474,8 +474,8 @@ resources spent on diminishing returns):
 
    - Decided Nov 28 (user), dual watch call history in panels (design pass: `../rf-port-out/dualwatch/`, option A, the list
      below the two panes, as the reference theme does):
-     - **310 x 240:** 2 rows of 8x16 when idle (the state line plus 1 call while receiving). The panes move up 2 to 6 px
-       for it (pane padding 2 to 0 px, the gap between panes 6 to 2 px): an accepted change to the frozen look, on dual
+     - **310 x 240:** 2 rows of 8x16 when idle (the state line plus 1 call while receiving). The panes move up for it
+       (pane padding 2 to 0 px, the gap between panes 6 to 2 px: pane A 2 px, pane B 10 px): an accepted change to the frozen look, on dual
        watch Home only.
      - **220 x 310:** Commercial 3 rows, Amateur 2 (Amateur's pane padding 4 to 0 px). **210 x 176:** 2 rows.
      - **160 x 128 and 158 x 127:** 1 row, the newest call (pane padding 1 to 0 px).
@@ -492,6 +492,12 @@ resources spent on diminishing returns):
      caller), uiPrototypeTest (every panels class with the layout check). Flash: GD-88, DM-32, DB25-D +688 B,
      MD-380 +632 B (maximal +648), DM-1701 (no panels) +16 B for the shared width check; RAM unchanged. UI stack
      unchanged (GD-88 1664 deepest, 204 free). Baseline now `../rf-base-step8`. CI: `ci-par.sh --board gd88,dm32,md380,db25d` at `5ee4d927` (360 configurations, the checks included) passed.
+
+   - QA check of dual watch history ([report](reports/dualwatch-qa.md)): one blocking item, fixed by the guard below. Builds
+     without panels paid for the "Receiving on A and B" width check only a compact panels screen needs; it is now under
+     `CONFIG_UI_THEME_PANELS`, and `cc.sh` against `../rf-base-step8` shows 2939 compared, 0 differ. Logged: on 160 px a
+     16-character caller pushes the age out of its row; no test checks the list row's age; the clearing rules in
+     `ui_dual.c` have no host test (older code).
 
 ## Planned, not now
 

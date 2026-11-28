@@ -3252,8 +3252,13 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 		}
 		y += lf->h;
 		lines--;
-	} else if (d->pane[0].rx && d->pane[1].rx && lines == 1 &&
-		   gfx_text_width(lf, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B")) <= w - inset) {
+	} else if (d->pane[0].rx && d->pane[1].rx && lines == 1
+#if CONFIG_UI_THEME_PANELS
+		   // only a compact panels screen is too narrow for it: the reference theme's line always fits, so a build
+		   // without panels doesn't pay for the check
+		   && gfx_text_width(lf, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B")) <= w - inset
+#endif
+		   ) {
 		// two receivers, a call on each (where it doesn't fit, the line of the one heard: the other's pane says RX)
 		gfx_text(lf, inset, y, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B"), ui_col.rx);
 		y += lf->h;
