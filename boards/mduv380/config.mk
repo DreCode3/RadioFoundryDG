@@ -26,8 +26,10 @@ MAXIMAL_VARS := LTO=1 LTO_3P=1
 # Left out of tools/ci.sh's maximal configuration: PPP stands in for the USB network adapter on UART-only radios
 # (docs/spec/ppp.md), and this one has the adapter; the APRS iGate is off by default (above); French, off by
 # default, so that the maximal build keeps satellite tracking and still fits the app region; Chinese stays out too
-# (its glyph table does not fit beside the rest); the panels theme, off by default (above)
-MAXIMAL_SKIP := NET_PPP APRS_IGATE LANG_FR LANG_ZH LANG_DEFAULT_ZH UI_THEME_PANELS
+# (its glyph table does not fit beside the rest); the panels theme, off by default (above); the anti-aliased fonts
+# (FONT_AA, off by default: the original look draws the bitmap fonts, and only panels would draw these; about 6 KB).
+# The boards that build them by default cover their code (docs/feature-matrix.md)
+MAXIMAL_SKIP := NET_PPP APRS_IGATE LANG_FR LANG_ZH LANG_DEFAULT_ZH UI_THEME_PANELS FONT_AA
 
 # What the radio's hardware can't do, one switch per line with the reason (tools/boards.py checks there is one;
 # docs/build-config.md, "Unsupported, not written, unconfirmed"): ci's maximal configuration leaves these off
