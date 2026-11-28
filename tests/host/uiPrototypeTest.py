@@ -606,6 +606,23 @@ class PrototypeTest(unittest.TestCase):
                     self.run_script(profile + theme + "quick 7 ctx 3 5 ok wait:3000 expect:dual=1 battery:5 wait:2000 "
                                     "expect:shows=charge_soon expect:layout=0")
 
+    def test_dual_watch_lists_the_calls_heard(self):
+        # Dual watch Home lists the calls heard under its panes in every panels class, newest first, as many as the
+        # room gives (2 rows at 310 x 240 and 210 x 176, 3 for Commercial at 220 x 310, 1 on 160 px), with the layout
+        # check on; a call coming in shows the caller in its pane in both profiles, Commercial included
+        calls = ("quick 7 ctx 3 5 ok wait:3000 tune:b call:9991234,91,g tune:a call:9997777,3100,g "
+                 "tune:b call:9990001,91,g tune:a call:9990002,3100,g wait:3000 expect:dual=1 ")
+        newest = ("9990002", "9990001", "Q4WAB_Eve", "Q1ABC_Joe")
+        rows = {"320x240iR10": (2, 2), "240x320i10x5": (3, 2), "220x176iR10-panels": (2, 2),
+                "160x128-panels": (1, 1), "160x128iL2T1-panels": (1, 1)}
+        for geometry, counts in rows.items():
+            for profile, n in zip(("", AMATEUR), counts):
+                with self.subTest(geometry=geometry, profile="Amateur" if profile else "Commercial"):
+                    self.run_script(profile + calls + "".join(" expect:shows=" + t for t in newest[:n]) +
+                                    "".join(" expect:hides=" + t for t in newest[n:]) + " expect:layout=0", geometry)
+                    self.run_script(profile + calls + "tune:b rx:9991234,91,g wait:2500 expect:shows=Q1ABC_Joe "
+                                    "expect:shows=Receiving_on_B expect:layout=0", geometry)
+
     def test_quick_words_fit_a_third_of_the_screen(self):
         # Tile 8 is the decided name without the spaces (TG/Contact, 80 px); tile 5 on DMR "DMR monitor" before the
         # tile's abbreviation (DMon)

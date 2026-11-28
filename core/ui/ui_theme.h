@@ -143,6 +143,8 @@ typedef struct {
 	bool target_label;	// row 2 is the talk target's label and row 1 has no channel number; a call shows its alias
 	bool calls;		// the calls heard, listed under the activity
 	bool fallback;		// a name or row 2 its font cuts takes 8x16 where that holds it whole (a narrow screen)
+	uint8_t list_rows;	// lines under the panes to make room for, the panes' padding and gap giving way (0: as
+				// they fall); the calls are then drawn caller first, in 8x16 where that fits more of them
 } ui_dual_style_t;
 #endif
 #if CONFIG_UI_THEME_PANELS

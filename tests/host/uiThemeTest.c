@@ -1603,6 +1603,99 @@ static bool texts_apart(void)
 	return true;
 }
 
+#if CONFIG_DUAL_WATCH
+// Dual watch on two DMR channels with four calls heard, newest first, alternating A and B; Display profile `profile`
+// (each caller with its shorter form, as ui_dual.c writes them)
+#define DUAL_CALLER(name, tg)	TEXT_ALT_OPEN name " TG " tg TEXT_ALT_NEXT name TEXT_ALT_CLOSE
+static const char *const dual_callers[4] = { DUAL_CALLER("Ann Lee", "1"), DUAL_CALLER("Bob Ray", "2"),
+	DUAL_CALLER("Cal Fox", "3"), DUAL_CALLER("Dee Kim", "4") };
+static const char *const dual_names[4] = { "Ann Lee", "Bob Ray", "Cal Fox", "Dee Kim" };
+static void dual_base(int profile)
+{
+	base();
+	state.volbar = -1;	// no volume bar: the pane runs to the bar
+	state.gui_profile = (uint8_t)profile;
+	ui_dual_t *d = &state.dual;
+	d->on = true;
+	d->rx = d->back_to = UI_DUAL_NONE;
+	for (int i = 0; i < 2; i++) {
+		ui_dual_pane_t *p = &d->pane[i];
+		p->number = (uint16_t)(3 + 2 * i);
+		p->mode = RADIO_MODE_DMR;
+		p->rx_hz = 453625000u + 9000000u * (unsigned)i;
+		strcpy(p->name, i ? "Metro DMR" : "COUNTY DMR");
+		strcpy(p->zone, "Local");
+		strcpy(p->target, "TG 3100 USA");
+		strcpy(p->target_label, "USA");
+		strcpy(p->detail, "TS1 CC1");
+	}
+	d->calls = 4;
+	for (int k = 0; k < 4; k++) {
+		d->hist[k].pane = (uint8_t)(k % 2);
+		d->hist[k].ms = state.now_ms - 4000u * (unsigned)(k + 1);
+		strcpy(d->hist[k].caller, dual_callers[k]);
+	}
+	d->last = 0;
+	d->last_ms = d->hist[0].ms;
+	d->ended[0] = d->ended[1] = true;
+	d->ended_ms[0] = d->hist[0].ms;
+	d->ended_ms[1] = d->hist[1].ms;
+	strcpy(d->caller, dual_callers[0]);
+}
+
+// How many of the calls heard Home lists, newest first and none skipped
+static int dual_rows(int profile)
+{
+	dual_base(profile);
+	ui_draw_home(&view, &state);
+	int n = 0;
+	while (n < 4 && text_with(dual_names[n]) >= 0)
+		n++;
+	for (int k = n; k < 4; k++)
+		if (text_with(dual_names[k]) >= 0)
+			return -1;
+	return n;
+}
+
+// Dual watch Home lists the calls heard under its panes, as many as the room measured on each display gives (the
+// panes' padding and gap give way for 2 lines in the full layout, 1 in the compact one), none of it overlapping or
+// under 8x16. Commercial names a caller coming in (a talker alias where Show talker alias has one), not "Receiving".
+// panes_y: where the panes' names start at 310 x 240 (0: not checked)
+static void test_panels_dual(int commercial_rows, int amateur_rows, int name_a_y, int name_b_y)
+{
+	CHECKT(dual_rows(0) == commercial_rows && texts_apart());
+	for (int i = 0; i < ntexts; i++)
+		CHECKT(texts[i].h >= 16);
+	if (name_a_y) {
+		int a = find_text("COUNTY DMR"), b = find_text("Metro DMR");
+		CHECKT(a >= 0 && b >= 0 && texts[a].y == name_a_y && texts[b].y == name_b_y);
+	}
+	CHECKT(dual_rows(1) == amateur_rows && texts_apart());
+	// A call coming in on B: the caller in its pane, then the state line, then the calls that fit
+	dual_base(0);
+	ui_dual_t *d = &state.dual;
+	d->rx = 1;
+	d->pane[1].rx = d->pane[1].heard = true;
+	d->pane[1].rssi_dbm = -80;
+	strcpy(d->pane[1].caller, DUAL_CALLER("Joe Smith", "91"));
+	view.state = RS_RX;
+	view.ch.mode = RADIO_MODE_DMR;
+#if CONFIG_DMR
+	view.dmr.state = RDMR_RX;
+#endif
+	ui_draw_home(&view, &state);
+	CHECKT(text_with("Joe Smith") >= 0 && find_text("Receiving") < 0 && text_with("Receiving on B") >= 0);
+	CHECKT(texts_apart());
+#if CONFIG_DMR
+	state.alias_show = true;
+	strcpy(view.dmr.alias, "W1XYZ Joe");
+	ui_draw_home(&view, &state);
+	CHECKT(find_text("W1XYZ Joe") >= 0 && text_with("Joe Smith") < 0);
+#endif
+	base();
+}
+#endif
+
 // Home on a channel whose body is the reference theme's (an SFR repeater here; trunked and unbuilt kinds go the same
 // way): its lines apart, the activity line under them. The compact layout has no hint line there either, its bar
 // "Menu", and a zone name too long beside the position is cut at its end; a call has the reference call screen there
@@ -1842,6 +1935,9 @@ static void test_panels_frames(void)
 	test_panels_narrow_text(true);
 	test_panels_quick_entry(true);
 	test_panels_badge_room();
+#if CONFIG_DUAL_WATCH
+	test_panels_dual(3, 2, 0, 0);
+#endif
 	// The full layout where the compact one differs
 	CHECK(gfx_init(&panel));
 	CHECK(ui_theme_use(&ui_theme_panels));
@@ -1855,6 +1951,10 @@ static void test_panels_frames(void)
 	test_compact_grids(false);
 	test_compact_marquee(false);
 	test_list_bar_measured();
+#if CONFIG_DUAL_WATCH
+	// The panes' names 4 px from the channel pane's top (it starts at 56) and one pane (42 px) and a 2 px gap apart
+	test_panels_dual(2, 2, 60, 104);
+#endif
 #if GFX_MIN_ROWS < UI_TALL_PX
 	// The 160 x 128 panel: the compact layout
 	hal_display_t compact = { .width = 160, .height = 128, .bpp = 4, .init = d_init, .flush = d_flush,
@@ -1871,6 +1971,9 @@ static void test_panels_frames(void)
 	test_compact_grids(true);
 	test_compact_marquee(true);
 	test_panels_min_font();
+#if CONFIG_DUAL_WATCH
+	test_panels_dual(1, 1, 0, 0);
+#endif
 	// 158 x 127 (a 160 x 128 panel behind a bezel that hides a row and two columns): 3 list rows, the hint row empty
 	// or not (4 need 128 px)
 	hal_display_t bezel = compact;
@@ -1881,6 +1984,9 @@ static void test_panels_frames(void)
 	CHECK(gfx_width() == 158 && gfx_height() == 127 && ui_layout.strip_h == 18);
 	CHECK(list_rows("OK choose  Back", UI_BAR_LIST) == 3 && list_rows("OK change  Hold OK save  Back", UI_BAR_LIST) == 3);
 	ui_theme_set(UI_PALETTE_DAY);
+#if CONFIG_DUAL_WATCH
+	test_panels_dual(1, 1, 0, 0);
+#endif
 	// A label with a shorter form where not even that fits ("Profile" beside "Commercial" is 2 px too wide here):
 	// cut at its end as any label, never in the middle, and the focused row's slides to show it whole
 	base();
@@ -1910,6 +2016,15 @@ static void test_panels_frames(void)
 	state.gps_utc_hms = 140500;
 	ui_draw_home(&view, &state);
 	CHECK(find_text("FM") >= 0 && text_with("Nov") < 0);
+	base();
+#if CONFIG_DUAL_WATCH
+	// 210 x 176: a 220 x 176 panel whose right 10 px are behind the bezel
+	compact.inset_right = 10;
+	CHECK(gfx_init(&compact));
+	CHECK(ui_theme_use(&ui_theme_panels));
+	CHECK(gfx_width() == 210 && gfx_height() == 176);
+	test_panels_dual(2, 2, 0, 0);
+#endif
 	base();
 #endif
 	ui_theme_use(&ui_theme_reference);

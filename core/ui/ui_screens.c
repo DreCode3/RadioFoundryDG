@@ -2847,11 +2847,13 @@ static const ui_dual_style_t *dual_style = &dual_reference;
 #define DUAL_TARGET_LABEL()	dual_style->target_label
 #define DUAL_CALLS()		dual_style->calls
 #define DUAL_FALLBACK()		dual_style->fallback
+#define DUAL_LIST_ROWS()	dual_style->list_rows
 #else
 #define DUAL_INSET()		0
 #define DUAL_TARGET_LABEL()	false
 #define DUAL_CALLS()		true
 #define DUAL_FALLBACK()		false
+#define DUAL_LIST_ROWS()	0
 #endif
 
 // The font for text in f within room: f, or 8x16 where the style falls back to it and only it holds the text whole
@@ -2998,13 +3000,12 @@ static void dual_pane(const radio_view_t *v, const ui_state_t *s, int i, int y, 
 	color_t c2 = fg;
 	if (rx) {
 		const char *caller = p->caller;
-		if (commercial) {
-			caller = "";
 #if CONFIG_DMR
-			if (d->rx == i && v->ch.mode == RADIO_MODE_DMR && v->dmr.state == RDMR_RX && s->alias_show)
-				caller = v->dmr.alias;
+		// Commercial shows the talker alias where Show talker alias has one, else the caller as Amateur does
+		if (commercial && d->rx == i && v->ch.mode == RADIO_MODE_DMR && v->dmr.state == RDMR_RX && s->alias_show &&
+		    v->dmr.alias[0])
+			caller = v->dmr.alias;
 #endif
-		}
 		sb_str(&b, caller[0] ? caller : TR(STATE_RECEIVING, "Receiving"));
 		c2 = ui_col.rx;
 #if CONFIG_UI_THEME_PANELS
@@ -3150,6 +3151,63 @@ static void dual_call(int y, uint8_t pane, const char *caller, uint32_t age_ms, 
 }
 
 #if CONFIG_UI_THEME_PANELS
+// One call of the list in a style that makes room for it (list_rows), from x0 to x1 in font f: its pane's letter in an
+// outline tag, the caller, how long ago at the right. The caller's shortest form keeps its room first, the age gives
+// way to its short form ("8s"), then the caller's longer forms take what is left; a form still too long is cut at its
+// end. noinline: its buffers stay out of dual_activity's frame
+static void __attribute__((noinline)) dual_call_listed(const font_t *f, int x0, int x1, int y, uint8_t pane,
+	const char *caller, uint32_t age_ms, color_t c)
+{
+	char age[16], alt[48], fit[48];
+	sbuf_t ab;
+	int tw = f->w + 6, cx = x0 + tw + f->w / 2, shortest = 0;
+	gfx_rect(x0, y, tw, f->h, ui_col.line);
+	gfx_text(f, x0 + 3, y, pane ? "B" : "A", c);
+	bool more = true;
+	for (int level = 0; more; level++) {
+		gfx_text_alt(caller, level, alt, sizeof alt, &more);
+		shortest = gfx_text_width(f, alt);
+	}
+	sb_init(&ab, age, sizeof age);
+	sb_age(&ab, age_ms);
+	int right = dual_right(f, x1, y, f->h, cx + shortest + f->w, age, ui_col.dim) - f->w;
+	more = true;
+	for (int level = 0; more; level++) {
+		gfx_text_alt(caller, level, alt, sizeof alt, &more);
+		if (gfx_text_width(f, alt) <= right - cx)
+			break;
+	}
+	ui_fit_end(f, alt, right - cx, fit, sizeof fit);
+	gfx_text(f, cx, y, fit, c);
+}
+
+// Room for the style's list_rows lines of 8x16 under the panes, between top and bottom: the panes' padding, then the
+// gap between them, then the 2 px above the lines give way, in that order, until they fit (or as many as the tightest
+// fits). Returns the lines' font: the small one where it fits as many as 8x16. noinline: off the deepest drawing path
+static const font_t * __attribute__((noinline)) dual_make_room(int top, int bottom, const dual_fit_t *ft, int *pad,
+	int *gap, int *below)
+{
+	const font_t *f8 = &font_aa_8x16, *sm = ui_layout.small;
+	const int tries[][3] = { { *pad, *gap, 2 }, { 0, *gap, 2 }, { 0, 2, 2 }, { 0, 2, 0 } };
+	int best = -1, most = 0;
+	for (int k = 0; k < 4; k++) {
+		int n = (bottom - (top + 2 * (dual_pane_h(ft) + 2 * tries[k][0]) + tries[k][1] + tries[k][2])) / f8->h;
+		if (n > most) {
+			most = n;
+			best = k;
+		}
+		if (n >= dual_style->list_rows)
+			break;
+	}
+	if (best < 0)
+		return sm;
+	*pad = tries[best][0];
+	*gap = tries[best][1];
+	*below = tries[best][2];
+	int room = bottom - (top + 2 * (dual_pane_h(ft) + 2 * *pad) + *gap + *below);
+	return room / sm->h >= room / f8->h ? sm : f8;
+}
+
 // A refused PTT's reason centered across the screen, shortened at its end margin from either edge. noinline: its
 // buffer stays out of dual_activity's frame
 static void __attribute__((noinline)) dual_deny(const font_t *f, int y, const char *text, int margin)
@@ -3161,12 +3219,10 @@ static void __attribute__((noinline)) dual_deny(const font_t *f, int y, const ch
 }
 #endif
 
-// The lines under the panes: what is happening, then the last calls, each with its pane
-static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int lines)
+// The lines under the panes in font lf: what is happening, then the last calls, each with its pane
+static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int lines, const font_t *lf)
 {
-	const ui_layout_t *L = &ui_layout;
 	const ui_dual_t *d = &s->dual;
-	const font_t *sm = L->small;
 	int inset = DUAL_INSET(), w = gfx_width() - inset;
 	char buf[64];
 	sbuf_t b;
@@ -3174,7 +3230,7 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 		return;
 #if CONFIG_UI_THEME_PANELS
 	if (dual_style->deny_margin && v->state == RS_TX_DENIED) {
-		dual_deny(sm, y, ui_deny_text(v, v->tx_deny, buf, sizeof buf), dual_style->deny_margin);
+		dual_deny(ui_layout.small, y, ui_deny_text(v, v->tx_deny, buf, sizeof buf), dual_style->deny_margin);
 		return;
 	}
 #endif
@@ -3188,18 +3244,19 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 				TR(DUAL_STATE_TALKING_ON, "TALKING on "));
 			sb_str(&b, d->sel ? "B" : "A");
 		}
-		gfx_text(sm, inset, y, buf, ui_col.tx);
+		gfx_text(lf, inset, y, buf, ui_col.tx);
 		if (!v->aprs_tx) {
 			sb_init(&b, buf, sizeof buf);
 			sb_mmss(&b, v->tx_elapsed_ms / 1000u);
-			gfx_text(sm, w - gfx_text_width(sm, buf), y, buf, ui_col.fg);
+			gfx_text(lf, w - gfx_text_width(lf, buf), y, buf, ui_col.fg);
 		}
-		y += sm->h;
+		y += lf->h;
 		lines--;
-	} else if (d->pane[0].rx && d->pane[1].rx && lines == 1) {
-		// two receivers, a call on each
-		gfx_text(sm, inset, y, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B"), ui_col.rx);
-		y += sm->h;
+	} else if (d->pane[0].rx && d->pane[1].rx && lines == 1 &&
+		   gfx_text_width(lf, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B")) <= w - inset) {
+		// two receivers, a call on each (where it doesn't fit, the line of the one heard: the other's pane says RX)
+		gfx_text(lf, inset, y, TR(DUAL_STATE_RECEIVING_ON_BOTH, "Receiving on A and B"), ui_col.rx);
+		y += lf->h;
 		lines--;
 	} else if (d->rx != UI_DUAL_NONE) {
 		// A line per pane receiving, the one heard first; the other (two receivers) says it is muted
@@ -3212,10 +3269,10 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 			sb_str(&b, i ? "B" : "A");
 			if (k)
 				sb_str(&b, TR(DUAL_STATE_MUTED, ", muted"));
-			int x = gfx_text(sm, inset, y, buf, ui_col.rx) + sm->w;
-			if (w - x >= 4 * sm->w)
-				draw_meter(x, y + sm->h / 4, w - x, sm->h / 2, d->pane[i].rssi_dbm);
-			y += sm->h;
+			int x = gfx_text(lf, inset, y, buf, ui_col.rx) + lf->w;
+			if (w - x >= 4 * lf->w)
+				draw_meter(x, y + lf->h / 4, w - x, lf->h / 2, d->pane[i].rssi_dbm);
+			y += lf->h;
 			lines--;
 		}
 	}
@@ -3223,9 +3280,17 @@ static void dual_activity(const radio_view_t *v, const ui_state_t *s, int y, int
 	if (!DUAL_CALLS())
 		return;
 	if (lines > 0 && d->calls == 0)
-		gfx_text(sm, 0, y, TR(EMPTY_NO_CALLS_HEARD, "No calls heard yet"), ui_col.dim);
-	for (int k = 0; k < d->calls && k < lines; k++, y += sm->h)
-		dual_call(y, d->hist[k].pane, d->hist[k].caller, s->now_ms - d->hist[k].ms, k ? ui_col.dim : ui_col.fg);
+		gfx_text(lf, inset, y, TR(EMPTY_NO_CALLS_HEARD, "No calls heard yet"), ui_col.dim);
+	for (int k = 0; k < d->calls && k < lines; k++, y += lf->h) {
+		color_t c = k ? ui_col.dim : ui_col.fg;
+#if CONFIG_UI_THEME_PANELS
+		if (DUAL_LIST_ROWS()) {
+			dual_call_listed(lf, inset, w, y, d->hist[k].pane, d->hist[k].caller, s->now_ms - d->hist[k].ms, c);
+			continue;
+		}
+#endif
+		dual_call(y, d->hist[k].pane, d->hist[k].caller, s->now_ms - d->hist[k].ms, c);
+	}
 }
 
 UI_THEME_SHARED const char *ui_dual_hint(const radio_view_t *v, const ui_state_t *s)
@@ -3304,7 +3369,12 @@ UI_THEME_SHARED void ui_home_dual_body(const radio_view_t *v, const ui_state_t *
 		dual_fit_t fit;
 		dual_choose(bottom - top, gap, DUAL_TARGET_LABEL(), &fit, &pad);
 		const dual_fit_t *ft = &fit;
-		const font_t *sm = L->small;
+		const font_t *lf = L->small;	// the lines under the panes
+		int below = 2;			// ... and the room above them
+#if CONFIG_UI_THEME_PANELS
+		if (DUAL_LIST_ROWS())
+			lf = dual_make_room(top, bottom, ft, &pad, &gap, &below);
+#endif
 		int ph = dual_pane_h(ft) + 2 * pad;
 		const font_t *f0 = dual_name_font(s, 0, ft->name), *f1 = dual_name_font(s, 1, ft->name);
 		dual_nf = f0->h < f1->h ? f0 : f1;
@@ -3314,8 +3384,8 @@ UI_THEME_SHARED void ui_home_dual_body(const radio_view_t *v, const ui_state_t *
 		int inset = DUAL_INSET();
 		gfx_hline(inset, top + ph + gap / 2, gfx_width() - 2 * inset, ui_col.line);
 		dual_pane(v, s, 1, top + ph + gap, ph, pad, ft);
-		int ay = top + 2 * ph + gap + 2;
-		dual_activity(v, s, ay, ft->act ? (bottom - ay) / sm->h : 0);
+		int ay = top + 2 * ph + gap + below;
+		dual_activity(v, s, ay, ft->act || DUAL_LIST_ROWS() ? (bottom - ay) / lf->h : 0, lf);
 	}
 #if CONFIG_UI_THEME_PANELS
 	dual_style = &dual_reference;

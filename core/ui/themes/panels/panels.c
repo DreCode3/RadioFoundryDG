@@ -1676,16 +1676,17 @@ static void panels_home(const radio_view_t *v, const ui_state_t *s)
 }
 
 #if CONFIG_DUAL_WATCH
-// Dual watch's Home in Home's frame: its panes inset in the channel pane, no list of calls (the alias is a live
-// receiving indication only), a refused PTT's reason centered. Commercial names the talk target where the channel
-// number would be
+// Dual watch's Home in Home's frame: its panes inset in the channel pane, the calls heard under them (room for 2 lines
+// in the full layout, 1 in the compact one, the panes' padding and gap giving way as the room measured needs), a
+// refused PTT's reason centered. Commercial names the talk target where the channel number would be
 static const ui_dual_style_t panels_dual[][2] = {
 	{
-		{ .inset = 12, .deny_margin = 15, .target_label = true, .fallback = true },	// Commercial
-		{ .inset = 12, .deny_margin = 15, .fallback = true },				// Amateur
+		{ .inset = 12, .deny_margin = 15, .target_label = true, .calls = true, .fallback = true,
+		  .list_rows = 2 },								// Commercial
+		{ .inset = 12, .deny_margin = 15, .calls = true, .fallback = true, .list_rows = 2 },	// Amateur
 	}, {	// the compact layout's narrower margins
-		{ .inset = 6, .deny_margin = 6, .target_label = true, .fallback = true },
-		{ .inset = 6, .deny_margin = 6, .fallback = true },
+		{ .inset = 6, .deny_margin = 6, .target_label = true, .calls = true, .fallback = true, .list_rows = 1 },
+		{ .inset = 6, .deny_margin = 6, .calls = true, .fallback = true, .list_rows = 1 },
 	},
 };
 
