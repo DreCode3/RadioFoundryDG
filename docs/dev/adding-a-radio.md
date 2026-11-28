@@ -113,6 +113,15 @@ that window of the panel); the check then sizes the buffer by the gallery class'
 set `GFX_MIN_ROWS` to its height too, so the build leaves out what only a shorter display draws (the panels theme's
 compact layout, under 200 rows); a board that finds its panel at start-up leaves it out.
 
+Which looks a radio offers follows from its display. The panels theme fits a color drawable area of at least
+158 x 127 ([ui.md](../spec/ui.md) 9.6); `config/features.mk` makes `UI_THEME_PANELS` unsupported on a board whose
+`hardware.gallery` class and insets are smaller. On a board it fits, `config.mk` chooses: `CONFIG_UI_THEME_PANELS ?=
+$(CONFIG_UI_COLOR)` builds it, and `CONFIG_UI_THEME_DEFAULT ?= 1` keeps the original look as the one a new radio starts
+in (Settings > Display > Theme then offers panels). A board whose original look draws the bitmap fonts while panels
+needs the anti-aliased ones turns `CONFIG_FONT_AA` on with panels and adds `-DFONT_AA_THEME_ONLY` to `MCU_DEFS`. A board
+without the flash for it leaves `CONFIG_UI_THEME_PANELS ?= n` and lists it in `MAXIMAL_SKIP`. See [Adding a UI
+theme](ui-themes.md).
+
 ## The drawing
 
 The site, the web control page and the web flasher's update mode steps show the radio as a drawing,

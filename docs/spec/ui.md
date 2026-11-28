@@ -789,7 +789,8 @@ HIL: `tests/hil/test_ui.py` (`tests/hil/README.md`) replays the main sequences o
 
 A theme is how the screens look. The shared code owns what a screen holds and how it behaves; the theme in use draws
 it. A build has the reference theme ("Original" in Settings, `ui_theme_reference` in `ui_screens.c`) and any theme its
-switches add; today that is the panels theme (`CONFIG_UI_THEME_PANELS`, `core/ui/themes/panels/`).
+switches add; today that is the panels theme (`CONFIG_UI_THEME_PANELS`, `core/ui/themes/panels/`). How to write a
+theme: [Adding a UI theme](../dev/ui-themes.md).
 
 ### 9.1 What is shared and what a theme draws
 

@@ -63,7 +63,7 @@ The UI runs unchanged on the host. Three tools use it:
 
 | Command | Does |
 |---|---|
-| `make -C tests/host run-ui` | `gfxTest` (drawing), `uiThemeTest` (the theme framework, with themes of the test's own in use) and `uiFlowTest`: replays every task flow of [task-flows.md](../ux/task-flows.md) against the press budgets of [usability-tests.md](../ux/usability-tests.md) on four display and key map pairs, and crawls every screen for the rules in [ui.md](../spec/ui.md) 7 |
+| `make -C tests/host run-ui` | `gfxTest` (drawing), `uiThemeTest` (the theme framework, with themes of the test's own in use; `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` with the panels theme, [ui.md](../spec/ui.md) 9.15) and `uiFlowTest`: replays every task flow of [task-flows.md](../ux/task-flows.md) against the press budgets of [usability-tests.md](../ux/usability-tests.md) on four display and key map pairs, and crawls every screen for the rules in [ui.md](../spec/ui.md) 7 |
 | `tests/host/uiSim --geom 160x120i5 --script "ok 4" --out f.png` | Renders one screen after a key script. The options are in the header comment of `tests/host/uiSim.c`, the script tokens in `tests/host/sim/ui_sim.c` |
 | `tools/beep_reel.py` | Makes `build/beep-reel/beep_reel.mp4`: every beep in the scene that sounds it, on the simulated screen, captioned. Needs ffmpeg built with libass (its `subtitles` filter draws the captions). `make -C tests/host run-ui` runs its checks without the video ([radio-features.md](../spec/radio-features.md) 4) |
 | `make -C tests/host ui-gallery` | Renders every gallery screen at every display class into `docs/ux/screens/<class>/`, and one contact sheet per class into `docs/ux/screens/sheets/<class>.png` |
@@ -71,8 +71,11 @@ The UI runs unchanged on the host. Three tools use it:
 
 The display classes are `160x120i5` (160x120 with 5 px hidden left and right), `160x128`,
 `240x320i10x5` (16 colors, anti-aliased fonts one size up, 10 px hidden left and right and 5 px top and bottom),
-`128x64`, `240x320` and `320x240` (landscape); [the wireframes README](../ux/wireframes/README.md) says which radio uses which.
-The user manual uses the `160x120i5` images.
+`128x64`, `240x320`, `320x240` (landscape) and `220x176`, each in the reference theme except `240x320i10x5`, whose radio
+starts in the panels theme. The panels theme's compact layout has classes of its own: `160x128-panels`,
+`160x128iL2T1-panels` (2 px hidden on the left, 1 px at the top: 158 x 127) and `220x176iR10-panels` (10 px hidden on
+the right). [The wireframes README](../ux/wireframes/README.md) says which radio uses which; [Adding a UI
+theme](ui-themes.md#testing-a-theme) says how a theme gets a class. The user manual uses the `160x120i5` images.
 
 Use `python3 tests/host/uiLive.py` to build the host simulator and open its controls in a local browser. The launcher
 uses `320x240iR10`, the 320 × 240 panel with a 10 px right inset, for a visible area of 310 × 240. Use the simulated

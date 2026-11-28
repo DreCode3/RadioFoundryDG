@@ -19,6 +19,7 @@ tooling and link the specs for behavior; they don't repeat them. Users read [doc
 | 6. Add a radio | [Adding a radio](adding-a-radio.md) | The files a board needs, `board_t`, the key map, bring-up order and records |
 | | [The board registry](board-registry.md) | `board.toml` and `platform.toml` field by field, what is derived, `tools/boards.py` |
 | | [Adding a mode](adding-a-mode.md) | A digital mode in the codeplug, the firmware, the Codeplug Editor and zone sharing |
+| | [Adding a UI theme](ui-themes.md) | A new look for the screens: the descriptor, data and ops, the cost rule, fitting a display, icons, tests |
 | 7. Codec | [The codec](codec.md) | How a radio's codec is merged and hosted, and what a merge tool must do |
 | 8. Release | [Releases](release.md) | The checklist, artifacts and manifests, sector maps, codec handling, the release workflow |
 | | [The user manual PDF](manual-pdf.md) | Building the manual and its workflow |
@@ -46,6 +47,7 @@ tooling and link the specs for behavior; they don't repeat them. Users read [doc
 | Add a host test | [Testing, "Host tests"](testing.md#host-tests) |
 | Add a HIL test | [tests/hil/README.md](../../tests/hil/README.md), "Writing a test" |
 | Change the UI | [docs/ux](../ux/), [ui.md](../spec/ui.md), then `make -C tests/host ui-gallery` ([Testing](testing.md#the-ui-simulator-and-the-gallery)) |
+| Add a UI theme | [Adding a UI theme](ui-themes.md) |
 | Add a radio | [Adding a radio](adding-a-radio.md) |
 | Move a radio from stock firmware | The migration tools and specs are listed in the [spec index](../spec/README.md#migrating-from-stock) |
 | Cut a release | [Releases, "Checklist"](release.md#checklist) |
