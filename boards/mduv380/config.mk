@@ -19,7 +19,10 @@ MCU_DEFS += -DUI_TASK_STACK_WORDS=$(if $(filter y,$(CONFIG_UI_THEME_PANELS)),548
 # APRS receive takes the HR_C6000's FM receive audio from the I2S stream (docs/spec/aprs.md 5.3). The iGate (RF to
 # APRS-IS through tools/aprs_gate.py, 1.9 KB) is off by default
 CONFIG_APRS_IGATE ?= n
-MAXIMAL_VARS := LTO=1
+# tools/ci.sh's maximal configuration also links the third-party code (HAL, CMSIS, FreeRTOS, TinyUSB) with LTO
+# (LTO_3P, docs/build-config.md): 3,692 B smaller (Nov 2026), without which it overflowed the app region. The
+# default image keeps LTO_3P off
+MAXIMAL_VARS := LTO=1 LTO_3P=1
 # Left out of tools/ci.sh's maximal configuration: PPP stands in for the USB network adapter on UART-only radios
 # (docs/spec/ppp.md), and this one has the adapter; the APRS iGate is off by default (above); French, off by
 # default, so that the maximal build keeps satellite tracking and still fits the app region; Chinese stays out too
