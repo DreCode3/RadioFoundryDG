@@ -737,7 +737,7 @@ def c_bytes(b):
     return " ".join('"%s"' % s for s in out if s != "") or '""'
 
 
-LANG_STRIDE = 8     # an offset for every this many strings; a lookup steps over the rest
+LANG_STRIDE = 16    # an offset for every this many strings; a lookup steps over the rest (16, not 8: 150 B less a table)
 
 
 def string_table(strings):
