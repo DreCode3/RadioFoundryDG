@@ -151,7 +151,7 @@ Decided Nov 26, after step 4's second attempt:
 
 - Grids: one fixed column split for the whole list, not per page.
 - One row height everywhere; lists show 5 rows on 310 x 240.
-- Lists of only on/off rows with short labels: 2-column toggle tiles with a state chip.
+- ~~Lists of only on/off rows with short labels: 2-column toggle tiles with a state chip.~~ Dropped Nov 27: plain rows.
 - Focus: filled highlight with a drawn accent bar, no "|" character.
 - Scroll position: an "n/N" badge in the title.
 - Soft key bar: exactly two labels, one per soft key.
@@ -457,6 +457,16 @@ resources spent on diminishing returns):
      DM-1701 and 5,816 B on the MD-UV380; default images 384 to 720 B smaller (gd88b and rt10 the same). Full CI
      (`ci-par.sh`, every board, at `e5104c5e`, then the registry step again after a comment fix) passed; 2755 frames, 0
      differ.
+
+8. Upstream preparation (Nov 27). The docs for the framework and panels are written (`1d514260`..), with the
+   Discussion post (`fork-notes/discussion-ui-themes.md`) and the PR plan (`fork-notes/upstream-pr-plan.md`).
+   - Decided Nov 27 (user), on what the docs pass found the plan and code disagree on:
+     - **Dual watch's call history is built into panels** (shared behavior 6): a design pass with mocks for each
+       display size first, for approval, then the build and one check.
+     - **Toggle tiles are dropped** from the plan: on/off lists stay plain rows (the alert tone labels don't fit 2-column
+       tiles even at 310 px).
+     - **The gallery gets a 320x240 panels class, and its night pages draw the night palette** (they repeated the day
+       frame), so the PRs can attach before/after screenshots of the GD-88 look.
 
 ## Planned, not now
 
