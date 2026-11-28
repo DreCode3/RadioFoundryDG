@@ -498,6 +498,9 @@ resources spent on diminishing returns):
      `CONFIG_UI_THEME_PANELS`, and `cc.sh` against `../rf-base-step8` shows 2939 compared, 0 differ. Logged: on 160 px a
      16-character caller pushes the age out of its row; no test checks the list row's age; the clearing rules in
      `ui_dual.c` have no host test (older code).
+   - Decided Nov 28 (user): the short form "A and B receiving" (a `{Receiving on A and B|A and B receiving}`
+     alternate, 136 px in 8x16), which the compact panels line picks where the long form doesn't fit; the heard pane's
+     line only where neither fits. es, it, fr, zh short forms for native review.
 
 ## Planned, not now
 

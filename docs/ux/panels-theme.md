@@ -102,7 +102,7 @@ first two with two large lines and keeps the rest in fixed places.
 - **Dual watch** keeps its two-pane view inside Home's frame, with the calls heard under the panes as the original look
   lists them: the newest two where the full layout has room (three in Commercial on the 220 x 310 screen), the newest
   one in the compact layout. The panes' padding and the gap between them give way for those lines. A caller coming in
-  is named in their pane in both profiles. Trunked and single-frequency repeater channels keep
+  is named in their pane in both profiles. With two receivers the compact line says "A and B receiving". Trunked and single-frequency repeater channels keep
   their own operating views under the same strip and bar, since they show states (the control channel, the grant) a
   channel Home has no place for.
 

@@ -1078,10 +1078,11 @@ long form, and a form still too long is cut at its end. The style asks for room 
 then the gap between them, then the 2 px above the lines give way until that many fit. The lines are in the small font
 where it fits as many, else 8x16. So 310 x 240 lists 2 calls (padding 0, gap 2), 220 x 310 3 in Commercial and 2 in
 Amateur (its padding 0), 210 x 176 2, and the 160 px classes 1 (padding 0, nothing above the line). While a call comes
-in or PTT is held, the state line takes the first of them. Trunked, single-frequency repeater and unbuilt-kind
-channels keep the reference theme's Home body and call screen (`ui_reference_home`, `ui_reference_call_body`), drawn
-under this theme's strip and bar; the compact layout gives them the hint row's room and cuts a long zone name at its
-end.
+in or PTT is held, the state line takes the first of them; with two receivers and one line, "Receiving on A and B" in
+its longest form that fits ("A and B receiving" on 160 px), else the heard pane's line. Trunked, single-frequency
+repeater and unbuilt-kind channels keep the reference theme's Home body and call screen (`ui_reference_home`,
+`ui_reference_call_body`), drawn under this theme's strip and bar; the compact layout gives them the hint row's room
+and cuts a long zone name at its end.
 
 ### 9.12 Panels lists and grids
 
