@@ -482,6 +482,16 @@ resources spent on diminishing returns):
      - **Commercial names the caller** in a receiving pane in place of "Receiving" (shared behavior 6).
      - The newest call's age shows in its pane and its list row, as in the reference theme.
      - `#` `4` listing all 4 calls with OK to call back (option C) is a future shared feature for both themes, not now.
+   - Built in `533cf58f` (code and tests), `808fccd7` (docs), `5ee4d927` (gallery). The room is measured
+     (`ui_dual_style_t.list_rows`: panels asks for 2 lines in the full layout, 1 in the compact one; the panes'
+     padding, then their gap, then the 2 px above the lines give way), the rows drawn in the shared dual watch code
+     under the style (`dual_call_listed`). Frames: the 20 non-large-text dual watch Home frames of each panels class
+     (240x320i10x5, both 160x128 classes, 220x176iR10-panels, 320x240iR10-panels), their sheets and the 4 x 14 profile
+     renders; no reference frame. The layout check found "Receiving on A and B" too wide for the compact line: it gives
+     the heard pane's line there. Tests: uiThemeTestPanels (rows per display, the 310 x 240 offsets, Commercial's
+     caller), uiPrototypeTest (every panels class with the layout check). Flash: GD-88, DM-32, DB25-D +688 B,
+     MD-380 +632 B (maximal +648), DM-1701 (no panels) +16 B for the shared width check; RAM unchanged. UI stack
+     unchanged (GD-88 1664 deepest, 204 free). Baseline now `../rf-base-step8`. CI: `ci-par.sh --board gd88,dm32,md380,db25d` at `5ee4d927` (360 configurations, the checks included) passed.
 
 ## Planned, not now
 

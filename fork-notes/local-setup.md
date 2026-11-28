@@ -167,7 +167,7 @@ python3 fork-notes/tools/compare.py ../rf-baseline ../rf-current     # must repo
 `uiPrototypeTest`, a GD-88 build and its stack check). `scratch.sh` sets up step 1's scratch second theme for the
 stack-check proof.
 
-The current baseline is `../rf-base-step7`, rendered from `e0639219` after step 7 (the port): the DM-32 class in panels and the compact classes included. `../rf-base-freeze` (the frozen GD-88 look) differs from it only in the port's intended classes. Every commit from `dc9e29d6` to `8a59ae5f` renders the same pixels, so any of them can serve for step 2. Keep the
+The current baseline is `../rf-base-step8`, rendered from `5ee4d927` after step 8's dual watch calls heard in panels (the 320x240iR10-panels class and the Night gallery pages included). `../rf-base-step7` (from `e0639219`, after step 7, the port) differs from it in those and in the panels classes' dual watch Home frames and profile renders; `../rf-base-freeze` (the frozen GD-88 look) differs from step 7's only in the port's intended classes. Every commit from `dc9e29d6` to `8a59ae5f` renders the same pixels, so any of them can serve for step 2. Keep the
 output outside the repository. `snapshot.py` uses one render thread per core.
 
 ## Where the work stands
