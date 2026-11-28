@@ -177,7 +177,7 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
 - **Not in it:** `docs/ux/wireframes/gd88-home-profiles.html` (an earlier prototype, not the design), the uiLive
   simulator (PR 10), everything fork-only (below).
 - **Cost:** the DM-32UV's default image +18,864 B (CI at `e5104c5e`); every other board 0 B of panels code.
-- **Tests:** `uiThemeTestPanels`, `uiThemeTestPanelsOriginal`, `uiPrototypeTest.py` (with `uiSimFr`, `uiSimZh`),
+- **Tests:** `uiThemeTestPanels`, `uiThemeTestPanelsOriginal`, `uiPrototypeTest.py` (with `uiSimZh`), the `uiSimFr` checks in `run-ui`,
   `uiThemeTest`, `settingsTest` (offsets 406, 407), `radioCoreTest` (talkgroup order default), `uiFlowTest`, the
   layout check over `240x320i10x5`. Stack check on the DM-32UV.
 - **Gallery:** the `240x320i10x5` class (189 PNGs, the DM-32UV's look changes) and the four 310 x 240 profile
