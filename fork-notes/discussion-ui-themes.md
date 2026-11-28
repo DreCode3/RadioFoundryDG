@@ -144,8 +144,8 @@ Image sizes at `bdb27553`, rebuilt natively (default builds; "panels off" is `CO
 | DM-1701 | 711,016 | not built | 0 |
 | MD-UV380 | 712,356 | not built | 0 |
 
-Dual watch's call list in panels added about 690 B to each panels radio (632 B on the MD-380) and nothing to the
-others. Every radio has room left in its default image: the least is about 25 KB, on the DM-1701 and MD-UV380 (CI
+Dual watch's call list in panels added about 690 B to each panels radio (632 B on the MD-380) and no code to the
+others; its short form "A and B receiving" adds about 20 B of text per language to every radio's language tables. Every radio has room left in its default image: the least is about 25 KB, on the DM-1701 and MD-UV380 (CI
 at `e5104c5e`).
 
 On the radios without panels, what the branch adds over upstream `main` is shared behavior only. Measured on the
