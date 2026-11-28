@@ -379,6 +379,9 @@ const sim_geom_t sim_geoms[] = {
 	{ "160x128-panels", 160, 128, 4, 0, 0, false, false, false, 0, false, true, 0, 0, false },
 	{ "160x128iL2T1-panels", 160, 128, 4, 0, 0, false, false, false, 0, false, true, 2, 1, false },
 	{ "220x176iR10-panels", 220, 176, 4, 0, 0, true, true, false, 10, false, true, 0, 0, true },
+	// The GD-88's 320x240 panel in the panels theme it starts in, as the profile geometry 320x240iR10 simulates it
+	// (10 px hidden on the right: 310 x 240, its Home keys and GPS), so these frames are the profile renders'
+	{ "320x240iR10-panels", 320, 240, 4, 0, 0, true, true, false, 10, true, true, 0, 0, true },
 };
 const int sim_geom_count = sizeof sim_geoms / sizeof sim_geoms[0];
 static const sim_geom_t profile_geom = {

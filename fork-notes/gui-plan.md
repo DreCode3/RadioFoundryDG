@@ -467,7 +467,10 @@ resources spent on diminishing returns):
      - **Toggle tiles are dropped** from the plan: on/off lists stay plain rows (the alert tone labels don't fit 2-column
        tiles even at 310 px).
      - **The gallery gets a 320x240 panels class, and its night pages draw the night palette** (they repeated the day
-       frame), so the PRs can attach before/after screenshots of the GD-88 look.
+       frame), so the PRs can attach before/after screenshots of the GD-88 look. Done: `320x240iR10-panels` (the
+       profile geometry's panel, Home keys and GPS; the 165 of its 189 frames with a frozen profile render equal it),
+       and the night page also sets Day/Night (`daynight:` token). The sim's reset now ticks once at 0 first, so
+       ui_app_tick's GPS check (a function static) no longer leaks from the previous gallery screen.
 
 ## Planned, not now
 

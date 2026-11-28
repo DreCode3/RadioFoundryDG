@@ -74,8 +74,10 @@ The display classes are `160x120i5` (160x120 with 5 px hidden left and right), `
 `128x64`, `240x320`, `320x240` (landscape) and `220x176`, each in the reference theme except `240x320i10x5`, whose radio
 starts in the panels theme. The panels theme's compact layout has classes of its own: `160x128-panels`,
 `160x128iL2T1-panels` (2 px hidden on the left, 1 px at the top: 158 x 127) and `220x176iR10-panels` (10 px hidden on
-the right). [The wireframes README](../ux/wireframes/README.md) says which radio uses which; [Adding a UI
-theme](ui-themes.md#testing-a-theme) says how a theme gets a class. The user manual uses the `160x120i5` images.
+the right), and its full layout `320x240iR10-panels` (10 px hidden on the right: 310 x 240, as `320x240iR10`). In a
+panels class the night pages (`__night`) show the panels theme's Night palette; the light and high-contrast pages
+show its Day palette, since it has no others. [The wireframes README](../ux/wireframes/README.md) says which radio
+uses which; [Adding a UI theme](ui-themes.md#testing-a-theme) says how a theme gets a class. The user manual uses the `160x120i5` images.
 
 Use `python3 tests/host/uiLive.py` to build the host simulator and open its controls in a local browser. The launcher
 uses `320x240iR10`, the 320 × 240 panel with a 10 px right inset, for a visible area of 310 × 240. Use the simulated
