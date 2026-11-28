@@ -71,6 +71,8 @@
 //   channels:full       every channel number past the 40 holds one ("Far 41" ...), but every third: a list past 128
 //   color:<name>        the highlight color (sim_color_find); strip:on|off  the filled status bar (Settings > Display)
 //   theme:<name>        the color theme (sim_theme_find: dark, light, high_contrast, night)
+//   daynight:day|night  Day/Night (Settings > Display, UI_SET_GUI_NIGHT): the palette of a theme that has those two
+//                       (UI_THEME_OPT_DAY_NIGHT, the panels theme) instead of the color themes; others ignore it
 //   splash              draw the boot screen (put it last: nothing redraws over it)
 //   splash:loader       the same splash as the stub entry draws it, while the flashing tools have the radio
 //   shot:<name>         save the screen (sim_set_shot_dir)
@@ -2805,6 +2807,14 @@ void ui_svc_next_aes_key(channel_t *c)
 
 void sim_reset(const sim_geom_t *g, sim_map_t map)
 {
+	// A once-a-second check in core/ui keeps the time it last ran in a function static (ui_app_tick's GPS icon),
+	// which outlives this reset while the clock starts again at 1000, so a script shorter than a second skipped the
+	// next screen's first check. One tick at 0 first leaves it as a fresh start has it: a gallery screen is drawn as
+	// a run of its own is (the GPS icon on a class with a GPS)
+	static bool ticked;
+	if (ticked)
+		(void)ui_app_tick(&view, 0);
+	ticked = true;
 	emergency_on = false;
 	sim_foreign = sim_held = false;
 	gui_profiles = g->gui_profiles;
@@ -4226,6 +4236,19 @@ static bool run_token(char *t, char *err, size_t len)
 		advance(200);
 		return true;
 	}
+#if CONFIG_UI_THEME_PANELS
+	if (strcmp(t, "daynight") == 0 && arg != NULL) {
+		bool night = strcmp(arg, "night") == 0;
+		if (!night && strcmp(arg, "day") != 0) {
+			snprintf(err, len, "daynight: expected day or night");
+			return false;
+		}
+		ui_svc_setting_set(UI_SET_GUI_NIGHT, night);
+		ui_apply_setting(UI_SET_GUI_NIGHT, night);
+		advance(200);
+		return true;
+	}
+#endif
 	if (strcmp(t, "battery") == 0 && arg != NULL) {
 		battery = (uint8_t)atoi(arg);
 		advance(1100);

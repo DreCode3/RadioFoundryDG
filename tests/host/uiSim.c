@@ -11,7 +11,8 @@
 //                            names (space separated, sim_color_find: "red yellow light_blue"), as
 //                            <screen>__<color>.png right after it, on color displays only (none when it is unset).
 //                            The theme pages are drawn again in the light, high-contrast and night themes too, as
-//                            <screen>__light.png, <screen>__high_contrast.png and <screen>__night.png
+//                            <screen>__light.png, <screen>__high_contrast.png and <screen>__night.png (the night
+//                            page also sets Day/Night, so a panels class shows the panels theme's Night palette there)
 //   uiSim --sheets DIR [GEOM] contact sheets only: DIR/<geom>.png, every gallery screen at 2x under its name in one
 //                            palette PNG, at one display class or all of them (a quick layout audit)
 //   uiSim --ellipsis [GEOM]  every text shortened with an ellipsis on the gallery screens and the settings pages
@@ -589,7 +590,11 @@ static bool gallery_shot(size_t i, int c, const sim_geom_t *g, char *name, size_
 	} else {
 		const char *v = theme ? sim_themes[c - gal_ncolors] : gal_colors[c - 1];
 		snprintf(name, nlen, "%s__%s", gallery[i].name, v);
-		snprintf(script, slen, "%s:%s %s", theme ? "theme" : "color", v, gallery[i].script);
+		// The night page also sets Day/Night to Night: a theme with Day and Night palettes instead of the color
+		// themes (the panels theme) draws its Night one there, the others ignore it
+		bool night = CONFIG_UI_THEME_PANELS && theme && strcmp(v, "night") == 0;
+		snprintf(script, slen, "%s:%s %s%s", theme ? "theme" : "color", v, night ? "daynight:night " : "",
+			 gallery[i].script);
 	}
 	return true;
 }
