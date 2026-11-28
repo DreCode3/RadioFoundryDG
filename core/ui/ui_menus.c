@@ -6831,15 +6831,16 @@ enum { SA_DIAG, SA_FIRMWARE, SA_CODEPLUG, SA_RESET, SA_MY_RADIO, SA_CRASH, SA_LA
 
 typedef struct {
 	tr_id_t name;			// TRN; TR_NONE for a key's row (set_name)
-	const char *syn;		// another name Find knows it by, in English (never shown)
 	uint8_t type;			// set_type_t
 	uint8_t id;			// ui_setting_t, or SA_* for an action
 	uint8_t n;			// ST_LIST: how many values
-	// By type, in the same bytes (24 a row, not 32: there are about 80 rows)
+	const char *syn;		// another name Find knows it by, in English (never shown)
+	// By type, in the same bytes. The small fields first and the unit as an index keep a row at 20 bytes on the radios
+	// (about 110 rows). The UI's own table: the settings store's layout is docs/spec/settings-store.md
 	union {
 		struct {			// ST_NUMBER
 			int16_t min, max, step;
-			const char *unit;	// after the number, or NULL
+			uint8_t unit;		// SU_*: after the number (set_units)
 		};
 		struct {			// ST_LIST
 			const int16_t *values;
@@ -6847,7 +6848,7 @@ typedef struct {
 		};
 	};
 } set_item_t;
-_Static_assert(sizeof(void *) != 4 || sizeof(set_item_t) <= 24, "a settings row grew (on the radios; the host's is larger)");
+_Static_assert(sizeof(void *) != 4 || sizeof(set_item_t) <= 20, "a settings row grew (on the radios; the host's is larger)");
 
 typedef struct {
 	tr_id_t name;		// its row where one opens it, and its page's title
@@ -7117,10 +7118,13 @@ static const int16_t v_sigout_local[] = { 0, 1, 2 };
 static const tr_id_t n_sigout_local[] = { TRN(VALUE_DEFAULT, "Default"), TRN(VALUE_OFF, "Off"), TRN(SIG_VALUE_SPEAKER, "Speaker") };
 #endif
 
-#define TOGGLE(nm, syn_, sid) { nm, syn_, ST_TOGGLE, sid, 0, { { 0, 1, 1, NULL } } }
-#define NUMBER(nm, syn_, sid, lo, hi, st, u) { nm, syn_, ST_NUMBER, sid, 0, { { lo, hi, st, u } } }
-#define LIST(nm, syn_, sid, v, nms) { nm, syn_, ST_LIST, sid, sizeof v / sizeof v[0], { .values = v, .names = nms } }
-#define ACTION(nm, syn_, a) { nm, syn_, ST_ACTION, a, 0, { { 0, 0, 0, NULL } } }
+// A number row's unit (set_item_t.unit): an index, not a pointer, so a row stays at 20 bytes
+enum { SU_NONE, SU_PCT, SU_S, SU_MS, SU_COUNT };
+static const char *const set_units[SU_COUNT] = { NULL, "%", " s", " ms" };
+#define TOGGLE(nm, syn_, sid) { nm, ST_TOGGLE, sid, 0, syn_, { { 0, 1, 1, SU_NONE } } }
+#define NUMBER(nm, syn_, sid, lo, hi, st, u) { nm, ST_NUMBER, sid, 0, syn_, { { lo, hi, st, u } } }
+#define LIST(nm, syn_, sid, v, nms) { nm, ST_LIST, sid, sizeof v / sizeof v[0], syn_, { .values = v, .names = nms } }
+#define ACTION(nm, syn_, a) { nm, ST_ACTION, a, 0, syn_, { { 0, 0, 0, SU_NONE } } }
 
 // Settings > Display: the theme where there is a choice, the appearance rows of the theme in use (its options,
 // ui_theme.h), then the rest
@@ -7141,7 +7145,7 @@ static const set_item_t s_display[] = {
 	LIST(TRN(SET_LABEL_HIGHLIGHT_COLOR, "Highlight color"), "accent", UI_SET_ACCENT, v_accent, n_accent),
 	TOGGLE(TRN(SET_LABEL_FILLED_STATUS_BAR, "Filled status bar"), "top line", UI_SET_STRIP),
 #endif
-	NUMBER(TRN(SET_LABEL_BRIGHTNESS, "Brightness"), "backlight", UI_SET_BRIGHTNESS, 10, 100, 10, "%"),
+	NUMBER(TRN(SET_LABEL_BRIGHTNESS, "Brightness"), "backlight", UI_SET_BRIGHTNESS, 10, 100, 10, SU_PCT),
 	LIST(TRN(SET_LABEL_BACKLIGHT, "Backlight"), "timeout dim off", UI_SET_BACKLIGHT_S, v_backlight, n_backlight),
 	TOGGLE(TRN(SET_LABEL_LARGE_TEXT, "Large text"), "accessibility", UI_SET_LARGE_TEXT),
 	TOGGLE(TRN(SET_LABEL_HINT_ROW, "Hint row"), "help", UI_SET_HINTS),
@@ -7153,12 +7157,12 @@ static const set_item_t s_display[] = {
 	ACTION(TRN(SET_LABEL_LANGUAGE, "Language"), "idioma langue sprache lingua taal jezyk", SA_LANGUAGE),
 	TOGGLE(TRN(LABEL_BATTERY_SAVER, "Battery saver"), "power", UI_SET_BATTERY_SAVER),
 	LIST(TRN(SET_LABEL_AUTO_POWER_OFF, "Auto power off"), NULL, UI_SET_AUTO_OFF_MIN, v_autooff, n_autooff),
-	NUMBER(TRN(SET_LABEL_LOW_BATTERY_WARNING, "Low battery warning"), NULL, UI_SET_LOW_BATTERY, 5, 30, 5, "%"),
+	NUMBER(TRN(SET_LABEL_LOW_BATTERY_WARNING, "Low battery warning"), NULL, UI_SET_LOW_BATTERY, 5, 30, 5, SU_PCT),
 };
 // Settings > Tones & alerts: the levels and the general switches, then its two pages
 static const set_item_t s_tones[] = {
-	NUMBER(TRN(TITLE_VOLUME, "Volume"), "speaker loudness", UI_SET_VOLUME, 0, RADIO_VOLUME_MAX, 1, NULL),
-	NUMBER(TRN(SET_LABEL_TONE_VOLUME, "Tone volume"), NULL, UI_SET_TONE_VOLUME, 0, 10, 1, NULL),
+	NUMBER(TRN(TITLE_VOLUME, "Volume"), "speaker loudness", UI_SET_VOLUME, 0, RADIO_VOLUME_MAX, 1, SU_NONE),
+	NUMBER(TRN(SET_LABEL_TONE_VOLUME, "Tone volume"), NULL, UI_SET_TONE_VOLUME, 0, 10, 1, SU_NONE),
 	TOGGLE(TRN(SET_LABEL_KEY_TONES, "Key tones"), "beep", UI_SET_KEY_TONES),
 	TOGGLE(TRN(SET_LABEL_VOICE_PROMPTS, "Voice prompts"), "speech", UI_SET_VOICE_PROMPTS),
 #if CONFIG_VIBRATE
@@ -7206,13 +7210,13 @@ static const set_item_t s_sigtones[] = {
 };
 #endif
 static const set_item_t s_audio[] = {
-	NUMBER(TRN(SET_LABEL_MIC_GAIN, "Mic gain"), NULL, UI_SET_MIC_GAIN, 0, 10, 1, NULL),
+	NUMBER(TRN(SET_LABEL_MIC_GAIN, "Mic gain"), NULL, UI_SET_MIC_GAIN, 0, 10, 1, SU_NONE),
 	TOGGLE(TRN(SET_LABEL_MIC_AGC, "Mic AGC"), "automatic gain level", UI_SET_MIC_AGC),
 	TOGGLE(TRN(SET_LABEL_MIC_NOISE_REDUCTION, "Mic noise reduction"), "noise suppression background",
 		UI_SET_NOISE_REDUCTION),
 };
 static const set_item_t s_call[] = {
-	NUMBER(TRN(SET_LABEL_REPLY_WINDOW, "Reply window"), NULL, UI_SET_REPLY_S, 0, 30, 1, " s"),
+	NUMBER(TRN(SET_LABEL_REPLY_WINDOW, "Reply window"), NULL, UI_SET_REPLY_S, 0, 30, 1, SU_S),
 	LIST(TRN(SET_LABEL_TX_TIMEOUT, "TX timeout"), "TOT", UI_SET_TOT_S, v_tot, n_tot),
 	TOGGLE(TRN(SET_LABEL_SHOW_TALKER_ALIAS, "Show talker alias"), NULL, UI_SET_ALIAS_SHOW),
 	// DMR, not Digital: the whole name doesn't fit beside its value on a 160 px display, nor two forms in a row's label
@@ -7230,7 +7234,7 @@ static const set_item_t s_call[] = {
 #endif
 };
 static const set_item_t s_receive[] = {
-	NUMBER(TRN(SET_LABEL_DEFAULT_SQUELCH, "Default squelch"), NULL, UI_SET_SQUELCH, 0, 9, 1, NULL),
+	NUMBER(TRN(SET_LABEL_DEFAULT_SQUELCH, "Default squelch"), NULL, UI_SET_SQUELCH, 0, 9, 1, SU_NONE),
 #if CONFIG_VFO
 	LIST(TRN(SET_LABEL_VFO_STEP, "VFO step"), "frequency tuning channel spacing", UI_SET_VFO_STEP, v_step, n_step),
 #endif
@@ -7248,7 +7252,7 @@ static const set_item_t s_receive[] = {
 static const set_item_t s_privacy[] = {
 	LIST(TRN(SET_LABEL_PRIVACY_KEY_TYPE, "Key type"), "privacy encryption", UI_SET_PRIVACY_TYPE, v_ptype, n_ptype),
 	// the range follows the type (set_range)
-	NUMBER(TRN(SET_LABEL_PRIVACY_KEY, "Key"), "privacy BP", UI_SET_PRIVACY_KEY, 1, 255, 1, NULL),
+	NUMBER(TRN(SET_LABEL_PRIVACY_KEY, "Key"), "privacy BP", UI_SET_PRIVACY_KEY, 1, 255, 1, SU_NONE),
 };
 #endif
 // The key lock's rules: when it locks by itself and what still works while locked
@@ -7344,8 +7348,8 @@ static void key_labels(void)
 }
 #endif
 static const set_item_t s_keys[] = {
-	NUMBER(TRN(SET_LABEL_LONG_PRESS_TIME, "Long press time"), NULL, UI_SET_LONG_PRESS_MS, 400, 1200, 100, " ms"),
-	NUMBER(TRN(SET_LABEL_KEY_REPEAT, "Key repeat"), NULL, UI_SET_REPEAT_MS, 60, 300, 20, " ms"),
+	NUMBER(TRN(SET_LABEL_LONG_PRESS_TIME, "Long press time"), NULL, UI_SET_LONG_PRESS_MS, 400, 1200, 100, SU_MS),
+	NUMBER(TRN(SET_LABEL_KEY_REPEAT, "Key repeat"), NULL, UI_SET_REPEAT_MS, 60, 300, 20, SU_MS),
 	LIST(TRN(SET_LABEL_UP_DOWN_ON_HOME, "Up/Down on Home"), NULL, UI_SET_UPDOWN_HOME, v_updown, n_updown),
 #if CONFIG_KEY_ASSIGN
 #define KEY_ROWS(r) \
@@ -7375,7 +7379,7 @@ static const set_item_t s_programming[] = {
 #endif
 #if CONFIG_REF_TRIM
 	NUMBER(TRN(SET_ROW_FREQUENCY_TRIM, "Frequency trim"), "freq offset reference oscillator calibration ppm",
-		UI_SET_REF_TRIM, -REF_TRIM_MAX_PPB, REF_TRIM_MAX_PPB, REF_TRIM_STEP_PPB, NULL),	// its own page
+		UI_SET_REF_TRIM, -REF_TRIM_MAX_PPB, REF_TRIM_MAX_PPB, REF_TRIM_STEP_PPB, SU_NONE),	// its own page
 #endif
 #if CONFIG_RX_EXT
 	TOGGLE(TRN(SET_LABEL_RX_PAST_BANDS, "RX past bands"), "extended out of band receive range", UI_SET_RX_EXT),
@@ -7926,8 +7930,8 @@ static void set_value_text(const set_item_t *s, int32_t v, char *out, size_t len
 		}
 #endif
 		sb_i32(&b, v);
-		if (s->unit != NULL)
-			sb_str(&b, s->unit);
+		if (s->unit != SU_NONE)
+			sb_str(&b, set_units[s->unit]);
 		break;
 	default:
 		break;
