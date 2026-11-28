@@ -19,7 +19,7 @@ Keep the number of concepts small and name them the same everywhere.
 | **Talk target** | Where PTT goes right now: a talkgroup, a person, all-call or (FM) the channel | TX contact, contact, call target |
 | **Talkgroup (TG)** | A DMR group number with an optional name | group contact |
 | **Contact** | A person (DMR ID, name, callsign) | private contact, digital contact |
-| **Listen list** | The talkgroups a channel listens to (the codeplug's RX group list) | RX group list (that phrase appears only in "Advanced" and in qdmr) |
+| **Listen list** | The talkgroups a channel listens to (the codeplug's RX group list) | RX group list (that phrase appears only in Settings > Programming and in qdmr) |
 | **Call log** | Stations heard and calls made, newest first | recent, last heard (a filter inside the call log) |
 | **Digital monitor** | Promiscuous monitoring: play every talkgroup on this timeslot ("hear all" in the code) | promiscuous, hear all |
 
@@ -31,7 +31,7 @@ The talk target has three lifetimes:
 2. **Temporary**: `SELECT` on a talkgroup or contact ("Use TG 91", "Use Joe"). Stays until the channel changes or `BACK` on Home.
 3. **Permanent**: long `SELECT` on it ("Make channel default"). Writes the channel.
 
-Replying to whoever just spoke is automatic during the reply window: if a station calls on TG 91 while the channel default is TG 3100, Home shows "Reply → TG 91 (8 s)" and PTT goes to TG 91 until the countdown ends. The setting "Reply window" (Talk & listen) allows 0 (off) to 30 s.
+Replying to whoever just spoke is automatic during the reply window: if a station calls on TG 91 while the channel default is TG 3100, Home shows "Reply → TG 91 (8 s)" and PTT goes to TG 91 until the countdown ends. The setting "Reply window" (Settings > Call settings) allows 0 (off) to 30 s.
 
 ---
 
@@ -69,7 +69,8 @@ Rules for key maps (P3, P10):
 
 Home answers four questions at a glance (P2, P5): **Where am I** (zone, channel), **What will PTT do** (talk target, mode, TS/CC or tone, power, privacy), **What is happening** (TX/RX, caller), **Is the radio OK** (battery, signal, GPS, messages, lock).
 
-Regions, top to bottom, the same on every display class (sizes differ):
+Regions, top to bottom, the same on every display class (sizes differ). This is the reference look; the panels look
+keeps the same answers in panes of its own, with a Commercial and an Amateur layout ([panels-theme.md](panels-theme.md) 4):
 
 1. **Status strip**: state pill (TX red / RX green / scan / hotspot / idle), USB network word (IP, with link arrows once the computer has it up), RSSI, battery %, GPS fix, unread messages, lock, privacy. Drawn on every screen; on small displays a page's title takes the strip's place and the battery is left to Home.
 2. **Place**: zone name (small) and channel number + name (large). In VFO: the frequency (large) and "VFO".
@@ -107,7 +108,8 @@ Large-text mode (accessibility, or chosen by the user) shows only the status str
 `SELECT` on Home opens Menu, titled Menu. Its entries are numbered as the keypad's 3x3 grid; digits pick directly, and
 each entry keeps its digit on every radio and build so muscle memory works.
 Entries show their values where they fit beside the name: the unread count on Messages, the zone in use on Zones, a
-running scan on Scan.
+running scan on Scan. The panels look leaves the zone off its Zones tile, since its Home shows the zone
+([panels-theme.md](panels-theme.md) 5).
 
 | # | Entry | What is inside |
 |---|---|---|
