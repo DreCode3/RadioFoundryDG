@@ -4,8 +4,8 @@
 # Upstream pull request plan for the GUI work (fork-only)
 
 How `feat/gd88-gui` splits into reviewable pull requests for `radiofoundry/radiofoundry`, after the Discussion post
-([discussion-ui-themes.md](discussion-ui-themes.md)) has the maintainers' answers. Facts as of Nov 27, 2026 (branch
-at the docs commits after `43ffb323`); the design is in [gui-plan.md](gui-plan.md).
+([discussion-ui-themes.md](discussion-ui-themes.md)) has the maintainers' answers. Facts as of Nov 28, 2026 (branch
+at `bdb27553`); the design is in [gui-plan.md](gui-plan.md).
 
 ## Rules that shape the split
 
@@ -32,7 +32,7 @@ From `docs/dev/contributing.md`, `.github/PULL_REQUEST_TEMPLATE.md` and CLAUDE.m
 ## What must land first
 
 - **`feature/gd88_bringup`** (`c13059ce`, the maintainer's branch) is not in upstream `main`. The fork's branch sits on
-  it plus upstream `main` merges (5 commits behind `main` on Nov 27). Only PR 9 (the GD-88's own change) needs it.
+  it plus upstream `main` merges (5 commits behind `main` on Nov 28). Only PR 9 (the GD-88's own change) needs it.
   Check its state before each PR: `git ls-remote upstream feature/gd88_bringup`.
 - Every other PR is **re-cut onto upstream `main`**, not opened from `feat/gd88-gui`: the branch's history carries the
   bring-up branch, the first prototype (`c08818d0`..`a948b26d`, `CONFIG_UI_PROFILES` branches later replaced) and
@@ -168,6 +168,13 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
     clock, the hint row's OK and Back flags (`SF_OK_ACTS`, `SF_BACK_ACTS`).
   - `boards/dm32/config.mk` (`CONFIG_UI_THEME_PANELS ?= $(CONFIG_UI_COLOR)`) and `board.mk` (`GFX_MIN_ROWS=320`),
     `cc296f81`; the simulator's `240x320i10x5` class in panels (`d04d9c40`).
+  - Dual watch's calls heard in panels (step 8, shared behavior 6): `ui_dual_style_t.list_rows` and the shared rows
+    (`dual_call_listed`) in `ui_dual.c`/`ui_screens.c`, Commercial naming the caller, the full layout's row counts and
+    pane offsets: `533cf58f` (code and tests), `808fccd7` (docs), `5ee4d927` (gallery), with `aa84b75a` (the
+    two-receivers width check built only with panels). The compact layout's one row and the short form go in PR 8.
+  - The gallery: the `320x240iR10-panels` class, the GD-88 look as the radio draws it (`380e0e34`), and the panels
+    classes' night pages drawing the Night palette (`cbae19f3`, the `daynight:` script token). Neither needs the
+    bring-up branch: the class is a simulator geometry, not the GD-88 board.
   - Docs: `docs/spec/ui.md` section 9, `docs/ux/panels-theme.md`, `docs/dev/ui-themes.md`, `docs/build-config.md`,
     `docs/feature-matrix.md`, `docs/user/05`, `06`, `17`, `23-radios.md` (DM-32UV), `docs/ux/profile-samples/`.
   - Commits: steps 2, 4, 5 and 5b's panels parts (`6590540a`..`70a91cc3`, `94aad766`, `98f73a3c`, `22a46540`..`7ab0bf3f`,
@@ -178,18 +185,21 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
     session's docs commits.
 - **Not in it:** `docs/ux/wireframes/gd88-home-profiles.html` (an earlier prototype, not the design), the uiLive
   simulator (PR 10), everything fork-only (below).
-- **Cost:** the DM-32UV's default image +18,864 B (CI at `e5104c5e`); every other board 0 B of panels code.
+- **Cost:** the DM-32UV's default image +19,596 B (rebuilt at `bdb27553`, panels on against off; dual watch's list is
+  about 690 B of it); every other board 0 B of panels code.
 - **Tests:** `uiThemeTestPanels`, `uiThemeTestPanelsOriginal`, `uiPrototypeTest.py` (with `uiSimZh`), the `uiSimFr` checks in `run-ui`,
   `uiThemeTest`, `settingsTest` (offsets 406, 407), `radioCoreTest` (talkgroup order default), `uiFlowTest`, the
-  layout check over `240x320i10x5`. Stack check on the DM-32UV.
-- **Gallery:** the `240x320i10x5` class (189 PNGs, the DM-32UV's look changes) and the four 310 x 240 profile
-  samples. Attach Home, a call, Menu, Quick, Settings, Settings > Display, a list and the keys-locked bar, before
-  (Original) and after.
+  layout check over `240x320i10x5` and `320x240iR10-panels`. `uiThemeTestPanels`' dual watch cases (rows per display,
+  the 310 x 240 offsets, Commercial's caller). Stack check on the DM-32UV.
+- **Gallery:** the `240x320i10x5` class (189 PNGs, the DM-32UV's look changes), the new `320x240iR10-panels` class
+  (189 PNGs, the GD-88 look) and the four 310 x 240 profile samples. Attach Home, a call, dual watch with its calls
+  heard, Menu, Quick, Settings, Settings > Display, a list, the keys-locked bar and a night page, before (Original, the
+  `320x240` class) and after.
 - **Translations:** the panels labels (`SET_VALUE_THEME_*`, `SET_LABEL_DAY_NIGHT`, `SET_LABEL_GUI_PROFILE` with
   `{Display profile|Profile}`, Quick's whole words, the month names of the GPS clock) are in every catalog; native
   review open as in PR 6.
 - **Alternative:** if the maintainers want the DM-32UV default apart, it becomes PR 7b (`feat/dm32-panels-default`),
-  and PR 7's gallery shows the theme only in the profile samples until then.
+  and PR 7's gallery shows the full layout in `320x240iR10-panels` and the profile samples until then.
 
 ### 8. UI: the panels theme's compact layout for small screens
 
@@ -197,9 +207,11 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
   compact layout out), `f8ad4b94`, `b51b466e` (the sliding focused row), `edee0597`, `8a024c6b`, `a0b4c059`, `90faf70e`,
   `af02fcd9` (`FONT_AA_THEME_ONLY`), `b9938edf`, `44f4beb3`, `9fc4314a`, the 158 x 127 fit from `aeb73816`; the 16 px
   icon set in `panels_icons.h`; the gallery classes `160x128-panels`, `160x128iL2T1-panels`, `220x176iR10-panels`; the
-  compact parts of ui.md 9.6 to 9.12 and the manual.
-- **Cost:** the GD-88's panels cost (both layouts, 23,392 B) less the DM-32UV's (full layout, 18,864 B) is 4,528 B (CI at
-  `e5104c5e`). That compares two boards, so it bounds the compact layout's share rather than measuring it alone. A
+  compact parts of ui.md 9.6 to 9.12 and the manual. Dual watch's compact parts from step 8: one call row (the panes'
+  padding to 0) and the two-receivers line's short form `{Receiving on A and B|A and B receiving}` (`bbfccbd6`,
+  `817fbd5b`).
+- **Cost:** the GD-88's panels cost (both layouts, 24,124 B) less the DM-32UV's (full layout, 19,596 B) is 4,528 B
+  (rebuilt at `bdb27553`). That compares two boards, so it bounds the compact layout's share rather than measuring it alone. A
   compact-only board pays about 17.4 KB for the theme.
 - **Tests:** `uiThemeTestPanels`' compact cases (rows with and without the hint row, Home, a call, the reference Home
   body, the grids, the sliding row, the list flags of a measured list), `uiThemeTestPanelsOriginal`, the layout check
@@ -207,7 +219,7 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
 - **Gallery:** the three new classes (about 567 PNGs and 3 contact sheets). Attach Home, a call, Menu, Quick,
   Settings, Settings > Display and a long list at 158 x 127.
 - **Translations:** `{Keys locked: hold * to unlock|Locked: hold * to unlock|Hold * to unlock}` in every catalog
-  (from PR 6); nothing new.
+  (from PR 6). New: "A and B receiving", with es, it, fr and zh short forms written, native review open.
 
 ### 9. Per radio
 
@@ -216,7 +228,7 @@ The DM-32UV default goes in PR 7 (below), since the gallery's `240x320i10x5` cla
 | 9a MD-380 | `boards/md380/config.mk`: panels on, original look by default (`CONFIG_UI_THEME_DEFAULT ?= 1`), `FONT_AA` with it and `FONT_AA_THEME_ONLY`, UI stack 548 words; `docs/user/23-radios.md`; part of `aeb73816` | MD-380 default and `no-UI_THEME_PANELS` builds, `make stack-check` (about 200 B free) | none (the class exists from PR 8) |
 | 9b DB25-D PRO | `boards/db25d/config.mk` as the MD-380's, `7e6aa89e`; `23-radios.md` | DB25-D builds (C-SKY), stack check | none |
 | 9c MD-UV380 | `boards/mduv380/config.mk`: panels off by default, `UI_THEME_PANELS` and `FONT_AA` in `MAXIMAL_SKIP` (`e5104c5e`/`cee9bbcd`: its default image draws no anti-aliased font; 6,080 B, without which the maximal build was 272 B short after PRs 1 to 3), the UI stack for a custom build that turns panels on; `23-radios.md`. The PR says the maximal build stops covering `FONT_AA` on this board (the MD-380, DB25-D, DM-32UV and GD-88 builds still do). If the maximal build overflows earlier in the series, this skip moves to the PR that overflows it, with that reason | MD-UV380 default and maximal | none |
-| 9d GD-88 | `boards/gd88/config.mk` (`CONFIG_UI_THEME_PANELS ?= $(CONFIG_UI_COLOR)`), `23-radios.md`; the `320x240` gallery class to panels (it still draws the reference theme on the branch) | GD-88 default, maximal and switch-off builds, stack check | the `320x240` class (189 PNGs) |
+| 9d GD-88 | `boards/gd88/config.mk` (`CONFIG_UI_THEME_PANELS ?= $(CONFIG_UI_COLOR)`), `23-radios.md`. Its look's gallery class (`320x240iR10-panels`) comes with PR 7; the plain `320x240` class stays its Original look | GD-88 default, maximal and switch-off builds, stack check | none |
 
 Translations: none in 9a to 9c; 9d none.
 
@@ -241,10 +253,8 @@ Translations: none in 9a to 9c; 9d none.
 
 ## Open items to settle before PR 7
 
-- The `320x240` gallery class draws the reference theme although the GD-88 starts in panels; the 310 x 240 panels
-  frames are only the four profile samples and the fork's pixel baseline. Decide in PR 9d (flip the class) or earlier.
-- The gallery's palette pages (`__light`, `__night`, `__high_contrast`) in a panels class repeat the Day frame, since
-  panels ignores Colors; panels' Night has no gallery frame (only `settings-night.png`). Skip those pages in panels
-  classes, or draw panels' Night there instead.
+- The gallery's light and high-contrast pages in a panels class repeat the Day frame, since panels ignores Colors (the
+  night pages draw panels' Night since `cbae19f3`). Skip them in panels classes? (Discussion question 9.)
+- The plain `320x240` class stays the GD-88's Original look; the GD-88's panels look is `320x240iR10-panels`.
 - `uiPrototypeTest.py` and `uiLive` still say "profiles" and "prototype" in places (`320x240iR10` is the
   `gui_profiles` geometry): rename before upstream review.

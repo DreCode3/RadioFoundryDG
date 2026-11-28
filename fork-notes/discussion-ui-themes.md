@@ -1,8 +1,9 @@
 <!-- SPDX-License-Identifier: MIT -->
 <!-- Copyright (c) 2026 The RadioFoundry Authors -->
 <!-- Final text for the upstream GitHub Discussions board (Ideas). Fork-only: post the text below the line, not this file.
-     Facts as of feat/gd88-gui at 43ffb323 plus the docs commits after it (Nov 27, 2026); sizes from the CI size report at e5104c5e
-     (../rf-work.noindex/ci-e5104c5e/size-report.md). Attach the images listed at the end; copies with a README are in
+     Facts as of feat/gd88-gui at bdb27553 (Nov 28, 2026). Image sizes rebuilt natively at bdb27553 (default and
+     CONFIG_UI_THEME_PANELS=n, the .bin as ci.sh counts it); the e5104c5e CI size report
+     (../rf-work.noindex/ci-e5104c5e/size-report.md) for the figures before step 8. Attach the images listed at the end; copies with a README are in
      ../rf-port-out/discussion/. The PR series in detail: upstream-pr-plan.md. -->
 
 ---
@@ -20,7 +21,8 @@ I'd like your feedback before I open pull requests. On my fork I have built, and
    keypad, and Settings in nine groups of one topic each.
 3. **A second theme, "panels"**: rounded panes, a two-label soft key bar, Day and Night palettes, and a Commercial and
    an Amateur Home layout. It fits color displays from 158 x 127 up, in a full layout from 220 x 200 and a compact one
-   below that.
+   below that. What a screen tells the user stays the same: dual watch, for example, lists the calls heard and names the
+   caller in both looks.
 
 The framework is the part I'd most like to agree on, because the rest builds on it.
 
@@ -42,6 +44,11 @@ holds the fonts and regions, and Dark, Light, High contrast and Night are palett
 A theme never adds, removes or reorders a menu entry, never changes what a key does, and never hides a feature. So
 the task flows and press budgets (`uiFlowTest`) hold for every theme. Shared code never asks which theme is in use;
 it tests an option the theme declares.
+
+Some behavior is shared even where the two looks draw it differently: during a DMR call Home shows the caller, the
+talkgroup and the signal; the status strip carries the same set of states; Large text and Talkgroup name first work in
+every layout; Menu tiles show their values; and dual watch keeps its list of calls heard and names a caller coming in.
+The theme only decides how much room each gets (dual watch: two calls on 310 x 240, one on 160 x 128).
 
 ### The descriptor
 
@@ -97,10 +104,11 @@ calls instead gave an image of byte-identical size. The split itself costs about
 |---|---|
 | Reference theme behind the descriptor | Done with no visual change: every frame identical, compared with the fork's pixel-baseline scripts. Upstream's tools show the same: `make -C tests/host ui-gallery` leaves `docs/ux/screens` unchanged |
 | Menu tree, settings groups, naming | Done: 3x3 Menu (Contacts, Messages, Call log, Zones, Scan, Location, Connections, Settings, 9 free), nine Settings groups plus Radio info, a page's title is the row that opens it. Task flows, press budgets, information architecture, HIL tests and translations updated |
-| Panels theme | Done: full layout (310 x 240 and 220 x 310), compact layout (158 x 127 to 210 x 176), 23 icons drawn from first principles by a generator script, Day and Night |
+| Panels theme | Done: full layout (310 x 240 and 220 x 310), compact layout (158 x 127 to 210 x 176), 23 icons drawn from first principles by a generator script, Day and Night. Dual watch's calls heard under the panes as many as fit (2 on 310 x 240; 3 in Commercial and 2 in Amateur on 220 x 310; 2 on 210 x 176; 1 on 160 px), drawn by the shared dual watch code, and Commercial names a caller coming in |
+| Gallery | Five classes in panels, 189 screens each: `320x240iR10-panels` (the GD-88 look as the radio draws it; before the dual watch change, each of its frames with a counterpart in my frozen reference renders, 165 of 189, was pixel-identical to it), `240x320i10x5` (220 x 310) and the compact `160x128-panels`, `160x128iL2T1-panels` (158 x 127) and `220x176iR10-panels`. Their night pages draw the Night palette |
 | Text that fits | Text alternates (`{long|short}`) for narrow screens, whole-word short forms in English, Spanish, Italian, French and Chinese, never a font under 8x16 in panels |
-| Host tests | `uiThemeTest` (the framework with test themes), `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` (panels frames checked by structure), `uiPrototypeTest.py` (panels at 310 x 240), the layout check (`uiSim --layout`) over every gallery class including the panels ones, `uiFlowTest` (every task flow and press budget on four display and key map pairs, and the crawler, updated for the new menu tree; it runs the reference theme) |
-| CI | `tools/ci.sh` on every board at `e5104c5e` (Nov 27): all 802 firmware configurations built with zero warnings. The board registry check failed on a comment that named radios; `cee9bbcd` fixed it, and the checks step re-run at `43ffb323` passed. The fork's pixel-baseline scripts (not in upstream) compared 2,755 rendered frames with 0 unintended changes; upstream's equivalent is the gallery diff and `uiSim --layout` |
+| Host tests | `uiThemeTest` (the framework with test themes), `uiThemeTestPanels` and `uiThemeTestPanelsOriginal` (panels frames checked by structure), `uiPrototypeTest.py` (panels at 310 x 240, and dual watch in every panels class), the layout check (`uiSim --layout`) over every gallery class including the panels ones, `uiFlowTest` (every task flow and press budget on four display and key map pairs, and the crawler, updated for the new menu tree; it runs the reference theme) |
+| CI | `tools/ci.sh` on every board at `e5104c5e` (Nov 27): all 802 firmware configurations built with zero warnings. The board registry check failed on a comment that named radios; `cee9bbcd` fixed it, and the checks step re-run at `43ffb323` passed. After the dual watch work, ci.sh for the four panels boards (GD-88, DM-32UV, MD-380, DB25-D) at `5ee4d927`: 360 configurations and the checks, passed. The fork's pixel-baseline scripts (not in upstream) compared 2,939 rendered frames with 0 unintended changes; upstream's equivalent is the gallery diff and `uiSim --layout` |
 | Not done | HIL and on-air checks of the new UI; native-speaker review of the French, Italian, Spanish and Chinese wording |
 
 Docs on the branch: a Themes section in `docs/spec/ui.md`, `docs/dev/ui-themes.md` (how to add a theme),
@@ -124,16 +132,21 @@ hand.
 
 ## Measured cost
 
-Image sizes from `tools/ci.sh` at `e5104c5e` (default builds; "panels off" is ci's `no-UI_THEME_PANELS` build):
+Image sizes at `bdb27553`, rebuilt natively (default builds; "panels off" is `CONFIG_UI_THEME_PANELS=n`, as ci's
+`no-UI_THEME_PANELS` build):
 
-| Radio | Default image | Free | Panels off | Panels costs |
-|---|---:|---:|---:|---|
-| DM-32UV | 804,532 | 96,588 | 785,668 | 18,864 B (full layout) |
-| GD-88 | 798,552 | 98,472 | 775,160 | 23,392 B (both layouts) |
-| MD-380 | 618,660 | 249,692 | 583,876 | 34,784 B, of which 17,348 B are the anti-aliased fonts panels draws (the original look keeps the bitmap ones) |
-| DB25-D PRO | 768,408 | 128,616 | 733,568 | 34,840 B, of which 17,404 B fonts |
-| DM-1701 | 710,952 | 26,328 | not built | 0 |
-| MD-UV380 | 712,284 | 24,996 | not built | 0 |
+| Radio | Default image | Panels off | Panels costs |
+|---|---:|---:|---|
+| DM-32UV | 805,312 | 785,716 | 19,596 B (full layout) |
+| GD-88 | 799,332 | 775,208 | 24,124 B (both layouts) |
+| MD-380 | 619,380 | 583,908 | 35,472 B, of which about 17.3 KB are the anti-aliased fonts panels draws (the original look keeps the bitmap ones) |
+| DB25-D PRO | 769,188 | 733,612 | 35,576 B, of which about 17.4 KB fonts |
+| DM-1701 | 711,016 | not built | 0 |
+| MD-UV380 | 712,356 | not built | 0 |
+
+Dual watch's call list in panels added about 690 B to each panels radio (632 B on the MD-380) and nothing to the
+others. Every radio has room left in its default image: the least is about 25 KB, on the DM-1701 and MD-UV380 (CI
+at `e5104c5e`).
 
 On the radios without panels, what the branch adds over upstream `main` is shared behavior only. Measured on the
 DM-1701 and MD-UV380 maximal builds (LTO, at `fa8e74cd`): about +7.6 KB, of which 2.6 KB is the bring-up branch and the
@@ -143,7 +156,8 @@ changes then recovered space without changing a frame: language tables with an o
 Default images came out 384 to 720 B smaller than before them. That was enough for the DM-1701 (1,016 B free in its
 maximal build) but left the MD-UV380's 272 B short, so its maximal build also leaves `FONT_AA` out (6,080 B; its
 default image draws no anti-aliased font): 5,816 B free. The cost is that the maximal build no longer covers `FONT_AA`
-on that board; the MD-380, DB25-D, DM-32UV and GD-88 builds still do.
+on that board; the MD-380, DB25-D, DM-32UV and GD-88 builds still do. (Margins at `e5104c5e`; the dual watch work
+added about 70 B to those two boards' images since.)
 
 ## Dependency on `feature/gd88_bringup`
 
@@ -163,9 +177,9 @@ Each one topic, each with its host tests, its gallery PNGs before and after, and
 3. **UI: the menu tree, Settings groups and names.** Changes every radio's menus; updates the task flows, press
    budgets, HIL tests, information architecture and translations.
 4. **UI: text that fits narrow screens.** Short forms and whole-word translations, the wrap fix.
-5. **UI: the panels theme, full layout,** with the DM-32UV as its first default; `uiThemeTestPanels`,
-   `uiPrototypeTest.py`.
-6. **UI: the panels theme's compact layout.** Its own gallery classes.
+5. **UI: the panels theme, full layout,** with dual watch's call list, the DM-32UV as its first default, and the
+   `240x320i10x5` and `320x240iR10-panels` gallery classes; `uiThemeTestPanels`, `uiPrototypeTest.py`.
+6. **UI: the panels theme's compact layout.** Its own three gallery classes.
 7. **Per radio:** MD-380 and DB25-D selectable, MD-UV380 kept off, and the GD-88 after the bring-up.
 8. Optionally, the UI simulator in a browser (`tests/host/uiLive.py`).
 
@@ -184,12 +198,14 @@ Each one topic, each with its host tests, its gallery PNGs before and after, and
 7. The default per radio: panels by default on the DM-32UV (and GD-88), selectable on the MD-380 and DB25-D. Agreed?
 8. On the 160 x 128 radios panels brings the anti-aliased fonts beside the bitmap ones (about 17 KB). Is that worth it,
    or should panels draw the bitmap fonts there?
-9. The gallery gains three panels classes (189 screens each) and the DM-32UV class switches to panels. Is that the
-   review load you want, and should the palette variants (which panels ignores) be skipped in those classes?
+9. The gallery gains four panels classes (189 screens each) and the DM-32UV class switches to panels. Is that the
+   review load you want? Their night pages draw the Night palette, but the light and high-contrast pages repeat the Day
+   frame, since panels has no such palettes: skip those pages in panels classes?
 10. On small screens the focused list row slides a long label sideways (never on Home). Acceptable under P5?
 
 ## Images
 
-Attached: Commercial and Amateur Home during a call, the 3x3 Menu, Settings in Night (310 x 240); Home, Quick and
-Settings > Display on the 220 x 310 screen; Home, a call and the Menu on the 158 x 127 screen; Home on the 210 x 176
-screen; and the same Home in the Original look for comparison.
+Attached: Commercial and Amateur Home during a call, the 3x3 Menu, Settings and Home in Night, and dual watch with
+its calls heard (310 x 240, the GD-88 look); Home, Quick and Settings > Display on the 220 x 310 screen; Home, a call,
+the Menu and dual watch on the small screens (158 x 127 and 160 x 128); Home on the 210 x 176 screen; and the same Home
+in the Original look for comparison.
